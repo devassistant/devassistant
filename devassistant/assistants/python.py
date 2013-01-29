@@ -1,6 +1,6 @@
 from devassistant.assistant_base import AssistantBase
 
-class PythonAssistant(object):
+class PythonAssistant(AssistantBase):
     name = 'base'
     verbose_name = 'Base'
     needs_sudo = False
