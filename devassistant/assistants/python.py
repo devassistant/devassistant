@@ -8,7 +8,7 @@ class PythonAssistant(assistant_base.AssistantBase):
     args = []
     usage_string_fmt = 'Usage of {verbose_name}:'
 
-class DjangoAssistant(assistant_base.PythonAssistant):
+class DjangoAssistant(PythonAssistant):
     name = 'django'
     verbose_name = 'Django'
 
