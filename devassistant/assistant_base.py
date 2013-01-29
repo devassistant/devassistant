@@ -15,11 +15,11 @@ class AssistantBase(object):
     def get_argument_parser(self):
         parser = argparse.ArgumentParser(usage=self.usage_string_fmt.format(verbose_name=self.verbose_name))
         for arg in self.args:
-            if not settings.SUBSETUP_STRING in arg.flags:
+            if not settings.SUBASSISTANT_STRING in arg.flags:
                 arg.add_argument_to(parser)
 
         subparsers = parser.add_subparsers()
-        for subs_cls in self.get_subsetup_classes():
+        for subs_cls in self.get_subassistant_classes():
             subs_cls().add_subparsers_to(subparsers)
 
         return parser
@@ -27,27 +27,27 @@ class AssistantBase(object):
     def add_subparsers_to(self, parser):
         p = parser.add_parser(self.name)
         for arg in self.args:
-            if not settings.SUBSETUP_STRING in arg.flags:
+            if not settings.SUBASSISTANTS_STRING in arg.flags:
                 arg.add_argument_to(p)
 
-        subs_classes = self.get_subsetup_classes()
+        subs_classes = self.get_subassistant_classes()
         if subs_classes:
             subparsers = p.add_subparsers()
             for subs_cls in subs_classes:
                 subs_cls().add_subparsers_to(subparsers)
 
-    def get_subsetup_classes(self):
-        subs_cls_list = []
+    def get_subassistant_classes(self):
+        subas_cls_list = []
 
         for arg in self.args:
-            if settings.SUBSETUP_STRING in arg.flags:
-                for k, v in arg.subsetups.items():
+            if settings.SUBASSISTANT_STRING in arg.flags:
+                for k, v in arg.subassistants.items():
                     # accept both classes or their names as str
                     if isinstance(v, str):
-                        subs_cls_list.append(eval(v))
+                        subas_cls_list.append(eval(v))
                     else:
-                        subs_cls_list.append(v)
-        return subs_cls_list
+                        subas_cls_list.append(v)
+        return subas_cls_list
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
