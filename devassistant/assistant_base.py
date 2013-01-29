@@ -49,7 +49,7 @@ class AssistantBase(object):
         return subs_cls_list
 
     def errors(self, **kwargs):
-        """Checks whether the command is doable, possibly using the arguments
+        """Checks whether the command is doable, also checking the arguments
         passed as kwargs.
         Returns:
             List of errors as strings (empty list with no errors.
