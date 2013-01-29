@@ -3,8 +3,8 @@ import argparse
 from devassistant import settings
 
 class AssistantBase(object):
-    # some of these values may be overriden by check
-    # (e.g. needs_sudo, if check finds out that required package is not present)
+    # some of these values may be overriden by prepare
+    # (e.g. needs_sudo, if prepare finds out that required package is not present)
     name = 'base'
     verbose_name = 'Base'
     needs_sudo = False
@@ -47,3 +47,21 @@ class AssistantBase(object):
                     else:
                         subs_cls_list.append(v)
         return subs_cls_list
+
+    def errors(self, **kwargs):
+        """Checks whether the command is doable, possibly using the arguments
+        passed as kwargs.
+        Returns:
+            List of errors as strings (empty list with no errors.
+        """
+        return []
+
+    def prepare(self, **kwargs):
+        """Prepares the object/gathers info needed to run (e.g. sets needs_sudo).
+        """
+        pass
+
+    def run(self, **kwargs):
+        """Actually carries out the command represented by this object.
+        """
+        pass
