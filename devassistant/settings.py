@@ -1,1 +1,1 @@
-SUBASSISTANT_STRING = 'subsetup'
+SUBASSISTANT_STRING = 'subassistant'
