@@ -12,5 +12,5 @@ class DjangoAssistant(assistant_base.PythonAssistant):
     name = 'django'
     verbose_name = 'Django'
 
-    args = []
+    args = [argument.Argument('-n', '--name')]
     usage_string_fmt = 'Usage of {verbose_name}:'
