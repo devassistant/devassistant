@@ -1,1 +1,1 @@
-SUBASSISTANT_STRING = 'subassistant'
+SUBASSISTANTS_STRING = 'subassistants'

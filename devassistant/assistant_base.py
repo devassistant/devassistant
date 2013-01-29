@@ -15,7 +15,7 @@ class AssistantBase(object):
     def get_argument_parser(self):
         parser = argparse.ArgumentParser(usage=self.usage_string_fmt.format(verbose_name=self.verbose_name))
         for arg in self.args:
-            if not settings.SUBASSISTANT_STRING in arg.flags:
+            if not settings.SUBASSISTANTS_STRING in arg.flags:
                 arg.add_argument_to(parser)
 
         subparsers = parser.add_subparsers()
@@ -40,7 +40,7 @@ class AssistantBase(object):
         subas_cls_list = []
 
         for arg in self.args:
-            if settings.SUBASSISTANT_STRING in arg.flags:
+            if settings.SUBASSISTANTS_STRING in arg.flags:
                 for k, v in arg.subassistants.items():
                     # accept both classes or their names as str
                     if isinstance(v, str):
