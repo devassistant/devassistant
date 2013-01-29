@@ -3,6 +3,8 @@ import argparse
 from devassistant import settings
 
 class AssistantBase(object):
+    """WARNING: if assigning subassistants in __init__, make sure to override it
+    in subclass, so that it doesn't get inherited!"""
     # some of these values may be overriden by prepare
     # (e.g. needs_sudo, if prepare finds out that required package is not present)
     name = 'base'
