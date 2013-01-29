@@ -42,11 +42,7 @@ class AssistantBase(object):
         for arg in self.args:
             if settings.SUBASSISTANTS_STRING in arg.flags:
                 for k, v in arg.subassistants.items():
-                    # accept both classes or their names as str
-                    if isinstance(v, str):
-                        subas_cls_list.append(eval(v))
-                    else:
-                        subas_cls_list.append(v)
+                    subas_cls_list.append(v)
         return subas_cls_list
 
     def errors(self, **kwargs):
