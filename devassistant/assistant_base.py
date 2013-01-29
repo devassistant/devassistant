@@ -20,7 +20,7 @@ class AssistantBase(object):
 
         subparsers = parser.add_subparsers()
         for subs_cls in self.get_subsetup_classes():
-            subs_cls().add_subparser_to(subparsers)
+            subs_cls().add_subparsers_to(subparsers)
 
         return parser
 
@@ -30,10 +30,11 @@ class AssistantBase(object):
             if not settings.SUBSETUP_STRING in arg.flags:
                 arg.add_argument_to(p)
 
-        if not self.is_leaf:
+        subs_classes = self.get_subsetup_classes()
+        if subs_classes:
             subparsers = p.add_subparsers()
-            for subs_cls in self.get_subsetup_classes():
-                subs_cls().add_subparser_to(subparsers)
+            for subs_cls in subs_classes:
+                subs_cls().add_subparsers_to(subparsers)
 
     def get_subsetup_classes(self):
         subs_cls_list = []
