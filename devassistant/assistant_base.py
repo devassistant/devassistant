@@ -20,46 +20,12 @@ class AssistantBase(object):
     @classmethod
     def gather_subassistant_chain(cls):
         self_inst = cls()
-        subas_chain = {}
         for subas in self_inst.get_subassistants():
-            subas_chain[self_inst] = []
+            subas_list = []
             if 'get_subassistants' in vars(cls): # only non-inherited get_subassistants
                 for subas in self_inst.get_subassistants():
-                    subas_chain[self_inst].append(subas.gather_subassistant_chain())
-        return subas_chain
-
-    def get_argument_parser(self):
-        parser = argparse.ArgumentParser(usage=self.usage_string_fmt.format(verbose_name=self.verbose_name))
-        for arg in self.args:
-            if not settings.SUBASSISTANTS_STRING in arg.flags:
-                arg.add_argument_to(parser)
-
-        subparsers = parser.add_subparsers(dest=settings.SUBASSISTANTS_STRING)
-        for subs_cls in self.get_subassistant_classes():
-            subs_cls().add_subparsers_to(subparsers)
-
-        return parser
-
-    def add_subparsers_to(self, parser):
-        p = parser.add_parser(self.name)
-        for arg in self.args:
-            if not settings.SUBASSISTANTS_STRING in arg.flags:
-                arg.add_argument_to(p)
-
-        subs_classes = self.get_subassistant_classes()
-        if subs_classes:
-            subparsers = p.add_subparsers(dest=settings.SUBASSISTANTS_STRING)
-            for subs_cls in subs_classes:
-                subs_cls().add_subparsers_to(subparsers)
-
-    def get_subassistant_classes(self):
-        subas_cls_list = []
-
-        for arg in self.args:
-            if settings.SUBASSISTANTS_STRING in arg.flags:
-                for k, v in arg.subassistants.items():
-                    subas_cls_list.append(v)
-        return subas_cls_list
+                    subas_list.append(subas.gather_subassistant_chain())
+        return (self_inst, subas_list)
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
