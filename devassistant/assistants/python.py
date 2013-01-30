@@ -3,7 +3,7 @@ from devassistant import assistant_base
 from devassistant import settings
 from devassistant.logger import logger
 
-from devassistant.command_helpers import RPMHelper, YUMHelper
+from devassistant.command_helpers import PathHelper, RPMHelper, YUMHelper
 
 class PythonAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
@@ -20,6 +20,17 @@ class DjangoAssistant(PythonAssistant):
 
     name = 'django'
     verbose_name = 'Django'
+
+    args = [argument.Argument('-n', '--name', required=True)]
+    usage_string_fmt = 'Usage of {verbose_name}:'
+
+    def errors(self, **kwargs):
+        errors = []
+        if PathHelper.path_exists(kwargs['name']):
+            msg = 'Path "{0}" exists, cannot create a new Django project there.'.format(kwargs['name'])
+            logger.error(msg)
+            errors.append(msg)
+        return errors
 
     def prepare(self, **kwargs):
         self.install_django = False
@@ -38,6 +49,3 @@ class DjangoAssistant(PythonAssistant):
             YUMHelper.install('python-django')
             django_rpm = RPMHelper.is_rpm_present('python-django')
             logger.info('Installed %s', django_rpm)
-
-    args = [argument.Argument('-n', '--name')]
-    usage_string_fmt = 'Usage of {verbose_name}:'
