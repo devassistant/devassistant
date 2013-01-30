@@ -1,3 +1,5 @@
+import plumbum
+
 from devassistant import argument
 from devassistant import assistant_base
 from devassistant import settings
@@ -24,6 +26,8 @@ class DjangoAssistant(PythonAssistant):
     args = [argument.Argument('-n', '--name', required=True)]
     usage_string_fmt = 'Usage of {verbose_name}:'
 
+    django_admin = plumbum.local['django_admin']
+
     def errors(self, **kwargs):
         errors = []
         if PathHelper.path_exists(kwargs['name']):
@@ -44,6 +48,8 @@ class DjangoAssistant(PythonAssistant):
             logger.info('Installing python-django...')
             YUMHelper.install('python-django')
             django_rpm = RPMHelper.was_rpm_installed('python-django')
+
+        self.django_admin('startproject', kwargs['name'])
 
 class FlaskAssistant(PythonAssistant):
     name = 'flask'
