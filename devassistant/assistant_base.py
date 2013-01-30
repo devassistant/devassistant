@@ -20,7 +20,7 @@ class AssistantBase(object):
             if not settings.SUBASSISTANTS_STRING in arg.flags:
                 arg.add_argument_to(parser)
 
-        subparsers = parser.add_subparsers()
+        subparsers = parser.add_subparsers(dest=settings.SUBASSISTANTS_STRING)
         for subs_cls in self.get_subassistant_classes():
             subs_cls().add_subparsers_to(subparsers)
 
@@ -34,7 +34,7 @@ class AssistantBase(object):
 
         subs_classes = self.get_subassistant_classes()
         if subs_classes:
-            subparsers = p.add_subparsers()
+            subparsers = p.add_subparsers(dest=settings.SUBASSISTANTS_STRING)
             for subs_cls in subs_classes:
                 subs_cls().add_subparsers_to(subparsers)
 
