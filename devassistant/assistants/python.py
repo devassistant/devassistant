@@ -32,7 +32,9 @@ class DjangoAssistant(PythonAssistant):
 
     def errors(self, **kwargs):
         errors = []
-        path_exists = PathHelper.error_if_path_exists(kwargs['name'])
+        self.path = os.path.abspath(os.path.expanduser(kwargs['name']))
+
+        path_exists = PathHelper.error_if_path_exists(self.path)
         if path_exists:
             errors.append(path_exists)
         return errors
@@ -50,7 +52,12 @@ class DjangoAssistant(PythonAssistant):
             YUMHelper.install('python-django')
             django_rpm = RPMHelper.was_rpm_installed('python-django')
 
-        self.django_admin('startproject', kwargs['name'])
+        project_path, project_name = os.path.split(self.path)
+
+        logger.info('Creating Django project in {0}'.format(project_path))
+        PathHelper.mkdir_p(project_path)
+        with plumbum.local.cwd(project_path):
+            self.django_admin('startproject', project_name)
 
 class FlaskAssistant(PythonAssistant):
     name = 'flask'

@@ -48,9 +48,9 @@ class PathHelper(object):
 
     @classmethod
     def error_if_path_exists(cls, path):
-        path = cls.path_exists(path)
+        path_exists = cls.path_exists(path)
         msg = None
-        if path:
+        if path_exists:
             msg = 'Path "{0}" exists.'.format(path.strip())
             logger.error(msg)
         return msg
