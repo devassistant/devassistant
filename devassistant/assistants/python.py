@@ -34,12 +34,8 @@ class DjangoAssistant(PythonAssistant):
 
     def prepare(self, **kwargs):
         self.install_django = False
-        logger.info('Checking for presence of python-django...')
         django_rpm = RPMHelper.is_rpm_present('python-django')
-        if django_rpm:
-            logger.info('Found %s', django_rpm)
-        else:
-            logger.info('Not found')
+        if not django_rpm:
             self.install_django = True
             self.needs_sudo = True
 
@@ -47,8 +43,7 @@ class DjangoAssistant(PythonAssistant):
         if self.install_django:
             logger.info('Installing python-django...')
             YUMHelper.install('python-django')
-            django_rpm = RPMHelper.is_rpm_present('python-django')
-            logger.info('Installed %s', django_rpm)
+            django_rpm = RPMHelper.was_rpm_installed('python-django')
 
 class FlaskAssistant(PythonAssistant):
     name = 'flask'

@@ -1,15 +1,36 @@
 import plumbum
 from plumbum.cmd import ls, sudo
 
+from devassistant.logger import logger
+
 class RPMHelper(object):
     rpm = plumbum.local['rpm']
 
     @classmethod
-    def is_rpm_present(cls, rpm_name):
+    def rpm_q(cls, rpm_name):
         try:
             return cls.rpm('-q', rpm_name)
         except plumbum.ProcessExecutionError:
             return False
+
+    @classmethod
+    def is_rpm_present(cls, rpm_name):
+        logger.info('Checking for presence of {0}...'.format(rpm_name))
+
+        found_rpm = cls.rpm_q(rpm_name)
+        if found_rpm:
+            logger.info('Found %s', found_rpm)
+        else:
+            logger.info('Not found')
+        return found_rpm
+
+    @classmethod
+    def was_rpm_installed(cls, rpm_name):
+        # TODO: handle failure
+        found_rpm = cls.rpm_q(rpm_name)
+        logger.info('Installed %s', found_rpm)
+        return found_rpm
+
 
 class YUMHelper(object):
     yum = plumbum.local['yum']
