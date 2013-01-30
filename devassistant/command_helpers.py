@@ -44,6 +44,15 @@ class YUMHelper(object):
 
 class PathHelper(object):
     @classmethod
+    def error_if_path_exists(cls, path):
+        path = cls.path_exists(path)
+        msg = None
+        if path:
+            msg = 'Path "{0}" exists.'.format(path.strip())
+            logger.error(msg)
+        return msg
+
+    @classmethod
     def path_exists(cls, path):
         try:
             return ls(path)

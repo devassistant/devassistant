@@ -30,10 +30,9 @@ class DjangoAssistant(PythonAssistant):
 
     def errors(self, **kwargs):
         errors = []
-        if PathHelper.path_exists(kwargs['name']):
-            msg = 'Path "{0}" exists, cannot create a new Django project there.'.format(kwargs['name'])
-            logger.error(msg)
-            errors.append(msg)
+        path_exists = PathHelper.error_if_path_exists(kwargs['name'])
+        if path_exists:
+            errors.append(path_exists)
         return errors
 
     def prepare(self, **kwargs):
@@ -60,8 +59,7 @@ class FlaskAssistant(PythonAssistant):
 
     def errors(self, **kwargs):
         errors = []
-        if PathHelper.path_exists(kwargs['name']):
-            msg = 'Path "{0}" exists, cannot create a new Flask project there.'.format(kwargs['name'])
-            logger.error(msg)
-            errors.append(msg)
+        path_exists = PathHelper.error_if_path_exists(kwargs['name'])
+        if path_exists:
+            errors.append(path_exists)
         return errors
