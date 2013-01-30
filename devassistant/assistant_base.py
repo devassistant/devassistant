@@ -29,9 +29,11 @@ class AssistantBase(object):
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
-        passed as kwargs.
+        passed as kwargs. These are supposed to be non-recoverable problems,
+        that will abort the whole operation.
+
         Returns:
-            List of errors as strings (empty list with no errors.
+            List of errors as strings (empty list with no errors).
         """
         return []
 
