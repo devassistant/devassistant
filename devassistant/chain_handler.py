@@ -29,3 +29,25 @@ class ChainHandler(object):
             subparsers = p.add_subparsers(dest=settings.SUBASSISTANTS_STRING)
             for subas_tuple in assistant_tuple[1]:
                 self.add_subparsers_to(subas_tuple, subparsers)
+
+    def get_path_to(self, name):
+        return self._search_assistant_list(name, [self.chain])
+
+    def _search_assistant_list(self, name, assistant_list):
+        """Simple depth first search of assistant_list chain.
+        Args:
+            name: name of assistant to search for
+            assistant_list: tuple containing assistant and list of its subassistants
+        Returns:
+            list representing the path from first assistant to assistant with given name
+            or None if name is not found
+        """
+        for assistant, subas_list in assistant_list:
+            if assistant.name == name:
+                return [assistant]
+            else:
+                search = self._search_assistant_list(name, subas_list)
+                if search:
+                    result = [assistant]
+                    result.extend(search)
+                    return result
