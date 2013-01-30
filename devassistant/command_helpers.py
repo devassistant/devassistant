@@ -4,12 +4,12 @@ from plumbum.cmd import ls, sudo
 from devassistant.logger import logger
 
 class RPMHelper(object):
-    rpm = plumbum.local['rpm']
+    c_rpm = plumbum.local['rpm']
 
     @classmethod
     def rpm_q(cls, rpm_name):
         try:
-            return cls.rpm('-q', rpm_name)
+            return cls.c_rpm('-q', rpm_name)
         except plumbum.ProcessExecutionError:
             return False
 
@@ -33,18 +33,18 @@ class RPMHelper(object):
 
 
 class YUMHelper(object):
-    yum = plumbum.local['yum']
+    c_yum = plumbum.local['yum']
 
     @classmethod
     def install(cls, *args):
-        cmd = cls.yum['-y', 'install'] #TODO: do we really want to assume yes?
+        cmd = cls.c_yum['-y', 'install'] #TODO: do we really want to assume yes?
         for arg in args:
             cmd = cmd[arg]
         sudo(cmd)
 
 class PathHelper(object):
-    cp = plumbum.local['cp']
-    mkdir = plumbum.local['mkdir']
+    c_cp = plumbum.local['cp']
+    c_mkdir = plumbum.local['mkdir']
 
     @classmethod
     def error_if_path_exists(cls, path):
@@ -63,18 +63,16 @@ class PathHelper(object):
             return False
 
     @classmethod
-    def make_dir(cls, path):
+    def mkdir_p(cls, path):
         try:
-            return cls.mkdir('-p', path)
+            return cls.c_mkdir('-p', path)
         except plumbum.ProcessExecutionError as e:
             print e
             return False
 
     @classmethod
-    def copy(cls, src, dest):
-        print src
-        print dest
+    def cp(cls, src, dest):
         try:
-            return cls.cp(src, dest)
+            return cls.c_cp(src, dest)
         except plumbum.ProcessExecutionError:
             return False
