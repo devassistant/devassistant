@@ -7,7 +7,7 @@ class RPMHelper(object):
     @classmethod
     def is_rpm_present(cls, rpm_name):
         try:
-            cls.rpm['-q', rpm_name]()
+            cls.rpm('-q', rpm_name)
             return True
         except plumbum.ProcessExecutionError:
             return False
@@ -17,4 +17,7 @@ class YUMHelper(object):
 
     @classmethod
     def install(cls, *args):
-        sudo[cls.yum['install', args]]()
+        cmd = cls.yum['-y', 'install'] #TODO: do we really want to assume yes?
+        for arg in args:
+            cmd = cmd[arg]
+        sudo(cmd)
