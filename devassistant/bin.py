@@ -6,13 +6,14 @@ from devassistant import settings
 from devassistant.assistants import python
 
 class MainAssistant(assistant_base.AssistantBase):
+    def get_subassistants(self):
+        return [python.PythonAssistant]
+
     name = 'main'
     verbose_name = 'Main'
 
     usage_string_fmt = 'Usage of {verbose_name}'
 
-    args = [argument.Argument(settings.SUBASSISTANTS_STRING,
-                              subassistants={python.PythonAssistant.name: python.PythonAssistant})]
-
 def main():
-    parsed_args = MainAssistant().get_argument_parser().parse_args()
+    #parsed_args = MainAssistant().get_argument_parser().parse_args()
+    print MainAssistant.gather_subassistant_chain()

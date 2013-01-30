@@ -3,9 +3,8 @@ from devassistant import assistant_base
 from devassistant import settings
 
 class PythonAssistant(assistant_base.AssistantBase):
-    def __init__(self):
-        self.args = [argument.Argument(settings.SUBASSISTANTS_STRING,
-                                       subassistants={'django': DjangoAssistant})]
+    def get_subassistants(self):
+        return [DjangoAssistant]
 
     name = 'python'
     verbose_name = 'Python'

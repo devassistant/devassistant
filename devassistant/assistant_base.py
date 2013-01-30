@@ -14,6 +14,20 @@ class AssistantBase(object):
     args = []
     usage_string_fmt = 'Usage of {verbose_name}:'
 
+    def get_subassistants(self):
+        return []
+
+    @classmethod
+    def gather_subassistant_chain(cls):
+        self_inst = cls()
+        subas_chain = {}
+        for subas in self_inst.get_subassistants():
+            subas_chain[self_inst] = []
+            if 'get_subassistants' in vars(cls): # only non-inherited get_subassistants
+                for subas in self_inst.get_subassistants():
+                    subas_chain[self_inst].append(subas.gather_subassistant_chain())
+        return subas_chain
+
     def get_argument_parser(self):
         parser = argparse.ArgumentParser(usage=self.usage_string_fmt.format(verbose_name=self.verbose_name))
         for arg in self.args:
