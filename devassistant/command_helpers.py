@@ -7,8 +7,7 @@ class RPMHelper(object):
     @classmethod
     def is_rpm_present(cls, rpm_name):
         try:
-            cls.rpm('-q', rpm_name)
-            return True
+            return cls.rpm('-q', rpm_name)
         except plumbum.ProcessExecutionError:
             return False
 
