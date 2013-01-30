@@ -43,6 +43,9 @@ class YUMHelper(object):
         sudo(cmd)
 
 class PathHelper(object):
+    cp = plumbum.local['cp']
+    mkdir = plumbum.local['mkdir']
+
     @classmethod
     def error_if_path_exists(cls, path):
         path = cls.path_exists(path)
@@ -56,5 +59,22 @@ class PathHelper(object):
     def path_exists(cls, path):
         try:
             return ls(path)
+        except plumbum.ProcessExecutionError:
+            return False
+
+    @classmethod
+    def make_dir(cls, path):
+        try:
+            return cls.mkdir('-p', path)
+        except plumbum.ProcessExecutionError as e:
+            print e
+            return False
+
+    @classmethod
+    def copy(cls, src, dest):
+        print src
+        print dest
+        try:
+            return cls.cp(src, dest)
         except plumbum.ProcessExecutionError:
             return False

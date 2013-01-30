@@ -1,3 +1,5 @@
+import os
+
 import plumbum
 
 from devassistant import argument
@@ -81,4 +83,13 @@ class FlaskAssistant(PythonAssistant):
             for pkg in self.to_install:
                 RPMHelper.was_rpm_installed(pkg)
 
-        logger.info('Kickstarting a Flask project under {0}'.format(kwargs['name'])
+        logger.info('Kickstarting a Flask project under {0}'.format(kwargs['name']))
+        logger.info('Creating directory structure...')
+        PathHelper.make_dir(kwargs['name'])
+        PathHelper.make_dir('{0}/static'.format(kwargs['name']))
+        PathHelper.make_dir('{0}/templates'.format(kwargs['name']))
+
+        logger.info('Creating initial project files...')
+        # the flask template doesn't in fact need rendering, so just copy it
+        PathHelper.copy(os.path.join(os.path.dirname(__file__), '..', 'templates', 'python', 'flask'),
+                        os.path.join(kwargs['name'], '__init__.py'))
