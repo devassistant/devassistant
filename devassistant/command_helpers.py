@@ -1,5 +1,5 @@
 import plumbum
-from plumbum.cmd import sudo
+from plumbum.cmd import ls, sudo
 
 class RPMHelper(object):
     rpm = plumbum.local['rpm']
@@ -20,3 +20,11 @@ class YUMHelper(object):
         for arg in args:
             cmd = cmd[arg]
         sudo(cmd)
+
+class PathHelper(object):
+    @classmethod
+    def path_exists(cls, path):
+        try:
+            return ls(path)
+        except plumbum.ProcessExecutionError:
+            return False
