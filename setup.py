@@ -21,7 +21,7 @@ setup(
     license = 'GPLv2+',
     packages = ['devassistant', ],
     entry_points = {'console_scripts':['devassistant = devassistant.bin:main']},
-    install_requires=[],
+    install_requires=['plumbum'],
     setup_requires = [],
     classifiers = ['Development Status :: 3 - Alpha',
                    'Environment :: Console',
