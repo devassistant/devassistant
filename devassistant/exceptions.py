@@ -1,5 +1,8 @@
-class PrepareException(BaseException):
+class ExecutionException(BaseException):
     pass
 
-class RunException(BaseException):
+class PrepareException(ExecutionException):
+    pass
+
+class RunException(ExecutionException):
     pass
