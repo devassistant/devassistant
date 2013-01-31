@@ -23,7 +23,10 @@ class DjangoAssistant(PythonAssistant):
     name = 'django'
     verbose_name = 'Django'
 
-    args = [argument.Argument('-n', '--name', required=True)]
+    args = [argument.Argument('-n', '--name',
+                              required=True,
+                              help='Name of the project (can also be full or relative path)')]
+    usage_string_fmt = '{verbose_name} Assistant lets you create a Django project.'
 
     django_admin = plumbum.local['django_admin']
 
@@ -60,7 +63,9 @@ class FlaskAssistant(PythonAssistant):
     name = 'flask'
     verbose_name = 'Flask'
 
-    args = [argument.Argument('-n', '--name', required=True)]
+    args = [argument.Argument('-n', '--name',
+                              required=True,
+                              help='Name of the project (can also be full or relative path)')]
 
     def errors(self, **kwargs):
         errors = []
