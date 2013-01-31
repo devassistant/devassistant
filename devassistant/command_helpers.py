@@ -67,7 +67,6 @@ class PathHelper(object):
         try:
             return cls.c_mkdir('-p', path)
         except plumbum.ProcessExecutionError as e:
-            print e
             return False
 
     @classmethod

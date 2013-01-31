@@ -57,6 +57,7 @@ class AssistantBase(object):
         """Checks whether the command is doable, also checking the arguments
         passed as kwargs. These are supposed to be non-recoverable problems,
         that will abort the whole operation.
+        Errors should not be logged, only returned.
 
         Returns:
             List of errors as strings (empty list with no errors).
