@@ -12,4 +12,4 @@ class MainAssistant(assistant_base.AssistantBase):
     verbose_name = 'Main'
 
 def main():
-    cli.CliRunner.run_assistant(MainAssistant)
+    cli.CliRunner.run_assistant(MainAssistant())

@@ -21,15 +21,37 @@ class AssistantBase(object):
     def get_subassistants(self):
         return []
 
-    @classmethod
-    def gather_subassistant_chain(cls):
-        self_inst = cls()
-        for subas in self_inst.get_subassistants():
-            subas_list = []
-            if 'get_subassistants' in vars(cls): # only non-inherited get_subassistants
-                for subas in self_inst.get_subassistants():
-                    subas_list.append(subas.gather_subassistant_chain())
-        return (self_inst, subas_list)
+    def get_subassistant_chain(self):
+        if not '_chain' in dir(self):
+            for subas in self.get_subassistants():
+                subas_list = []
+                if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
+                    for subas in self.get_subassistants():
+                        subas_list.append(subas().get_subassistant_chain())
+            self._chain = (self, subas_list)
+        return self._chain
+
+    def get_subassistant_path(self, name):
+        return self._search_assistant_list(name, [self._chain])
+
+    def _search_assistant_list(self, name, assistant_list):
+        """Simple depth first search of assistant_list chain.
+        Args:
+            name: name of assistant to search for
+            assistant_list: tuple containing assistant and list of its subassistants
+        Returns:
+            list representing the path from first assistant to assistant with given name
+            or None if name is not found
+        """
+        for assistant, subas_list in assistant_list:
+            if assistant.name == name:
+                return [assistant]
+            else:
+                search = self._search_assistant_list(name, subas_list)
+                if search:
+                    result = [assistant]
+                    result.extend(search)
+                    return result
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
