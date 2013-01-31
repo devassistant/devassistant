@@ -17,15 +17,13 @@ class PythonAssistant(assistant_base.AssistantBase):
     verbose_name = 'Python'
 
 class DjangoAssistant(PythonAssistant):
-    def __init__(self):
-        pass
-
     name = 'django'
     verbose_name = 'Django'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
                               help='Name of the project (can also be full or relative path)')]
+
     usage_string_fmt = '{verbose_name} Assistant lets you create a Django project.'
 
     django_admin = plumbum.local['django_admin']
