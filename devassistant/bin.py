@@ -14,8 +14,6 @@ class MainAssistant(assistant_base.AssistantBase):
     name = 'main'
     verbose_name = 'Main'
 
-    usage_string_fmt = 'Usage of {verbose_name}'
-
 def main():
     ch = chain_handler.ChainHandler(MainAssistant.gather_subassistant_chain())
     parsed_args = ch.get_argument_parser().parse_args()

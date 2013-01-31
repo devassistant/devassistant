@@ -12,7 +12,11 @@ class AssistantBase(object):
     needs_sudo = False
 
     args = []
-    usage_string_fmt = 'Usage of {verbose_name}:'
+    usage_string_fmt = '{verbose_name} Assistant parameters:'
+
+    @property
+    def usage(self):
+        return self.usage_string_fmt.format(verbose_name=self.verbose_name)
 
     def get_subassistants(self):
         return []
