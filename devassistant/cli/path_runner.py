@@ -1,5 +1,4 @@
 from devassistant import exceptions
-from devassistant.logger import logger
 
 class PathRunner(object):
     def __init__(self, path, parsed_args):

@@ -1,7 +1,3 @@
-import argparse
-
-from devassistant import settings
-
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
     in subclass, so that it doesn't get inherited!"""

@@ -4,7 +4,6 @@ import plumbum
 
 from devassistant import argument
 from devassistant import assistant_base
-from devassistant import settings
 from devassistant.logger import logger
 
 from devassistant.command_helpers import PathHelper, RPMHelper, YUMHelper
