@@ -1,3 +1,5 @@
+from devassistant import settings
+
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
     in subclass, so that it doesn't get inherited!"""
@@ -27,27 +29,26 @@ class AssistantBase(object):
             self._chain = (self, subas_list)
         return self._chain
 
-    def get_subassistant_path(self, name):
-        return self._search_assistant_list(name, [self._chain])
-
-    def _search_assistant_list(self, name, assistant_list):
-        """Simple depth first search of assistant_list chain.
+    def get_selected_subassistant_path(self, args_dict):
+        """Recursively searches self._chain - has format of (Assistant: [list_of_subassistants]) -
+        for specific path from first to last selected subassistants.
         Args:
-            name: name of assistant to search for
-            assistant_list: tuple containing assistant and list of its subassistants
+            args_dict: dictionary containing names of the given assistants in form of
+            {subassistant_0: 'name', subassistant_1: 'another_name', ...}
         Returns:
-            list representing the path from first assistant to assistant with given name
-            or None if name is not found
+            List of subassistants objects from chain sorted from first to last.
         """
-        for assistant, subas_list in assistant_list:
-            if assistant.name == name:
-                return [assistant]
-            else:
-                search = self._search_assistant_list(name, subas_list)
-                if search:
-                    result = [assistant]
-                    result.extend(search)
-                    return result
+        path = [self]
+        currently_searching = self._chain[1]
+        # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
+        while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in args_dict:
+            for sa, subas_list in currently_searching:
+                if sa.name == args_dict[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
+                    currently_searching = subas_list
+                    path.append(sa)
+                    break # sorry if you shed a tear ;)
+
+        return path
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
