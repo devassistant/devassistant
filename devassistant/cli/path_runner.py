@@ -16,14 +16,14 @@ class PathRunner(object):
                 errors.extend(a.errors(**vars(self.parsed_args)))
         return errors
 
-    def _run_path_prepare(self):
-        """Runs *Assistant.prepare methods.
+    def _run_path_dependencies(self):
+        """Runs *Assistant.dependencies methods.
         Raises:
-            devassistant.exceptions.PrepareException with a cause if something goes wrong
+            devassistant.exceptions.DependencyException with a cause if something goes wrong
         """
         for a in self.path:
-            if 'prepare' in vars(a.__class__):
-                a.prepare(**vars(self.parsed_args))
+            if 'dependencies' in vars(a.__class__):
+                a.dependencies(**vars(self.parsed_args))
 
     def _run_path_run(self):
         """Runs *Assistant.run methods.
@@ -35,12 +35,12 @@ class PathRunner(object):
                 a.run(**vars(self.parsed_args))
 
     def run(self):
-        """Runs all errors, prepare and run methods of all *Assistant objects in self.path.
+        """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.
         Raises:
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
         errors = self._run_path_errors()
         if errors:
             raise exceptions.ExecutionException(errors)
-        self._run_path_prepare()
+        self._run_path_dependencies()
         self._run_path_run()

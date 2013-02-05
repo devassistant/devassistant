@@ -61,12 +61,11 @@ class AssistantBase(object):
         """
         return []
 
-    def prepare(self, **kwargs):
-        """Prepares the object/gathers info needed to run (e.g. sets needs_sudo).
-        Errors should not be logged, but only raised, they shall be logged on higher level.
+    def dependencies(self, **kwargs):
+        """Installs dependencies for this assistant.
 
         Raises:
-            devassistant.exceptions.PrepareException containing the error message
+            devassistant.exceptions.DependencyException containing the error message
         """
         pass
 

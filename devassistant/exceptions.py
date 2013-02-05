@@ -1,7 +1,7 @@
 class ExecutionException(BaseException):
     pass
 
-class PrepareException(ExecutionException):
+class DependencyException(ExecutionException):
     pass
 
 class RunException(ExecutionException):
