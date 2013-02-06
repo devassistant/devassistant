@@ -1,0 +1,25 @@
+c:
+  fullname: C Language Tool
+  subassistants: [foo, bar]
+
+  dependencies:
+    rpm: [glibc]
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+  files:
+    clientc: &clientc
+      source: templates/c/client.c
+    serverc: &serverc
+      source: templates/c/server.c
+
+  fail_if:
+  - cl: ls /foo/bar
+
+  run:
+  - cl: mkdir -p $name
+  - cl: cp &clientc $name
