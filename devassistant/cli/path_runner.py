@@ -1,4 +1,5 @@
 from devassistant import exceptions
+from devassistant.assistants import yaml_assistant
 
 class PathRunner(object):
     def __init__(self, path, parsed_args):
@@ -12,7 +13,7 @@ class PathRunner(object):
         """
         errors = []
         for a in self.path:
-            if 'errors' in vars(a.__class__):
+            if 'errors' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 errors.extend(a.errors(**vars(self.parsed_args)))
         return errors
 
@@ -22,7 +23,7 @@ class PathRunner(object):
             devassistant.exceptions.DependencyException with a cause if something goes wrong
         """
         for a in self.path:
-            if 'dependencies' in vars(a.__class__):
+            if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 a.dependencies(**vars(self.parsed_args))
 
     def _run_path_run(self):
@@ -31,7 +32,7 @@ class PathRunner(object):
             devassistant.exceptions.RunException with a cause if something goes wrong
         """
         for a in self.path:
-            if 'run' in vars(a.__class__):
+            if 'run' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 a.run(**vars(self.parsed_args))
 
     def run(self):
