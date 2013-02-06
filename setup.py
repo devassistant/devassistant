@@ -20,7 +20,7 @@ setup(
     url = 'https://github.com/bkabrda/devassistant',
     license = 'GPLv2+',
     packages = ['devassistant', 'devassistant.assistants', 'devassistant.cli'],
-    package_data = {'devassistant': ['templates/*']},
+    include_package_data = True,
     entry_points = {'console_scripts':['devassistant = devassistant.bin:main']},
     install_requires=['plumbum', 'PyYaml'],
     setup_requires = [],
