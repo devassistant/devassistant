@@ -4,6 +4,7 @@ import plumbum
 
 from devassistant import assistant_base
 from devassistant import exceptions
+from devassistant import settings
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 from devassistant.logger import logger
 
@@ -50,7 +51,18 @@ class YamlAssistant(assistant_base.AssistantBase):
             YUMHelper.install(*to_install)
 
     def run(self, **kwargs):
-        for command_dict in self._run:
+        if not self._invoke_if_subassistant_used and not self.is_run_as_leaf(**kwargs):
+            return
+
+        # determine which run* section to invoke
+        to_run = self._run
+        for method in dir(self):
+            if method.startswith('_run_'):
+                parameter = method.split('_', 2)[-1]
+                if kwargs.get(parameter, False):
+                    to_run = getattr(self, method)
+
+        for command_dict in to_run:
             for comm_type, comm in command_dict.items():
                 if comm_type == 'cl':
                     c = self.format_command(comm, **kwargs)
@@ -84,3 +96,12 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         # substitute cli arguments for their values
         return string.Template(new_comm).safe_substitute(kwargs)
+
+    def is_run_as_leaf(self, **kwargs):
+        """Returns True if this assistant was run as last in path, False otherwise."""
+        for k, v in kwargs.items():
+            if k.startswith(settings.SUBASSISTANT_PREFIX) and v == self.name:
+                self_num = int(k.split('_')[-1]) # self_num is after last underscore
+                if settings.SUBASSISTANT_N_STRING.format(self_num + 1) in kwargs:
+                    return False
+        return True

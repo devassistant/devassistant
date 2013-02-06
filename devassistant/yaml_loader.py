@@ -58,10 +58,14 @@ class YamlLoader(object):
             CustomYamlAssistant.args.append(arg)
 
         # arguments that will be handled by YamlAssistant methods
+        CustomYamlAssistant._invoke_if_subassistant_used = attrs.get('invoke_if_subassistant_used', True)
         CustomYamlAssistant._dependencies = attrs.get('dependencies', {})
         CustomYamlAssistant._fail_if = attrs.get('fail_if', [])
         CustomYamlAssistant._files = attrs.get('files', {})
-        CustomYamlAssistant._run = attrs.get('run', [])
         CustomYamlAssistant._subassistants = attrs.get('subassistants', [])
+        # handle more run* sections
+        for k, v in attrs.items():
+            if k.startswith('run'):
+                setattr(CustomYamlAssistant, '_{0}'.format(k), v)
 
         return CustomYamlAssistant
