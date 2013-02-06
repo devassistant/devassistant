@@ -22,7 +22,7 @@ setup(
     packages = ['devassistant', 'devassistant.assistants', 'devassistant.cli'],
     package_data = {'devassistant': ['templates/*']},
     entry_points = {'console_scripts':['devassistant = devassistant.bin:main']},
-    install_requires=['plumbum'],
+    install_requires=['plumbum', 'PyYaml'],
     setup_requires = [],
     classifiers = ['Development Status :: 3 - Alpha',
                    'Environment :: Console',
