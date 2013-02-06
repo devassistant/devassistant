@@ -6,23 +6,23 @@ class AssistantBase(object):
     # some of these values may be overriden by prepare
     # (e.g. needs_sudo, if prepare finds out that required package is not present)
     name = 'base'
-    verbose_name = 'Base'
+    fullname = 'Base'
     needs_sudo = False
 
     args = []
-    usage_string_fmt = '{verbose_name} Assistant parameters:'
+    usage_string_fmt = '{fullname} Assistant parameters:'
 
     @property
     def usage(self):
-        return self.usage_string_fmt.format(verbose_name=self.verbose_name)
+        return self.usage_string_fmt.format(fullname=self.fullname)
 
     def get_subassistants(self):
         return []
 
     def get_subassistant_chain(self):
         if not '_chain' in dir(self):
+            subas_list = []
             for subas in self.get_subassistants():
-                subas_list = []
                 if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
                     for subas in self.get_subassistants():
                         subas_list.append(subas().get_subassistant_chain())

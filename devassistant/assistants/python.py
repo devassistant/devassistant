@@ -13,17 +13,17 @@ class PythonAssistant(assistant_base.AssistantBase):
         return [DjangoAssistant, FlaskAssistant]
 
     name = 'python'
-    verbose_name = 'Python'
+    fullname = 'Python'
 
 class DjangoAssistant(PythonAssistant):
     name = 'django'
-    verbose_name = 'Django'
+    fullname = 'Django'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
                               help='Name of the project (can also be full or relative path)')]
 
-    usage_string_fmt = '{verbose_name} Assistant lets you create a Django project.'
+    usage_string_fmt = '{fullname} Assistant lets you create a Django project.'
 
     def errors(self, **kwargs):
         errors = []
@@ -54,7 +54,7 @@ class DjangoAssistant(PythonAssistant):
 
 class FlaskAssistant(PythonAssistant):
     name = 'flask'
-    verbose_name = 'Flask'
+    fullname = 'Flask'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
