@@ -3,6 +3,16 @@ from plumbum.cmd import ls, sudo
 
 from devassistant.logger import logger
 
+class ClHelper(object):
+    @classmethod
+    def run_command(cls, cmd_str):
+        """Runs a command from string, e.g. "cp foo bar" """
+        split_string = cmd_str.split()
+        cmd = plumbum.local[split_string[0]]
+        for i in split_string[1:]:
+            cmd = cmd[i]
+        cmd()
+
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
 

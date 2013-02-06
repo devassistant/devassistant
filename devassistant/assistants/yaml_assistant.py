@@ -4,7 +4,7 @@ import plumbum
 
 from devassistant import assistant_base
 from devassistant import exceptions
-from devassistant.command_helpers import RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 from devassistant.logger import logger
 
 class YamlAssistant(assistant_base.AssistantBase):
@@ -21,7 +21,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                 if action_type == 'cl':
                     try:
                         a = self.format_command(action, **kwargs)
-                        result = plumbum.local(a)
+                        result = ClHelper.run_command(a)
                         # command succeeded -> error
                         errors.append('Failed: {0}'.format(result))
                     except plumbum.ProcessExecutionError:
@@ -34,7 +34,7 @@ class YamlAssistant(assistant_base.AssistantBase):
     def dependencies(self, **kwargs):
         to_install = []
         # rpm dependencies (can't handle anything else yet)
-        for dep_type, dep_list in self._dependencies:
+        for dep_type, dep_list in self._dependencies.items():
             if dep_type == 'rpm':
                 for dep in dep_list:
                     if dep.startswith('@'):
@@ -55,26 +55,32 @@ class YamlAssistant(assistant_base.AssistantBase):
                 if comm_type == 'cl':
                     c = self.format_command(comm, **kwargs)
                     try:
-                        result = plumbum.local(c)
+                        result = ClHelper.run_command(c)
                     except plumbum.ProcessExecutionError as e:
                         raise exceptions.RunException(e)
                 else:
                     logger.warning('Unkown command type {0}, skipping.'.format(comm_type))
 
     def format_command(self, comm, **kwargs):
-        new_comm = comm
-        if isinstance(comm, list):
-            # a list, usually including one or more dictionaries, where one or more
-            # arguments include something from _files (value, not reference)
-            parts_list = []
-            for c in comm:
-                if isinstance(c, dict):
-                    # TODO: raise a proper error if c['source'] is not present
-                    new_comm.append(c['source'])
-                else:
-                    parts_list.append(c)
-            new_comm = ' '.join(parts_list)
+        new_comm = []
+        if not isinstance(comm, list):
+            parts_list = comm.split()
+        else:
+            parts_list = comm
+
+        # replace parts that match something from _files (can be either name
+        # if "&" didn't expand in yaml; or the dict if "&" did expand)
+        for c in parts_list:
+            if isinstance(c, dict):
+                # TODO: raise a proper error if c['source'] is not present
+                new_comm.append(c['source'])
+            elif c.startswith('&'):
+                c = c[1:].strip('{}')
+                if c in self._files:
+                    new_comm.append(self._files[c]['source'])
+            else:
+                new_comm.append(c)
+        new_comm = ' '.join(new_comm)
 
         # substitute cli arguments for their values
-
         return string.Template(new_comm).safe_substitute(kwargs)
