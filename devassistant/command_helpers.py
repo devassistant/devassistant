@@ -14,7 +14,7 @@ class RPMHelper(object):
             return False
 
     @classmethod
-    def is_rpm_present(cls, rpm_name):
+    def is_rpm_installed(cls, rpm_name):
         logger.info('Checking for presence of {0}...'.format(rpm_name))
 
         found_rpm = cls.rpm_q(rpm_name)
@@ -42,6 +42,19 @@ class YUMHelper(object):
         for arg in args:
             cmd = cmd[arg]
         sudo(cmd)
+
+    @classmethod
+    def is_group_installed(cls, group):
+        cmd = cls.c_yum['group', 'list', '"{0}"'.format(group)]
+        logger.info('Checking for presence of group {0}...'.format(group))
+
+        output = cmd()
+        if 'Installed Groups' in output:
+            logger.info('Found %s', group)
+            return True
+
+        logger.info('Not found')
+        return False
 
 class PathHelper(object):
     c_cp = plumbum.local['cp']

@@ -35,7 +35,7 @@ class DjangoAssistant(PythonAssistant):
         return errors
 
     def dependencies(self, **kwargs):
-        django_rpm = RPMHelper.is_rpm_present('python-django')
+        django_rpm = RPMHelper.is_rpm_installed('python-django')
         if not django_rpm:
             YUMHelper.install('python-django')
         RPMHelper.was_rpm_installed('python-django')
@@ -72,7 +72,7 @@ class FlaskAssistant(PythonAssistant):
 
         # TODO: this should be substituted by a yum group
         for pkg in ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']:
-            if not RPMHelper.is_rpm_present(pkg):
+            if not RPMHelper.is_rpm_installed(pkg):
                 to_install = []
 
         if to_install:
