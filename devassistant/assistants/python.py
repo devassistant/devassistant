@@ -38,7 +38,7 @@ class DjangoAssistant(PythonAssistant):
         django_rpm = RPMHelper.is_rpm_installed('python-django')
         if not django_rpm:
             YUMHelper.install('python-django')
-        RPMHelper.was_rpm_installed('python-django')
+            RPMHelper.was_rpm_installed('python-django')
 
     def run(self, **kwargs):
         django_admin = plumbum.local['django_admin']
