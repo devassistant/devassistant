@@ -22,10 +22,9 @@ class AssistantBase(object):
     def get_subassistant_chain(self):
         if not '_chain' in dir(self):
             subas_list = []
-            for subas in self.get_subassistants():
-                if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
-                    for subas in self.get_subassistants():
-                        subas_list.append(subas().get_subassistant_chain())
+            if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
+                for subas in self.get_subassistants():
+                    subas_list.append(subas().get_subassistant_chain())
             self._chain = (self, subas_list)
         return self._chain
 
