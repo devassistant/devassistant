@@ -14,4 +14,4 @@ class CliRunner(object):
         try:
             pr.run()
         except exceptions.ExecutionException as ex:
-            logger.logger.error(ex)
+            logger.logger.error(*ex.args)
