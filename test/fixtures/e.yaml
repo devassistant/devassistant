@@ -1,0 +1,13 @@
+e:
+  fullname: E Language Tool
+
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+
+  run:
+  - cl: false

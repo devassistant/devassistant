@@ -1,0 +1,15 @@
+f:
+  fullname: F Language Tool
+
+  dependencies:
+    rpm: [foobarbaz]
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+
+  fail_if:
+  - cl: false

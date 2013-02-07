@@ -1,0 +1,21 @@
+c:
+  fullname: C Language Tool
+  subassistants: [d, e]
+
+  dependencies:
+    rpm: [gcc]
+
+  files:
+    clientc: &clientc
+      source: templates/c/client.c
+    serverc: &serverc
+      source: templates/c/server.c
+
+  fail_if:
+  - cl: true
+
+  invoke_if_subassistant_used:
+    false
+
+  run:
+  - cl: false
