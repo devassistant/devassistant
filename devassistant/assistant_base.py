@@ -40,7 +40,8 @@ class AssistantBase(object):
         path = [self]
         currently_searching = self.get_subassistant_chain()[1]
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
-        while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs:
+        while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs and \
+              kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
             for sa, subas_list in currently_searching:
                 if sa.name == kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
                     currently_searching = subas_list
