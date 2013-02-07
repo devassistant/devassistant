@@ -38,7 +38,7 @@ class AssistantBase(object):
             List of subassistants objects from chain sorted from first to last.
         """
         path = [self]
-        currently_searching = self._chain[1]
+        currently_searching = self.get_subassistant_chain()[1]
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
         while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in args_dict:
             for sa, subas_list in currently_searching:
