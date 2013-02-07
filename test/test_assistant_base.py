@@ -63,6 +63,12 @@ class TestAssistantBase(object):
         # returns tuple of assistant with given name from list of tuples (part of chain)
         return filter(lambda x: x[0].name == name, sa_list)[0]
 
+    def args_dict_from_names(self, names):
+        args_dict = {}
+        for i, n in enumerate(names):
+            args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
+        return args_dict
+
     def test_get_subassistant_chain_constructs_proper_structure(self):
         ch = MainA().get_subassistant_chain()
         main, subas = ch
@@ -83,9 +89,7 @@ class TestAssistantBase(object):
 
     def test_get_selected_subassistant_path_for_leaf(self):
         path_names = ['ruby', 'rails', 'crazy']
-        args_dict = {}
-        for i, n in enumerate(path_names):
-            args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
+        args_dict = self.args_dict_from_names(path_names)
 
         path = MainA().get_selected_subassistant_path(args_dict)
         path_names = ['main'] + path_names
@@ -94,12 +98,9 @@ class TestAssistantBase(object):
 
     def test_get_selected_subassistant_path_for_non_leaf(self):
         path_names = ['ruby', 'rails']
-        args_dict = {}
-        for i, n in enumerate(path_names):
-            args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
+        args_dict = self.args_dict_from_names(path_names)
 
         path = MainA().get_selected_subassistant_path(args_dict)
         path_names = ['main'] + path_names
         for i, p in enumerate(path):
             assert p.name == path_names[i]
-
