@@ -28,21 +28,21 @@ class AssistantBase(object):
             self._chain = (self, subas_list)
         return self._chain
 
-    def get_selected_subassistant_path(self, args_dict):
+    def get_selected_subassistant_path(self, **kwargs):
         """Recursively searches self._chain - has format of (Assistant: [list_of_subassistants]) -
         for specific path from first to last selected subassistants.
         Args:
-            args_dict: dictionary containing names of the given assistants in form of
-            {subassistant_0: 'name', subassistant_1: 'another_name', ...}
+            kwargs: arguments containing names of the given assistants in form of
+            subassistant_0 = 'name', subassistant_1 = 'another_name', ...
         Returns:
             List of subassistants objects from chain sorted from first to last.
         """
         path = [self]
         currently_searching = self.get_subassistant_chain()[1]
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
-        while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in args_dict:
+        while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs:
             for sa, subas_list in currently_searching:
-                if sa.name == args_dict[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
+                if sa.name == kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
                     currently_searching = subas_list
                     path.append(sa)
                     break # sorry if you shed a tear ;)
