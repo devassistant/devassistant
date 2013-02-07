@@ -3,7 +3,15 @@ c:
   subassistants: [d, e]
 
   dependencies:
-    rpm: [gcc]
+    rpm: [rpm]
+
+  args:
+    foo:
+      flags:
+      - -f
+      - --foo
+      help:
+        Help for foo parameter.
 
   files:
     clientc: &clientc
@@ -12,10 +20,10 @@ c:
       source: templates/c/server.c
 
   fail_if:
-  - cl: true
+  - cl: ls /
 
   invoke_if_subassistant_used:
     false
 
   run:
-  - cl: false
+  - cl: ls foo/bar

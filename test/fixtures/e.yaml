@@ -10,4 +10,4 @@ e:
         'Name of project to create'
 
   run:
-  - cl: false
+  - cl: ls foo/bar
