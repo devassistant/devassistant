@@ -96,12 +96,3 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         # substitute cli arguments for their values
         return string.Template(new_comm).safe_substitute(kwargs)
-
-    def is_run_as_leaf(self, **kwargs):
-        """Returns True if this assistant was run as last in path, False otherwise."""
-        for k, v in kwargs.items():
-            if k.startswith(settings.SUBASSISTANT_PREFIX) and v == self.name:
-                self_num = int(k.split('_')[-1]) # self_num is after last underscore
-                if settings.SUBASSISTANT_N_STRING.format(self_num + 1) in kwargs:
-                    return False
-        return True
