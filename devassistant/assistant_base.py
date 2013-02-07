@@ -51,12 +51,15 @@ class AssistantBase(object):
 
     def is_run_as_leaf(self, **kwargs):
         """Returns True if this assistant was run as last in path, False otherwise."""
-        for k, v in kwargs.items():
-            if k.startswith(settings.SUBASSISTANT_PREFIX) and v == self.name:
-                self_num = int(k.split('_')[-1]) # self_num is after last underscore
-                if settings.SUBASSISTANT_N_STRING.format(self_num + 1) in kwargs:
-                    return False
-        return True
+        # find the last subassistant_N
+        leaf_class = None
+        i = 0
+        while i < len(kwargs): # len(kwargs) is maximum of subassistant_N keys
+            if settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
+                leaf_name = kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
+            i += 1
+
+        return self.name == leaf_name
 
 
     def errors(self, **kwargs):
