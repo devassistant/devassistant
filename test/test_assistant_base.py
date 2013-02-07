@@ -3,6 +3,7 @@ import pytest
 from flexmock import flexmock
 
 from devassistant.assistant_base import AssistantBase
+from devassistant import settings
 
 class MainA(AssistantBase):
     name = 'main'
@@ -79,3 +80,26 @@ class TestAssistantBase(object):
         rails = self.get_sa_from_tuple_list('rails', ruby[1])
         assert len(rails[1]) == 1
         assert self.get_sa_from_tuple_list('crazy', rails[1])
+
+    def test_get_selected_subassistant_path_for_leaf(self):
+        path_names = ['ruby', 'rails', 'crazy']
+        args_dict = {}
+        for i, n in enumerate(path_names):
+            args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
+
+        path = MainA().get_selected_subassistant_path(args_dict)
+        path_names = ['main'] + path_names
+        for i, p in enumerate(path):
+            assert p.name == path_names[i]
+
+    def test_get_selected_subassistant_path_for_non_leaf(self):
+        path_names = ['ruby', 'rails']
+        args_dict = {}
+        for i, n in enumerate(path_names):
+            args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
+
+        path = MainA().get_selected_subassistant_path(args_dict)
+        path_names = ['main'] + path_names
+        for i, p in enumerate(path):
+            assert p.name == path_names[i]
+
