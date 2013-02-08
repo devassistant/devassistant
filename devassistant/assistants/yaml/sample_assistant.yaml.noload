@@ -29,11 +29,6 @@ c:
   fail_if:
   - cl: ls /foo/bar
 
-  # if false && subassistant of this assistant is used,
-  # don't invoke _any_ run* section
-  invoke_if_subassistant_used:
-    true
-
   run:
   - cl: mkdir -p $name
   - cl: cp &clientc $name

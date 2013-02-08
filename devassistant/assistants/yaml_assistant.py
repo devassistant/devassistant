@@ -51,9 +51,6 @@ class YamlAssistant(assistant_base.AssistantBase):
             YUMHelper.install(*to_install)
 
     def run(self, **kwargs):
-        if not self._invoke_if_subassistant_used and not self.is_run_as_leaf(**kwargs):
-            return
-
         # determine which run* section to invoke
         to_run = self._run
         for method in dir(self):

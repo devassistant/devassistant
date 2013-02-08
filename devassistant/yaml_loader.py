@@ -58,7 +58,6 @@ class YamlLoader(object):
             CustomYamlAssistant.args.append(arg)
 
         # arguments that will be handled by YamlAssistant methods
-        CustomYamlAssistant._invoke_if_subassistant_used = attrs.get('invoke_if_subassistant_used', True)
         CustomYamlAssistant._dependencies = attrs.get('dependencies', {})
         CustomYamlAssistant._fail_if = attrs.get('fail_if', [])
         CustomYamlAssistant._files = attrs.get('files', {})

@@ -22,7 +22,6 @@ class TestYamlLoader(object):
         assert klass.name == 'c'
         assert klass.fullname == 'C Language Tool'
         assert len(klass.args) == 1
-        assert klass._invoke_if_subassistant_used == False
         assert klass._dependencies == {'rpm': ['rpm']}
         assert klass._fail_if == [{'cl': 'ls /'}]
         assert klass._files == {

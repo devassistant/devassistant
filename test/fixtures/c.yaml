@@ -22,8 +22,5 @@ c:
   fail_if:
   - cl: ls /
 
-  invoke_if_subassistant_used:
-    false
-
   run:
   - cl: ls foo/bar
