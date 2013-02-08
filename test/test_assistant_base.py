@@ -59,7 +59,7 @@ class TestAssistantBase(object):
 
     def get_sa_from_tuple_list(self, name, sa_list):
         # returns tuple of assistant with given name from list of tuples (part of chain)
-        return filter(lambda x: x[0].name == name, sa_list)[0]
+        return list(filter(lambda x: x[0].name == name, sa_list))[0]
 
     def args_dict_from_names(self, names):
         args_dict = {}
