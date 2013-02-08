@@ -1,7 +1,5 @@
 import pytest
 
-from flexmock import flexmock
-
 from devassistant.assistant_base import AssistantBase
 from devassistant import settings
 
