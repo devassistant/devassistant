@@ -1,8 +1,9 @@
 from flexmock import flexmock
 import pytest
 
+from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
-from devassistant.command_helpers import RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 
 # hook app testing logging
 from test.logger import TestLoggingHandler
@@ -48,3 +49,23 @@ class TestYamlAssistant(object):
         flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
         flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar')
         self.ya.dependencies()
+
+    def test_run_pass(self):
+        self.ya._run = [{'cl': 'true'}, {'cl': 'ls'}]
+        self.ya.run()
+
+    def test_run_fail(self):
+        self.ya._run = [{'cl': 'true'}, {'cl': 'false'}]
+        with pytest.raises(exceptions.RunException):
+            self.ya.run()
+
+    def test_run_unkown_action(self):
+        self.ya._run = [{'foo': 'bar'}]
+        self.ya.run()
+        assert self.tlh.msgs == [('WARNING', 'Unkown action type foo, skipping.')]
+
+    def test_run_chooses_proper_method(self):
+        self.ya._run = [{'cl': 'ls'}]
+        self.ya._run_foo = [{'cl': 'pwd'}]
+        flexmock(ClHelper).should_receive('run_command').with_args('pwd')
+        self.ya.run(foo='bar')

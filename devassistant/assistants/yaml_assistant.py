@@ -68,7 +68,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     except plumbum.ProcessExecutionError as e:
                         raise exceptions.RunException(e)
                 else:
-                    logger.warning('Unkown command type {0}, skipping.'.format(comm_type))
+                    logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
     def format_command(self, comm, **kwargs):
         # If command is false/true in yaml file, it gets coverted to False/True
