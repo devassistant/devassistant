@@ -18,7 +18,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         errors = []
 
         for one_action in self._fail_if:
-            for action_type, action in one_action:
+            for action_type, action in one_action.items():
                 if action_type == 'cl':
                     try:
                         a = self.format_command(action, **kwargs)

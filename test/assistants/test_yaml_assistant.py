@@ -22,3 +22,7 @@ class TestYamlAssistant(object):
         # which is bool object. format_command should handle this.
         assert self.ya.format_command(True) == 'true'
         assert self.ya.format_command(False) == 'false'
+
+    def test_errors(self):
+        self.ya._fail_if = [{'cl': 'false'}, {'cl': 'true'}]
+        assert self.ya.errors()
