@@ -84,9 +84,11 @@ class YamlAssistant(assistant_base.AssistantBase):
                 # TODO: raise a proper error if c['source'] is not present
                 new_comm.append(c['source'])
             elif c.startswith('&'):
-                c = c[1:].strip('{}')
-                if c in self._files:
-                    new_comm.append(self._files[c]['source'])
+                c_file = c[1:].strip('{}')
+                if c_file in self._files:
+                    new_comm.append(self._files[c_file]['source'])
+                else:
+                    new_comm.append(c)
             else:
                 new_comm.append(c)
         new_comm = ' '.join(new_comm)
