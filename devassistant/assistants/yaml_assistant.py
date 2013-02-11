@@ -24,7 +24,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                         a = self.format_command(action, **kwargs)
                         result = ClHelper.run_command(a)
                         # command succeeded -> error
-                        errors.append('Failed: {0}'.format(result))
+                        errors.append('Cannot proceed because command returned 0: {0}'.format(a))
                     except plumbum.ProcessExecutionError:
                         pass # everything ok, go on
                 else:

@@ -2,10 +2,14 @@ import pytest
 
 from devassistant.assistants import yaml_assistant
 
+# hook app testing logging
+from test.logger import TestLoggingHandler
+
 class TestYamlAssistant(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant()
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
+        self.tlh = TestLoggingHandler.create_fresh_handler()
 
     @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
         ('ls -la', {}, 'ls -la'),
@@ -23,6 +27,15 @@ class TestYamlAssistant(object):
         assert self.ya.format_command(True) == 'true'
         assert self.ya.format_command(False) == 'false'
 
-    def test_errors(self):
+    def test_errors_pass(self):
+        self.ya._fail_if = [{'cl': 'false'}, {'cl': 'grep'}]
+        assert not self.ya.errors()
+
+    def test_errors_fail(self):
         self.ya._fail_if = [{'cl': 'false'}, {'cl': 'true'}]
-        assert self.ya.errors()
+        assert self.ya.errors() == ['Cannot proceed because command returned 0: true']
+
+    def test_errors_unknow_action(self):
+        self.ya._fail_if = [{'foobar': 'not an action'}]
+        assert not self.ya.errors()
+        assert self.tlh.msgs == [('WARNING', 'Unkown action type foobar, skipping.')]
