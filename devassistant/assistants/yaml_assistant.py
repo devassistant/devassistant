@@ -71,6 +71,11 @@ class YamlAssistant(assistant_base.AssistantBase):
                     logger.warning('Unkown command type {0}, skipping.'.format(comm_type))
 
     def format_command(self, comm, **kwargs):
+        # If command is false/true in yaml file, it gets coverted to False/True
+        # which is bool object => convert
+        if isinstance(comm, bool):
+            comm = str(comm).lower()
+
         new_comm = []
         if not isinstance(comm, list):
             parts_list = comm.split()
