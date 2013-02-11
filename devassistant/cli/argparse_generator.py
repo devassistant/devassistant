@@ -1,4 +1,4 @@
-import argparse
+from devassistant.cli import devassistant_argparse as argparse
 
 from devassistant import settings
 
@@ -20,6 +20,8 @@ class ArgparseGenerator(object):
         subparsers = parser.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format('0'),
                                            title=cls.subassistants_string,
                                            description=cls.description)
+        # from Python 3.3, subparsers are optional by default => make them required
+        subparsers.required=True
         for subas in cur_subas:
             cls.add_subparsers_to(subas, subparsers, level=1)
 
