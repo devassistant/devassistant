@@ -30,3 +30,16 @@ class TestYamlLoader(object):
         }
         assert klass._subassistants == ['d', 'e']
         assert klass._run == [{'cl': 'ls foo/bar'}]
+
+    def test_get_all_classes_loads_all(self):
+        clss = YamlLoader.get_all_classes()
+        assert len(clss) == 4
+        assert set(['c', 'd', 'e', 'f']) == set(map(lambda x: x.name, clss))
+
+    def test_get_all_classes_sets_get_subassistants_properly(self):
+        clss = YamlLoader.get_all_classes()
+        for kls in clss:
+            if kls.name == 'c':
+                assert set(map(lambda x: x.name, kls().get_subassistants())) == set(['d', 'e'])
+            else:
+                assert kls().get_subassistants() == []

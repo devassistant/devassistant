@@ -30,7 +30,7 @@ class YamlLoader(object):
         for sa in classes:
             if hasattr(sa, '_subassistants'):
                 # get subassistant classes of sa assistant
-                sub_classes = filter(lambda x: x.name in sa._subassistants, classes)
+                sub_classes = list(filter(lambda x: x.name in sa._subassistants, classes))
                 sa.get_subassistants = cls.create_get_subassistants_method(sub_classes)
 
         return classes
