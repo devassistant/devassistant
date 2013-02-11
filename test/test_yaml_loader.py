@@ -43,3 +43,7 @@ class TestYamlLoader(object):
                 assert set(map(lambda x: x.name, kls().get_subassistants())) == set(['d', 'e'])
             else:
                 assert kls().get_subassistants() == []
+
+    def test_get_top_level_assistants(self):
+        clss = YamlLoader.get_top_level_assistants()
+        assert set(['c', 'f']) == set(map(lambda x: x.name, clss))
