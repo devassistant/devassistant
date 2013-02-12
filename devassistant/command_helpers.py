@@ -47,11 +47,11 @@ class YUMHelper(object):
 
     @classmethod
     def install(cls, *args):
-        cmd = cls.c_yum['-y', 'install'] #TODO: do we really want to assume yes?
+        cmd = cls.c_yum[ 'install'] #TODO: do we really want to assume yes?
         logger.info('Installing: {0}'.format(', '.join(args)))
         for arg in args:
             cmd = cmd[arg]
-        sudo(cmd)
+        (sudo[cmd]) & plumbum.FG
 
     @classmethod
     def is_group_installed(cls, group):
