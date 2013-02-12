@@ -9,6 +9,8 @@ from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 from test.logger import TestLoggingHandler
 
 class TestYamlAssistant(object):
+    template_dir = yaml_assistant.YamlAssistant.template_dir
+
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant()
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
@@ -17,9 +19,9 @@ class TestYamlAssistant(object):
     @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
         ('ls -la', {}, 'ls -la'),
         ('touch $foo ${bar} $baz', {'foo': 'a', 'bar': 'b'}, 'touch a b $baz'),
-        ('cp &first second', {}, 'cp f/g second'),
-        ('cp &{first} &{nothing}', {}, 'cp f/g &{nothing}'),
-        ('cp &{first} $foo', {'foo': 'a'}, 'cp f/g a'),
+        ('cp &first second', {}, 'cp {0}/f/g second'.format(template_dir)),
+        ('cp &{first} &{nothing}', {}, 'cp %s/f/g &{nothing}' % (template_dir)),
+        ('cp &{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
     ])
     def test_format_command(self, comm, arg_dict, result):
         assert self.ya.format_command(comm, **arg_dict) == result
