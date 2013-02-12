@@ -3,53 +3,7 @@ import pytest
 from devassistant.assistant_base import AssistantBase
 from devassistant import settings
 
-class MainA(AssistantBase):
-    name = 'main'
-    fullname = 'Main'
-
-    def get_subassistants(self):
-        return [PythonA, RubyA]
-
-class PythonA(MainA):
-    name = 'python'
-    fullname = 'Python'
-
-    def get_subassistants(self):
-        return [DjangoA, FlaskA]
-
-class RubyA(MainA):
-    name = 'ruby'
-    fullname = 'Ruby'
-
-    def get_subassistants(self):
-        return [RailsA]
-
-class DjangoA(PythonA):
-    name = 'django'
-    fullname = 'Django'
-
-    # intentionally no get_subassistants
-
-class FlaskA(PythonA):
-    name = 'flask'
-    fullname = 'Flask'
-
-    def get_subassistants(self):
-        return []
-
-class RailsA(RubyA):
-    name = 'rails'
-    fullname = 'Rails'
-
-    def get_subassistants(self):
-        return [CrazyA]
-
-class CrazyA(RailsA):
-    name = 'crazy'
-    fullname = 'Crazy'
-
-    def get_subassistants(self):
-        return []
+from test.fake_assistants import *
 
 class TestAssistantBase(object):
     def map_sa_to_names(self, sa_list):
