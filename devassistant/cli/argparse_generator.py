@@ -16,14 +16,15 @@ class ArgparseGenerator(object):
         for arg in cur_as.args:
             arg.add_argument_to(parser)
 
-        # then add the subassistants as arguments
-        subparsers = parser.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format('0'),
-                                           title=cls.subassistants_string,
-                                           description=cls.description)
-        # from Python 3.3, subparsers are optional by default => make them required
-        subparsers.required=True
-        for subas in cur_subas:
-            cls.add_subparsers_to(subas, subparsers, level=1)
+        if cur_subas:
+            # then add the subassistants as arguments
+            subparsers = parser.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format('0'),
+                                               title=cls.subassistants_string,
+                                               description=cls.description)
+            # from Python 3.3, subparsers are optional by default => make them required
+            subparsers.required=True
+            for subas in cur_subas:
+                cls.add_subparsers_to(subas, subparsers, level=1)
 
         return parser
 
