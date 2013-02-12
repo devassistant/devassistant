@@ -21,9 +21,9 @@ c:
         '?' # doesn't need a value, just triggers "run_mock" instead of "run"
   files:
     clientc: &clientc
-      source: templates/c/client.c
+      source: c/client.c
     serverc: &serverc
-      source: templates/c/server.c
+      source: c/server.c
 
   # immediately cancel execution if any of these commands is successful
   fail_if:
