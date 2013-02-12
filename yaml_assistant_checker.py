@@ -19,10 +19,10 @@ class YamlAssistantChecker(object):
             yaml_files_list = filter(lambda x: x.endswith('.yaml'), os.listdir(cls.yaml_dir))
         # relative paths => may be in current dir or in devassistant/assistants/yaml/
         for f in filter(lambda x: not x.startswith('/'), yaml_files_list):
-            if os.path.exists(os.path.abspath('{0}.yaml'.format(f))):
-                yaml_files_list[yaml_files_list.index(f)] = os.path.abspath('{0}.yaml'.format(f))
+            if os.path.exists(os.path.abspath(f)):
+                yaml_files_list[yaml_files_list.index(f)] = os.path.abspath(f)
             else:
-                yaml_files_list[yaml_files_list.index(f)] = os.path.join(cls.yaml_dir, '{0}.yaml'.format(f))
+                yaml_files_list[yaml_files_list.index(f)] = os.path.join(cls.yaml_dir, f)
 
         loaded_yamls = {}
         for a in yaml_files_list:
