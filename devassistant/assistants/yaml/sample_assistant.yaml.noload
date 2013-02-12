@@ -33,7 +33,7 @@ c:
   run:
   - cl: mkdir -p $name
   - log: ['debug', 'Some debugging message']
-  - cl: cp &clientc $name
+  - cl: cp *clientc $name
 
   run_mock: # if mock parameter is specified, use this instead of "run"
   - cl: mock blah blah
