@@ -70,6 +70,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                         result = ClHelper.run_command(c)
                     except plumbum.ProcessExecutionError as e:
                         raise exceptions.RunException(e)
+                elif comm_type == 'log':
+                    self.log(comm)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
