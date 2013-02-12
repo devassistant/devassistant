@@ -1,3 +1,5 @@
+import os
+
 from devassistant import settings
 
 class AssistantBase(object):
@@ -10,6 +12,8 @@ class AssistantBase(object):
     needs_sudo = False
 
     args = []
+
+    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
     def get_subassistants(self):
         return []

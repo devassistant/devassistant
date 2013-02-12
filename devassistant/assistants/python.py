@@ -90,5 +90,5 @@ class FlaskAssistant(PythonAssistant):
 
         logger.info('Creating initial project files...')
         # the flask template doesn't in fact need rendering, so just copy it
-        PathHelper.cp(os.path.join(os.path.dirname(__file__), '..', 'templates', 'python', 'flask'),
+        PathHelper.cp(os.path.join(self.template_dir, 'python', 'flask'),
                       os.path.join(kwargs['name'], '__init__.py'))
