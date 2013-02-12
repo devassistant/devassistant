@@ -4,6 +4,7 @@ import plumbum
 
 from devassistant import argument
 from devassistant import assistant_base
+from devassistant import exceptions
 from devassistant.logger import logger
 
 from devassistant.command_helpers import PathHelper, RPMHelper, YUMHelper
@@ -37,7 +38,8 @@ class DjangoAssistant(PythonAssistant):
     def dependencies(self, **kwargs):
         django_rpm = RPMHelper.is_rpm_installed('python-django')
         if not django_rpm:
-            YUMHelper.install('python-django')
+            if not YUMHelper.install('python-django'):
+                raise exceptions.RunException('Failed to install python-django')
             RPMHelper.was_rpm_installed('python-django')
 
     def run(self, **kwargs):
@@ -76,7 +78,8 @@ class FlaskAssistant(PythonAssistant):
                 to_install = []
 
         if to_install:
-            YUMHelper.install(*to_install)
+            if not YUMHelper.install(*to_install):
+                raise exceptions.RunException('Failed to install {0}'.format(' '.join(to_install)))
 
         for pkg in to_install:
             RPMHelper.was_rpm_installed(pkg)

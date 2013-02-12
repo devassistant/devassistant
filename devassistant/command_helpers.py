@@ -51,7 +51,11 @@ class YUMHelper(object):
         logger.info('Installing: {0}'.format(', '.join(args)))
         for arg in args:
             cmd = cmd[arg]
-        (sudo[cmd]) & plumbum.FG
+        try:
+            (sudo[cmd]) & plumbum.FG
+            return args
+        except plumbum.ProcessExecutionError:
+            return False
 
     @classmethod
     def is_group_installed(cls, group):
