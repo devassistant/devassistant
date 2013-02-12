@@ -1,3 +1,4 @@
+import logging
 import string
 
 import plumbum
@@ -27,6 +28,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
                     except plumbum.ProcessExecutionError:
                         pass # everything ok, go on
+                elif action_type == 'log':
+                    self.log(action)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(action_type))
 
@@ -69,6 +72,14 @@ class YamlAssistant(assistant_base.AssistantBase):
                         raise exceptions.RunException(e)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
+
+    def log(self, log_action):
+        # make level lowercase
+        log_action = (log_action[0].upper(), log_action[1])
+        if log_action[0] in logging._levelNames:
+            logger.log(logging._levelNames[log_action[0]], log_action[1])
+        else:
+            logger.warning('Unknow logging level {0}, with message {1}'.format(*log_action))
 
     def format_command(self, comm, **kwargs):
         # If command is false/true in yaml file, it gets coverted to False/True

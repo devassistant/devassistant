@@ -69,3 +69,13 @@ class TestYamlAssistant(object):
         self.ya._run_foo = [{'cl': 'pwd'}]
         flexmock(ClHelper).should_receive('run_command').with_args('pwd')
         self.ya.run(foo='bar')
+
+    def test_log(self):
+        self.ya._fail_if = [{'log': ['warning', 'foo!']}]
+        self.ya.errors()
+        assert self.tlh.msgs == [('WARNING', 'foo!')]
+
+    def test_log_wrong_level(self):
+        self.ya._fail_if = [{'log': ['foo', 'bar']}]
+        self.ya.errors()
+        assert self.tlh.msgs == [('WARNING', 'Unknow logging level FOO, with message bar')]
