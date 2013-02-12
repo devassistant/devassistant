@@ -11,23 +11,15 @@ class TestArgparseGenerator(object):
         self.django_chain = (DjangoA(), [])
         self.python_chain = (PythonA(), [self.flask_chain, self.django_chain])
         self.chain = (MainA(), [self.ruby_chain, self.python_chain])
-        self.chainx = [(MainA(),
-                         [(PythonA(),
-                             [(DjangoA(), []),
-                              (FlaskA(), [])
-                             ]
-                          ),
-                          (RubyA(),
-                              [(RailsA(),
-                                  [(CrazyA(), [])]
-                               )
-                              ]
-                          )
-                         ]
-                      )
-                     ]
+
         self.ag = argparse_generator.ArgparseGenerator
     
-    def test_generate_parser_one_assistant(self):
+    def test_generate_argument_parser_one_level(self):
         parser = self.ag.generate_argument_parser(self.crazy_chain)
         assert parser.parse_args([])
+
+    def test_generate_argument_parser_multiple_levels(self):
+        parser = self.ag.generate_argument_parser(self.chain)
+        assert parser.parse_args(['python', 'django'])
+        assert parser.parse_args(['ruby', 'rails', 'crazy'])
+        # can't test something that doesn't get parsed, because argparse would sys.exit :(
