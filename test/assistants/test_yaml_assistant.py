@@ -19,9 +19,9 @@ class TestYamlAssistant(object):
     @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
         ('ls -la', {}, 'ls -la'),
         ('touch $foo ${bar} $baz', {'foo': 'a', 'bar': 'b'}, 'touch a b $baz'),
-        ('cp &first second', {}, 'cp {0}/f/g second'.format(template_dir)),
-        ('cp &{first} &{nothing}', {}, 'cp %s/f/g &{nothing}' % (template_dir)),
-        ('cp &{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
+        ('cp *first second', {}, 'cp {0}/f/g second'.format(template_dir)),
+        ('cp *{first} *{nothing}', {}, 'cp %s/f/g *{nothing}' % (template_dir)),
+        ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
     ])
     def test_format_command(self, comm, arg_dict, result):
         assert self.ya.format_command(comm, **arg_dict) == result
