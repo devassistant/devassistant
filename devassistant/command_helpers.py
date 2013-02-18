@@ -11,10 +11,11 @@ class ClHelper(object):
         # hack for cd to behave like shell cd and stay in the directory
         if split_string[0] == 'cd':
             plumbum.local.cwd.chdir(split_string[1])
-        cmd = plumbum.local[split_string[0]]
-        for i in split_string[1:]:
-            cmd = cmd[i]
-        cmd()
+        else:
+           cmd = plumbum.local[split_string[0]]
+           for i in split_string[1:]:
+               cmd = cmd[i]
+           cmd()
 
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
