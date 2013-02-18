@@ -8,6 +8,9 @@ class ClHelper(object):
     def run_command(cls, cmd_str):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
+        # hack for cd to behave like shell cd and stay in the directory
+        if split_string[0] == 'cd':
+            plumbum.local.cwd.chdir(split_string[1])
         cmd = plumbum.local[split_string[0]]
         for i in split_string[1:]:
             cmd = cmd[i]
