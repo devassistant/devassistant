@@ -110,6 +110,9 @@ class YamlAssistant(assistant_base.AssistantBase):
                     new_comm.append(c)
             else:
                 new_comm.append(c)
+        # hack for cd to behave like shell cd and stay in the directory
+        if new_comm[0] == 'cd':
+            plumbum.local.cwd.chdir(new_comm[1])
         new_comm = ' '.join(new_comm)
 
         # substitute cli arguments for their values
