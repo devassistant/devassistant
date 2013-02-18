@@ -1,0 +1,19 @@
+This package contains several programs for beginners which includes
+as sources and binaries.
+
+Programs available here are:
+
+Operation with files:
+fileOperations .... program demonstrates how to operated with files.
+Including read and writing operations
+
+simpleThread ... demonstrates thread operations. When user run this program several times
+then output will be different. It depends how threads are executed
+
+server ... This is server side program which demonstrates how server works.
+On one terminal user has to specify on which port server will listen to.
+After reading message server will exits.
+	Example : ./server 50000
+client .... This program is used as client for server which is run on the specific port.
+	Client will send message to server and response if server got that message or not.
+	Example : ./client <hostname or localhost> 50000
