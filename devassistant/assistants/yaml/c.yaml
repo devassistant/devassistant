@@ -1,0 +1,59 @@
+c: 
+    fullname: C Language Tool
+
+    dependencies: 
+        rpm: ['glibc-devel']
+
+    args:
+      name:
+        flags:
+        - -n
+        - --name
+        help:
+            'Name of project to create'
+    files:
+      cfiles: &cfiles
+        source: c/files.c
+      clientc: &clientc
+        source: c/client.c
+      serverc: &serverc
+        source: c/server.c
+      threadsc: &threadsc
+        source: c/simple_threads.c
+      srcmakefileam: &srcmakefileam
+        source: c/srcMakefile.am
+      makefileam: &makefileam
+        source: c/Makefile.am
+      configureac: &configureac
+        source: c/configure.ac
+      README: &readme
+        source: c/README
+      AUTHORS: &authors
+        source: c/AUTHORS
+      NEWS: &news
+        source: c/NEWS
+      ChangeLog: &Changelog
+        source: c/ChangeLog
+
+    fail_if:
+    - cl: ls /foo/bar # nemuze pokracovat pokud existuje /foo/bar
+
+    run:
+    - cl: mkdir -p $name/src # pouzije promennou "name" z args ^
+    - cl: cp *cfiles $name/src/files.c
+    - cl: cp *clientc $name/src/client.c
+    - cl: cp *serverc $name/src/server.c
+    - cl: cp *threadsc $name/src/simple_threads.c
+    - cl: cp *srcmakefileam $name/src/Makefile.am
+    - cl: cp *makefileam $name/Makefile.am
+    - cl: cp *configureac $name/configure.ac
+    - cl: cp *README $name/README
+    - cl: cp *AUTHORS $name/AUTHORS
+    - cl: cp *NEWS $name/NEWS
+    - cl: cp *ChangeLog $name/ChangeLog
+    - cl: cd $name
+    - cl: autoreconf --install
+    - cl: ./configure
+    - cl: make
+    - cl: make distcheck # will create distribution tar ball for later on usage
+   
