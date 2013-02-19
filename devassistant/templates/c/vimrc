@@ -1,0 +1,78 @@
+set nocompatible               " be iMproved
+syntax on
+set number
+set tabstop=8
+set shiftwidth=8
+set smartindent
+set expandtab
+set showcmd
+set incsearch
+set mouse=a
+set completeopt=menu,menuone,longest
+set pumheight=15
+set wildmenu
+set backspace=indent,eol,start
+let g:SuperTabDefaultCompletionType = "context"
+let g:clang_complete_auto = 1
+let g:clang_complete_copen = 0
+let g:clang_snippets = 1
+let g:clang_snippets_engine = 'snipmate'
+let g:clang_use_library = 1
+let g:NERDTreeWinPos = "right"
+let mapleader = ","
+let Tlist_Auto_Open = 1
+set bg=dark
+
+"command :q :qall
+
+map <F12> :!cscope -Rqb<CR>:cs kill 0<CR>:cs add cscope.out<CR>
+
+
+filetype off                   " required!
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+Bundle 'gmarik/vundle'
+Bundle 'Rip-Rip/clang_complete'
+Bundle 'msanders/snipmate.vim'
+Bundle 'ervandew/supertab'
+Bundle 'vim-scripts/svndiff'
+Bundle 'scrooloose/nerdtree'
+"Bundle 'wincent/Command-T'
+Bundle 'vim-scripts/CCTree'
+Bundle 'ervandew/supertab'
+Bundle 'vadimr/bclose.vim'
+Bundle 'vim-scripts/taglist.vim'
+Bundle 'vim-scripts/easybuffer.vim'
+Bundle 'Lokaltog/vim-powerline'
+
+
+
+filetype plugin indent on 
+
+
+noremap <F3> :call Svndiff("prev")<CR> 
+noremap <F4> :call Svndiff("next")<CR> 
+noremap <F5> :call Svndiff("clear")<CR> 
+noremap <F2> :EasyBuffer<CR> 
+
+hi DiffAdd      ctermfg=0 ctermbg=2 guibg='green' 
+hi DiffDelete   ctermfg=0 ctermbg=1 guibg='red' 
+hi DiffChange   ctermfg=0 ctermbg=3 guibg='yellow' 
+
+
+let g:svndiff_autoupdate = 1 
+
+autocmd VimEnter * NERDTree
+autocmd VimEnter * wincmd p
+
+
+nmap <silent> <C-h> :wincmd h<CR>
+nmap <silent> <C-l> :wincmd l<CR>
+nnoremap <leader>t :ConqueTermSplit bash<CR>
+nnoremap <leader>r :ConqueTermSplit 
+
+
+
+let g:ConqueTerm_CloseOnEnd = 1
+:let mapleader = ","

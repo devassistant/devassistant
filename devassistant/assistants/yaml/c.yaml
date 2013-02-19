@@ -11,6 +11,18 @@ c:
         - --name
         help:
             'Name of project to create'
+      build:
+        flags:
+        - -b
+        - --build
+        help:
+            'This will create SRPM and RPM packages'
+      idesettings:
+        flags:
+        - -i 
+        - --idesettings
+        help:
+            'This will add vundle to ~/.vimrc/bundle/vundle directory'
     files:
       cfiles: &cfiles
         source: c/files.c
@@ -34,11 +46,16 @@ c:
         source: c/NEWS
       ChangeLog: &Changelog
         source: c/ChangeLog
+      vimrc: &vimrc
+        source: c/vimrc
+      tgz2rpm: &tgz2rpm
+        source: c/tgz2rpm.sh
 
     fail_if:
     - cl: ls /foo/bar # nemuze pokracovat pokud existuje /foo/bar
 
     run:
+    - log: ['info', 'Creating $name/src directory']
     - cl: mkdir -p $name/src # pouzije promennou "name" z args ^
     - cl: cp *cfiles $name/src/files.c
     - cl: cp *clientc $name/src/client.c
@@ -52,8 +69,38 @@ c:
     - cl: cp *NEWS $name/NEWS
     - cl: cp *ChangeLog $name/ChangeLog
     - cl: cd $name
+    - log: ['info', 'Calling autoreconf']
     - cl: autoreconf --install
+    - log: ['info', 'Calling configure script']
     - cl: ./configure
     - cl: make
     - cl: make distcheck # will create distribution tar ball for later on usage
-   
+
+    run_idesettings:
+    - log: ['info', 'clonning vundle.git']
+    - cl: rm -rf ~/.vim/bundle/vundle
+    - cl: git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+    - log: ['info', 'saving current ~/.vimrc to ~/.vimrc.old']
+    - cl: mv /home/stone/.vimrc /home/stone/vimrc.old
+    - log: ['info', 'copying current the newest .vimrc to ~/.vimrc']
+    - cl: cp *vimrc /home/stone/.vimrc
+    - log: ['info', 'Installing BundleInstall to vim']
+    - cl: vim +BundleInstall +qall
+
+    run_build:
+    - log: ['info', 'Creating spec file']
+    - cl: cp *tgz2rpm $name/tgz2rpm.sh
+    - cl: cd $name
+    - cl: bash tgz2rpm.sh cdevelopmenttool-1.0.tar.gz 
+    - cl: rpmdev-setuptree
+    - cl: rm -f /home/stone/rpmbuild/SPECS/*
+    - cl: cp cdevelopmenttool-1.0.tar.gz /home/stone/rpmbuild/SOURCES
+    - cl: mv /tmp/cdevelopmenttool.spec /home/stone/rpmbuild/SPECS
+    - cl: cd /home/stone/rpmbuild/SPECS
+    - cl: sudo yum-builddep /home/stone/rpmbuild/SPECS/cdevelopmenttool.spec
+    - log: ['info', 'Creating RPM from tarball']
+    - cl: rpmbuild -ba cdevelopmenttool.spec
+    - log: ['info', 'Creating RPM from SRPM over mock']
+    - cl: rpmbuild -bs cdevelopmenttool.spec
+    - cl: mock -r fedora-17-i386 /home/stone/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+
