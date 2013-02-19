@@ -1,3 +1,5 @@
+import os
+
 import plumbum
 from plumbum.cmd import ls, sudo
 
@@ -8,6 +10,9 @@ class ClHelper(object):
     def run_command(cls, cmd_str):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
+        for i, s in enumerate(split_string):
+            if '~' in s:
+                split_string[i] = os.path.expanduser(s)
         # hack for cd to behave like shell cd and stay in the directory
         if split_string[0] == 'cd':
             plumbum.local.cwd.chdir(split_string[1])
