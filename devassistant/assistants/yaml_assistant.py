@@ -19,20 +19,21 @@ class YamlAssistant(assistant_base.AssistantBase):
     def errors(self, **kwargs):
         errors = []
 
-        for one_action in self._fail_if:
-            for action_type, action in one_action.items():
-                if action_type == 'cl':
+        for command_dict in self._fail_if:
+            for comm_type, comm in command_dict.items():
+                if comm_type == 'cl':
                     try:
-                        a = self._format_command(action, **kwargs)
+                        # we don't use _format_and_run_cl_command, because we also need the actual formatted command
+                        a = self._format_command(comm, **kwargs)
                         result = ClHelper.run_command(a)
                         # command succeeded -> error
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
                     except plumbum.ProcessExecutionError:
                         pass # everything ok, go on
-                elif action_type == 'log':
-                    self._log(action)
+                elif comm_type == 'log':
+                    self._log(comm)
                 else:
-                    logger.warning('Unkown action type {0}, skipping.'.format(action_type))
+                    logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
         return errors
 
@@ -66,15 +67,20 @@ class YamlAssistant(assistant_base.AssistantBase):
         for command_dict in to_run:
             for comm_type, comm in command_dict.items():
                 if comm_type == 'cl':
-                    c = self._format_command(comm, **kwargs)
-                    try:
-                        result = ClHelper.run_command(c)
-                    except plumbum.ProcessExecutionError as e:
-                        raise exceptions.RunException(e)
+                    self._format_and_run_cl_command(comm, **kwargs)
                 elif comm_type == 'log':
                     self._log(comm)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
+
+    def _format_and_run_cl_command(self, command, **kwargs):
+        c = self._format_command(command, **kwargs)
+        try:
+            result = ClHelper.run_command(c)
+        except plumbum.ProcessExecutionError as e:
+            raise exceptions.RunException(e)
+
+        return result
 
     def _log(self, log_action):
         # make level lowercase
