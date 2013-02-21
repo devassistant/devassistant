@@ -81,7 +81,7 @@ c:
     - cl: rm -rf ~/.vim/bundle/vundle
     - cl: git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
     - log: ['info', 'saving current ~/.vimrc to ~/.vimrc.old']
-    - cl: mv /home/stone/.vimrc /home/stone/vimrc.old
+    - cl: mv ~/.vimrc ~/vimrc.old
     - log: ['info', 'copying current the newest .vimrc to ~/.vimrc']
     - cl: cp *vimrc /home/stone/.vimrc
     - log: ['info', 'Installing BundleInstall to vim']
@@ -93,14 +93,14 @@ c:
     - cl: cd $name
     - cl: bash tgz2rpm.sh cdevelopmenttool-1.0.tar.gz 
     - cl: rpmdev-setuptree
-    - cl: rm -f /home/stone/rpmbuild/SPECS/*
-    - cl: cp cdevelopmenttool-1.0.tar.gz /home/stone/rpmbuild/SOURCES
-    - cl: mv /tmp/cdevelopmenttool.spec /home/stone/rpmbuild/SPECS
-    - cl: cd /home/stone/rpmbuild/SPECS
-    - cl: sudo yum-builddep /home/stone/rpmbuild/SPECS/cdevelopmenttool.spec
+    - cl: rm -f ~/rpmbuild/SPECS/*
+    - cl: cp cdevelopmenttool-1.0.tar.gz ~/rpmbuild/SOURCES
+    - cl: mv /tmp/cdevelopmenttool.spec ~/rpmbuild/SPECS
+    - cl: cd ~/rpmbuild/SPECS
+    - cl: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
     - log: ['info', 'Creating RPM from tarball']
     - cl: rpmbuild -ba cdevelopmenttool.spec
     - log: ['info', 'Creating RPM from SRPM over mock']
     - cl: rpmbuild -bs cdevelopmenttool.spec
-    - cl: mock -r fedora-17-i386 /home/stone/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+    - cl: mock -r fedora-17-i386 ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
 
