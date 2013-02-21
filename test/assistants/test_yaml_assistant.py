@@ -24,13 +24,13 @@ class TestYamlAssistant(object):
         ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
     ])
     def test_format_command(self, comm, arg_dict, result):
-        assert self.ya.format_command(comm, **arg_dict) == result
+        assert self.ya._format_command(comm, **arg_dict) == result
 
     def test_format_command_handles_bool(self):
         # If command is false/true in yaml file, it gets coverted to False/True
         # which is bool object. format_command should handle this.
-        assert self.ya.format_command(True) == 'true'
-        assert self.ya.format_command(False) == 'false'
+        assert self.ya._format_command(True) == 'true'
+        assert self.ya._format_command(False) == 'false'
 
     def test_errors_pass(self):
         self.ya._fail_if = [{'cl': 'false'}, {'cl': 'grep'}]
