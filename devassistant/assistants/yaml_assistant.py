@@ -23,14 +23,14 @@ class YamlAssistant(assistant_base.AssistantBase):
             for action_type, action in one_action.items():
                 if action_type == 'cl':
                     try:
-                        a = self.format_command(action, **kwargs)
+                        a = self._format_command(action, **kwargs)
                         result = ClHelper.run_command(a)
                         # command succeeded -> error
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
                     except plumbum.ProcessExecutionError:
                         pass # everything ok, go on
                 elif action_type == 'log':
-                    self.log(action)
+                    self._log(action)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(action_type))
 
@@ -66,17 +66,17 @@ class YamlAssistant(assistant_base.AssistantBase):
         for command_dict in to_run:
             for comm_type, comm in command_dict.items():
                 if comm_type == 'cl':
-                    c = self.format_command(comm, **kwargs)
+                    c = self._format_command(comm, **kwargs)
                     try:
                         result = ClHelper.run_command(c)
                     except plumbum.ProcessExecutionError as e:
                         raise exceptions.RunException(e)
                 elif comm_type == 'log':
-                    self.log(comm)
+                    self._log(comm)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
-    def log(self, log_action):
+    def _log(self, log_action):
         # make level lowercase
         log_action = (log_action[0].upper(), log_action[1])
         if log_action[0] in logging._levelNames:
@@ -84,7 +84,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         else:
             logger.warning('Unknow logging level {0}, with message {1}'.format(*log_action))
 
-    def format_command(self, comm, **kwargs):
+    def _format_command(self, comm, **kwargs):
         # If command is false/true in yaml file, it gets coverted to False/True
         # which is bool object => convert
         if isinstance(comm, bool):
