@@ -69,7 +69,12 @@ class TestYamlAssistant(object):
     def test_run_chooses_proper_method(self):
         self.ya._run = [{'cl': 'ls'}]
         self.ya._run_foo = [{'cl': 'pwd'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('pwd')
+        flexmock(ClHelper).should_receive('run_command').with_args('pwd', False)
+        self.ya.run(foo='bar')
+
+    def test_run_runs_in_foreground_if_asked(self):
+        self.ya._run = [{'clf': 'ls'}]
+        flexmock(ClHelper).should_receive('run_command').with_args('ls', True)
         self.ya.run(foo='bar')
 
     def test_log(self):

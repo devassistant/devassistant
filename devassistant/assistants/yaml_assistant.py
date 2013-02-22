@@ -39,14 +39,13 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         for command_dict in self._fail_if:
             for comm_type, comm in command_dict.items():
-                if comm_type == 'cl':
+                if comm_type.startswith('cl'):
                     try:
-                        # we don't use _format_and_run_cl_command, because we also need the actual formatted command
                         a = self._format(comm, **kwargs)
-                        result = ClHelper.run_command(a)
+                        self._format_and_run_cl_command(comm_type, comm, **kwargs)
                         # command succeeded -> error
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
-                    except plumbum.ProcessExecutionError:
+                    except exceptions.RunException:
                         pass # everything ok, go on
                 elif comm_type == 'log':
                     self._log(comm, **kwargs)
@@ -84,17 +83,20 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         for command_dict in to_run:
             for comm_type, comm in command_dict.items():
-                if comm_type == 'cl':
-                    self._format_and_run_cl_command(comm, **kwargs)
+                if comm_type.startswith('cl'):
+                    self._format_and_run_cl_command(comm_type, comm, **kwargs)
                 elif comm_type == 'log':
                     self._log(comm, **kwargs)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
-    def _format_and_run_cl_command(self, command, **kwargs):
+    def _format_and_run_cl_command(self, command_type, command, **kwargs):
         c = self._format(command, **kwargs)
+        fg = False
+        if 'f' in command_type:
+            fg = True
         try:
-            result = ClHelper.run_command(c)
+            result = ClHelper.run_command(c, fg)
         except plumbum.ProcessExecutionError as e:
             raise exceptions.RunException(e)
 

@@ -7,7 +7,7 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str):
+    def run_command(cls, cmd_str, fg):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
         for i, s in enumerate(split_string):
@@ -17,10 +17,13 @@ class ClHelper(object):
         if split_string[0] == 'cd':
             plumbum.local.cwd.chdir(split_string[1])
         else:
-           cmd = plumbum.local[split_string[0]]
-           for i in split_string[1:]:
-               cmd = cmd[i]
-           cmd()
+            cmd = plumbum.local[split_string[0]]
+            for i in split_string[1:]:
+                cmd = cmd[i]
+            if fg:
+                cmd & plumbum.FG
+            else:
+                cmd()
 
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
