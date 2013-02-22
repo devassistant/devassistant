@@ -3,7 +3,7 @@ c: # name of the assistant as will be used on commandline; should be the same as
   subassistants: [foo, bar] # names of subassistants of this assistant
 
   dependencies: # dependencies of this assistant; you can use either names/provides of packages or yum groups
-    rpm: [gcc, '@foo'] # use apostrophes around @ not to get syntax error when using yaml
+  - rpm: [gcc, '@foo'] # use apostrophes around @ not to get syntax error when using yaml
   logging: # additional logging handlers, only file handlers are currently supported
   - file: ['debug', '$name/cproject.log'] # runs in the very beginning and logs everything at debug level
 
