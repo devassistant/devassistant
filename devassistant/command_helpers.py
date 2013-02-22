@@ -40,7 +40,7 @@ class RPMHelper(object):
     @classmethod
     def rpm_q(cls, rpm_name):
         try:
-            return cls.c_rpm('-q', rpm_name)
+            return cls.c_rpm('-q', rpm_name).strip()
         except plumbum.ProcessExecutionError:
             return False
 
