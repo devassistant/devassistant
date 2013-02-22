@@ -7,7 +7,7 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, fg):
+    def run_command(cls, cmd_str, fg=False):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
         for i, s in enumerate(split_string):
