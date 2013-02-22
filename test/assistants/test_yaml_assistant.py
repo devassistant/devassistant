@@ -2,6 +2,7 @@ from flexmock import flexmock
 import pytest
 
 from devassistant import exceptions
+from devassistant import settings
 from devassistant.assistants import yaml_assistant
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 
@@ -69,13 +70,23 @@ class TestYamlAssistant(object):
     def test_run_chooses_proper_method(self):
         self.ya._run = [{'cl': 'ls'}]
         self.ya._run_foo = [{'cl': 'pwd'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('pwd', False)
+        flexmock(ClHelper).should_receive('run_command').with_args('pwd', False, False)
         self.ya.run(foo='bar')
 
     def test_run_runs_in_foreground_if_asked(self):
         self.ya._run = [{'clf': 'ls'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('ls', True)
+        flexmock(ClHelper).should_receive('run_command').with_args('ls', True, False)
         self.ya.run(foo='bar')
+
+    def test_run_logs_command_at_debug(self):
+        self.ya._run = [{'cl': 'ls'}]
+        self.ya.run(foo='bar')
+        assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
+
+    def test_run_logs_command_at_info_if_asked(self):
+        self.ya._run = [{'cli': 'ls'}]
+        self.ya.run(foo='bar')
+        assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
 
     def test_log(self):
         self.ya._fail_if = [{'log': ['warning', 'foo!']}]

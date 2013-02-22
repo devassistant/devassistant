@@ -3,11 +3,12 @@ import os
 import plumbum
 from plumbum.cmd import ls, sudo
 
+from devassistant import settings
 from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, fg=False):
+    def run_command(cls, cmd_str, fg=False, log_as_info=False):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
         for i, s in enumerate(split_string):
@@ -20,6 +21,14 @@ class ClHelper(object):
             cmd = plumbum.local[split_string[0]]
             for i in split_string[1:]:
                 cmd = cmd[i]
+            # log the invocation
+            log_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
+            if log_as_info:
+                logger.info(log_string)
+            else:
+                logger.debug(log_string)
+
+            # actually invoke the command
             if fg:
                 cmd & plumbum.FG
             else:

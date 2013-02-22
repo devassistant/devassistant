@@ -93,10 +93,13 @@ class YamlAssistant(assistant_base.AssistantBase):
     def _format_and_run_cl_command(self, command_type, command, **kwargs):
         c = self._format(command, **kwargs)
         fg = False
+        i = False
         if 'f' in command_type:
             fg = True
+        if 'i' in command_type:
+            i = True
         try:
-            result = ClHelper.run_command(c, fg)
+            result = ClHelper.run_command(c, fg, i)
         except plumbum.ProcessExecutionError as e:
             raise exceptions.RunException(e)
 
