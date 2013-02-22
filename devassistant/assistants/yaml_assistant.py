@@ -23,9 +23,10 @@ class YamlAssistant(assistant_base.AssistantBase):
                 level, lfile = l_list
                 expanded_lfile = self._format(lfile, **kwargs)
                 # make dirs, create logger
-                os.makedirs(os.path.dirname(expanded_lfile))
+                if not os.path.exists(os.path.dirname(expanded_lfile)):
+                    os.makedirs(os.path.dirname(expanded_lfile))
                 # add handler and formatter
-                handler = logging.FileHandler(expanded_lfile, 'w')
+                handler = logging.FileHandler(expanded_lfile, 'a+')
                 formatter = logging.Formatter('%(levelname)s - %(message)s')
                 handler.setFormatter(formatter)
                 handler.setLevel(getattr(logging, level.upper()))
