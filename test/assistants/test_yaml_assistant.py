@@ -23,14 +23,14 @@ class TestYamlAssistant(object):
         ('cp *{first} *{nothing}', {}, 'cp %s/f/g *{nothing}' % (template_dir)),
         ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
     ])
-    def test_format_command(self, comm, arg_dict, result):
-        assert self.ya._format_command(comm, **arg_dict) == result
+    def test_format(self, comm, arg_dict, result):
+        assert self.ya._format(comm, **arg_dict) == result
 
-    def test_format_command_handles_bool(self):
+    def test_format_handles_bool(self):
         # If command is false/true in yaml file, it gets coverted to False/True
-        # which is bool object. format_command should handle this.
-        assert self.ya._format_command(True) == 'true'
-        assert self.ya._format_command(False) == 'false'
+        # which is bool object. format should handle this.
+        assert self.ya._format(True) == 'true'
+        assert self.ya._format(False) == 'false'
 
     def test_errors_pass(self):
         self.ya._fail_if = [{'cl': 'false'}, {'cl': 'grep'}]
@@ -81,3 +81,8 @@ class TestYamlAssistant(object):
         self.ya._fail_if = [{'log': ['foo', 'bar']}]
         self.ya.errors()
         assert self.tlh.msgs == [('WARNING', 'Unknow logging level FOO, with message bar')]
+
+    def test_log_formats_message(self):
+        self.ya._fail_if = [{'log': ['info', 'this is $how cool']}]
+        self.ya.errors(how='very')
+        assert self.tlh.msgs == [('INFO', 'this is very cool')]

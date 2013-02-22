@@ -8,7 +8,6 @@ class TestLoggingHandler(logging.Handler):
         self.msgs = []
 
     def emit(self, record):
-        print record
         self.msgs.append((record.levelname, record.getMessage()))
 
     @classmethod
