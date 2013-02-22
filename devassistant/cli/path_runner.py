@@ -1,3 +1,5 @@
+import logging
+
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 
@@ -5,6 +7,11 @@ class PathRunner(object):
     def __init__(self, path, parsed_args):
         self.path = path
         self.parsed_args = parsed_args
+
+    def _logging(self):
+        """Registers a logging handler from the leaf assistant, if specified"""
+        if 'logging' in vars(self.path[-1].__class__) or isinstance(self.path[-1], yaml_assistant.YamlAssistant):
+            self.path[-1].logging(**vars(self.parsed_args))
 
     def _run_path_errors(self):
         """Gathers errors from *Assistant.errors methods
@@ -40,6 +47,7 @@ class PathRunner(object):
         Raises:
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
+        self._logging()
         errors = self._run_path_errors()
         if errors:
             raise exceptions.ExecutionException(errors)

@@ -2,6 +2,9 @@ c:
   fullname: C Language Tool
   subassistants: [foo, bar]
 
+  logging:
+  - file: [debug, $name/bar.log] # warning, dir $name will be created even before "fail_if"
+
   dependencies:
     rpm: [gcc, @foo]
 

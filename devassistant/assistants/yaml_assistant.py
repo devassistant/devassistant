@@ -16,6 +16,24 @@ class YamlAssistant(assistant_base.AssistantBase):
     _fail_if = []
     _run = []
 
+    def logging(self, **kwargs):
+        for l in self._logging:
+            handler_type, l_list = l.popitem()
+            if handler_type == 'file':
+                level, lfile = l_list
+                expanded_lfile = self._format_command(lfile, **kwargs)
+                # make dirs, create logger
+                os.makedirs(os.path.dirname(expanded_lfile))
+                # add handler and formatter
+                handler = logging.FileHandler(expanded_lfile, 'w')
+                formatter = logging.Formatter('%(levelname)s - %(message)s')
+                handler.setFormatter(formatter)
+                handler.setLevel(getattr(logging, level.upper()))
+                # register handler with the global logger
+                logger.addHandler(handler)
+            else:
+                logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
+
     def errors(self, **kwargs):
         errors = []
 
