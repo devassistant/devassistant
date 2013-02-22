@@ -1,8 +1,9 @@
 c: 
     fullname: C Language Tool
 
-    dependencies: 
-    - rpm: ['glibc-devel']
+    dependencies:
+    - default:
+      - rpm: ['glibc-devel']
 
     args:
       name:

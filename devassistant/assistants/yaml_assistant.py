@@ -56,11 +56,17 @@ class YamlAssistant(assistant_base.AssistantBase):
         return errors
 
     def dependencies(self, **kwargs):
-        to_install = []
-        # rpm dependencies (can't handle anything else yet)
-        for dep in self._dependencies:
+        for sect in self._dependencies:
+            condition, section = sect.popitem()
+            if condition == 'default' or kwargs.get(condition[1:], False):
+                self._dependencies_section(section)
+
+    def _dependencies_section(self, section, **kwargs):
+        for dep in section:
             dep_type, dep_list = dep.popitem()
+            # rpm dependencies (can't handle anything else yet)
             if dep_type == 'rpm':
+                to_install = []
                 for dep in dep_list:
                     if dep.startswith('@'):
                         if not YUMHelper.is_group_installed(dep):
@@ -68,11 +74,10 @@ class YamlAssistant(assistant_base.AssistantBase):
                     else:
                         if not RPMHelper.is_rpm_installed(dep):
                             to_install.append(dep)
+                if to_install:
+                    YUMHelper.install(*to_install)
             else:
                 logger.warning('Unkown dependency type {0}, skipping.'.format(dep_type))
-
-        if to_install:
-            YUMHelper.install(*to_install)
 
     def run(self, **kwargs):
         # determine which run* section to invoke
