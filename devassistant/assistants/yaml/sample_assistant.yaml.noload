@@ -1,42 +1,43 @@
-c:
-  fullname: C Language Tool
-  subassistants: [foo, bar]
+c: # name of the assistant as will be used on commandline; should be the same as filename
+  fullname: C Language Tool # descriptive name that will be shown to user
+  subassistants: [foo, bar] # names of subassistants of this assistant
 
-  logging:
-  - file: [debug, $name/bar.log] # warning, dir $name will be created even before "fail_if"
+  dependencies: # dependencies of this assistant; you can use either names/provides of packages or yum groups
+    rpm: [gcc, '@foo'] # use apostrophes around @ not to get syntax error when using yaml
+  logging: # additional logging handlers, only file handlers are currently supported
+  - file: ['debug', '$name/cproject.log'] # runs in the very beginning and logs everything at debug level
 
-  dependencies:
-  - rpm: [gcc, @foo]
-
-  args:
-    name:
-      flags:
+  args: # arguments that this assistant needs
+    name: # this argument is called "name"
+      flags: # commandline flags that will be used for this argument; mandatory
       - -n
       - --name
-      help:
+      help: # help for this argument
         'Name of project to create'
     mock:
       flags:
-      - mock
+      - mock # this argument will be positional
       help:
         'Do something with mock'
-      nargs:
-        '?' # doesn't need a value, just triggers "run_mock" instead of "run"
-  files:
-    clientc: &clientc
-      source: c/client.c
+      nargs: # number of values that this positional argument will eat - one of `[?, *, +]`
+        '?'# doesn't need a value, just triggers "run_mock" instead of "run"
+
+  files: # files under devassistant/templates that will be referenced in one of run* sections
+    clientc: &clientc # the anchor is mandatory, you can then reference this file using `*clientc`
+      source: c/client.c # the source attribute is mandatory
     serverc: &serverc
       source: c/server.c
 
-  # immediately cancel execution if any of these commands is successful
-  fail_if:
-  - log: ['info', 'Checking for something']
-  - cl: ls /foo/bar
+  fail_if: # immediately cancel execution if any of these commands (except logging) is successful
+  - log: ['info', 'Checking for something'] # log something at `info` level
+  - cl: ls /foo/bar # run ls /foo/bar on commandline, fail if it returns 0
 
-  run:
-  - cl: mkdir -p $name
+  run: # gets executed by default; fails and immediately exits if any command fails
+  - cl: mkdir -p $name # uses `name` from the parameters above
   - log: ['debug', 'Some debugging message']
-  - cl: cp *clientc $name
+  - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
 
   run_mock: # if mock parameter is specified, use this instead of "run"
-  - cl: mock blah blah
+  - clf: mock blah blah # "clf" runs the command in foreground, displaying its output interactively
+  - cli: ls spam # "cli" makes the command itself logged not on debug level, but on info level, that shows by default
+  - clif: ls beans # combines cli and clf
