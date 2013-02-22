@@ -96,18 +96,9 @@ class PathHelper(object):
     c_mkdir = plumbum.local['mkdir']
 
     @classmethod
-    def error_if_path_exists(cls, path):
-        path_exists = cls.path_exists(path)
-        msg = None
-        if path_exists:
-            msg = 'Path "{0}" exists.'.format(path.strip())
-            logger.error(msg)
-        return msg
-
-    @classmethod
     def path_exists(cls, path):
         try:
-            return ls(path)
+            return ls(path).strip()
         except plumbum.ProcessExecutionError:
             return False
 
