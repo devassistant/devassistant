@@ -6,7 +6,7 @@ c:
   - file: [debug, $name/bar.log] # warning, dir $name will be created even before "fail_if"
 
   dependencies:
-    rpm: [gcc, @foo]
+  - rpm: [gcc, @foo]
 
   args:
     name:

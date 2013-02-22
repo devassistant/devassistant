@@ -2,7 +2,7 @@ c:
     fullname: C Language Tool
 
     dependencies: 
-        rpm: ['glibc-devel']
+    - rpm: ['glibc-devel']
 
     args:
       name:

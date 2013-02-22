@@ -3,7 +3,7 @@ c:
   subassistants: [d, e]
 
   dependencies:
-    rpm: [rpm]
+  - rpm: [rpm]
 
   args:
     foo:

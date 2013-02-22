@@ -47,7 +47,7 @@ class TestYamlAssistant(object):
         assert self.tlh.msgs == [('WARNING', 'Unkown action type foobar, skipping.')]
 
     def test_dependencies(self):
-        self.ya._dependencies = {'rpm': ['foo', '@bar', 'baz']}
+        self.ya._dependencies = [{'rpm': ['foo', '@bar', 'baz']}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, True).one_by_one()
         flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
         flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar')

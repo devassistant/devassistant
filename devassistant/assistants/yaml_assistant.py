@@ -58,7 +58,8 @@ class YamlAssistant(assistant_base.AssistantBase):
     def dependencies(self, **kwargs):
         to_install = []
         # rpm dependencies (can't handle anything else yet)
-        for dep_type, dep_list in self._dependencies.items():
+        for dep in self._dependencies:
+            dep_type, dep_list = dep.popitem()
             if dep_type == 'rpm':
                 for dep in dep_list:
                     if dep.startswith('@'):
