@@ -3,7 +3,8 @@ d:
   subassistants: []
 
   dependencies:
-    rpm: [python]
+  - default:
+    - rpm: [python]
   args:
     name:
       flags:

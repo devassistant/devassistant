@@ -16,31 +16,57 @@ class YamlAssistant(assistant_base.AssistantBase):
     _fail_if = []
     _run = []
 
+    def logging(self, **kwargs):
+        for l in self._logging:
+            handler_type, l_list = l.popitem()
+            if handler_type == 'file':
+                level, lfile = l_list
+                expanded_lfile = self._format(lfile, **kwargs)
+                # make dirs, create logger
+                if not os.path.exists(os.path.dirname(expanded_lfile)):
+                    os.makedirs(os.path.dirname(expanded_lfile))
+                # add handler and formatter
+                handler = logging.FileHandler(expanded_lfile, 'a+')
+                formatter = logging.Formatter('%(asctime)-15s %(levelname)s - %(message)s')
+                handler.setFormatter(formatter)
+                handler.setLevel(getattr(logging, level.upper()))
+                # register handler with the global logger
+                logger.addHandler(handler)
+            else:
+                logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
+
     def errors(self, **kwargs):
         errors = []
 
-        for one_action in self._fail_if:
-            for action_type, action in one_action.items():
-                if action_type == 'cl':
+        for command_dict in self._fail_if:
+            for comm_type, comm in command_dict.items():
+                if comm_type.startswith('cl'):
                     try:
-                        a = self.format_command(action, **kwargs)
-                        result = ClHelper.run_command(a)
+                        a = self._format(comm, **kwargs)
+                        self._format_and_run_cl_command(comm_type, comm, **kwargs)
                         # command succeeded -> error
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
-                    except plumbum.ProcessExecutionError:
+                    except exceptions.RunException:
                         pass # everything ok, go on
-                elif action_type == 'log':
-                    self.log(action)
+                elif comm_type == 'log':
+                    self._log(comm, **kwargs)
                 else:
-                    logger.warning('Unkown action type {0}, skipping.'.format(action_type))
+                    logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
         return errors
 
     def dependencies(self, **kwargs):
-        to_install = []
-        # rpm dependencies (can't handle anything else yet)
-        for dep_type, dep_list in self._dependencies.items():
+        for sect in self._dependencies:
+            condition, section = sect.popitem()
+            if condition == 'default' or kwargs.get(condition[1:], False):
+                self._dependencies_section(section)
+
+    def _dependencies_section(self, section, **kwargs):
+        for dep in section:
+            dep_type, dep_list = dep.popitem()
+            # rpm dependencies (can't handle anything else yet)
             if dep_type == 'rpm':
+                to_install = []
                 for dep in dep_list:
                     if dep.startswith('@'):
                         if not YUMHelper.is_group_installed(dep):
@@ -48,11 +74,10 @@ class YamlAssistant(assistant_base.AssistantBase):
                     else:
                         if not RPMHelper.is_rpm_installed(dep):
                             to_install.append(dep)
+                if to_install:
+                    YUMHelper.install(*to_install)
             else:
                 logger.warning('Unkown dependency type {0}, skipping.'.format(dep_type))
-
-        if to_install:
-            YUMHelper.install(*to_install)
 
     def run(self, **kwargs):
         # determine which run* section to invoke
@@ -65,26 +90,37 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         for command_dict in to_run:
             for comm_type, comm in command_dict.items():
-                if comm_type == 'cl':
-                    c = self.format_command(comm, **kwargs)
-                    try:
-                        result = ClHelper.run_command(c)
-                    except plumbum.ProcessExecutionError as e:
-                        raise exceptions.RunException(e)
+                if comm_type.startswith('cl'):
+                    self._format_and_run_cl_command(comm_type, comm, **kwargs)
                 elif comm_type == 'log':
-                    self.log(comm)
+                    self._log(comm, **kwargs)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
-    def log(self, log_action):
+    def _format_and_run_cl_command(self, command_type, command, **kwargs):
+        c = self._format(command, **kwargs)
+        fg = False
+        i = False
+        if 'f' in command_type:
+            fg = True
+        if 'i' in command_type:
+            i = True
+        try:
+            result = ClHelper.run_command(c, fg, i)
+        except plumbum.ProcessExecutionError as e:
+            raise exceptions.RunException(e)
+
+        return result
+
+    def _log(self, log_action, **kwargs):
         # make level lowercase
         log_action = (log_action[0].upper(), log_action[1])
         if log_action[0] in logging._levelNames:
-            logger.log(logging._levelNames[log_action[0]], log_action[1])
+            logger.log(logging._levelNames[log_action[0]], self._format(log_action[1], **kwargs))
         else:
             logger.warning('Unknow logging level {0}, with message {1}'.format(*log_action))
 
-    def format_command(self, comm, **kwargs):
+    def _format(self, comm, **kwargs):
         # If command is false/true in yaml file, it gets coverted to False/True
         # which is bool object => convert
         if isinstance(comm, bool):

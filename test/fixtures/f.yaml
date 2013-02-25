@@ -2,7 +2,8 @@ f:
   fullname: F Language Tool
 
   dependencies:
-    rpm: [foobarbaz]
+  - default:
+    - rpm: [foobarbaz]
   args:
     name:
       flags:

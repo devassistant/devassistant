@@ -8,7 +8,7 @@ class TestLoggingHandler(logging.Handler):
         self.msgs = []
 
     def emit(self, record):
-        self.msgs.append((record.levelname, record.message))
+        self.msgs.append((record.levelname, record.getMessage()))
 
     @classmethod
     def create_fresh_handler(cls):

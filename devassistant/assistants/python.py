@@ -30,9 +30,9 @@ class DjangoAssistant(PythonAssistant):
         errors = []
         self.path = os.path.abspath(os.path.expanduser(kwargs['name']))
 
-        path_exists = PathHelper.error_if_path_exists(self.path)
+        path_exists = PathHelper.path_exists(self.path)
         if path_exists:
-            errors.append(path_exists)
+            errors.append('Path exists: {0}'.format(self.path))
         return errors
 
     def dependencies(self, **kwargs):
@@ -64,9 +64,11 @@ class FlaskAssistant(PythonAssistant):
 
     def errors(self, **kwargs):
         errors = []
-        path_exists = PathHelper.error_if_path_exists(kwargs['name'])
+        self.path = os.path.abspath(os.path.expanduser(kwargs['name']))
+
+        path_exists = PathHelper.path_exists(self.path)
         if path_exists:
-            errors.append(path_exists)
+            errors.append('Path exists: {0}'.format(self.path))
         return errors
 
     def dependencies(self, **kwargs):
@@ -87,11 +89,11 @@ class FlaskAssistant(PythonAssistant):
     def run(self, **kwargs):
         logger.info('Kickstarting a Flask project under {0}'.format(kwargs['name']))
         logger.info('Creating directory structure...')
-        PathHelper.mkdir_p(kwargs['name'])
-        PathHelper.mkdir_p('{0}/static'.format(kwargs['name']))
-        PathHelper.mkdir_p('{0}/templates'.format(kwargs['name']))
+        PathHelper.mkdir_p(self.path)
+        PathHelper.mkdir_p('{0}/static'.format(self.path))
+        PathHelper.mkdir_p('{0}/templates'.format(self.path))
 
         logger.info('Creating initial project files...')
         # the flask template doesn't in fact need rendering, so just copy it
         PathHelper.cp(os.path.join(self.template_dir, 'python', 'flask'),
-                      os.path.join(kwargs['name'], '__init__.py'))
+                      os.path.join(self.path, '__init__.py'))

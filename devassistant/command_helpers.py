@@ -3,11 +3,12 @@ import os
 import plumbum
 from plumbum.cmd import ls, sudo
 
+from devassistant import settings
 from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str):
+    def run_command(cls, cmd_str, fg=False, log_as_info=False):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
         for i, s in enumerate(split_string):
@@ -17,10 +18,21 @@ class ClHelper(object):
         if split_string[0] == 'cd':
             plumbum.local.cwd.chdir(split_string[1])
         else:
-           cmd = plumbum.local[split_string[0]]
-           for i in split_string[1:]:
-               cmd = cmd[i]
-           cmd()
+            cmd = plumbum.local[split_string[0]]
+            for i in split_string[1:]:
+                cmd = cmd[i]
+            # log the invocation
+            log_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
+            if log_as_info:
+                logger.info(log_string)
+            else:
+                logger.debug(log_string)
+
+            # actually invoke the command
+            if fg:
+                cmd & plumbum.FG
+            else:
+                cmd()
 
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
@@ -28,7 +40,7 @@ class RPMHelper(object):
     @classmethod
     def rpm_q(cls, rpm_name):
         try:
-            return cls.c_rpm('-q', rpm_name)
+            return cls.c_rpm('-q', rpm_name).strip()
         except plumbum.ProcessExecutionError:
             return False
 
@@ -84,18 +96,9 @@ class PathHelper(object):
     c_mkdir = plumbum.local['mkdir']
 
     @classmethod
-    def error_if_path_exists(cls, path):
-        path_exists = cls.path_exists(path)
-        msg = None
-        if path_exists:
-            msg = 'Path "{0}" exists.'.format(path.strip())
-            logger.error(msg)
-        return msg
-
-    @classmethod
     def path_exists(cls, path):
         try:
-            return ls(path)
+            return ls(path).strip()
         except plumbum.ProcessExecutionError:
             return False
 

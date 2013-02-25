@@ -2,6 +2,7 @@ from flexmock import flexmock
 import pytest
 
 from devassistant import exceptions
+from devassistant import settings
 from devassistant.assistants import yaml_assistant
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 
@@ -23,14 +24,14 @@ class TestYamlAssistant(object):
         ('cp *{first} *{nothing}', {}, 'cp %s/f/g *{nothing}' % (template_dir)),
         ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
     ])
-    def test_format_command(self, comm, arg_dict, result):
-        assert self.ya.format_command(comm, **arg_dict) == result
+    def test_format(self, comm, arg_dict, result):
+        assert self.ya._format(comm, **arg_dict) == result
 
-    def test_format_command_handles_bool(self):
+    def test_format_handles_bool(self):
         # If command is false/true in yaml file, it gets coverted to False/True
-        # which is bool object. format_command should handle this.
-        assert self.ya.format_command(True) == 'true'
-        assert self.ya.format_command(False) == 'false'
+        # which is bool object. format should handle this.
+        assert self.ya._format(True) == 'true'
+        assert self.ya._format(False) == 'false'
 
     def test_errors_pass(self):
         self.ya._fail_if = [{'cl': 'false'}, {'cl': 'grep'}]
@@ -45,11 +46,25 @@ class TestYamlAssistant(object):
         assert not self.ya.errors()
         assert self.tlh.msgs == [('WARNING', 'Unkown action type foobar, skipping.')]
 
+    # TODO: refactor to also test _dependencies_section alone
     def test_dependencies(self):
-        self.ya._dependencies = {'rpm': ['foo', '@bar', 'baz']}
+        self.ya._dependencies = [{'default': [{'rpm': ['foo', '@bar', 'baz']}]}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, True).one_by_one()
         flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
         flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar')
+        self.ya.dependencies()
+
+    def test_dependencies_uses_non_default_section_on_param(self):
+        self.ya._dependencies = [{'default': [{'rpm': ['foo']}]}, {'_a': [{'rpm': ['bar']}]}]
+        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
+        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return()
+        flexmock(YUMHelper).should_receive('install').with_args('bar').and_return()
+        self.ya.dependencies(a=True)
+
+    def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
+        self.ya._dependencies = [{'default': [{'rpm': ['foo']}]}, {'_a': [{'rpm': ['bar']}]}]
+        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
+        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return()
         self.ya.dependencies()
 
     def test_run_pass(self):
@@ -69,8 +84,23 @@ class TestYamlAssistant(object):
     def test_run_chooses_proper_method(self):
         self.ya._run = [{'cl': 'ls'}]
         self.ya._run_foo = [{'cl': 'pwd'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('pwd')
+        flexmock(ClHelper).should_receive('run_command').with_args('pwd', False, False)
         self.ya.run(foo='bar')
+
+    def test_run_runs_in_foreground_if_asked(self):
+        self.ya._run = [{'clf': 'ls'}]
+        flexmock(ClHelper).should_receive('run_command').with_args('ls', True, False)
+        self.ya.run(foo='bar')
+
+    def test_run_logs_command_at_debug(self):
+        self.ya._run = [{'cl': 'ls'}]
+        self.ya.run(foo='bar')
+        assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
+
+    def test_run_logs_command_at_info_if_asked(self):
+        self.ya._run = [{'cli': 'ls'}]
+        self.ya.run(foo='bar')
+        assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
 
     def test_log(self):
         self.ya._fail_if = [{'log': ['warning', 'foo!']}]
@@ -81,3 +111,8 @@ class TestYamlAssistant(object):
         self.ya._fail_if = [{'log': ['foo', 'bar']}]
         self.ya.errors()
         assert self.tlh.msgs == [('WARNING', 'Unknow logging level FOO, with message bar')]
+
+    def test_log_formats_message(self):
+        self.ya._fail_if = [{'log': ['info', 'this is $how cool']}]
+        self.ya.errors(how='very')
+        assert self.tlh.msgs == [('INFO', 'this is very cool')]
