@@ -89,3 +89,12 @@ class AssistantBase(object):
             devassistant.exceptions.RunException containing the error message
         """
         pass
+
+    def git_hub_registration(self, **kwargs):
+        """Initializa repository on GitHub
+
+        Raises:
+            devassistant.exceptions.RunException containing the error message
+        """
+        print "assistant_base: git_hub_registration"
+        pass

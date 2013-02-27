@@ -3,11 +3,13 @@ import os
 import string
 
 import plumbum
+import git
+import getpass
 
 from devassistant import assistant_base
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, PathHelper
 from devassistant.logger import logger
 
 class YamlAssistant(assistant_base.AssistantBase):
@@ -68,12 +70,12 @@ class YamlAssistant(assistant_base.AssistantBase):
             if dep_type == 'rpm':
                 to_install = []
                 for dep in dep_list:
-                    if dep.startswith('@'):
-                        if not YUMHelper.is_group_installed(dep):
-                            to_install.append(dep)
-                    else:
-                        if not RPMHelper.is_rpm_installed(dep):
-                            to_install.append(dep)
+                        if dep.startswith('@'):
+                            if not YUMHelper.is_group_installed(dep):
+                                to_install.append(dep)
+                        else:
+                            if not RPMHelper.is_rpm_installed(dep):
+                                to_install.append(dep)
                 if to_install:
                     YUMHelper.install(*to_install)
             else:
@@ -94,6 +96,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._format_and_run_cl_command(comm_type, comm, **kwargs)
                 elif comm_type == 'log':
                     self._log(comm, **kwargs)
+                elif comm_type == 'github':
+                    self.git_hub_registration(comm,**kwargs)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
@@ -151,3 +155,26 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         # substitute cli arguments for their values
         return string.Template(new_comm).safe_substitute(kwargs)
+
+    def git_hub_registration(self, comm, **kwargs):
+        logger.info("Check whether repository is existing")
+        gitname = kwargs['name']
+        print "{0}.git".format(gitname)
+        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
+            logger.info("Repository is not existing. Creating newer one")
+            repo = git.Repo.init("{0}".format(gitname))
+            repo.config_reader()
+            repo.config_writer()
+            untracked = repo.untracked_files
+            logger.info(repo.git.status())
+            for f in untracked:
+                repo.git.add(f)
+            repo.git.commit(m=comm[0])
+            logger.info(repo.git.status())
+            username = getpass.getuser()
+            plumbum.local.cwd.chdir(kwargs['name'])
+            remote_string = "https://github.com/{0}/{1}".format(username,gitname)
+            ClHelper.run_command("git remote add origin {0}".format(remote_string),fg=True,log_as_info=True)
+            ClHelper.run_command("git push -u origin master",True,True)
+        else:
+            logger.info("Repository is already existing")
