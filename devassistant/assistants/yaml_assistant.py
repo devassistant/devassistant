@@ -90,16 +90,57 @@ class YamlAssistant(assistant_base.AssistantBase):
                 if kwargs.get(parameter, False):
                     to_run = getattr(self, method)
 
-        for command_dict in to_run:
+        self._run_one_section(to_run, **kwargs)
+
+
+    def _run_one_section(self, section, **kwargs):
+        skip_else = False
+
+        for i, command_dict in enumerate(section):
             for comm_type, comm in command_dict.items():
                 if comm_type.startswith('cl'):
                     self._format_and_run_cl_command(comm_type, comm, **kwargs)
                 elif comm_type == 'log':
                     self._log(comm, **kwargs)
                 elif comm_type == 'github':
-                    self.git_hub_registration(comm,**kwargs)
+                    self.git_hub_registration(comm, **kwargs)
+                elif comm_type.startswith('if'):
+                    if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
+                        self._run_one_section(comm)
+                    else:
+                        # look if next comm_type is else, if so, execute it
+                        if len(section) > i + 1:
+                            next_section_dict = section[i + 1]
+                            next_section_comm_type, next_section_comm = next_section_dict.items()[0]
+                            if next_section_comm_type == 'else':
+                                self._run_one_section(next_section_comm, **kwargs)
+                elif comm_type == 'else':
+                    # else on its own means error, otherwise ok
+                    if not section[i - 1].items()[0][0].startswith('if'):
+                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
+
+    def _evaluate_condition(self, condition, **kwargs):
+        result = True
+        invert_result = False
+        cond = condition.strip()
+        if cond.startswith('not '):
+            invert_result = True
+            cond = cond[4:]
+
+        if cond.startswith('_'):
+            if cond[1:] in kwargs and kwargs[cond[1:]]:
+                result = True
+            else:
+                result = False
+        else:
+            try:
+                c = self._format_and_run_cl_command('cl', cond, **kwargs)
+                result = True
+            except exceptions.RunException:
+                result = False
+        return result != invert_result # != is basically xor
 
     def _format_and_run_cl_command(self, command_type, command, **kwargs):
         c = self._format(command, **kwargs)
