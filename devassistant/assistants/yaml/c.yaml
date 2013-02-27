@@ -23,7 +23,8 @@ c:
         - --build
         help:
             'This will create SRPM and RPM packages'
-        nargs: '?'
+        action:
+          'store_true'
 
       idesettings:
         flags:
@@ -31,7 +32,8 @@ c:
         - --idesettings
         help:
             'This will add vundle to ~/.vimrc/bundle/vundle directory'
-        nargs: '?'
+        action:
+          'store_true'
 
       github:
         flags:
@@ -41,7 +43,8 @@ c:
             'This will create a Git Hub repository.
             First create repository on git hub.
             Actually now creating repository on GitHub server from command line is not supported'
-        nargs: '?'
+        action:
+          'store_true'
 
     files:
       cfiles: &cfiles
