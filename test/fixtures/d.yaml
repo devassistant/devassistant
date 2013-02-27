@@ -25,4 +25,7 @@ d:
   - cl: cp &clientc $name
 
   run_python:
-  - cl: python -v
+  - if python -v:
+    - cl: kaboom
+  - else:
+    - foo

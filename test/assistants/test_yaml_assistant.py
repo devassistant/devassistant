@@ -17,6 +17,12 @@ class TestYamlAssistant(object):
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
+        self.ya2 = yaml_assistant.YamlAssistant()
+        self.ya2._run = [{'if _ide':
+                            [{'if ls /notachance': [{'log': ['debug', 'ifif']}]},
+                             {'else': [{'log': ['debug', 'ifelse']}]}]},
+                         {'else': [{'log': ['debug', 'else']}]}]
+
     @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
         ('ls -la', {}, 'ls -la'),
         ('touch $foo ${bar} $baz', {'foo': 'a', 'bar': 'b'}, 'touch a b $baz'),
@@ -116,3 +122,11 @@ class TestYamlAssistant(object):
         self.ya._fail_if = [{'log': ['info', 'this is $how cool']}]
         self.ya.errors(how='very')
         assert self.tlh.msgs == [('INFO', 'this is very cool')]
+
+    def test_run_if_nested_else(self):
+        self.ya2.run(ide=True)
+        assert ('DEBUG', 'ifelse') in self.tlh.msgs
+
+    def test_run_else(self):
+        self.ya2.run()
+        assert ('DEBUG', 'else') in self.tlh.msgs

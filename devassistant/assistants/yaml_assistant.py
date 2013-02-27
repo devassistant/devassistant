@@ -94,7 +94,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
 
     def _run_one_section(self, section, **kwargs):
-        skip_else = False
+        execute_else = False
 
         for i, command_dict in enumerate(section):
             for comm_type, comm in command_dict.items():
@@ -107,17 +107,18 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm)
-                    else:
-                        # look if next comm_type is else, if so, execute it
-                        if len(section) > i + 1:
-                            next_section_dict = section[i + 1]
-                            next_section_comm_type, next_section_comm = next_section_dict.items()[0]
-                            if next_section_comm_type == 'else':
-                                self._run_one_section(next_section_comm, **kwargs)
+                    elif len(section) > i + 1:
+                        next_section_dict = section[i + 1]
+                        next_section_comm_type, next_section_comm = next_section_dict.items()[0]
+                        if next_section_comm_type == 'else':
+                            execute_else = True
                 elif comm_type == 'else':
-                    # else on its own means error, otherwise ok
+                    # else on its own means error, otherwise execute it
                     if not section[i - 1].items()[0][0].startswith('if'):
                         logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                    elif execute_else:
+                        execute_else = False
+                        self._run_one_section(comm, **kwargs)
                 else:
                     logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
 
