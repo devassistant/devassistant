@@ -3,7 +3,11 @@ c: # name of the assistant as will be used on commandline; should be the same as
   subassistants: [foo, bar] # names of subassistants of this assistant
 
   dependencies: # dependencies of this assistant; you can use either names/provides of packages or yum groups
-  - rpm: [gcc, '@foo'] # use apostrophes around @ not to get syntax error when using yaml
+  - default: # these dependencies will always be installed
+    - rpm: [gcc, '@foo'] # use apostrophes around @ not to get syntax error when using yaml
+  - _mock: # these dependencies will be installed after 'default' when mock parameter is used
+    - rpm: [mock]
+
   logging: # additional logging handlers, only file handlers are currently supported
   - file: ['debug', '$name/cproject.log'] # runs in the very beginning and logs everything at debug level
 
@@ -14,6 +18,12 @@ c: # name of the assistant as will be used on commandline; should be the same as
       - --name
       help: # help for this argument
         'Name of project to create'
+    ide:
+      flags:
+      - -i
+      - --ide
+      action:
+        'store_true' # this option will be a switch without arguments
     mock:
       flags:
       - mock # this argument will be positional
@@ -36,6 +46,12 @@ c: # name of the assistant as will be used on commandline; should be the same as
   - cl: mkdir -p $name # uses `name` from the parameters above
   - log: ['debug', 'Some debugging message']
   - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
+  - if _ide: # condition based on presence of argument
+    - if not ls ~/.vimrc/blahblah: # use not to negate condition, condition can also be cli argument
+      - cl: mkdir ~/.vimrc/blahblah
+    - else:
+      - log: ['info': 'blahblah already exists']
+  - log: ['info', 'Finished']
 
   run_mock: # if mock parameter is specified, use this instead of "run"
   - clf: mock blah blah # "clf" runs the command in foreground, displaying its output interactively
