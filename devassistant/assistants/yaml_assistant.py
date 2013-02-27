@@ -3,8 +3,8 @@ import os
 import string
 
 import plumbum
-import git
 import getpass
+import git
 
 from devassistant import assistant_base
 from devassistant import exceptions
@@ -163,7 +163,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
             logger.info("Repository is not existing. Creating newer one")
             repo = git.Repo.init("{0}".format(gitname))
-            repo.config_reader()
             repo.config_writer()
             untracked = repo.untracked_files
             logger.info(repo.git.status())

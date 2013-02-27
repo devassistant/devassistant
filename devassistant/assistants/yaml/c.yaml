@@ -19,21 +19,24 @@ c:
 
       build:
         flags:
-        - build
+        - -b
+        - --build
         help:
             'This will create SRPM and RPM packages'
         nargs: '?'
 
       idesettings:
         flags:
-        - idesettings
+        - -i
+        - --idesettings
         help:
             'This will add vundle to ~/.vimrc/bundle/vundle directory'
         nargs: '?'
 
       github:
         flags:
-        - github
+        - -g
+        - --github
         help:
             'This will create a Git Hub repository.
             First create repository on git hub.
