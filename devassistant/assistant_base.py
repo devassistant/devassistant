@@ -1,5 +1,7 @@
 import os
 
+import jinja2
+
 from devassistant import settings
 
 class AssistantBase(object):
@@ -15,8 +17,9 @@ class AssistantBase(object):
 
     template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
-    # don't override this, used internally
+    # don't override these, used internally
     _dot_devassistant_path = None
+    _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     def get_subassistants(self):
         return []
