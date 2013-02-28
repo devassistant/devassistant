@@ -75,8 +75,8 @@ c:
         source: c/cdevelopmenttool.spec
 
     run:
-    - log: ['info', 'Creating repository on GitHub']
-    - log: ['info', 'Creating $name/src directory']
+    - log_i: 'Creating repository on GitHub'
+    - log_i: 'Creating $name/src directory'
     - cl: mkdir -p $name/src # pouzije promennou "name" z args ^
     - dot_dac: $name
     - cl: cp *cfiles $name/src/files.c
@@ -92,26 +92,26 @@ c:
     - cl: cp *ChangeLog $name/ChangeLog
     - github: 'initial commit1'
     - cl: cd $name
-    - log: ['info', 'Calling autoreconf']
+    - log_i: 'Calling autoreconf'
     - cl: autoreconf --install
-    - log: ['info', 'Calling configure script']
+    - log_i: 'Calling configure script'
     - cl: ./configure
     - cl: make
     - cl: make distcheck # will create distribution tar ball for later on usage
 
     run_idesettings:
-    - log: ['info', 'clonning vundle.git']
+    - log_i: 'clonning vundle.git'
     - cl: rm -rf ~/.vim/bundle/vundle
     - cl: git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
-    - log: ['info', 'saving current ~/.vimrc to ~/.vimrc.devassistant']
+    - log_i: 'saving current ~/.vimrc to ~/.vimrc.devassistant'
     - cl: mv ~/.vimrc ~/vimrc.devassistant
-    - log: ['info', 'copying current the newest .vimrc to ~/.vimrc']
+    - log_i: 'copying current the newest .vimrc to ~/.vimrc'
     - cl: cp *vimrc /home/stone/.vimrc
-    - log: ['info', 'Installing BundleInstall to vim']
+    - log_i: 'Installing BundleInstall to vim'
     - cl: vim +BundleInstall +qall
 
     run_build:
-    - log: ['info', 'Creating spec file']
+    - log_i: 'Creating spec file'
     - cl: cd $name
     - cl: rpmdev-setuptree
     - cl: rm -f ~/rpmbuild/SPECS/*
@@ -119,9 +119,9 @@ c:
     - cl: cp *specfile ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
     - clf: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
-    - log: ['info', 'Creating RPM from tarball']
+    - log_i: 'Creating RPM from tarball'
     - clf: rpmbuild -ba cdevelopmenttool.spec
-    - log: ['info', 'Creating RPM from SRPM over mock']
+    - log_i: 'Creating RPM from SRPM over mock'
     - clf: rpmbuild -bs cdevelopmenttool.spec
     - clf: mock -r fedora-18-i386 ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
 

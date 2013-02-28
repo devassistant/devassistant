@@ -19,9 +19,9 @@ class TestYamlAssistant(object):
 
         self.ya2 = yaml_assistant.YamlAssistant()
         self.ya2._run = [{'if _ide':
-                            [{'if ls /notachance': [{'log': ['debug', 'ifif']}]},
-                             {'else': [{'log': ['debug', 'ifelse']}]}]},
-                         {'else': [{'log': ['debug', 'else']}]}]
+                            [{'if ls /notachance': [{'log_d': 'ifif'}]},
+                             {'else': [{'log_d': 'ifelse'}]}]},
+                         {'else': [{'log_d': 'else'}]}]
 
     @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
         ('ls -la', {}, 'ls -la'),
@@ -50,7 +50,7 @@ class TestYamlAssistant(object):
     def test_errors_unknow_action(self):
         self.ya._fail_if = [{'foobar': 'not an action'}]
         assert not self.ya.errors()
-        assert self.tlh.msgs == [('WARNING', 'Unkown action type foobar, skipping.')]
+        assert self.tlh.msgs == [('WARNING', 'Unknown action type foobar, skipping.')]
 
     # TODO: refactor to also test _dependencies_section alone
     def test_dependencies(self):
@@ -85,7 +85,7 @@ class TestYamlAssistant(object):
     def test_run_unkown_action(self):
         self.ya._run = [{'foo': 'bar'}]
         self.ya.run()
-        assert self.tlh.msgs == [('WARNING', 'Unkown action type foo, skipping.')]
+        assert self.tlh.msgs == [('WARNING', 'Unknown action type foo, skipping.')]
 
     def test_run_chooses_proper_method(self):
         self.ya._run = [{'cl': 'ls'}]
@@ -109,17 +109,17 @@ class TestYamlAssistant(object):
         assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
 
     def test_log(self):
-        self.ya._fail_if = [{'log': ['warning', 'foo!']}]
+        self.ya._fail_if = [{'log_w': 'foo!'}]
         self.ya.errors()
         assert self.tlh.msgs == [('WARNING', 'foo!')]
 
     def test_log_wrong_level(self):
-        self.ya._fail_if = [{'log': ['foo', 'bar']}]
+        self.ya._fail_if = [{'log_b': 'bar'}]
         self.ya.errors()
-        assert self.tlh.msgs == [('WARNING', 'Unknow logging level FOO, with message bar')]
+        assert self.tlh.msgs == [('WARNING', 'Unknown logging command log_b with message bar')]
 
     def test_log_formats_message(self):
-        self.ya._fail_if = [{'log': ['info', 'this is $how cool']}]
+        self.ya._fail_if = [{'log_i': 'this is $how cool'}]
         self.ya.errors(how='very')
         assert self.tlh.msgs == [('INFO', 'this is very cool')]
 

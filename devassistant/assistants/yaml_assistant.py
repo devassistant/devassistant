@@ -50,10 +50,10 @@ class YamlAssistant(assistant_base.AssistantBase):
                         errors.append('Cannot proceed because command returned 0: {0}'.format(a))
                     except exceptions.RunException:
                         pass # everything ok, go on
-                elif comm_type == 'log':
-                    self._log(comm, **kwargs)
+                elif comm_type.startswith('log'):
+                    self._log(comm_type, comm, **kwargs)
                 else:
-                    logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
+                    logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
 
         return errors
 
@@ -79,7 +79,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                 if to_install:
                     YUMHelper.install(*to_install)
             else:
-                logger.warning('Unkown dependency type {0}, skipping.'.format(dep_type))
+                logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
     def run(self, **kwargs):
         # determine which run* section to invoke
@@ -100,8 +100,8 @@ class YamlAssistant(assistant_base.AssistantBase):
             for comm_type, comm in command_dict.items():
                 if comm_type.startswith('cl'):
                     self._format_and_run_cl_command(comm_type, comm, **kwargs)
-                elif comm_type == 'log':
-                    self._log(comm, **kwargs)
+                elif comm_type.startswith('log'):
+                    self._log(comm_type, comm, **kwargs)
                 elif comm_type.startswith('dot_da'):
                     self._dot_devassistant_comm(comm_type, comm, **kwargs)
                 elif comm_type == 'github':
@@ -122,7 +122,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                         execute_else = False
                         self._run_one_section(comm, **kwargs)
                 else:
-                    logger.warning('Unkown action type {0}, skipping.'.format(comm_type))
+                    logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
 
     def _dot_devassistant_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'dot_dac':
@@ -166,13 +166,11 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         return result
 
-    def _log(self, log_action, **kwargs):
-        # make level lowercase
-        log_action = (log_action[0].upper(), log_action[1])
-        if log_action[0] in logging._levelNames:
-            logger.log(logging._levelNames[log_action[0]], self._format(log_action[1], **kwargs))
+    def _log(self, comm_type, log_msg, **kwargs):
+        if comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
+            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[comm_type[-1]]], self._format(log_msg, **kwargs))
         else:
-            logger.warning('Unknow logging level {0}, with message {1}'.format(*log_action))
+            logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, log_msg))
 
     def _format(self, comm, **kwargs):
         # If command is false/true in yaml file, it gets coverted to False/True
