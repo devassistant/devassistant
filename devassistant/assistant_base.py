@@ -1,6 +1,6 @@
 import os
 
-#import jinja2
+import jinja2
 from github import Github
 import getpass
 import git
@@ -26,7 +26,7 @@ class AssistantBase(object):
 
     # don't override these, used internally
     _dot_devassistant_path = None
-    #_jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+    _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     def get_subassistants(self):
         return []
