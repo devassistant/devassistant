@@ -4,6 +4,7 @@ import os
 from github import Github
 import getpass
 import git
+import sys
 
 from devassistant import settings
 from devassistant.logger import logger
@@ -135,7 +136,9 @@ class AssistantBase(object):
                 repo.git.add(files)
             repo.git.commit(m="Initial commit")
             logger.info("Repository is not existing. Creating newer one")
-            gh = Github('phracek','Oldfield53')
+            username = raw_input('Write your GitHub username:')
+            password = getpass.getpass(prompt='Password:', stream=None)
+            gh = Github(username,password)
             logger.info("Your current repositories are:")
             user = gh.get_user()
             bGitExists = False
