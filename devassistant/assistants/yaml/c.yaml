@@ -90,7 +90,7 @@ c:
     - cl: cp *AUTHORS $name/AUTHORS
     - cl: cp *NEWS $name/NEWS
     - cl: cp *ChangeLog $name/ChangeLog
-    - github: 'initial commit1'
+    - github: init
     - cl: cd $name
     - log_i: 'Calling autoreconf'
     - cl: autoreconf --install
@@ -128,5 +128,4 @@ c:
     run_github:
     - cl: cd $name
     - cl_f: git status
-    - cl_f: git remote add origin https://github.com/phracek/$name.git
-    - cl_f: git push -u origin master
+    - github: remote

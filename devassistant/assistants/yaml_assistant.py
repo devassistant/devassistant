@@ -130,7 +130,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     def _git_hub_registration(self, comm_type, comm, **kwargs):
         if comm_type == 'github':
-            self.git_hub_registration_create(**kwargs)
+            self.git_hub_registration_create(self._format(comm, **kwargs), **kwargs)
         else:
             logger.warning('Unknown github command {0}, skipping.'.format(comm_type))
 

@@ -5,10 +5,11 @@ from github import Github
 import getpass
 import git
 import sys
+import plumbum
 
 from devassistant import settings
 from devassistant.logger import logger
-from devassistant.command_helpers import PathHelper
+from devassistant.command_helpers import PathHelper, ClHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
@@ -113,7 +114,7 @@ class AssistantBase(object):
         """
         pass
 
-    def git_hub_registration_create(self, **kwargs):
+    def git_hub_registration_create(self, git_type, **kwargs):
         """Initialization repository on GitHub
 
         Raises:
@@ -125,33 +126,64 @@ class AssistantBase(object):
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             Name.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
             i += 1
-        logger.info("GitHub repository name: %s" % gitname)
-        logger.info("Check whether repository is existing")
-        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
-            logger.info("Creating local repository")
-            repo = git.Repo.init("{0}".format(gitname))
-            repo.config_writer()
-            logger.info(repo.git.status())
-            for files in repo.untracked_files:
-                repo.git.add(files)
-            repo.git.commit(m="Initial commit")
-            logger.info("Repository is not existing. Creating newer one")
-            username = raw_input('Write your GitHub username:')
-            password = getpass.getpass(prompt='Password:', stream=None)
-            gh = Github(username,password)
-            logger.info("Your current repositories are:")
-            user = gh.get_user()
-            bGitExists = False
-            for repo in user.get_repos():
-                logger.info("- {0}".format(repo.name))
-                if repo.name == gitname:
-                    logger.warning("Given repository is already existing on GiHub")
-                    bGitExists = True
+        if git_type == "init":
+            logger.info("Check whether repository is existing")
+            """ Here we are checking whether we already created project structure or not
+                This should be called after project creating
+            """
+            if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
+                """
+                    This section is used by GitPython library
+                """
+                logger.info("Creating local repository")
+                repo = git.Repo.init("{0}".format(gitname))
+                repo.config_writer()
+                logger.info(repo.git.status())
+                for files in repo.untracked_files:
+                    repo.git.add(files)
+                repo.git.commit(m="Initial commit")
+                logger.info("Repository is not existing. Creating newer one")
+                username = raw_input('Write your GitHub username:')
+                password = getpass.getpass(prompt='Password:', stream=None)
+                gh = Github(username,password)
+                logger.info("Your current repositories are:")
+                user = gh.get_user()
+                bGitExists = False
+                for repo in user.get_repos():
+                    logger.info("- {0}".format(repo.name))
+                    if repo.name == gitname:
+                        logger.warning("Given repository is already existing on GiHub")
+                        bGitExists = True
 
-            if bGitExists == False:
-                repo = user.create_repo(kwargs['name'])
+                if bGitExists == False:
+                    repo = user.create_repo(kwargs['name'])
+                else:
+                    logger.warning("Repository is already existing")
             else:
-                logger.warning("Repository is already existing")
-        else:
-            logger.info("Repository is already existing")
+                logger.info("Repository is already existing")
+        elif git_type == "remote":
+            """ This section is used for parameter github: remote 
+                which performs push operations to the server 
+                In future there will be also operations like git add .
+                and git commit -m "commit<date>" which will be done
+                This has to be discussed whether all changes """
+            username = raw_input("Write your GitHub username:")
+            try:
+                command = "git remote show origin"
+                result = ClHelper.run_command(command,True,True)
+                logger.info(result)
+            except plumbum.ProcessExecutionError as e:
+                """ This section is used for first synchronization
+                    between local and remote repository
+                """
+                try:
+                    command="git remote add origin https://github.com/{0}/{1}.git".format(username,kwargs['name'])
+                    ClHelper.run_command(command,True,True)
+                except plumbum.ProcessExecutionError as ppe:
+                    """ This is empty session
+                    """
+            """ This command will ensure that all changes will be pushed to the GitHub server
+                """
+            command = "git push origin master"
+            ClHelper.run_command(command,True,True)
         pass
