@@ -17,7 +17,7 @@ console_handler.setFormatter(console_formatter)
 logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
 
-gladefile = "/home/stone/work/devassistant/devel-assistant.glade"
+gladefile = "./devel-assistant.glade"
 
 class DevelAssistants(assistant_base.AssistantBase):
     def get_subassistants(self):
