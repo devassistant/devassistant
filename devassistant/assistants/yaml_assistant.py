@@ -209,7 +209,6 @@ class YamlAssistant(assistant_base.AssistantBase):
     def git_hub_registration(self, comm, **kwargs):
         logger.info("Check whether repository is existing")
         gitname = kwargs['name']
-        print "{0}.git".format(gitname)
         if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
             logger.info("Repository is not existing. Creating newer one")
             repo = git.Repo.init("{0}".format(gitname))

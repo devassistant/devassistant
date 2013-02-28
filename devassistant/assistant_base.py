@@ -110,5 +110,4 @@ class AssistantBase(object):
         Raises:
             devassistant.exceptions.RunException containing the error message
         """
-        print "assistant_base: git_hub_registration"
         pass
