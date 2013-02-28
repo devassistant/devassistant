@@ -3,8 +3,6 @@ import os
 import string
 
 import plumbum
-import getpass
-import git
 
 from devassistant import assistant_base
 from devassistant import exceptions
@@ -105,7 +103,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif comm_type.startswith('dda'):
                     self._dot_devassistant_comm(comm_type, comm, **kwargs)
                 elif comm_type == 'github':
-                    self.git_hub_registration(comm, **kwargs)
+                    self._git_hub_registration(comm_type, comm, **kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm)
@@ -129,6 +127,12 @@ class YamlAssistant(assistant_base.AssistantBase):
             self._dot_devassistant_create(self._format(comm, **kwargs), **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
+
+    def _git_hub_registration(self, comm_type, comm, **kwargs):
+        if comm_type == 'github':
+            self.git_hub_registration_create(**kwargs)
+        else:
+            logger.warning('Unknown github command {0}, skipping.'.format(comm_type))
 
     def _evaluate_condition(self, condition, **kwargs):
         result = True
@@ -203,24 +207,3 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         # substitute cli arguments for their values
         return string.Template(new_comm).safe_substitute(kwargs)
-
-    def git_hub_registration(self, comm, **kwargs):
-        logger.info("Check whether repository is existing")
-        gitname = kwargs['name']
-        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
-            logger.info("Repository is not existing. Creating newer one")
-            repo = git.Repo.init("{0}".format(gitname))
-            repo.config_writer()
-            untracked = repo.untracked_files
-            logger.info(repo.git.status())
-            for f in untracked:
-                repo.git.add(f)
-            repo.git.commit(m=comm[0])
-            logger.info(repo.git.status())
-            username = getpass.getuser()
-            plumbum.local.cwd.chdir(kwargs['name'])
-            remote_string = "https://github.com/{0}/{1}".format(username,gitname)
-            ClHelper.run_command("git remote add origin {0}".format(remote_string),fg=True,log_as_info=True)
-            ClHelper.run_command("git push -u origin master",True,True)
-        else:
-            logger.info("Repository is already existing")

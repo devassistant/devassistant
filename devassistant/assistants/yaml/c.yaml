@@ -127,7 +127,6 @@ c:
 
     run_github:
     - cl: cd $name
-    - cl_f: git add *
     - cl_f: git status
-    - cl_f: git commit -m initial
-    - cl_f: git push
+    - cl_f: git remote add origin https://github.com/phracek/$name.git
+    - cl_f: git push -u origin master

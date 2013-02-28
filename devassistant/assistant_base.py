@@ -1,8 +1,13 @@
 import os
 
-import jinja2
+#import jinja2
+from github import Github
+import getpass
+import git
 
 from devassistant import settings
+from devassistant.logger import logger
+from devassistant.command_helpers import PathHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
@@ -19,7 +24,7 @@ class AssistantBase(object):
 
     # don't override these, used internally
     _dot_devassistant_path = None
-    _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+    #_jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     def get_subassistants(self):
         return []
@@ -107,10 +112,43 @@ class AssistantBase(object):
         """
         pass
 
-    def git_hub_registration(self, **kwargs):
-        """Initializa repository on GitHub
+    def git_hub_registration_create(self, **kwargs):
+        """Initialization repository on GitHub
 
         Raises:
             devassistant.exceptions.RunException containing the error message
         """
+        gitname = kwargs['name']
+        Name=[]
+        i=0
+        while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
+            Name.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
+            i += 1
+        logger.info("GitHub repository name: %s" % gitname)
+        logger.info("Check whether repository is existing")
+        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
+            logger.info("Creating local repository")
+            repo = git.Repo.init("{0}".format(gitname))
+            repo.config_writer()
+            logger.info(repo.git.status())
+            for files in repo.untracked_files:
+                repo.git.add(files)
+            repo.git.commit(m="Initial commit")
+            logger.info("Repository is not existing. Creating newer one")
+            gh = Github('phracek','Oldfield53')
+            logger.info("Your current repositories are:")
+            user = gh.get_user()
+            bGitExists = False
+            for repo in user.get_repos():
+                logger.info("- {0}".format(repo.name))
+                if repo.name == gitname:
+                    logger.warning("Given repository is already existing on GiHub")
+                    bGitExists = True
+
+            if bGitExists == False:
+                repo = user.create_repo(kwargs['name'])
+            else:
+                logger.warning("Repository is already existing")
+        else:
+            logger.info("Repository is already existing")
         pass
