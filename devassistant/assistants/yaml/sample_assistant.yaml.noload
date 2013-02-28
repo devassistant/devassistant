@@ -44,6 +44,7 @@ c: # name of the assistant as will be used on commandline; should be the same as
 
   run: # gets executed by default; fails and immediately exits if any command fails
   - cl: mkdir -p $name # uses `name` from the parameters above
+  - dot_dac: $name # creates .devassistant file (with default initial content) in directory $name
   - log: ['debug', 'Some debugging message']
   - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
   - if _ide: # condition based on presence of argument

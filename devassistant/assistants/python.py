@@ -51,6 +51,7 @@ class DjangoAssistant(PythonAssistant):
         PathHelper.mkdir_p(project_path)
         with plumbum.local.cwd(project_path):
             django_admin('startproject', project_name)
+        self._dot_devassistant_create(self.path, **kwargs)
         logger.info('Django project {name} in {path} has been created.'.format(path=project_path,
                                                                                name=project_name))
 
@@ -97,3 +98,4 @@ class FlaskAssistant(PythonAssistant):
         # the flask template doesn't in fact need rendering, so just copy it
         PathHelper.cp(os.path.join(self.template_dir, 'python', 'flask'),
                       os.path.join(self.path, '__init__.py'))
+        self._dot_devassistant_create(self.path, **kwargs)

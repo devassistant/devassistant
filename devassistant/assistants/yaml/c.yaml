@@ -78,6 +78,7 @@ c:
     - log: ['info', 'Creating repository on GitHub']
     - log: ['info', 'Creating $name/src directory']
     - cl: mkdir -p $name/src # pouzije promennou "name" z args ^
+    - dot_dac: $name
     - cl: cp *cfiles $name/src/files.c
     - cl: cp *clientc $name/src/client.c
     - cl: cp *serverc $name/src/server.c

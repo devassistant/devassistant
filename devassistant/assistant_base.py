@@ -15,6 +15,9 @@ class AssistantBase(object):
 
     template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
+    # don't override this, used internally
+    _dot_devassistant_path = None
+
     def get_subassistants(self):
         return []
 
@@ -61,6 +64,17 @@ class AssistantBase(object):
 
         return self.name == leaf_name
 
+    def _dot_devassistant_create(self, directory, **kwargs):
+        self._dot_devassistant_path = os.path.join(directory, '.devassistant')
+        f = open(self._dot_devassistant_path, 'w')
+        # write path to this subassistant
+        path = []
+        i = 0
+        while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
+            path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
+            i += 1
+        f.write('subassistant_path={0}'.format(' '.join(path)))
+        f.close()
 
     def errors(self, **kwargs):
         """Checks whether the command is doable, also checking the arguments
