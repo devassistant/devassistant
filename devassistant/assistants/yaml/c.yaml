@@ -118,16 +118,16 @@ c:
     - cl: cp cdevelopmenttool-1.0.tar.gz ~/rpmbuild/SOURCES
     - cl: cp *specfile ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
-    - clf: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
+    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
     - log_i: 'Creating RPM from tarball'
-    - clf: rpmbuild -ba cdevelopmenttool.spec
+    - cl_f: rpmbuild -ba cdevelopmenttool.spec
     - log_i: 'Creating RPM from SRPM over mock'
-    - clf: rpmbuild -bs cdevelopmenttool.spec
-    - clf: mock -r fedora-18-i386 ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+    - cl_f: rpmbuild -bs cdevelopmenttool.spec
+    - cl_f: mock -r fedora-18-i386 ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
 
     run_github:
     - cl: cd $name
-    - clf: git add *
-    - clf: git status
-    - clf: git commit -m initial
-    - clf: git push 
+    - cl_f: git add *
+    - cl_f: git status
+    - cl_f: git commit -m initial
+    - cl_f: git push

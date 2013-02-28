@@ -94,7 +94,7 @@ class TestYamlAssistant(object):
         self.ya.run(foo='bar')
 
     def test_run_runs_in_foreground_if_asked(self):
-        self.ya._run = [{'clf': 'ls'}]
+        self.ya._run = [{'cl_f': 'ls'}]
         flexmock(ClHelper).should_receive('run_command').with_args('ls', True, False)
         self.ya.run(foo='bar')
 
@@ -104,7 +104,7 @@ class TestYamlAssistant(object):
         assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
 
     def test_run_logs_command_at_info_if_asked(self):
-        self.ya._run = [{'cli': 'ls'}]
+        self.ya._run = [{'cl_i': 'ls'}]
         self.ya.run(foo='bar')
         assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
 
