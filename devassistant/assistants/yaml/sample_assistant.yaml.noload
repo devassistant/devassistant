@@ -39,22 +39,22 @@ c: # name of the assistant as will be used on commandline; should be the same as
       source: c/server.c
 
   fail_if: # immediately cancel execution if any of these commands (except logging) is successful
-  - log: ['info', 'Checking for something'] # log something at `info` level
+  - log_i: 'Checking for something' # log_i logs at `info` level
   - cl: ls /foo/bar # run ls /foo/bar on commandline, fail if it returns 0
 
   run: # gets executed by default; fails and immediately exits if any command fails
   - cl: mkdir -p $name # uses `name` from the parameters above
-  - dot_dac: $name # creates .devassistant file (with default initial content) in directory $name
-  - log: ['debug', 'Some debugging message']
+  - dda_c: $name # creates .devassistant file (with default initial content) in directory $name
+  - log_d: 'Some debugging message' # log_d logs at debug level
   - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
   - if _ide: # condition based on presence of argument
     - if not ls ~/.vimrc/blahblah: # use not to negate condition, condition can also be cli argument
       - cl: mkdir ~/.vimrc/blahblah
     - else:
-      - log: ['info': 'blahblah already exists']
-  - log: ['info', 'Finished']
+      - log_i: 'blahblah already exists'
+  - log_i: 'Finished'
 
   run_mock: # if mock parameter is specified, use this instead of "run"
-  - clf: mock blah blah # "clf" runs the command in foreground, displaying its output interactively
-  - cli: ls spam # "cli" makes the command itself logged not on debug level, but on info level, that shows by default
-  - clif: ls beans # combines cli and clf
+  - cl_f: mock blah blah # "cl_f" runs the command in foreground, displaying its output interactively
+  - cl_i: ls spam # "cl_i" makes the command itself logged not on debug level, but on info level, that shows by default
+  - cl_if: ls beans # combines cl_i and cl_f
