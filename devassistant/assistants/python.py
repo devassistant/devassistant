@@ -11,7 +11,7 @@ from devassistant.command_helpers import PathHelper, RPMHelper, YUMHelper
 
 class PythonAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
-        return [DjangoAssistant, FlaskAssistant]
+        return [DjangoAssistant, FlaskAssistant, LibAssistant]
 
     name = 'python'
     fullname = 'Python'
@@ -99,3 +99,47 @@ class FlaskAssistant(PythonAssistant):
         PathHelper.cp(os.path.join(self.template_dir, 'python', 'flask'),
                       os.path.join(self.path, '__init__.py'))
         self._dot_devassistant_create(self.path, **kwargs)
+
+class LibAssistant(PythonAssistant):
+    name = 'lib'
+    fullname = 'Python Library'
+
+    args = [argument.Argument('-n', '--name',
+                              required=True,
+                              help='Name of the library (can also be full or relative path)')]
+
+    usage_string_fmt = '{fullname} Assistant lets you create a custom python library.'
+
+    def errors(self, **kwargs):
+        errors = []
+        self.path = os.path.abspath(os.path.expanduser(kwargs['name']))
+
+        path_exists = PathHelper.path_exists(self.path)
+        if path_exists:
+            errors.append('Path exists: {0}'.format(self.path))
+        return errors
+
+    def dependencies(self, **kwargs):
+        st_rpm = RPMHelper.is_rpm_installed('python-setuptools')
+        if not st_rpm:
+            if not YUMHelper.install('python-setuptools'):
+                raise exceptions.RunException('Failed to install python-setuptools')
+            RPMHelper.was_rpm_installed('python-setuptools')
+
+    def run(self, **kwargs):
+        lib_path, lib_name = os.path.split(self.path)
+
+        logger.info('Creating library project {name} in {path}...'.format(path=lib_path,
+                                                                          name=lib_name))
+        PathHelper.mkdir_p(self.path)
+        with plumbum.local.cwd(self.path):
+            PathHelper.mkdir_p(lib_name)
+            touch = plumbum.local['touch']
+            touch('{0}/__init__.py'.format(lib_name))
+            setup_py = self._jinja_env.get_template(os.path.join('python', 'lib', 'setup.py'))
+            with open('setup.py', 'w') as f:
+                f.write(setup_py.render(name=lib_name))
+        self._dot_devassistant_create(self.path, **kwargs)
+        logger.info('Library project {name} in {path} has been created.'.format(path=lib_path,
+                                                                               name=lib_name))
+
