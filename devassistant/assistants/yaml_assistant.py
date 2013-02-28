@@ -102,7 +102,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._format_and_run_cl_command(comm_type, comm, **kwargs)
                 elif comm_type.startswith('log'):
                     self._log(comm_type, comm, **kwargs)
-                elif comm_type.startswith('dot_da'):
+                elif comm_type.startswith('dda'):
                     self._dot_devassistant_comm(comm_type, comm, **kwargs)
                 elif comm_type == 'github':
                     self.git_hub_registration(comm, **kwargs)
@@ -125,7 +125,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
 
     def _dot_devassistant_comm(self, comm_type, comm, **kwargs):
-        if comm_type == 'dot_dac':
+        if comm_type == 'dda_c':
             self._dot_devassistant_create(self._format(comm, **kwargs), **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
