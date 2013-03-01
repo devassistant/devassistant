@@ -103,7 +103,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif comm_type.startswith('dda'):
                     self._dot_devassistant_comm(comm_type, comm, **kwargs)
                 elif comm_type == 'github':
-                    self._git_hub_comm(comm_type, comm, **kwargs)
+                    self._github_comm(comm_type, comm, **kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm)
@@ -128,12 +128,18 @@ class YamlAssistant(assistant_base.AssistantBase):
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
 
-    def _git_hub_comm(self, comm_type, comm, **kwargs):
+    def _github_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'github':
             if comm == 'init':
-                self.git_hub_registration_create(**kwargs)
+                self._github_init(**kwargs)
+            elif comm == 'register':
+                self._github_registr(**kwargs)
+            elif comm == 'add':
+                self._github_add(**kwargs)
+            elif comm[0:6] == 'commit':
+                self._github_commit(self._format(comm, **kwargs),**kwargs)
             elif comm == 'remote':
-                self.git_hub_remote( **kwargs)
+                self._github_remote(**kwargs)
             else:
                 logger.warning('Unknow github command {0}, skipping.'.format(comm))
         else:

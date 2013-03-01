@@ -21,6 +21,7 @@ class AssistantBase(object):
     needs_sudo = False
 
     args = []
+    repo = []
 
     template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
@@ -114,51 +115,67 @@ class AssistantBase(object):
         """
         pass
 
-    def git_hub_registration_create(self, **kwargs):
-        """Initialization repository on GitHub
+    def _github_add(self, **kwargs):
+        """ This function add files to local repository on file system"""
 
-        Raises:
-            devassistant.exceptions.RunException containing the error message
-        """
-        gitname = kwargs['name']
-        logger.info("Check whether repository is existing")
-        """ Here we are checking whether we already created project structure or not
-            This should be called after project creating
-        """
+        gitname = self._github_name(**kwargs)
+        repo = git.Repo(gitname)
+        logger.info("Adding files to local repository")
+        logger.info(repo.git.status())
+        for files in repo.untracked_files:
+            repo.git.add(files)
+
+    def _github_commit(self, message,  **kwargs):
+        """ This function commits changes to local repository on file system"""
+
+        gitname = self._github_name(**kwargs)
+        repo = git.Repo(gitname)
+        repo.git.commit(m="initial commit")
+
+    def _github_init(self, **kwargs):
+        """ This function creates local repository on file system"""
+        gitname = self._github_name(**kwargs)
+
         if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
             """
                 This section is used by GitPython library
             """
             logger.info("Creating local repository")
-            repo = git.Repo.init("{0}".format(gitname))
+            repo = git.Repo.init(gitname)
             repo.config_writer()
-            logger.info(repo.git.status())
-            for files in repo.untracked_files:
-                repo.git.add(files)
-            repo.git.commit(m="Initial commit")
-            logger.info("Repository is not existing. Creating newer one")
-            username = raw_input("Write your GitHub username:")
-            password = getpass.getpass(prompt='Password:', stream=None)
-            gh = Github(username,password)
-            user = gh.get_user()
-            if gitname in map(lambda x: x.name, user.get_repos()):
-                logger.warning("Given repository is already existing on GiHub")
-            else:
-                user.create_repo(kwargs['name'])
         else:
             logger.info("Repository is already existing")
-    def git_hub_remote(self, **kwargs):
+
+    def _github_name(self, **kwargs):
+        """This function is used for parsing argument
+        -n or --name as repository name"""
+        return os.path.split(kwargs['name'])[1]
+
+    def _github_registr(self, **kwargs):
+        """Initialization repository on GitHub
+
+            if repository is already existing then it will printed out message
+            otherwise it will create repo
+        Raises:
+            devassistant.exceptions.RunException containing the error message
+        """
+        gitname = self._github_name(**kwargs)
+        logger.info("Check whether repository is existing")
+        username = raw_input("Write your GitHub username:")
+        password = getpass.getpass(prompt='Password:', stream=None)
+        gh = Github(username,password)
+        user = gh.get_user()
+        if gitname in map(lambda x: x.name, user.get_repos()):
+            logger.warning("Given repository is already existing on GiHub")
+        else:
+            user.create_repo(gitname)
+    def _github_remote(self, **kwargs):
         """Pushing all files to GitHub
 
         Raises:
             devassistant.exceptions.RunException containing the error message
         """
-        gitname = kwargs['name']
-        """ This section is used for parameter github: remote 
-            which performs push operations to the server 
-            In future there will be also operations like git add .
-            and git commit -m "commit<date>" which will be done
-            This has to be discussed whether all changes """
+        gitname = self._github_name(**kwargs)
         try:
             result = ClHelper.run_command("git remote show origin",True,True)
             logger.info(result)
@@ -167,10 +184,11 @@ class AssistantBase(object):
                 between local and remote repository
             """
             try:
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],kwargs['name']),True,True)
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],gitname),True,True)
             except plumbum.ProcessExecutionError as ppe:
                 """ This is empty session
                 """
         """ This command will ensure that all changes will be pushed to the GitHub server
             """
         ClHelper.run_command("git push origin master",True,True)
+

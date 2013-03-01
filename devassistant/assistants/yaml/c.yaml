@@ -89,6 +89,9 @@ c:
     - cl: cp *NEWS $name/NEWS
     - cl: cp *ChangeLog $name/ChangeLog
     - github: init
+    - github: register
+    - github: add
+    - github: commit -m "initial commit"
     - cl: cd $name
     - log_i: 'Calling autoreconf'
     - cl: autoreconf --install
