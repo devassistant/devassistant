@@ -160,20 +160,17 @@ class AssistantBase(object):
             and git commit -m "commit<date>" which will be done
             This has to be discussed whether all changes """
         try:
-            command = "git remote show origin"
-            result = ClHelper.run_command(command,True,True)
+            result = ClHelper.run_command("git remote show origin",True,True)
             logger.info(result)
         except plumbum.ProcessExecutionError as e:
             """ This section is used for first synchronization
                 between local and remote repository
             """
             try:
-                command="git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],kwargs['name'])
-                ClHelper.run_command(command,True,True)
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],kwargs['name']),True,True)
             except plumbum.ProcessExecutionError as ppe:
                 """ This is empty session
                 """
         """ This command will ensure that all changes will be pushed to the GitHub server
             """
-        command = "git push origin master"
-        ClHelper.run_command(command,True,True)
+        ClHelper.run_command("git push origin master",True,True)
