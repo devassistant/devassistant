@@ -114,76 +114,66 @@ class AssistantBase(object):
         """
         pass
 
-    def git_hub_registration_create(self, git_type, **kwargs):
+    def git_hub_registration_create(self, **kwargs):
         """Initialization repository on GitHub
 
         Raises:
             devassistant.exceptions.RunException containing the error message
         """
         gitname = kwargs['name']
-        Name=[]
-        i=0
-        while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
-            Name.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
-            i += 1
-        if git_type == "init":
-            logger.info("Check whether repository is existing")
-            """ Here we are checking whether we already created project structure or not
-                This should be called after project creating
+        logger.info("Check whether repository is existing")
+        """ Here we are checking whether we already created project structure or not
+            This should be called after project creating
+        """
+        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
             """
-            if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
-                """
-                    This section is used by GitPython library
-                """
-                logger.info("Creating local repository")
-                repo = git.Repo.init("{0}".format(gitname))
-                repo.config_writer()
-                logger.info(repo.git.status())
-                for files in repo.untracked_files:
-                    repo.git.add(files)
-                repo.git.commit(m="Initial commit")
-                logger.info("Repository is not existing. Creating newer one")
-                username = raw_input('Write your GitHub username:')
-                password = getpass.getpass(prompt='Password:', stream=None)
-                gh = Github(username,password)
-                logger.info("Your current repositories are:")
-                user = gh.get_user()
-                bGitExists = False
-                for repo in user.get_repos():
-                    logger.info("- {0}".format(repo.name))
-                    if repo.name == gitname:
-                        logger.warning("Given repository is already existing on GiHub")
-                        bGitExists = True
-
-                if bGitExists == False:
-                    repo = user.create_repo(kwargs['name'])
-                else:
-                    logger.warning("Repository is already existing")
-            else:
-                logger.info("Repository is already existing")
-        elif git_type == "remote":
-            """ This section is used for parameter github: remote 
-                which performs push operations to the server 
-                In future there will be also operations like git add .
-                and git commit -m "commit<date>" which will be done
-                This has to be discussed whether all changes """
+                This section is used by GitPython library
+            """
+            logger.info("Creating local repository")
+            repo = git.Repo.init("{0}".format(gitname))
+            repo.config_writer()
+            logger.info(repo.git.status())
+            for files in repo.untracked_files:
+                repo.git.add(files)
+            repo.git.commit(m="Initial commit")
+            logger.info("Repository is not existing. Creating newer one")
             username = raw_input("Write your GitHub username:")
+            password = getpass.getpass(prompt='Password:', stream=None)
+            gh = Github(username,password)
+            user = gh.get_user()
+            if gitname in map(lambda x: x.name, user.get_repos()):
+                logger.warning("Given repository is already existing on GiHub")
+            else:
+                user.create_repo(kwargs['name'])
+        else:
+            logger.info("Repository is already existing")
+    def git_hub_remote(self, **kwargs):
+        """Pushing all files to GitHub
+
+        Raises:
+            devassistant.exceptions.RunException containing the error message
+        """
+        gitname = kwargs['name']
+        """ This section is used for parameter github: remote 
+            which performs push operations to the server 
+            In future there will be also operations like git add .
+            and git commit -m "commit<date>" which will be done
+            This has to be discussed whether all changes """
+        try:
+            command = "git remote show origin"
+            result = ClHelper.run_command(command,True,True)
+            logger.info(result)
+        except plumbum.ProcessExecutionError as e:
+            """ This section is used for first synchronization
+                between local and remote repository
+            """
             try:
-                command = "git remote show origin"
-                result = ClHelper.run_command(command,True,True)
-                logger.info(result)
-            except plumbum.ProcessExecutionError as e:
-                """ This section is used for first synchronization
-                    between local and remote repository
+                command="git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],kwargs['name'])
+                ClHelper.run_command(command,True,True)
+            except plumbum.ProcessExecutionError as ppe:
+                """ This is empty session
                 """
-                try:
-                    command="git remote add origin https://github.com/{0}/{1}.git".format(username,kwargs['name'])
-                    ClHelper.run_command(command,True,True)
-                except plumbum.ProcessExecutionError as ppe:
-                    """ This is empty session
-                    """
-            """ This command will ensure that all changes will be pushed to the GitHub server
-                """
-            command = "git push origin master"
-            ClHelper.run_command(command,True,True)
-        pass
+        """ This command will ensure that all changes will be pushed to the GitHub server
+            """
+        command = "git push origin master"
+        ClHelper.run_command(command,True,True)

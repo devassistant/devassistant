@@ -43,8 +43,6 @@ c:
             'This will create a Git Hub repository.
             First create repository on git hub.
             Actually now creating repository on GitHub server from command line is not supported'
-        action:
-          'store_true'
 
     files:
       cfiles: &cfiles
