@@ -87,11 +87,17 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert self.tlh.msgs == [('WARNING', 'Unknown action type foo, skipping.')]
 
-    def test_run_chooses_proper_method(self):
+    def test_get_section_to_run_chooses_selected(self):
         self.ya._run = [{'cl': 'ls'}]
         self.ya._run_foo = [{'cl': 'pwd'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('pwd', False, False)
-        self.ya.run(foo='bar')
+        section = self.ya._get_section_to_run(section='run', kwargs_override=False, foo=True)
+        assert section is self.ya._run
+
+    def test_get_section_to_run_overrides_if_allowed(self):
+        self.ya._run = [{'cl': 'ls'}]
+        self.ya._run_foo = [{'cl': 'pwd'}]
+        section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=True)
+        assert section is self.ya._run_foo
 
     def test_run_runs_in_foreground_if_asked(self):
         self.ya._run = [{'cl_f': 'ls'}]

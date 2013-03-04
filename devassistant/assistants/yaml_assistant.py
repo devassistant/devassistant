@@ -80,16 +80,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
     def run(self, **kwargs):
-        # determine which run* section to invoke
-        to_run = self._run
-        for method in dir(self):
-            if method.startswith('_run_'):
-                parameter = method.split('_', 2)[-1]
-                if kwargs.get(parameter, False):
-                    to_run = getattr(self, method)
-
+        to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
         self._run_one_section(to_run, **kwargs)
-
 
     def _run_one_section(self, section, **kwargs):
         execute_else = False
@@ -104,6 +96,9 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._dot_devassistant_comm(comm_type, comm, **kwargs)
                 elif comm_type == 'github':
                     self._github_comm(comm_type, comm, **kwargs)
+                elif comm_type.startswith('run'):
+                    s = self._get_section_to_run(section=comm, kwargs_override=False, **kwargs)
+                    self._run_one_section(s, **kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm)
@@ -121,6 +116,25 @@ class YamlAssistant(assistant_base.AssistantBase):
                         self._run_one_section(comm, **kwargs)
                 else:
                     logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
+
+    def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
+        to_run = None
+
+        if section:
+            underscored = '_' + section
+            if underscored in dir(self):
+                to_run = getattr(self, underscored)
+
+        if kwargs_override:
+            for method in dir(self):
+                if method.startswith('_run_'):
+                    if kwargs.get(method[len('_run_'):], False):
+                        to_run = getattr(self, method)
+
+        if not to_run:
+            logger.warning('Couldn\'t find section {0} or any other appropriate.'.format(section))
+        return to_run
+
 
     def _dot_devassistant_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'dda_c':
