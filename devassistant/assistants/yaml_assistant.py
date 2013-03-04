@@ -144,14 +144,8 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     def _github_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'github':
-            if comm == 'init':
-                self._github_init(**kwargs)
-            elif comm == 'register':
-                self._github_registr(**kwargs)
-            elif comm == 'add':
-                self._github_add(**kwargs)
-            elif comm[0:6] == 'commit':
-                self._github_commit(self._format(comm, **kwargs),**kwargs)
+            if comm == 'register':
+                self._github_register(**kwargs)
             elif comm == 'remote':
                 self._github_remote(**kwargs)
             else:

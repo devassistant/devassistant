@@ -88,11 +88,11 @@ c:
     - cl: cp *AUTHORS $name/AUTHORS
     - cl: cp *NEWS $name/NEWS
     - cl: cp *ChangeLog $name/ChangeLog
-    - github: init
     - github: register
-    - github: add
-    - github: commit -m "initial commit"
     - cl: cd $name
+    - cl: git init
+    - cl: git add .
+    - cl: git commit -m initial_commit
     - log_i: 'Calling autoreconf'
     - cl: autoreconf --install
     - log_i: 'Calling configure script'

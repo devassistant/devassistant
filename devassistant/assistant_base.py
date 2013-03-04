@@ -115,43 +115,12 @@ class AssistantBase(object):
         """
         pass
 
-    def _github_add(self, **kwargs):
-        """ This function add files to local repository on file system"""
-
-        gitname = self._github_name(**kwargs)
-        repo = git.Repo(gitname)
-        logger.info("Adding files to local repository")
-        logger.info(repo.git.status())
-        for files in repo.untracked_files:
-            repo.git.add(files)
-
-    def _github_commit(self, message,  **kwargs):
-        """ This function commits changes to local repository on file system"""
-
-        gitname = self._github_name(**kwargs)
-        repo = git.Repo(gitname)
-        repo.git.commit(m="initial commit")
-
-    def _github_init(self, **kwargs):
-        """ This function creates local repository on file system"""
-        gitname = self._github_name(**kwargs)
-
-        if PathHelper.path_exists('{0}/.git'.format(gitname)) == False:
-            """
-                This section is used by GitPython library
-            """
-            logger.info("Creating local repository")
-            repo = git.Repo.init(gitname)
-            repo.config_writer()
-        else:
-            logger.info("Repository is already existing")
-
     def _github_name(self, **kwargs):
         """This function is used for parsing argument
         -n or --name as repository name"""
-        return os.path.split(kwargs['name'])[1]
+        return os.path.basename(kwargs['name'])
 
-    def _github_registr(self, **kwargs):
+    def _github_register(self, **kwargs):
         """Initialization repository on GitHub
 
             if repository is already existing then it will printed out message
@@ -163,12 +132,13 @@ class AssistantBase(object):
         logger.info("Check whether repository is existing")
         username = raw_input("Write your GitHub username:")
         password = getpass.getpass(prompt='Password:', stream=None)
-        gh = Github(username,password)
+        gh = Github(username, password)
         user = gh.get_user()
         if gitname in map(lambda x: x.name, user.get_repos()):
             logger.warning("Given repository is already existing on GiHub")
         else:
             user.create_repo(gitname)
+
     def _github_remote(self, **kwargs):
         """Pushing all files to GitHub
 
@@ -177,18 +147,20 @@ class AssistantBase(object):
         """
         gitname = self._github_name(**kwargs)
         try:
-            result = ClHelper.run_command("git remote show origin",True,True)
+            result = ClHelper.run_command("git remote show origin", True, True)
             logger.info(result)
         except plumbum.ProcessExecutionError as e:
             """ This section is used for first synchronization
                 between local and remote repository
             """
             try:
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'],gitname),True,True)
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'], gitname), True, True)
             except plumbum.ProcessExecutionError as ppe:
                 """ This is empty session
                 """
-        """ This command will ensure that all changes will be pushed to the GitHub server
+        """
+            This command will ensure that all changes will be pushed
+            to the GitHub server
             """
-        ClHelper.run_command("git push origin master",True,True)
+        ClHelper.run_command("git push origin master", True, True)
 
