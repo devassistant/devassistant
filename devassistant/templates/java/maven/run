@@ -1,0 +1,20 @@
+#!/bin/bash
+
+MVN_LOCAL="/usr/bin/mvn-local"
+JAVA="/usr/bin/java"
+
+# build the project
+echo -n "[INFO] Building the project... "
+${MVN_LOCAL} clean package > /dev/null
+if [ $? -eq 0 ]; then
+    echo "done."
+else
+    echo "failed."
+    exit 1
+fi
+
+
+# run the project
+JAR=`find ./target/ -name *.jar`
+${JAVA} -jar ${JAR}
+

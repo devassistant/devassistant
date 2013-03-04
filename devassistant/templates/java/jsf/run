@@ -1,0 +1,23 @@
+#!/bin/bash
+
+MVN_LOCAL="/usr/bin/mvn-local"
+JAVA="/usr/bin/java"
+
+echo -n "[INFO] Compiling... "
+# Build the project
+$MVN_LOCAL clean package > /dev/null
+if [ $? -eq 0 ]; then
+    echo "done."
+else
+    echo "failed."
+    exit 1
+fi
+
+echo -n "[INFO] Starting Jetty Web Server... "
+# Remove original .war archive
+rm -f target/original-*.war
+# Find .war archive
+WAR=`find ./target -name *.war`
+# Start embedded jetty server
+$JAVA -jar ${WAR} 2> .jetty.log
+
