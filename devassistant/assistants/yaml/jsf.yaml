@@ -1,0 +1,54 @@
+jsf:
+  fullname: JavaServer Faces
+
+  dependencies:
+    default:
+      # note jetty >= 9.0.0, available in fedora 19/rawhide
+      rpm: [mojarra, jetty-server, jetty-webapp, tomcat-el-2.2-api, tomcat-jsp-2.2-api]
+      rpm: [tomcat-servlet-3.0-api, mvn-local, maven-war-plugin, maven-shade-plugin]
+      rpm: [maven-resources-plugin maven-clean-plugin junit4]
+
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+
+    github:
+      flags:
+      - -g
+      - --github
+      help:
+          'This will create a Git Hub repository.
+          First create repository on git hub.
+          Actually now creating repository on GitHub server from command line is not supported'
+      action:
+        'store_true'
+
+  files:
+    jsfexample: &jsfexample
+      source: java/jsf/
+
+  run:
+  - log_i: 'Creating JSF project'
+  - cl: mkdir -p $name
+  - cl: cp -r *jsfexample $name
+  # create local git repository
+  - log_i: 'Creating git repository'
+  - cl: cd $name/jsf
+  - cl: git init
+  - cl: git add *
+  - cl: git commit -m "initial_commit"
+  # create tarball
+  - log_i: 'Creating tarball'
+  #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
+  - cl: tar czf JSFexample.tar.gz src/ pom.xml run
+  - log_i: 'Done'
+
+  run_github:
+  - cl: cd $name
+  - cl_f: git status
+  - github: remote     
+

@@ -1,0 +1,50 @@
+maven:
+  fullname: Simple Apache Maven Project
+
+  dependencies:
+    default:
+      rpm: [maven-local maven-jar-plugin maven-clean-plugin junit]
+
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+    github:
+      flags:
+      - -g
+      - --github
+      help:
+          'This will create a Git Hub repository.
+          First create repository on git hub.
+          Actually now creating repository on GitHub server from command line is not supported'
+      action:
+        'store_true'
+
+  files:
+    mavenexample:
+      source: java/maven/
+
+  run:
+  - log_i: 'Creating simple Maven project'
+  - cl: mkdir -p $name
+  - cl: cp -r *mavenexample $name
+  # create local git repository
+  - log_i: 'Creating git repository'
+  - cl: cd ${name}/maven
+  - cl: git init
+  - cl: git add *
+  - cl: git commit -m "initial_commit"
+  # create tarball
+  - log_i: 'Creating tarball'
+  - cl: tar czf ${name}.tar.gz pom.xml src/ run
+  - log_i: 'Building project'
+  - cl: mvn-local -q -o -B package
+
+  run_github:
+  - cl: cd $name
+  - cl_f: git status
+  - github: remote
+
