@@ -19,7 +19,7 @@ class ClHelper(object):
             plumbum.local.cwd.chdir(split_string[1])
         else:
             cmd = plumbum.local[split_string[0]]
-            for i in split_string[1:]:
+            for i in cls._connect_quoted(split_string[1:]):
                 cmd = cmd[i]
             # log the invocation
             log_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
@@ -33,6 +33,55 @@ class ClHelper(object):
                 cmd & plumbum.FG
             else:
                 cmd()
+
+    @classmethod
+    def _connect_quoted(cls, arg_list):
+        """Returns list where quoted arguments to CL commands are not split
+        into multiple items as in given arg_list. Certainly not an optimal
+        solution (would need a finite state machine to do that properly...)
+
+        See https://github.com/bkabrda/devassistant/issues/24 for problem report.
+        Args:
+            arg_list: list of arguments not containing the actual invoked binary
+        Returns:
+            list of arguments where no quoted strings are separated
+        """
+        i = 0
+        proper_list = []
+        constructing = []
+        looking_for = None
+        in_middle = False
+
+        while i < len(arg_list):
+            if in_middle:
+                constructing.append(arg_list[i])
+            elif not '"' in arg_list[i] and not "'" in arg_list[i] and not looking_for:
+                proper_list.append(arg_list[i])
+            else:
+                if looking_for and looking_for in arg_list[i]:
+                    constructing.append(arg_list[i])
+                    proper_list.append(' '.join(constructing))
+                    looking_for = None
+                    in_middle = False
+                    constructing = []
+                elif looking_for and looking_for not in arg_list[i]:
+                    constructing.append(arg_list[i])
+                else:
+                    single_i = arg_list[i].find("'")
+                    double_i = arg_list[i].find('"')
+                    looking_for = arg_list[i][single_i if single_i > -1 else double_i]
+                    if arg_list[i].count(looking_for) % 2 == 0: # even number of quotes in this string => just add it
+                        proper_list.append(arg_list[i])
+                        looking_for = None
+                    else:
+                        constructing.append(arg_list[i])
+            i += 1
+
+        # append any remains from constructing (odd number of quotes/other problem...)
+        proper_list.extend(constructing)
+
+        return proper_list
+
 
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
