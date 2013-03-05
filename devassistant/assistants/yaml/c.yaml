@@ -31,9 +31,14 @@ c:
         - -i
         - --idesettings
         help:
-            'This will add vundle to ~/.vimrc/bundle/vundle directory'
-        action:
-          'store_true'
+            'This will install editors'
+
+      eclipse:
+        flags:
+        - -e
+        - --eclipse
+        help:
+            'Specify Eclipse workspage directory where project will be stored'
 
       github:
         flags:
@@ -45,71 +50,42 @@ c:
             Actually now creating repository on GitHub server from command line is not supported'
 
     files:
-      cfiles: &cfiles
-        source: c/files.c
-      clientc: &clientc
-        source: c/client.c
-      serverc: &serverc
-        source: c/server.c
-      threadsc: &threadsc
-        source: c/simple_threads.c
-      srcmakefileam: &srcmakefileam
-        source: c/srcMakefile.am
-      makefileam: &makefileam
-        source: c/Makefile.am
-      configureac: &configureac
-        source: c/configure.ac
-      README: &readme
-        source: c/README
-      AUTHORS: &authors
-        source: c/AUTHORS
-      NEWS: &news
-        source: c/NEWS
-      ChangeLog: &Changelog
-        source: c/ChangeLog
-      vimrc: &vimrc
-        source: c/vimrc
-      specfile: &specfile
-        source: c/cdevelopmenttool.spec
+      csources: &csources
+        source: c/
 
     run:
-    - log_i: 'Creating repository on GitHub'
-    - log_i: 'Creating $name/src directory'
-    - cl: mkdir -p $name/src # pouzije promennou "name" z args ^
+    - log_i: 'Copying c source tree to project destination'
+    - cl: cp -r *csources $name
     - dda_c: $name
-    - cl: cp *cfiles $name/src/files.c
-    - cl: cp *clientc $name/src/client.c
-    - cl: cp *serverc $name/src/server.c
-    - cl: cp *threadsc $name/src/simple_threads.c
-    - cl: cp *srcmakefileam $name/src/Makefile.am
-    - cl: cp *makefileam $name/Makefile.am
-    - cl: cp *configureac $name/configure.ac
-    - cl: cp *README $name/README
-    - cl: cp *AUTHORS $name/AUTHORS
-    - cl: cp *NEWS $name/NEWS
-    - cl: cp *ChangeLog $name/ChangeLog
-    - github: register
     - cl: cd $name
     - cl: git init
     - cl: git add .
-    - cl: git commit -m initial_commit
-    - log_i: 'Calling autoreconf'
-    - cl: autoreconf --install
-    - log_i: 'Calling configure script'
-    - cl: ./configure
-    - cl: make
-    - cl: make distcheck # will create distribution tar ball for later on usage
+    - cl: git commit -m "initial_commit"
+    - log_i: 'Run autoreconf'
+    - cl_f: autoreconf --install
+    - log_i: 'Run configure script'
+    - cl_f: ./configure
+    - log_i: 'Compilation sources'
+    - cl_f: make
+    - log_i: 'Calling make distcheck for creating tar ball'
+    - cl_f: make distcheck # will create distribution tar ball for later on usage
 
-    run_idesettings:
-    - log_i: 'clonning vundle.git'
-    - cl: rm -rf ~/.vim/bundle/vundle
-    - cl: git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
-    - log_i: 'saving current ~/.vimrc to ~/.vimrc.devassistant'
-    - cl: mv ~/.vimrc ~/vimrc.devassistant
-    - log_i: 'copying current the newest .vimrc to ~/.vimrc'
-    - cl: cp *vimrc /home/stone/.vimrc
-    - log_i: 'Installing BundleInstall to vim'
-    - cl: vim +BundleInstall +qall
+    run_eclipse:
+    - log_i: 'Creating eclipse project from command line'
+    #- if not ls $eclipse/$name:
+    #- log_i: 'Eclipse project is not existing. Import is ongoing'
+    - cl: mkdir -p $eclipse/$name
+    - cl: cp $name/.eclipseproject $eclipse/$name/.project
+    - cl: cp $name/.cproject $eclipse/$name/.cproject
+    - cl: cp $name/.autotools $eclipse/$name/.autotools
+    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -build all -cleanBuild all
+    - log_i: 'Import to Eclipse is done'
+     #- else:
+     #   - log_i: 'Project was already imported to Eclipse'
+     #   - log_i: 'Reimporting will be called'
+     #   - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -build all -cleanBuild all
+     #   - log_i: 'If you would like to importing from scratch remove them from Eclipse workspace'
+
 
     run_build:
     - log_i: 'Creating spec file'
@@ -128,5 +104,9 @@ c:
 
     run_github:
     - cl: cd $name
+    - log_i: 'Creating repository on GitHub'
+    - github: register
+    - log_i: 'Checking status of local git'
     - cl_f: git status
+    - log_i: 'Push local git respository on GitHub'
     - github: remote

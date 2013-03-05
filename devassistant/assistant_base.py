@@ -129,10 +129,8 @@ class AssistantBase(object):
             devassistant.exceptions.RunException containing the error message
         """
         gitname = self._github_name(**kwargs)
-        logger.info("Check whether repository is existing")
-        username = raw_input("Write your GitHub username:")
-        password = getpass.getpass(prompt='Password:', stream=None)
-        gh = Github(username, password)
+        password = getpass.getpass(prompt='GitHub password:', stream=None)
+        gh = Github(kwargs['github'], password)
         user = gh.get_user()
         if gitname in map(lambda x: x.name, user.get_repos()):
             logger.warning("Given repository is already existing on GiHub")
