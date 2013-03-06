@@ -13,6 +13,8 @@ class MainAssistant(assistant_base.AssistantBase):
 
     name = 'main'
     verbose_name = 'Main'
+    description = 'Developer assistant will help you with creating projects in many different languages.\
+                   See subassistants for list of currently available assistants.'
 
 def main():
     cli.CliRunner.run_assistant(MainAssistant())

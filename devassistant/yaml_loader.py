@@ -50,6 +50,7 @@ class YamlLoader(object):
         # arguments that we can handle right away
         CustomYamlAssistant.name = name
         CustomYamlAssistant.fullname = attrs.get('fullname', '')
+        CustomYamlAssistant.description = attrs.get('description', '')
         # cli arguments
         CustomYamlAssistant.args = []
         yaml_args = attrs.get('args', {})

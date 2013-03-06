@@ -1,5 +1,7 @@
 c: # name of the assistant as will be used on commandline; should be the same as filename
   fullname: C Language Tool # descriptive name that will be shown to user
+  description: This is a description of what this assistant does.
+
   subassistants: [foo, bar] # names of subassistants of this assistant
 
   dependencies: # dependencies of this assistant; you can use either names/provides of packages or yum groups

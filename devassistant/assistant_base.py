@@ -15,12 +15,13 @@ from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
     in subclass, so that it doesn't get inherited!"""
-    # some of these values may be overriden by prepare
-    # (e.g. needs_sudo, if prepare finds out that required package is not present)
+    # Some informations about assistant
+    # These are mandatory:
     name = 'base'
     fullname = 'Base'
-    needs_sudo = False
 
+    # These are optional:
+    description = ''
     args = []
     repo = []
 

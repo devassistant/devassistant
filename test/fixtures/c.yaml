@@ -1,5 +1,7 @@
 c:
   fullname: C Language Tool
+  description: C Language Tool description...
+
   subassistants: [d, e]
 
   dependencies:
