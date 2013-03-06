@@ -19,7 +19,9 @@ class ClHelper(object):
             plumbum.local.cwd.chdir(split_string[1])
         else:
             cmd = plumbum.local[split_string[0]]
-            for i in cls._connect_quoted(split_string[1:]):
+            fixed_args = cls._connect_quoted(split_string[1:])
+            fixed_args = cls._strip_trailing_quotes(fixed_args)
+            for i in fixed_args:
                 cmd = cmd[i]
             # log the invocation
             log_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
@@ -82,6 +84,14 @@ class ClHelper(object):
 
         return proper_list
 
+    @classmethod
+    def _strip_trailing_quotes(cls, arg_list):
+        proper_list = []
+
+        for arg in arg_list:
+            proper_list.append(arg.strip('"\''))
+
+        return proper_list
 
 class RPMHelper(object):
     c_rpm = plumbum.local['rpm']
