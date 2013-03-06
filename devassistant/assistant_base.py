@@ -119,9 +119,13 @@ class AssistantBase(object):
     def _install_dependencies(self, *dep_list, **kwargs):
         to_install = []
 
-        for pkg in dep_list:
-            if not RPMHelper.is_rpm_installed(pkg):
-                to_install.append(pkg)
+        for dep in dep_list:
+            if dep.startswith('@'):
+                if not YUMHelper.is_group_installed(dep):
+                    to_install.append(dep)
+            else:
+                if not RPMHelper.is_rpm_installed(dep):
+                    to_install.append(dep)
 
         if to_install: # only invoke YUM if we actually have something to install
             if not YUMHelper.install(*to_install):

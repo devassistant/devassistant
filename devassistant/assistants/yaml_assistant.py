@@ -66,16 +66,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             dep_type, dep_list = dep.popitem()
             # rpm dependencies (can't handle anything else yet)
             if dep_type == 'rpm':
-                to_install = []
-                for dep in dep_list:
-                        if dep.startswith('@'):
-                            if not YUMHelper.is_group_installed(dep):
-                                to_install.append(dep)
-                        else:
-                            if not RPMHelper.is_rpm_installed(dep):
-                                to_install.append(dep)
-                if to_install:
-                    YUMHelper.install(*to_install)
+                self._install_dependencies(*dep_list, **kwargs)
             else:
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
