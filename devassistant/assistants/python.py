@@ -16,13 +16,22 @@ class PythonAssistant(assistant_base.AssistantBase):
     name = 'python'
     fullname = 'Python'
 
+    args = [argument.Argument('-e', '--eclipse',
+                              required=False,
+                              action='store_true',
+                              help='Configure as eclipse project.')]
+
+    def _eclipse_dep_list(self, **kwargs):
+        return ['eclipse-pydev']
+
 class DjangoAssistant(PythonAssistant):
     name = 'django'
     fullname = 'Django'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
-                              help='Name of the project (can also be full or relative path)')]
+                              help='Name of the project (can also be full or relative path)')] + \
+           PythonAssistant.args
 
     usage_string_fmt = '{fullname} Assistant lets you create a Django project.'
 
@@ -36,11 +45,12 @@ class DjangoAssistant(PythonAssistant):
         return errors
 
     def dependencies(self, **kwargs):
-        django_rpm = RPMHelper.is_rpm_installed('python-django')
-        if not django_rpm:
-            if not YUMHelper.install('python-django'):
-                raise exceptions.RunException('Failed to install python-django')
-            RPMHelper.was_rpm_installed('python-django')
+        deps = ['python-django']
+
+        if kwargs.get('eclipse', None):
+            deps.append('eclipse-pydev')
+
+        self._install_dependencies(*deps, **kwargs)
 
     def run(self, **kwargs):
         django_admin = plumbum.local['django_admin']
@@ -61,7 +71,8 @@ class FlaskAssistant(PythonAssistant):
 
     args = [argument.Argument('-n', '--name',
                               required=True,
-                              help='Name of the project (can also be full or relative path)')]
+                              help='Name of the project (can also be full or relative path)')] + \
+           PythonAssistant.args
 
     def errors(self, **kwargs):
         errors = []
@@ -73,19 +84,12 @@ class FlaskAssistant(PythonAssistant):
         return errors
 
     def dependencies(self, **kwargs):
-        to_install = []
-
         # TODO: this should be substituted by a yum group
-        for pkg in ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']:
-            if not RPMHelper.is_rpm_installed(pkg):
-                to_install = []
+        deps = ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']
+        if kwargs.get('eclipse', None):
+            deps.append('eclipse-pydev')
 
-        if to_install:
-            if not YUMHelper.install(*to_install):
-                raise exceptions.RunException('Failed to install {0}'.format(' '.join(to_install)))
-
-        for pkg in to_install:
-            RPMHelper.was_rpm_installed(pkg)
+        self._install_dependencies(*deps)
 
     def run(self, **kwargs):
         logger.info('Kickstarting a Flask project under {0}'.format(kwargs['name']))
@@ -106,7 +110,8 @@ class LibAssistant(PythonAssistant):
 
     args = [argument.Argument('-n', '--name',
                               required=True,
-                              help='Name of the library (can also be full or relative path)')]
+                              help='Name of the library (can also be full or relative path)')] + \
+           PythonAssistant.args
 
     usage_string_fmt = '{fullname} Assistant lets you create a custom python library.'
 
@@ -120,11 +125,11 @@ class LibAssistant(PythonAssistant):
         return errors
 
     def dependencies(self, **kwargs):
-        st_rpm = RPMHelper.is_rpm_installed('python-setuptools')
-        if not st_rpm:
-            if not YUMHelper.install('python-setuptools'):
-                raise exceptions.RunException('Failed to install python-setuptools')
-            RPMHelper.was_rpm_installed('python-setuptools')
+        deps = ['python-setuptools']
+        if kwargs.get('eclipse', None):
+            deps.append('eclipse-pydev')
+
+        self._install_dependencies(*deps)
 
     def run(self, **kwargs):
         lib_path, lib_name = os.path.split(self.path)
@@ -142,4 +147,3 @@ class LibAssistant(PythonAssistant):
         self._dot_devassistant_create(self.path, **kwargs)
         logger.info('Library project {name} in {path} has been created.'.format(path=lib_path,
                                                                                name=lib_name))
-
