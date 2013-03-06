@@ -92,7 +92,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._run_one_section(s, **kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
-                        self._run_one_section(comm)
+                        self._run_one_section(comm, **kwargs)
                     elif len(section) > i + 1:
                         next_section_dict = section[i + 1]
                         next_section_comm_type, next_section_comm = next_section_dict.items()[0]
