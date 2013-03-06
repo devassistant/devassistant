@@ -15,6 +15,7 @@ class PythonAssistant(assistant_base.AssistantBase):
 
     name = 'python'
     fullname = 'Python'
+    description = 'This is base Python assistant, you have to choose a specific project type.'
 
     args = [argument.Argument('-e', '--eclipse',
                               required=False,
@@ -27,6 +28,7 @@ class PythonAssistant(assistant_base.AssistantBase):
 class DjangoAssistant(PythonAssistant):
     name = 'django'
     fullname = 'Django'
+    description = 'Django assistant will help you create a basic Django project and install dependencies.'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
@@ -68,6 +70,7 @@ class DjangoAssistant(PythonAssistant):
 class FlaskAssistant(PythonAssistant):
     name = 'flask'
     fullname = 'Flask'
+    description = 'Flask assistant will help you create a basic Flask project and install dependencies.'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
@@ -107,6 +110,7 @@ class FlaskAssistant(PythonAssistant):
 class LibAssistant(PythonAssistant):
     name = 'lib'
     fullname = 'Python Library'
+    description = 'Lib assistant will help you create a custom library using setuptools.'
 
     args = [argument.Argument('-n', '--name',
                               required=True,
