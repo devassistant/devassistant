@@ -6,11 +6,3 @@ java:
   - default:
     - rpm: [java-1.7.0-openjdk, java-1.7.0-openjdk-devel]
 
-  args:
-    name:
-      flags:
-      - -n
-      - --name
-      help:
-        'Name of project to create'
-

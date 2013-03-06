@@ -1,4 +1,6 @@
 target/
 .jetty.log
+.compile.log
 *.tar.gz
+.workspace
 

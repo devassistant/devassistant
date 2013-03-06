@@ -44,7 +44,7 @@ jsf:
   # create tarball
   - log_i: 'Creating tarball'
   #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
-  - cl: tar czf JSFexample.tar.gz src/ pom.xml run
+  - cl: tar czf devassistant-jsf-example.tar.gz src/ pom.xml run
   - log_i: 'Done'
 
   run_github:
