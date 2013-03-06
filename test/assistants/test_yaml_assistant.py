@@ -57,20 +57,20 @@ class TestYamlAssistant(object):
         self.ya._dependencies = [{'default': [{'rpm': ['foo', '@bar', 'baz']}]}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, True).one_by_one()
         flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
-        flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar')
+        flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar').and_return(True)
         self.ya.dependencies()
 
     def test_dependencies_uses_non_default_section_on_param(self):
         self.ya._dependencies = [{'default': [{'rpm': ['foo']}]}, {'_a': [{'rpm': ['bar']}]}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
-        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return()
-        flexmock(YUMHelper).should_receive('install').with_args('bar').and_return()
+        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
+        flexmock(YUMHelper).should_receive('install').with_args('bar').and_return(True)
         self.ya.dependencies(a=True)
 
     def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
         self.ya._dependencies = [{'default': [{'rpm': ['foo']}]}, {'_a': [{'rpm': ['bar']}]}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
-        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return()
+        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
         self.ya.dependencies()
 
     def test_run_pass(self):
