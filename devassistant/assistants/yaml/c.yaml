@@ -22,9 +22,7 @@ c:
         - -b
         - --build
         help:
-            'This will create SRPM and RPM packages'
-        action:
-          'store_true'
+            'This will create SRPM and RPM packages. Specify distribution which you want to use like fedora fedora-19-i386'
 
       idesettings:
         flags:
@@ -100,13 +98,16 @@ c:
     - cl_f: rpmbuild -ba cdevelopmenttool.spec
     - log_i: 'Creating RPM from SRPM over mock'
     - cl_f: rpmbuild -bs cdevelopmenttool.spec
-    - cl_f: mock -r fedora-18-i386 ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+    - cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
 
     run_github:
-    - cl: cd $name
-    - log_i: 'Creating repository on GitHub'
-    - github: register
-    - log_i: 'Checking status of local git'
-    - cl_f: git status
-    - log_i: 'Push local git respository on GitHub'
-    - github: remote
+    - if not ls $name:
+        - cl_f: git clone https://github.com/$github/$name.git
+    - else:
+        - cl: cd $name
+        - log_i: 'Creating repository on GitHub'
+        - github: register
+        - log_i: 'Checking status of local git'
+        - cl_f: git status
+        - log_i: 'Push local git respository on GitHub'
+        - github: remote
