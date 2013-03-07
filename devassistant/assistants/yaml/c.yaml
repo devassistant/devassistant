@@ -67,23 +67,29 @@ c:
     - cl_f: make
     - log_i: 'Calling make distcheck for creating tar ball'
     - cl_f: make distcheck # will create distribution tar ball for later on usage
+    - if $github:
+        - log_i: 'Creating repository on GitHub'
+        - github: register
+        - log_i: 'Checking status of local git'
+        - cl_f: git status
+        - log_i: 'Push local git respository on GitHub'
+        - github: remote
 
     run_eclipse:
     - log_i: 'Creating eclipse project from command line'
-    #- if not ls $eclipse/$name:
-    #- log_i: 'Eclipse project is not existing. Import is ongoing'
+    - if not ls $name:
+        - log_i: 'Project was not created yet. It will be created now.'
+        - run: run
+        - cl: cd ..
     - cl: mkdir -p $eclipse/$name
     - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
-    - cl: cp $name/.eclipseproject $eclipse/$name/.project
+    - cl: mv $name/.eclipseproject $name/.project
+    - cl: cp $name/.project $eclipse/$name/.project
     - cl: cp $name/.cproject $eclipse/$name/.cproject
     - cl: cp $name/.autotools $eclipse/$name/.autotools
-    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -build all -cleanBuild all
-    - log_i: 'Import to Eclipse is done'
-     #- else:
-     #   - log_i: 'Project was already imported to Eclipse'
-     #   - log_i: 'Reimporting will be called'
-     #   - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -build all -cleanBuild all
-     #   - log_i: 'If you would like to importing from scratch remove them from Eclipse workspace'
+    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name 
+    - log_i: 'Import to Eclipse is done.'
+    - log_i: 'Start eclipse for developping.'
 
 
     run_build:
@@ -100,15 +106,3 @@ c:
     - log_i: 'Creating RPM from SRPM over mock'
     - cl_f: rpmbuild -bs cdevelopmenttool.spec
     - cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
-
-    run_github:
-    - if not ls $name:
-        - cl_f: git clone https://github.com/$github/$name.git
-    - else:
-        - cl: cd $name
-        - log_i: 'Creating repository on GitHub'
-        - github: register
-        - log_i: 'Checking status of local git'
-        - cl_f: git status
-        - log_i: 'Push local git respository on GitHub'
-        - github: remote
