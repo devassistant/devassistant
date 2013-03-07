@@ -73,7 +73,7 @@ class DjangoAssistant(PythonAssistant):
         django_admin = plumbum.local['django_admin']
         project_path, project_name = os.path.split(self.path)
 
-        logger.info('Creating Django project {name} in {path}...'.format(path=project_path,
+        logger.info('Creating a Django project {name} in {path}...'.format(path=project_path,
                                                                          name=project_name))
         PathHelper.mkdir_p(project_path)
         with plumbum.local.cwd(project_path):
@@ -113,7 +113,9 @@ class FlaskAssistant(PythonAssistant):
         self._install_dependencies(*deps)
 
     def run(self, **kwargs):
-        logger.info('Kickstarting a Flask project under {0}'.format(kwargs['name']))
+        project_path, project_name = os.path.split(self.path)
+
+        logger.info('Creating a Flask project under {0}...'.format(kwargs['name']))
         logger.info('Creating directory structure...')
         PathHelper.mkdir_p(self.path)
         PathHelper.mkdir_p('{0}/static'.format(self.path))
@@ -126,6 +128,9 @@ class FlaskAssistant(PythonAssistant):
         self._dot_devassistant_create(self.path, **kwargs)
         if 'eclipse' in kwargs and kwargs['eclipse']:
             self._dot_eclipse_projectfiles_create(self.path, **kwargs)
+
+        logger.info('Flask project {name} in {path} has been created.'.format(path=project_path,
+                                                                              name=project_name))
 
 class LibAssistant(PythonAssistant):
     name = 'lib'
