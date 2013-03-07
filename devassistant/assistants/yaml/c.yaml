@@ -3,7 +3,7 @@ c:
 
     dependencies:
     - default:
-      - rpm: ['gcc','glibc-devel', 'automake', 'autoconf']
+      - rpm: ['gcc', 'gcc-c++','glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace']
     - _build:
       - rpm: ['rpm-build','mock','eclipse-rpm-editor']
     - _idesettings:
@@ -73,6 +73,7 @@ c:
     #- if not ls $eclipse/$name:
     #- log_i: 'Eclipse project is not existing. Import is ongoing'
     - cl: mkdir -p $eclipse/$name
+    - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
     - cl: cp $name/.eclipseproject $eclipse/$name/.project
     - cl: cp $name/.cproject $eclipse/$name/.cproject
     - cl: cp $name/.autotools $eclipse/$name/.autotools
