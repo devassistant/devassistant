@@ -7,7 +7,7 @@ from devassistant import assistant_base
 from devassistant import exceptions
 from devassistant.logger import logger
 
-from devassistant.command_helpers import PathHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper
 
 class PythonAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
@@ -24,6 +24,21 @@ class PythonAssistant(assistant_base.AssistantBase):
 
     def _eclipse_dep_list(self, **kwargs):
         return ['eclipse-pydev']
+
+    def _dot_eclipse_projectfiles_create(self, path, **kwargs):
+        logger.info('Creating eclipse project...')
+        dot_project = self._jinja_env.get_template(os.path.join('python', '.project'))
+        dot_pydevproject = self._jinja_env.get_template(os.path.join('python', '.pydevproject'))
+
+        with plumbum.local.cwd(path):
+            name = os.path.basename(path)
+            with open('.project', 'w') as f:
+                f.write(dot_project.render(name=name, assistant=self.name))
+            with open('.pydevproject', 'w') as f:
+                f.write(dot_pydevproject.render(name=name, assistant=self.name))
+        ClHelper.run_command('eclipse -nosplash -application \
+                              org.eclipse.cdt.managedbuilder.core.headlessbuild \
+                             -import {path}'.format(path=path))
 
 class DjangoAssistant(PythonAssistant):
     name = 'django'
@@ -64,6 +79,9 @@ class DjangoAssistant(PythonAssistant):
         with plumbum.local.cwd(project_path):
             django_admin('startproject', project_name)
         self._dot_devassistant_create(self.path, **kwargs)
+        if 'eclipse' in kwargs and kwargs['eclipse']:
+            self._dot_eclipse_projectfiles_create(self.path, **kwargs)
+
         logger.info('Django project {name} in {path} has been created.'.format(path=project_path,
                                                                                name=project_name))
 
@@ -106,6 +124,8 @@ class FlaskAssistant(PythonAssistant):
         PathHelper.cp(os.path.join(self.template_dir, 'python', 'flask'),
                       os.path.join(self.path, '__init__.py'))
         self._dot_devassistant_create(self.path, **kwargs)
+        if 'eclipse' in kwargs and kwargs['eclipse']:
+            self._dot_eclipse_projectfiles_create(self.path, **kwargs)
 
 class LibAssistant(PythonAssistant):
     name = 'lib'
@@ -149,5 +169,7 @@ class LibAssistant(PythonAssistant):
             with open('setup.py', 'w') as f:
                 f.write(setup_py.render(name=lib_name))
         self._dot_devassistant_create(self.path, **kwargs)
+        if 'eclipse' in kwargs and kwargs['eclipse']:
+            self._dot_eclipse_projectfiles_create(self.path, **kwargs)
         logger.info('Library project {name} in {path} has been created.'.format(path=lib_path,
                                                                                name=lib_name))
