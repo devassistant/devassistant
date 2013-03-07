@@ -18,7 +18,7 @@ class TestYamlAssistant(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
         self.ya2 = yaml_assistant.YamlAssistant()
-        self.ya2._run = [{'if _ide':
+        self.ya2._run = [{'if $ide':
                             [{'if ls /notachance': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
                          {'else': [{'log_d': 'else'}]}]

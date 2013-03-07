@@ -178,8 +178,9 @@ class YamlAssistant(assistant_base.AssistantBase):
             invert_result = True
             cond = cond[4:]
 
-        if cond.startswith('_'):
-            if cond[1:] in kwargs and kwargs[cond[1:]]:
+        if cond.startswith('$'):
+            var_name = self._get_var_name(cond)
+            if var_name in kwargs and kwargs[var_name]:
                 result = True
             else:
                 result = False

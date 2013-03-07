@@ -49,7 +49,7 @@ c: # name of the assistant as will be used on commandline; should be the same as
   - dda_c: $name # creates .devassistant file (with default initial content) in directory $name
   - log_d: 'Some debugging message' # log_d logs at debug level
   - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
-  - if _ide: # condition based on presence of argument
+  - if $ide: # condition based on variable (this one checks $ide, which is cli argument)
     - if not ls ~/.vimrc/blahblah: # use not to negate condition, condition can also be cli argument
       - cl: mkdir ~/.vimrc/blahblah
     - else:
