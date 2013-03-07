@@ -6,8 +6,10 @@ c:
       - rpm: ['gcc', 'gcc-c++','glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace']
     - _build:
       - rpm: ['rpm-build','mock','eclipse-rpm-editor']
+    - _eclipse:
+      - rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
     - _idesettings:
-      - rpm: ['vim', 'gvim','eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
+      - rpm: ['vim', 'gvim']
 
     args:
       name:
