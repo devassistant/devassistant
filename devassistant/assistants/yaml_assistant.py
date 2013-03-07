@@ -90,6 +90,9 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif comm_type.startswith('run'):
                     s = self._get_section_to_run(section=comm, kwargs_override=False, **kwargs)
                     self._run_one_section(s, **kwargs)
+                elif comm_type.startswith('$'):
+                    # intentionally pass kwargs as dict, not as keywords
+                    self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm, **kwargs)
@@ -132,6 +135,29 @@ class YamlAssistant(assistant_base.AssistantBase):
             self._dot_devassistant_create(self._format(comm, **kwargs), **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
+
+    def _assign_variable(self, variable, comm, kwargs):
+        """Assigns value of another variable or result of command to given variable.
+        The result is then put into kwargs (overwriting original value, if already there).
+        Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
+
+        Args:
+            variable: variable to assign to
+            comm: either another variable or command to run
+        """
+        var_name = self._get_var_name(variable)
+        # if comm is another variable, just assign its value, else it's cli command => run it
+        if comm[0] == '$':
+            kwargs[var_name] = kwargs.get(self._get_var_name(comm), '')
+        else:
+            try:
+                kwargs[var_name] = self._format_and_run_cl_command('cl', comm, **kwargs) or ''
+            except exceptions.RunException:
+                kwargs[var_name] = ''
+
+    def _get_var_name(self, dolar_variable):
+        name = dolar_variable[1:]
+        return name.strip('{}')
 
     def _github_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'github':
@@ -178,7 +204,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         except plumbum.ProcessExecutionError as e:
             raise exceptions.RunException(e)
 
-        return result
+        return result.strip() if hasattr(result, 'strip') else result
 
     def _log(self, comm_type, log_msg, **kwargs):
         if comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):

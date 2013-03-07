@@ -10,7 +10,9 @@ class ClHelper(object):
     @classmethod
     def run_command(cls, cmd_str, fg=False, log_as_info=False):
         """Runs a command from string, e.g. "cp foo bar" """
+        result = None
         split_string = cmd_str.split()
+
         for i, s in enumerate(split_string):
             if '~' in s:
                 split_string[i] = os.path.expanduser(s)
@@ -32,9 +34,11 @@ class ClHelper(object):
 
             # actually invoke the command
             if fg:
-                cmd & plumbum.FG
+                result = cmd & plumbum.FG
             else:
-                cmd()
+                result = cmd()
+
+        return result
 
     @classmethod
     def _connect_quoted(cls, arg_list):

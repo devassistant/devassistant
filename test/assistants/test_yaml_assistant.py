@@ -136,3 +136,24 @@ class TestYamlAssistant(object):
     def test_run_else(self):
         self.ya2.run()
         assert ('DEBUG', 'else') in self.tlh.msgs
+
+    def test_assign_variable_from_nonexisting_variable(self):
+        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', '') in self.tlh.msgs
+
+    def test_assign_variable_from_nonexisting_variable(self):
+        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+        bar = 'spam'
+        self.ya.run(bar=bar)
+        assert ('INFO', 'spam') in self.tlh.msgs
+
+    def test_assign_variable_from_successful_command(self):
+        self.ya._run = [{'$foo': 'basename foo/bar'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', 'bar') in self.tlh.msgs
+
+    def test_assign_variable_from_unsuccessful_command(self):
+        self.ya._run = [{'$foo': 'ls spam/spam/spam'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', '') in self.tlh.msgs
