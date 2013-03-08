@@ -135,64 +135,60 @@ class AssistantBase(object):
         for pkg in to_install:
             RPMHelper.was_rpm_installed(pkg)
 
-    def _github_name(self, **kwargs):
-        """This function is used for parsing argument
-        -n or --name as repository name"""
+    def _github_username(self, **kwargs):
+        return kwargs['github'] or getpass.getuser()
+
+    def _github_reponame(self, **kwargs):
+        """Extracts reponame from name, which is possibly a path."""
         return os.path.basename(kwargs['name'])
 
-    def _github_register(self, **kwargs):
-        """Initialization repository on GitHub
+    def _github_create_repo(self, **kwargs):
+        """Create repo on GitHub.
 
-            if repository is already existing then it will printed out message
-            otherwise it will create repo
+        If repository already exists then RunException will be raised.
+
         Raises:
-            devassistant.exceptions.RunException containing the error message
+            devassistant.exceptions.RunException on error
         """
-        gitname = self._github_name(**kwargs)
+        username = self._github_username(**kwargs)
+        reponame = self._github_reponame(**kwargs)
         password = getpass.getpass(prompt='GitHub password:', stream=None)
-        if kwargs['github'] is None:
-            username = getpass.getuser()
-        else:
-            username = kwargs['github']
+
         gh = Github(username, password)
         user = gh.get_user()
-        if gitname in map(lambda x: x.name, user.get_repos()):
-            logger.warning("Given repository is already existing on GiHub")
+        if reponame in map(lambda x: x.name, user.get_repos()):
+            logger.warning("Repository already exists on GiHub.")
         else:
-            user.create_repo(gitname)
+            user.create_repo(reponame)
 
     def _github_push(self, **kwargs):
-        """Pushing all files to GitHub
+        """Add a remote and push to GitHub.
 
         Raises:
-            devassistant.exceptions.RunException containing the error message
+            devassistant.exceptions.RunException on error
         """
-        gitname = self._github_name(**kwargs)
+        username = self._github_username(**kwargs)
+        reponame = self._github_reponame(**kwargs)
+        has_remote = False
+
         try:
             result = ClHelper.run_command("git remote show origin", True, True)
+            has_remote = True
             logger.info(result)
         except plumbum.ProcessExecutionError as e:
-            """ This section is used for first synchronization
-                between local and remote repository
-            """
+            pass
+
+        if not has_remote:
             try:
-                if kwargs['github'] is None:
-                    username = getpass.getuser()
-                else:
-                    username = kwargs['github']
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, gitname), True, True)
-            except plumbum.ProcessExecutionError as ppe:
-                """ This is empty session
-                """
-        """
-            This command will ensure that all changes will be pushed
-            to the GitHub server
-            """
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, reponame), True, True)
+            except plumbum.ProcessExecutionError as e:
+                pass # TODO: what exactly happens here?
+
         ClHelper.run_command("git push origin master", True, True)
 
     def _github_register_and_push(self, **kwargs):
         logger.info('Registering your project on GitHub...')
-        self._github_register(**kwargs)
+        self._github_create_repo(**kwargs)
         logger.info('Pushing your project to the new GitHub repository...')
         self._github_push(**kwargs)
         logger.info('GitHub repository was created and source code pushed.')

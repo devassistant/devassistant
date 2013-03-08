@@ -161,8 +161,8 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     def _github_comm(self, comm_type, comm, **kwargs):
         if comm_type == 'github':
-            if comm == 'register':
-                self._github_register(**kwargs)
+            if comm == 'create_repo':
+                self._github_create_repo(**kwargs)
             elif comm == 'push':
                 self._github_push(**kwargs)
             else:
