@@ -182,3 +182,9 @@ class AssistantBase(object):
             """
         ClHelper.run_command("git push origin master", True, True)
 
+    def _github_register_and_push(self, **kwargs):
+        logger.info('Registering your project on GitHub...')
+        self._github_register(**kwargs)
+        logger.info('Pushing your project to the new GitHub repository...')
+        self._github_remote(**kwargs)
+        logger.info('GitHub repository was created and source code pushed.')
