@@ -39,6 +39,10 @@ c:
         - --eclipse
         help:
             'Specify Eclipse workspage directory where project will be stored'
+        action:
+            [default_iff_used, ~/workspace ]
+        nargs:
+            '?'
 
       github:
         flags:
@@ -78,23 +82,28 @@ c:
     - cl_f: make distcheck # will create distribution tar ball for later on usage
     - if $eclipse:
         - log_i: 'Creating eclipse project from command line'
+        - cl: cd ..
         - cl: mkdir -p $eclipse/$name
         - if ls $name/.eclipseproject:
+            - log_i: 'Project was not imported to eclipse environment yet'
             - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
             - cl: mv $name/.eclipseproject $name/.project
             - cl: cp $name/.project $eclipse/$name/.project
             - cl: cp $name/.cproject $eclipse/$name/.cproject
             - cl: cp $name/.autotools $eclipse/$name/.autotools
+            - log_i: 'Copying neccessary files was done'
+        - else:
+            - log_i: 'Project was already imported into eclipse environment'
         - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name
         - log_i: 'Import to Eclipse is done.'
         - log_i: 'Start eclipse for developping.'
     - if defined $github:
         - log_i: 'Creating repository on GitHub'
-        - github: register
+        - github: create_repo
         - log_i: 'Checking status of local git'
         - cl_f: git status
         - log_i: 'Push local git respository on GitHub'
-        - github: remote
+        - github: push
     - if $build:
         - log_i: 'Creating spec file'
         - cl: rpmdev-setuptree
