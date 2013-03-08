@@ -1,4 +1,6 @@
-from devassistant.cli import devassistant_argparse as argparse
+import argparse
+
+from devassistant.cli import devassistant_argparse
 
 from devassistant import settings
 
@@ -9,7 +11,7 @@ class ArgparseGenerator(object):
     @classmethod
     def generate_argument_parser(cls, chain):
         cur_as, cur_subas = chain
-        parser = argparse.ArgumentParser(description=cur_as.description)
+        parser = devassistant_argparse.ArgumentParser(description=cur_as.description)
 
         # add any arguments of the top assistant
         for arg in cur_as.args:

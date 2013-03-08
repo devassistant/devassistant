@@ -18,3 +18,29 @@ class ArgumentParser(argparse.ArgumentParser):
                 if isinstance(action, argparse._SubParsersAction):
                     self.exit(2, _('You have to select a subassistant.\n'))
         self.exit(1, _('%s: error: %s\n') % (self.prog, message))
+
+class DefaultIffUsedActionFactory(object):
+    """Argparse doesn't cover one usecase of default values:
+    Let's have an argument -e and it's default value 'foo'. You need:
+
+    $ myprog # no arguments => no 'e' in Namespace
+    $ myprog -e # -e without argument => use default 'foo' for 'e'
+    $ myprog -e bar # -e with argument => use value 'bar' for 'e'
+
+    This is undoable in argparse. So this class generates an Action class
+    that does this. Usage:
+
+    >>> parser.add_argument('-e', action=DefaultIffUsedActionFactory.generate_action(['foo']))
+
+    Note that this will not work if you pass default to add_argument!
+    """
+    @classmethod
+    def generate_action(cls, default):
+        class DefaultIffUsedAction(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string):
+                if values:
+                    setattr(namespace, self.dest, values)
+                else:
+                    setattr(namespace, self.dest, default)
+
+        return DefaultIffUsedAction
