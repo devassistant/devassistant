@@ -19,7 +19,8 @@ class PythonAssistant(assistant_base.AssistantBase):
 
     args = [argument.Argument('-e', '--eclipse',
                               required=False,
-                              action='store_true',
+                              nargs='?',
+                              action=['default_iff_used', '~/workspace'],
                               help='Configure as eclipse project.')]
 
     def _eclipse_dep_list(self, **kwargs):
@@ -38,7 +39,7 @@ class PythonAssistant(assistant_base.AssistantBase):
                 f.write(dot_pydevproject.render(name=name, assistant=self.name))
         ClHelper.run_command('eclipse -nosplash -application \
                               org.eclipse.cdt.managedbuilder.core.headlessbuild \
-                             -import {path}'.format(path=path))
+                             -import {path} -data {workspace}'.format(path=path, workspace=kwargs['eclipse']))
 
 class DjangoAssistant(PythonAssistant):
     name = 'django'
