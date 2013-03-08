@@ -4,7 +4,6 @@ maven:
   dependencies:
   - default:
     - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
-    - rpm: ['maven-jar-plugin','junit']
   - _eclipse:
     - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
 
