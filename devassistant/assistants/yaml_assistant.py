@@ -163,7 +163,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         if comm_type == 'github':
             if comm == 'register':
                 self._github_register(**kwargs)
-            elif comm == 'remote':
+            elif comm == 'push':
                 self._github_push(**kwargs)
             else:
                 logger.warning('Unknow github command {0}, skipping.'.format(comm))
