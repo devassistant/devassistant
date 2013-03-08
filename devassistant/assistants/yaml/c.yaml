@@ -1,4 +1,4 @@
-c: 
+c:
     fullname: C Language Tool
 
     dependencies:
@@ -48,10 +48,14 @@ c:
             'This will create a Git Hub repository.
             First create repository on git hub.
             Actually now creating repository on GitHub server from command line is not supported'
+        nargs:
+            '?'
 
     files:
       csources: &csources
         source: c/
+      specfile: &specfile
+        source: c/cdevelopmenttool.spec
 
     run:
     - log_i: 'Copying c source tree to project destination'
@@ -89,7 +93,7 @@ c:
     - cl: cp $name/.project $eclipse/$name/.project
     - cl: cp $name/.cproject $eclipse/$name/.cproject
     - cl: cp $name/.autotools $eclipse/$name/.autotools
-    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name 
+    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name
     - log_i: 'Import to Eclipse is done.'
     - log_i: 'Start eclipse for developping.'
 
