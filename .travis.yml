@@ -4,8 +4,8 @@ python:
   - "2.7"
   # - "3.2"
 
-  install: 
-  - pip install -r requirements.txt --use-mirrors
-  - pip install flexmock
+install: 
+- pip install -r requirements.txt --use-mirrors
+- pip install flexmock
 
-  script: python setup.py test -t py.test
+script: python setup.py test -t py.test
