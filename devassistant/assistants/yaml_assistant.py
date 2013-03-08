@@ -165,6 +165,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                 self._github_create_repo(**kwargs)
             elif comm == 'push':
                 self._github_push(**kwargs)
+            elif comm == 'create_and_push':
+                self._github_create_and_push(**kwargs)
             else:
                 logger.warning('Unknow github command {0}, skipping.'.format(comm))
         else:

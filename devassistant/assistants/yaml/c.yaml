@@ -96,12 +96,7 @@ c:
     - log_i: 'Import to Eclipse is done.'
     - log_i: 'Start eclipse for developping.'
   - if defined $github:
-    - log_i: 'Creating repository on GitHub'
-    - github: create_repo
-    - log_i: 'Checking status of local git'
-    - cl_f: git status
-    - log_i: 'Push local git respository on GitHub'
-    - github: push
+    - github: create_and_push
   - if $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree

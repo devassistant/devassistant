@@ -67,10 +67,4 @@ maven:
     #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
     - log_i: 'You can now import this project into your Eclipse workspace'
   - if defined $github:
-    - log_i: 'Creating repository on GitHub'
-    - github: create_repo
-    - log_i: 'Checking status of local git'
-    - cl_f: git status
-    - log_i: 'Push local git respository on GitHub'
-    - github: push
-
+    - github: create_and_push

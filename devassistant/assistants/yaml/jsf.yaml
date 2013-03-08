@@ -57,12 +57,7 @@ jsf:
   - cl: tar czf devassistant-jsf-example.tar.gz src/ pom.xml run
   - log_i: 'Done'
   - if defined $github:
-    - log_i: 'Creating repository on GitHub'
-    - github: create_repo
-    - log_i: 'Checking status of local git'
-    - cl_f: git status
-    - log_i: 'Push local git respository on GitHub'
-    - github: push
+    - github: create_and_push
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
     - cl: mkdir -p $eclipse/$name
