@@ -1,16 +1,15 @@
-import os
-
-import jinja2
-from github import Github
 import getpass
-import git
+import os
 import sys
+
+import github
+import jinja2
 import plumbum
 
 from devassistant import exceptions
 from devassistant import settings
 from devassistant.logger import logger
-from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
@@ -135,6 +134,13 @@ class AssistantBase(object):
         for pkg in to_install:
             RPMHelper.was_rpm_installed(pkg)
 
+    def _git_create_repo(self, path, gitignore, **kwargs):
+        PathHelper.cp(gitignore, path)
+        with plumbum.local.cwd(os.path.abspath(os.path.expanduser(path))):
+            ClHelper.run_command('git init')
+            ClHelper.run_command('git add .')
+            ClHelper.run_command('git commit -m "Initial commit."')
+
     def _github_username(self, **kwargs):
         return kwargs['github'] or getpass.getuser()
 
@@ -154,12 +160,15 @@ class AssistantBase(object):
         reponame = self._github_reponame(**kwargs)
         password = getpass.getpass(prompt='GitHub password:', stream=None)
 
-        gh = Github(username, password)
+        gh = github.Github(username, password)
         user = gh.get_user()
-        if reponame in map(lambda x: x.name, user.get_repos()):
-            logger.warning("Repository already exists on GiHub.")
-        else:
-            user.create_repo(reponame)
+        try:
+            if reponame in map(lambda x: x.name, user.get_repos()):
+                logger.warning("Repository already exists on GiHub.")
+            else:
+                user.create_repo(reponame)
+        except github.GithubException as e:
+            raise exceptions.RunException('GitHub error: {0}'.format(e))
 
     def _github_push(self, **kwargs):
         """Add a remote and push to GitHub.
@@ -172,9 +181,8 @@ class AssistantBase(object):
         has_remote = False
 
         try:
-            result = ClHelper.run_command("git remote show origin", True, True)
+            result = ClHelper.run_command("git remote show origin")
             has_remote = True
-            logger.info(result)
         except plumbum.ProcessExecutionError as e:
             pass
 
@@ -187,8 +195,11 @@ class AssistantBase(object):
         ClHelper.run_command("git push origin master", True, True)
 
     def _github_register_and_push(self, **kwargs):
-        logger.info('Registering your project on GitHub...')
-        self._github_create_repo(**kwargs)
-        logger.info('Pushing your project to the new GitHub repository...')
-        self._github_push(**kwargs)
-        logger.info('GitHub repository was created and source code pushed.')
+        with plumbum.local.cwd(os.path.abspath(os.path.expanduser(kwargs['name']))):
+            ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
+            logger.info('Registering your project on GitHub as {0}/{1}...'.format(self._github_username(**kwargs),
+                                                                                  self._github_reponame(**kwargs)))
+            self._github_create_repo(**kwargs)
+            logger.info('Pushing your project to the new GitHub repository...')
+            self._github_push(**kwargs)
+            logger.info('GitHub repository was created and source code pushed.')
