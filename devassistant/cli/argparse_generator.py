@@ -11,7 +11,7 @@ class ArgparseGenerator(object):
     @classmethod
     def generate_argument_parser(cls, chain):
         cur_as, cur_subas = chain
-        parser = devassistant_argparse.ArgumentParser(description=cur_as.description)
+        parser = devassistant_argparse.ArgumentParser(description=cur_as.description, argument_default=argparse.SUPPRESS)
 
         # add any arguments of the top assistant
         for arg in cur_as.args:
@@ -31,7 +31,7 @@ class ArgparseGenerator(object):
 
     @classmethod
     def add_subparsers_to(cls, assistant_tuple, parser, level):
-        p = parser.add_parser(assistant_tuple[0].name, description=assistant_tuple[0].description)
+        p = parser.add_parser(assistant_tuple[0].name, description=assistant_tuple[0].description, argument_default=argparse.SUPPRESS)
         for arg in assistant_tuple[0].args:
             arg.add_argument_to(p)
 

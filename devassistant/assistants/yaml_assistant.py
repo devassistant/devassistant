@@ -156,7 +156,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                 kwargs[var_name] = ''
 
     def _get_var_name(self, dolar_variable):
-        name = dolar_variable[1:]
+        name = dolar_variable.strip()[1:]
         return name.strip('{}')
 
     def _github_comm(self, comm_type, comm, **kwargs):
@@ -184,6 +184,9 @@ class YamlAssistant(assistant_base.AssistantBase):
                 result = True
             else:
                 result = False
+        elif cond.startswith('defined '):
+            print kwargs
+            result = self._get_var_name(cond[8:]) in kwargs
         else:
             try:
                 c = self._format_and_run_cl_command('cl', cond, **kwargs)
