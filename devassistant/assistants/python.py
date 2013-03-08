@@ -91,7 +91,7 @@ class DjangoAssistant(PythonAssistant):
             self._dot_eclipse_projectfiles_create(self.path, **kwargs)
         self._git_create_repo(self.path, self._python_gitignore, **kwargs)
         if 'github' in kwargs:
-            self._github_register_and_push(**kwargs)
+            self._github_create_and_push(**kwargs)
 
         logger.info('Django project {name} in {path} has been created.'.format(path=project_path,
                                                                                name=project_name))
@@ -139,8 +139,9 @@ class FlaskAssistant(PythonAssistant):
         self._dot_devassistant_create(self.path, **kwargs)
         if 'eclipse' in kwargs and kwargs['eclipse']:
             self._dot_eclipse_projectfiles_create(self.path, **kwargs)
+        self._git_create_repo(self.path, self._python_gitignore, **kwargs)
         if 'github' in kwargs:
-            self._github_register_and_push(**kwargs)
+            self._github_create_and_push(**kwargs)
 
         logger.info('Flask project {name} in {path} has been created.'.format(path=project_path,
                                                                               name=project_name))
@@ -189,8 +190,9 @@ class LibAssistant(PythonAssistant):
         self._dot_devassistant_create(self.path, **kwargs)
         if 'eclipse' in kwargs and kwargs['eclipse']:
             self._dot_eclipse_projectfiles_create(self.path, **kwargs)
+        self._git_create_repo(self.path, self._python_gitignore, **kwargs)
         if 'github' in kwargs:
-            self._github_register_and_push(**kwargs)
+            self._github_create_and_push(**kwargs)
 
         logger.info('Library project {name} in {path} has been created.'.format(path=lib_path,
                                                                                name=lib_name))

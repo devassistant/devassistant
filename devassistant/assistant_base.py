@@ -194,7 +194,7 @@ class AssistantBase(object):
 
         ClHelper.run_command("git push origin master", True, True)
 
-    def _github_register_and_push(self, **kwargs):
+    def _github_create_and_push(self, **kwargs):
         with plumbum.local.cwd(os.path.abspath(os.path.expanduser(kwargs['name']))):
             ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
             logger.info('Registering your project on GitHub as {0}/{1}...'.format(self._github_username(**kwargs),
