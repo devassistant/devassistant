@@ -33,9 +33,9 @@ jsf:
       - -g
       - --github
       help:
-        'This will create a Git Hub repository.
-        First create repository on git hub.
-        Actually now creating repository on GitHub server from command line is not supported'
+        'This will create a Git Hub repository according to the project name and push your source there.'
+      nargs:
+        '?'
 
   files:
     jsfexample: &jsfexample
@@ -58,11 +58,11 @@ jsf:
   - log_i: 'Done'
   - if defined $github:
     - log_i: 'Creating repository on GitHub'
-    - github: register
+    - github: create_repo
     - log_i: 'Checking status of local git'
     - cl_f: git status
     - log_i: 'Push local git respository on GitHub'
-    - github: remote
+    - github: push
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
     - cl: mkdir -p $eclipse/$name
