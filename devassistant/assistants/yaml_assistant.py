@@ -185,7 +185,6 @@ class YamlAssistant(assistant_base.AssistantBase):
             else:
                 result = False
         elif cond.startswith('defined '):
-            print kwargs
             result = self._get_var_name(cond[8:]) in kwargs
         else:
             try:
