@@ -30,8 +30,6 @@ nosetests.xml
 *.mo
 
 # Mr Developer. Those files are used by Eclipse development
-# Maybe be it should not be removed.
-# Bill mentioned that including .*project file would be good to importing to IDE (like eclipse)
 .mr.developer.cfg
 .project
 .pydevproject
