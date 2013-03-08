@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+  <classpathentry kind="src" path="src/test/java" output="target/test-classes" including="**/*.java"/>
+  <classpathentry kind="src" path="src/main/java" including="**/*.java"/>
+  <classpathentry kind="output" path="target/classes"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="var" path="/usr/share/java/mojarra/jsf-api.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/mojarra/jsf-impl.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/tomcat/tomcat-el-2.2-api.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/tomcat/tomcat-jsp-2.2-api.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/tomcat/tomcat-servlet-3.0-api.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/tomcat/jasper-el.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-server.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-http.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-util.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-io.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-webapp.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-xml.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-servlet.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/jetty/jetty-security.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/junit4.jar"/>
+  <classpathentry kind="var" path="/usr/share/java/hamcrest/core.jar"/>
+</classpath>

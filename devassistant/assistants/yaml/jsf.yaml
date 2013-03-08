@@ -1,12 +1,13 @@
 jsf:
-  fullname: JavaServer Faces
+  fullname: Simple JavaServer Faces Project
 
   dependencies:
-    default:
-      # note jetty >= 9.0.0, available in fedora 19/rawhide
-      rpm: [mojarra, jetty-server, jetty-webapp, tomcat-el-2.2-api, tomcat-jsp-2.2-api]
-      rpm: [tomcat-servlet-3.0-api, mvn-local, maven-war-plugin, maven-shade-plugin]
-      rpm: [maven-resources-plugin maven-clean-plugin junit4]
+  - default:
+    - rpm: ['mojarra','jetty-server','jetty-webapp','tomcat-el-2.2-api','tomcat-jsp-2.2-api']
+    - rpm: ['tomcat-servlet-3.0-api','mvn-local','maven-war-plugin','maven-shade-plugin']
+    - rpm: ['maven-resources-plugin','maven-clean-plugin','junit4']
+  - _eclipse:
+    - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
 
   args:
     name:
@@ -16,23 +17,32 @@ jsf:
       help:
         'Name of project to create'
 
+    eclipse:
+      flags:
+      - -e
+      - --eclipse
+      help:
+        'Create Eclipse project and register it with specified workspace (default: ~/workspace)'
+      action:
+        [default_iff_used, "~/workspace"]
+      nargs:
+        '?'
+
     github:
       flags:
       - -g
       - --github
       help:
-          'This will create a Git Hub repository.
-          First create repository on git hub.
-          Actually now creating repository on GitHub server from command line is not supported'
-      action:
-        'store_true'
+        'This will create a Git Hub repository.
+        First create repository on git hub.
+        Actually now creating repository on GitHub server from command line is not supported'
 
   files:
     jsfexample: &jsfexample
       source: java/jsf/
 
   run:
-  - log_i: 'Creating JSF project'
+  - log_i: 'Creating simple JSF project'
   - cl: mkdir -p $name
   - cl: cp -r *jsfexample $name
   # create local git repository
@@ -46,9 +56,23 @@ jsf:
   #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
   - cl: tar czf devassistant-jsf-example.tar.gz src/ pom.xml run
   - log_i: 'Done'
-
-  run_github:
-  - cl: cd $name
-  - cl_f: git status
-  - github: remote     
+  - if defined $github:
+    - log_i: 'Creating repository on GitHub'
+    - github: register
+    - log_i: 'Checking status of local git'
+    - cl_f: git status
+    - log_i: 'Push local git respository on GitHub'
+    - github: remote
+  - if $eclipse:
+    - log_i: 'Creating eclipse project from command line'
+    - cl: mkdir -p $eclipse/$name
+    - cl: cd $name/jsf
+    - cl: mv .eclipseproject .project
+    - cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
+    - cl: cp .project $eclipse/$name/.project
+    - cl: cp .classpath $eclipse/$name/.classpath
+    - cl: cp -r .settings/ $eclipse/$name/
+    # TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
+    #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
+    - log_i: 'You can now import this project into your Eclipse workspace'
 

@@ -2,8 +2,12 @@ maven:
   fullname: Simple Apache Maven Project
 
   dependencies:
-    default:
-      rpm: [maven-local maven-jar-plugin maven-clean-plugin junit]
+  - default:
+    - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
+    - rpm: ['maven-jar-plugin','junit']
+  - _eclipse:
+    - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
+
 
   args:
     name:
@@ -12,19 +16,31 @@ maven:
       - --name
       help:
         'Name of project to create'
+
+    eclipse:
+      flags:
+      - -e
+      - --eclipse
+      help:
+        'Create Eclipse project and register it with specified workspace (default: ~/workspace)'
+      action:
+        [default_iff_used, "~/workspace"]
+      nargs:
+        '?'
+
     github:
       flags:
       - -g
       - --github
       help:
-          'This will create a Git Hub repository.
-          First create repository on git hub.
-          Actually now creating repository on GitHub server from command line is not supported'
-      action:
-        'store_true'
+        'This will create a Git Hub repository.
+        First create repository on git hub.
+        Actually now creating repository on GitHub server from command line is not supported'
+      nargs:
+        '?'
 
   files:
-    mavenexample:
+    mavenexample: &mavenexample
       source: java/maven/
 
   run:
@@ -42,9 +58,23 @@ maven:
   - cl: tar czf ${name}.tar.gz pom.xml src/ run
   - log_i: 'Building project'
   - cl: mvn-local -q -o -B package
-
-  run_github:
-  - cl: cd $name
-  - cl_f: git status
-  - github: remote
+  - log_i: 'Done'
+  - if $eclipse:
+    - log_i: 'Creating eclipse project from command line'
+    - cl: mkdir -p $eclipse/$name
+    - cl: cd $name/maven
+    - cl: mv .eclipseproject .project
+    - cl: sed -i "s/<name>devassistant.maven</<name>$name</" .project
+    - cl: cp .project $eclipse/$name/.project
+    - cl: cp .classpath $eclipse/$name/.classpath
+    # TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
+    #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
+    - log_i: 'You can now import this project into your Eclipse workspace'
+  - if defined $github:
+    - log_i: 'Creating repository on GitHub'
+    - github: register
+    - log_i: 'Checking status of local git'
+    - cl_f: git status
+    - log_i: 'Push local git respository on GitHub'
+    - github: remote
 

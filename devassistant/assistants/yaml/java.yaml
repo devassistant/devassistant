@@ -4,5 +4,5 @@ java:
 
   dependencies:
   - default:
-    - rpm: [java-1.7.0-openjdk, java-1.7.0-openjdk-devel]
+    - rpm: ['java-1.7.0-openjdk','java-1.7.0-openjdk-devel']
 
