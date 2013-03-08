@@ -1,0 +1,46 @@
+.SH DESCRIPTION
+The
+.B devassistant
+setting up development environment for various languages. 
+
+Specific project is stored in directory which has the same name as option 
+.B -n project_name
+(required)
+
+Directory name is relative from current or absolute path in case that begins with /
+
+.B devassistant
+installs packages / group of packages over yum. Specific rpm packages are defined in YAML configuration files or in python modules. RPM packages are checked each time when devassistant is run.
+
+Without any
+.B language_options
+project is only created from devassistant template directory.
+
+
+.SH LANGUAGE
+Current supporting languages are:
+.IP
+C/C++ language
+.IP
+Python language
+.IP
+Java language
+
+.SH LANGUAGE_OPTIONS
+.TP
+.B \-h --help
+will print help message for each command
+.TP
+.B \-b --build
+This will build up SRPM and RPM package for specific language. Source input is tarball and SPEC file
+.TP
+.B \-i --idesettings
+This will install rpm packages needed for development under some IDE environtment
+.TP
+.B \-e --eclipse
+This will import project into 
+.I eclipse 
+environment and make them compilable and runable under that environment. User could specify yours eclipse workspace directory otherwise it will be used default one like ~/workspace
+.TP
+.B \-g --github <username>
+This option will ensure uploading project to GitHub under specific user name. Prerequisite is that you have to have registered username on wwww.github.org server. If username is not specified than system username is used

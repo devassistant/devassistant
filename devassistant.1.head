@@ -1,0 +1,8 @@
+.\" Copyright Petr Hracek, 2013
+.\"
+.\" This page is distributed under GPL.
+.\"
+.TH DEVASSISTANT 1 2013-03-12 "" "Linux User's Manual"
+.SH NAME
+devassistant \- devassistant setting up development environment for various languages. Also sample projects are created
+.SH SYNOPSIS
