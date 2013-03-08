@@ -28,6 +28,8 @@ class PythonAssistant(assistant_base.AssistantBase):
                               nargs='?',
                               help='Setup repository on GitHub. Accepts GH username as argument. Uses your system username by default.')]
 
+    _python_gitignore = os.path.join(assistant_base.AssistantBase.template_dir, 'python', '.gitignore')
+
     def _eclipse_dep_list(self, **kwargs):
         return ['eclipse-pydev']
 
@@ -87,6 +89,7 @@ class DjangoAssistant(PythonAssistant):
         self._dot_devassistant_create(self.path, **kwargs)
         if 'eclipse' in kwargs and kwargs['eclipse']:
             self._dot_eclipse_projectfiles_create(self.path, **kwargs)
+        self._git_create_repo(self.path, self._python_gitignore, **kwargs)
         if 'github' in kwargs:
             self._github_register_and_push(**kwargs)
 
