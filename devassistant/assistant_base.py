@@ -150,14 +150,18 @@ class AssistantBase(object):
         """
         gitname = self._github_name(**kwargs)
         password = getpass.getpass(prompt='GitHub password:', stream=None)
-        gh = Github(kwargs['github'], password)
+        if kwargs['github'] is None:
+            username = getpass.getuser()
+        else:
+            username = kwargs['github']
+        gh = Github(username, password)
         user = gh.get_user()
         if gitname in map(lambda x: x.name, user.get_repos()):
             logger.warning("Given repository is already existing on GiHub")
         else:
             user.create_repo(gitname)
 
-    def _github_remote(self, **kwargs):
+    def _github_push(self, **kwargs):
         """Pushing all files to GitHub
 
         Raises:
@@ -172,7 +176,11 @@ class AssistantBase(object):
                 between local and remote repository
             """
             try:
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(kwargs['github'], gitname), True, True)
+                if kwargs['github'] is None:
+                    username = getpass.getuser()
+                else:
+                    username = kwargs['github']
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, gitname), True, True)
             except plumbum.ProcessExecutionError as ppe:
                 """ This is empty session
                 """
@@ -186,5 +194,5 @@ class AssistantBase(object):
         logger.info('Registering your project on GitHub...')
         self._github_register(**kwargs)
         logger.info('Pushing your project to the new GitHub repository...')
-        self._github_remote(**kwargs)
+        self._github_push(**kwargs)
         logger.info('GitHub repository was created and source code pushed.')
