@@ -61,7 +61,6 @@ maven:
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
     - cl: mkdir -p $eclipse/$name
-    - cl: cd $name/maven
     - cl: mv .eclipseproject .project
     - cl: sed -i "s/<name>devassistant.maven</<name>$name</" .project
     - cl: cp .project $eclipse/$name/.project

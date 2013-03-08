@@ -66,7 +66,6 @@ jsf:
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
     - cl: mkdir -p $eclipse/$name
-    - cl: cd $name/jsf
     - cl: mv .eclipseproject .project
     - cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
     - cl: cp .project $eclipse/$name/.project
