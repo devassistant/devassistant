@@ -9,5 +9,5 @@ class Argument(object):
         if isinstance(self.kwargs.get('action', ''), list):
             # see documentation of DefaultIffUsedActionFactory to see why this is necessary
             if self.kwargs['action'][0] == 'default_iff_used':
-                self.kwargs['action'] = DefaultIffUsedActionFactory.generate_action(self.kwargs['action'])
+                self.kwargs['action'] = DefaultIffUsedActionFactory.generate_action(self.kwargs['action'][1])
         parser.add_argument(*self.flags, **self.kwargs)
