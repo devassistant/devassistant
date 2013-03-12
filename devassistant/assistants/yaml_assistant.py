@@ -36,8 +36,6 @@ class YamlAssistant(assistant_base.AssistantBase):
             else:
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
-        return errors
-
     def dependencies(self, **kwargs):
         for sect in self._dependencies:
             condition, section = sect.popitem()
