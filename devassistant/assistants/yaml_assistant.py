@@ -94,7 +94,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
-                    if self._evaluate_condition(comm_type[2:].strip(), **kwargs):
+                    if self._evaluate(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm, **kwargs)
                     elif len(section) > i + 1:
                         next_section_dict = section[i + 1]
@@ -141,19 +141,14 @@ class YamlAssistant(assistant_base.AssistantBase):
         The result is then put into kwargs (overwriting original value, if already there).
         Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
 
+        If comm evaluates to something that is false, empty string is assigned to variable.
+
         Args:
             variable: variable to assign to
             comm: either another variable or command to run
         """
         var_name = self._get_var_name(variable)
-        # if comm is another variable, just assign its value, else it's cli command => run it
-        if comm[0] == '$':
-            kwargs[var_name] = kwargs.get(self._get_var_name(comm), '')
-        else:
-            try:
-                kwargs[var_name] = self._format_and_run_cl_command('cl', comm, **kwargs) or ''
-            except exceptions.RunException:
-                kwargs[var_name] = ''
+        kwargs[var_name] = self._evaluate(comm, **kwargs) or ''
 
     def _get_var_name(self, dolar_variable):
         name = dolar_variable.strip()[1:]
@@ -172,29 +167,25 @@ class YamlAssistant(assistant_base.AssistantBase):
         else:
             logger.warning('Unknown github command {0}, skipping.'.format(comm_type))
 
-    def _evaluate_condition(self, condition, **kwargs):
+    def _evaluate(self, expression, **kwargs):
         result = True
         invert_result = False
-        cond = condition.strip()
-        if cond.startswith('not '):
+        expr = expression.strip()
+        if expr.startswith('not '):
             invert_result = True
-            cond = cond[4:]
+            expr = expr[4:]
 
-        if cond.startswith('$'):
-            var_name = self._get_var_name(cond)
-            if var_name in kwargs and kwargs[var_name]:
-                result = True
-            else:
-                result = False
-        elif cond.startswith('defined '):
-            result = self._get_var_name(cond[8:]) in kwargs
+        if expr.startswith('$'):
+            var_name = self._get_var_name(expr)
+            result = kwargs.get(var_name, False)
+        elif expr.startswith('defined '):
+            result = self._get_var_name(expr[8:]) in kwargs
         else:
             try:
-                c = self._format_and_run_cl_command('cl', cond, **kwargs)
-                result = True
+                result = self._format_and_run_cl_command('cl', expr, **kwargs)
             except exceptions.RunException:
                 result = False
-        return result != invert_result # != is basically xor
+        return result if not invert_result else not result
 
     def _format_and_run_cl_command(self, command_type, command, **kwargs):
         c = self._format(command, **kwargs)
