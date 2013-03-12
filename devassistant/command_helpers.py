@@ -98,12 +98,12 @@ class ClHelper(object):
         return proper_list
 
 class RPMHelper(object):
-    c_rpm = plumbum.local['rpm']
+    c_rpm = 'rpm'
 
     @classmethod
     def rpm_q(cls, rpm_name):
         try:
-            return cls.c_rpm('-q', rpm_name).strip()
+            return plumbum.local[cls.c_rpm]('-q', rpm_name).strip()
         except plumbum.ProcessExecutionError:
             return False
 
@@ -127,11 +127,11 @@ class RPMHelper(object):
 
 
 class YUMHelper(object):
-    c_yum = plumbum.local['yum']
+    c_yum = 'yum'
 
     @classmethod
     def install(cls, *args):
-        cmd = cls.c_yum[ 'install'] #TODO: do we really want to assume yes?
+        cmd = plumbum.local[cls.c_yum]['install']
         logger.info('Installing: {0}'.format(', '.join(args)))
         for arg in args:
             cmd = cmd[arg]
@@ -143,7 +143,7 @@ class YUMHelper(object):
 
     @classmethod
     def is_group_installed(cls, group):
-        cmd = cls.c_yum['group', 'list', '"{0}"'.format(group)]
+        cmd = plumubm.local[cls.c_yum]['group', 'list', '"{0}"'.format(group)]
         logger.info('Checking for presence of group {0}...'.format(group))
 
         output = cmd()
@@ -155,8 +155,8 @@ class YUMHelper(object):
         return False
 
 class PathHelper(object):
-    c_cp = plumbum.local['cp']
-    c_mkdir = plumbum.local['mkdir']
+    c_cp = 'cp'
+    c_mkdir = 'mkdir'
 
     @classmethod
     def path_exists(cls, path):
@@ -168,13 +168,13 @@ class PathHelper(object):
     @classmethod
     def mkdir_p(cls, path):
         try:
-            return cls.c_mkdir('-p', path)
+            return plumbum.local[cls.c_mkdir]('-p', path)
         except plumbum.ProcessExecutionError:
             return False
 
     @classmethod
     def cp(cls, src, dest):
         try:
-            return cls.c_cp(src, dest)
+            return plumbum.local[cls.c_cp](src, dest)
         except plumbum.ProcessExecutionError:
             return False
