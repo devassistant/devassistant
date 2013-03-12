@@ -53,7 +53,6 @@ class DotDevassistantCommand(object):
         f.write('subassistant_path={0}'.format(' '.join(path)))
         f.close()
 
-
 class GitHubCommand(object):
     @classmethod
     def matches(cls, comm_type):
@@ -146,6 +145,8 @@ class LogCommand(object):
     def run(cls, comm_type, comm, **kwargs):
         if comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
             logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[comm_type[-1]]], comm)
+            if comm_type[-1] in 'ce':
+                raise exceptions.RunException(comm)
         else:
             logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, comm))
 
