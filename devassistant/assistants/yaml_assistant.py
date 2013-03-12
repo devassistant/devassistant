@@ -7,6 +7,8 @@ import plumbum
 from devassistant import assistant_base
 from devassistant import exceptions
 from devassistant import settings
+from devassistant.assistants.command_formatter import CommandFormatter
+from devassistant.assistants.commands import run_command
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, PathHelper
 from devassistant.logger import logger
 
@@ -35,7 +37,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             else:
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
-    def errors(self, **kwargs):
+    def errors_(self, **kwargs):
         errors = []
 
         for command_dict in self._fail_if:
@@ -79,15 +81,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         for i, command_dict in enumerate(section):
             for comm_type, comm in command_dict.items():
-                if comm_type.startswith('cl'):
-                    self._format_and_run_cl_command(comm_type, comm, **kwargs)
-                elif comm_type.startswith('log'):
-                    self._log(comm_type, comm, **kwargs)
-                elif comm_type.startswith('dda'):
-                    self._dot_devassistant_comm(comm_type, comm, **kwargs)
-                elif comm_type == 'github':
-                    self._github_comm(comm_type, comm, **kwargs)
-                elif comm_type.startswith('run'):
+                if comm_type.startswith('run'):
                     s = self._get_section_to_run(section=comm, kwargs_override=False, **kwargs)
                     self._run_one_section(s, **kwargs)
                 elif comm_type.startswith('$'):
@@ -109,7 +103,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                         execute_else = False
                         self._run_one_section(comm, **kwargs)
                 else:
-                    logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
+                    run_command(comm_type, CommandFormatter.format(comm, self.template_dir, self._files, **kwargs), **kwargs)
 
     def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
         to_run = None
@@ -130,12 +124,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         return to_run
 
 
-    def _dot_devassistant_comm(self, comm_type, comm, **kwargs):
-        if comm_type == 'dda_c':
-            self._dot_devassistant_create(self._format(comm, **kwargs), **kwargs)
-        else:
-            logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
-
     def _assign_variable(self, variable, comm, kwargs):
         """Assigns value of another variable or result of command to given variable.
         The result is then put into kwargs (overwriting original value, if already there).
@@ -154,19 +142,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         name = dolar_variable.strip()[1:]
         return name.strip('{}')
 
-    def _github_comm(self, comm_type, comm, **kwargs):
-        if comm_type == 'github':
-            if comm == 'create_repo':
-                self._github_create_repo(**kwargs)
-            elif comm == 'push':
-                self._github_push(**kwargs)
-            elif comm == 'create_and_push':
-                self._github_create_and_push(**kwargs)
-            else:
-                logger.warning('Unknow github command {0}, skipping.'.format(comm))
-        else:
-            logger.warning('Unknown github command {0}, skipping.'.format(comm_type))
-
     def _evaluate(self, expression, **kwargs):
         result = True
         invert_result = False
@@ -182,60 +157,8 @@ class YamlAssistant(assistant_base.AssistantBase):
             result = self._get_var_name(expr[8:]) in kwargs
         else:
             try:
-                result = self._format_and_run_cl_command('cl', expr, **kwargs)
+                result = run_command('cl', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException:
                 result = False
+
         return result if not invert_result else not result
-
-    def _format_and_run_cl_command(self, command_type, command, **kwargs):
-        c = self._format(command, **kwargs)
-        fg = False
-        i = False
-        if 'f' in command_type:
-            fg = True
-        if 'i' in command_type:
-            i = True
-        try:
-            result = ClHelper.run_command(c, fg, i)
-        except plumbum.ProcessExecutionError as e:
-            raise exceptions.RunException(e)
-
-        return result.strip() if hasattr(result, 'strip') else result
-
-    def _log(self, comm_type, log_msg, **kwargs):
-        if comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
-            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[comm_type[-1]]], self._format(log_msg, **kwargs))
-        else:
-            logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, log_msg))
-
-    def _format(self, comm, **kwargs):
-        # If command is false/true in yaml file, it gets coverted to False/True
-        # which is bool object => convert
-        if isinstance(comm, bool):
-            comm = str(comm).lower()
-
-        new_comm = []
-        if not isinstance(comm, list):
-            parts_list = comm.split()
-        else:
-            parts_list = comm
-
-        # replace parts that match something from _files (can be either name
-        # if "&" didn't expand in yaml; or the dict if "&" did expand)
-        for c in parts_list:
-            if isinstance(c, dict):
-                # TODO: raise a proper error if c['source'] is not present
-                new_comm.append(os.path.join(self.template_dir, c['source']))
-            elif c.startswith('*'):
-                c_file = c[1:].strip('{}')
-                if c_file in self._files:
-                    new_comm.append(os.path.join(self.template_dir, self._files[c_file]['source']))
-                else:
-                    new_comm.append(c)
-            else:
-                new_comm.append(c)
-
-        new_comm = ' '.join(new_comm)
-
-        # substitute cli arguments for their values
-        return string.Template(new_comm).safe_substitute(kwargs)

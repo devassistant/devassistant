@@ -18,26 +18,11 @@ class TestYamlAssistant(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
         self.ya2 = yaml_assistant.YamlAssistant()
+        self.ya2._files = {}
         self.ya2._run = [{'if $ide':
                             [{'if ls /notachance': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
                          {'else': [{'log_d': 'else'}]}]
-
-    @pytest.mark.parametrize(('comm', 'arg_dict', 'result'), [
-        ('ls -la', {}, 'ls -la'),
-        ('touch $foo ${bar} $baz', {'foo': 'a', 'bar': 'b'}, 'touch a b $baz'),
-        ('cp *first second', {}, 'cp {0}/f/g second'.format(template_dir)),
-        ('cp *{first} *{nothing}', {}, 'cp %s/f/g *{nothing}' % (template_dir)),
-        ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(template_dir)),
-    ])
-    def test_format(self, comm, arg_dict, result):
-        assert self.ya._format(comm, **arg_dict) == result
-
-    def test_format_handles_bool(self):
-        # If command is false/true in yaml file, it gets coverted to False/True
-        # which is bool object. format should handle this.
-        assert self.ya._format(True) == 'true'
-        assert self.ya._format(False) == 'false'
 
     def test_errors_pass(self):
         self.ya._fail_if = [{'cl': 'false'}, {'cl': 'grep'}]
