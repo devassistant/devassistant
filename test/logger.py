@@ -4,8 +4,7 @@ from devassistant.logger import logger
 
 class TestLoggingHandler(logging.Handler):
     def __init__(self):
-        if isinstance(self, type):
-            super(TestLoggingHandler, self).__init__()
+        logging.Handler.__init__(self)
         self.msgs = []
 
     def emit(self, record):
