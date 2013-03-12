@@ -37,24 +37,6 @@ class YamlAssistant(assistant_base.AssistantBase):
             else:
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
-    def errors_(self, **kwargs):
-        errors = []
-
-        for command_dict in self._fail_if:
-            for comm_type, comm in command_dict.items():
-                if comm_type.startswith('cl'):
-                    try:
-                        a = self._format(comm, **kwargs)
-                        self._format_and_run_cl_command(comm_type, comm, **kwargs)
-                        # command succeeded -> error
-                        errors.append('Cannot proceed because command returned 0: {0}'.format(a))
-                    except exceptions.RunException:
-                        pass # everything ok, go on
-                elif comm_type.startswith('log'):
-                    self._log(comm_type, comm, **kwargs)
-                else:
-                    logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
-
         return errors
 
     def dependencies(self, **kwargs):

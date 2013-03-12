@@ -40,10 +40,6 @@ c: # name of the assistant as will be used on commandline; should be the same as
     serverc: &serverc
       source: c/server.c
 
-  fail_if: # immediately cancel execution if any of these commands (except logging) is successful
-  - log_i: 'Checking for something' # log_i logs at `info` level
-  - cl: ls /foo/bar # run ls /foo/bar on commandline, fail if it returns 0
-
   run: # gets executed by default; fails and immediately exits if any command fails
   - cl: mkdir -p $name # uses `name` from the parameters above
   - dda_c: $name # creates .devassistant file (with default initial content) in directory $name
