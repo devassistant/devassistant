@@ -22,8 +22,5 @@ c:
     serverc: &serverc
       source: templates/c/server.c
 
-  fail_if:
-  - cl: ls /
-
   run:
   - cl: ls foo/bar

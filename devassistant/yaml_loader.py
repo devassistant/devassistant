@@ -60,7 +60,6 @@ class YamlLoader(object):
 
         # arguments that will be handled by YamlAssistant methods
         CustomYamlAssistant._dependencies = attrs.get('dependencies', [])
-        CustomYamlAssistant._fail_if = attrs.get('fail_if', [])
         CustomYamlAssistant._files = attrs.get('files', {})
         CustomYamlAssistant._subassistants = attrs.get('subassistants', [])
         CustomYamlAssistant._logging = attrs.get('logging', [])

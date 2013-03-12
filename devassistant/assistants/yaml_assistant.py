@@ -15,7 +15,6 @@ from devassistant.logger import logger
 class YamlAssistant(assistant_base.AssistantBase):
     _dependencies = {}
 
-    _fail_if = []
     _run = []
 
     def logging(self, **kwargs):

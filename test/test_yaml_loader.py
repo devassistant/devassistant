@@ -24,7 +24,6 @@ class TestYamlLoader(object):
         assert klass.description == 'C Language Tool description...'
         assert len(klass.args) == 1
         assert klass._dependencies == [{'default': [{'rpm': ['rpm']}]}]
-        assert klass._fail_if == [{'cl': 'ls /'}]
         assert klass._files == {
             'clientc': {'source': 'templates/c/client.c'},
             'serverc': {'source': 'templates/c/server.c'}

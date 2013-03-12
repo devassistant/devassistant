@@ -12,5 +12,5 @@ f:
       help:
         'Name of project to create'
 
-  fail_if:
+  run:
   - cl: ls foo/bar
