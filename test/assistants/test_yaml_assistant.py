@@ -58,6 +58,8 @@ class TestYamlAssistant(object):
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, True).one_by_one()
         flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
         flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar').and_return(True)
+        # TODO: rpmhelper is used for checking whether a group was installed - fix
+        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True, True).one_by_one()
         self.ya.dependencies()
 
     def test_dependencies_uses_non_default_section_on_param(self):
@@ -65,12 +67,14 @@ class TestYamlAssistant(object):
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
         flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
         flexmock(YUMHelper).should_receive('install').with_args('bar').and_return(True)
+        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True)
         self.ya.dependencies(a=True)
 
     def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
         self.ya._dependencies = [{'default': [{'rpm': ['foo']}]}, {'_a': [{'rpm': ['bar']}]}]
         flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
         flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
+        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True)
         self.ya.dependencies()
 
     def test_run_pass(self):
@@ -105,14 +109,16 @@ class TestYamlAssistant(object):
         self.ya.run(foo='bar')
 
     def test_run_logs_command_at_debug(self):
-        self.ya._run = [{'cl': 'ls'}]
+        # previously, this test used 'ls', but that is in different locations on different
+        # distributions (due to Fedora's usrmove), so use something that should be common
+        self.ya._run = [{'cl': 'id'}]
         self.ya.run(foo='bar')
-        assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
+        assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id'))]
 
     def test_run_logs_command_at_info_if_asked(self):
-        self.ya._run = [{'cl_i': 'ls'}]
+        self.ya._run = [{'cl_i': 'id'}]
         self.ya.run(foo='bar')
-        assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/ls'))]
+        assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id'))]
 
     def test_log(self):
         self.ya._fail_if = [{'log_w': 'foo!'}]
