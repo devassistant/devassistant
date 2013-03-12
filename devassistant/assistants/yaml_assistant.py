@@ -99,7 +99,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                         to_run = getattr(self, method)
 
         if not to_run:
-            logger.warning('Couldn\'t find section {0} or any other appropriate.'.format(section))
+            logger.debug('Couldn\'t find section {0} or any other appropriate.'.format(section))
         return to_run
 
 
