@@ -1,0 +1,75 @@
+flask:
+  fullname: Flask
+  description: 'Flask assistant will help you create a basic Flask project and install its dependencies.'
+
+  dependencies:
+  - default:
+    - rpm: ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']
+  - _eclipse:
+    - rpm: ['eclipse-pydev']
+
+  args:
+    name:
+      flags:
+      - -n
+      - --name
+      help:
+        'Name of project to create'
+      required:
+        True
+
+    eclipse:
+      flags:
+      - -e
+      - --eclipse
+      help:
+        'Configure as Eclipse project (uses ~/workspace or specified directory)'
+      action:
+        [default_iff_used, ~/workspace]
+      nargs:
+        '?'
+
+    github:
+      flags:
+      - -g
+      - --github
+      help:
+        'Create a Git Hub repository and push your source there (uses your system username or specified name)'
+      nargs:
+        '?'
+
+  files:
+    gitignore: &gitignore
+      source: python/.gitignore
+    dot_project: &dot_project
+      source: python/.project
+    dot_pydevproject: &dot_pydevproject
+      source: python/.pydevproject
+    initpy: &initpy
+      source: python/flask/__init__.py
+
+  run:
+  - $dirname: dirname $name
+  - $basename: basename $name
+  - log_i: 'Creating Flask project $basename in $dirname ...'
+  - if ls $name:
+    - log_e: '$name already exists, cannot proceed.'
+  - cl: mkdir -p $name
+  - cl: cd $name
+  - cl: mkdir static templates
+  - cl: cp *initpy .
+  - if $eclipse:
+    - log_i: 'Registering as Eclipse project ...'
+    - cl: cp *dot_project .
+    - cl: cp *dot_pydevproject .
+    - cl: sed -i 's|NAME|$basename|' .project
+    - cl: sed -i 's|NAME|$basename|' .pydevproject
+    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
+    - log_i: 'Registered as Eclipse project ...'
+  - cl: cp *gitignore .
+  - cl: git init
+  - cl: git add --all
+  - cl: git commit -m "Initial commit"
+  - if defined $github:
+    - github: create_and_push
+  - log_i: 'Flask project $basename in $dirname has been created.'
