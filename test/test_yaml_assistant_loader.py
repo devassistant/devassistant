@@ -8,7 +8,7 @@ from devassistant.yaml_assistant_loader import YamlAssistantLoader
 class TestYamlAssistantLoader(object):
     def setup_method(self, method):
         self.yl = YamlAssistantLoader
-        self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures')]
+        self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'assistants')]
 
     def load_yaml_from_fixture(self, fixture):
         fixture_path = os.path.join(self.yl.assistants_dirs[0], '{0}.yaml'.format(fixture))

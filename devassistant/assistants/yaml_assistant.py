@@ -11,6 +11,7 @@ from devassistant.assistants.command_formatter import CommandFormatter
 from devassistant.assistants.commands import run_command
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, PathHelper
 from devassistant.logger import logger
+from devassistant import yaml_snippet_loader
 
 class YamlAssistant(assistant_base.AssistantBase):
     _dependencies = {}
@@ -66,6 +67,12 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
+                elif comm_type == 'snippet':
+                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm)
+                    if snippet:
+                        self._run_one_section(snippet.run_section, **kwargs)
+                    else:
+                        logger.warning('Couldn\'t find snippet {0}, skipping.'.format(comm))
                 elif comm_type.startswith('if'):
                     if self._evaluate(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm, **kwargs)
@@ -101,7 +108,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         if not to_run:
             logger.debug('Couldn\'t find section {0} or any other appropriate.'.format(section))
         return to_run
-
 
     def _assign_variable(self, variable, comm, kwargs):
         """Assigns value of another variable or result of command to given variable.

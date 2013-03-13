@@ -4,7 +4,9 @@ import pytest
 from devassistant import exceptions
 from devassistant import settings
 from devassistant.assistants import yaml_assistant
+from devassistant.assistants import snippet
 from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
+from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 # hook app testing logging
 from test.logger import TestLoggingHandler
@@ -135,3 +137,11 @@ class TestYamlAssistant(object):
         self.ya._run = [{'$foo': 'ls spam/spam/spam'}, {'log_i': '$foo'}]
         self.ya.run()
         assert ('INFO', '') in self.tlh.msgs
+
+    def test_run_snippet(self):
+        self.ya._run = [{'snippet': 'mysnippet'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('mysnippet').\
+                                    and_return(snippet.Snippet('mysnippet.yaml', [{'log_i': 'spam'}]))
+        self.ya.run()
+        assert ('INFO', 'spam') in self.tlh.msgs
