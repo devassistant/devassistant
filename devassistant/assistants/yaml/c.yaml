@@ -14,10 +14,12 @@ c:
   args:
     name:
       flags:
-      - -n
-      - --name
+      -  -n
+      -  --name
       help:
         'Name of project to create'
+      required:
+        True
 
     build:
       flags:
@@ -62,7 +64,7 @@ c:
   run:
   - log_i: 'Copying c source tree to project destination'
   - if not ls $name:
-    - cl: cp -r *csources $name
+    - cl_f: cp -r *csources $name
     - dda_c: $name
     - cl: cd $name
     - cl: git init
@@ -80,6 +82,7 @@ c:
   - cl_f: make distcheck # will create distribution tar ball for later on usage
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
+    - cl_f: make clean
     - cl: cd ..
     - cl: mkdir -p $eclipse/$name
     - if ls $name/.eclipseproject:
