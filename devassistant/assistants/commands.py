@@ -98,7 +98,7 @@ class GitHubCommand(object):
         user = gh.get_user()
         try:
             if reponame in map(lambda x: x.name, user.get_repos()):
-                logger.warning("Repository already exists on GiHub.")
+                raise exceptions.RunException('Repository already exists on GiHub.')
             else:
                 user.create_repo(reponame)
         except github.GithubException as e:
