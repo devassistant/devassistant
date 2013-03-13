@@ -6,7 +6,6 @@ import github
 import plumbum
 
 from devassistant import exceptions
-from devassistant.assistants.command_formatter import CommandFormatter
 from devassistant.command_helpers import ClHelper
 from devassistant.logger import logger
 from devassistant import settings
@@ -39,7 +38,7 @@ class DotDevassistantCommand(object):
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
         if comm_type == 'dda_c':
-            cls._dot_devassistant_create(CommandFormatter.format(comm, **kwargs), **kwargs)
+            cls._dot_devassistant_create(comm, **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
 
