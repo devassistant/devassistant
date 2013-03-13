@@ -1,0 +1,8 @@
+python:
+  fullname: Python
+  subassistants: [django, flask, lib]
+  description: This is base Python assistant, you have to choose a specific project type.
+
+  dependencies:
+  - default:
+    - rpm: ['python']
