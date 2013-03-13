@@ -19,7 +19,11 @@ class YamlLoader(object):
     @classmethod
     def get_all_classes(cls):
         parsed_yamls = []
-        for f in os.listdir(cls.yaml_dir):
+        potential_yamls = []
+        for dirname, subdirs, files in os.walk(cls.yaml_dir):
+            potential_yamls.extend(map(lambda x: os.path.join(dirname, x), files))
+
+        for f in potential_yamls:
             if f.endswith('.yaml'):
                 with open(os.path.join(cls.yaml_dir, f), 'r') as stream:
                     parsed_yamls.append(yaml.load(stream))
