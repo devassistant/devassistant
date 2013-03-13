@@ -1,10 +1,10 @@
 from devassistant import assistant_base
 from devassistant import cli
-from devassistant import yaml_loader
+from devassistant import yaml_assistant_loader
 
 class MainAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
-        sa = yaml_loader.YamlLoader.get_top_level_assistants()
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants()
         return sa
 
     name = 'main'
