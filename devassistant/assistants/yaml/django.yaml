@@ -1,6 +1,6 @@
 django:
   fullname: Django
-  description: 'Django assistant will help you create a basic Django project and install dependencies.'
+  description: 'Django assistant will help you create a basic Django project and install its dependencies.'
 
   dependencies:
   - default:
@@ -23,7 +23,7 @@ django:
       - -e
       - --eclipse
       help:
-        'Configure as Eclipse workspace (uses ~/workspace or specified directory).'
+        'Configure as Eclipse project (uses ~/workspace or specified directory)'
       action:
         [default_iff_used, ~/workspace]
       nargs:
@@ -34,7 +34,7 @@ django:
       - -g
       - --github
       help:
-        'This will create a Git Hub repository according to the project name and push your source there.'
+        'Create a Git Hub repository and push your sources there'
       nargs:
         '?'
 
@@ -49,14 +49,14 @@ django:
   run:
   - $dirname: dirname $name
   - $basename: basename $name
-  - log_i: 'Creating Django project $basename in $dirname.'
+  - log_i: 'Creating Django project $basename in $dirname ...'
   - if ls $name:
     - log_e: '$name already exists, cannot proceed.'
   - cl: cd $dirname
   - cl: django_admin startproject $basename
   - cl: cd $basename
   - if $eclipse:
-    - log_i: 'Registering as Eclipse project...'
+    - log_i: 'Registering as Eclipse project ...'
     - cl: cp *dot_project .
     - cl: cp *dot_pydevproject .
     - cl: sed -i 's|NAME|$basename|' .project
