@@ -6,7 +6,7 @@ from devassistant import yaml_loader
 from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
-    assistants_dirs = [os.path.join(os.path.dirname(__file__)), 'assistants', 'yaml']
+    assistants_dirs = [os.path.join(os.path.dirname(__file__), 'assistants', 'yaml')]
 
     @classmethod
     def get_top_level_assistants(cls):
