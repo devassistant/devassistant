@@ -69,9 +69,7 @@ lib:
     - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
     - log_i: 'Registered as Eclipse project ...'
   - cl: cp *gitignore .
-  - cl: git init
-  - cl: git add --all
-  - cl: git commit -m "Initial commit"
+  - snippet: git_init_add_commit
   - if defined $github:
     - github: create_and_push
   - log_i: 'Library project $basename in $dirname has been created.'
