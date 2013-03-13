@@ -55,6 +55,7 @@ flask:
   - if ls $name:
     - log_e: '$name already exists, cannot proceed.'
   - cl: mkdir -p $name
+  - dda_c: $name
   - cl: cd $name
   - cl: mkdir static templates
   - cl: cp *initpy .

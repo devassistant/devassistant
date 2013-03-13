@@ -54,6 +54,7 @@ django:
     - log_e: '$name already exists, cannot proceed.'
   - cl: cd $dirname
   - cl: django_admin startproject $basename
+  - dda_c: $name
   - cl: cd $basename
   - if $eclipse:
     - log_i: 'Registering as Eclipse project ...'
