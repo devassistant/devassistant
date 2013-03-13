@@ -101,6 +101,7 @@ class GitHubCommand(object):
         except github.GithubException as e:
             raise exceptions.RunException('GitHub error: {0}'.format(e))
 
+    @classmethod
     def _github_push(cls, **kwargs):
         """Add a remote and push to GitHub.
 
@@ -125,6 +126,7 @@ class GitHubCommand(object):
 
         ClHelper.run_command("git push origin master", True, True)
 
+    @classmethod
     def _github_create_and_push(cls, **kwargs):
         with plumbum.local.cwd(os.path.abspath(os.path.expanduser(kwargs['name']))):
             ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
