@@ -1,5 +1,8 @@
+import getpass
 import logging
+import os
 
+import github
 import plumbum
 
 from devassistant import exceptions
