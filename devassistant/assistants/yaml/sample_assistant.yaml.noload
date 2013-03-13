@@ -54,6 +54,7 @@ c: # name of the assistant as will be used on commandline; should be the same as
   - run: run_misc # runs "run_misc" section here
   - $foo: basename $name # assign result of cli command basename $name to variable $foo
   - cl_f: echo $foo
+  - snippet: git_init_add_commit # this will run the named snippet at this place
 
   run_mock: # if mock parameter is specified, use this instead of "run"
   - cl_f: mock blah blah # "cl_f" runs the command in foreground, displaying its output interactively
