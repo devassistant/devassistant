@@ -1,9 +1,6 @@
 import os
 import yaml
 
-from devassistant import argument
-from devassistant.assistants import yaml_assistant
-
 class YamlLoader(object):
     @classmethod
     def load_all_yamls(cls, directories):
