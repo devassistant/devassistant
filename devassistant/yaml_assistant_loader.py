@@ -3,6 +3,7 @@ import yaml
 
 from devassistant import argument
 from devassistant import yaml_loader
+from devassistant import yaml_snippet_loader
 from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
@@ -54,6 +55,15 @@ class YamlAssistantLoader(object):
         CustomYamlAssistant.args = []
         yaml_args = attrs.get('args', {})
         for arg_name, arg_params in yaml_args.items():
+            use_snippet = arg_params.pop('snippet', None)
+            if use_snippet:
+                # if snippet is used, take this parameter from snippet and update
+                # it with current arg_params, if any
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
+                # this works much like snippet.args.pop(arg_name).update(arg_params),
+                # but unlike it, this actually returns the updated dict
+                arg_params = dict(snippet.args.pop(arg_name, {}), **arg_params)
+
             arg = argument.Argument(*arg_params.pop('flags'), **arg_params)
             CustomYamlAssistant.args.append(arg)
 
