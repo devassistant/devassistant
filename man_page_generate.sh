@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROG="./devassistant.py"
+PROG="./mybin.py"
 MAN_PAGE="devassistant.1"
 MAN_PAGE_FIRST="devassistant.1.head"
 MAN_PAGE_SECOND="devassistant.1.tail"
@@ -13,10 +13,10 @@ function parse () {
     if [ x"$has_subass" != x"{" ]; then
         RET=`$CMD --help | head -n 2`
         RET=$(echo $RET | tr "\n" "\n")
-        RES=`echo ${RET#* }`
-        echo "$CMD"
+        RES=`echo ${RET#*}`
+        RES=`echo ${RES#usage: mybin.py}`
         echo "Found command line possibilities: $RES"
-        echo "$RES" >> $MAN_PAGE
+        echo "devassistant.py $RES" >> $MAN_PAGE
         echo ".br" >> $MAN_PAGE
         return 
     fi
