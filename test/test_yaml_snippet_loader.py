@@ -10,6 +10,8 @@ class TestYamlSnippetLoader(object):
         self.yl.snippets_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'snippets')]
 
     def test_get_all_snippets(self):
+        # TODO: testing getting the run section should have its own test class
+        # this should rather test the loading itself
         s = self.yl.get_all_snippets()
         assert len(s) == 2
         assert set(map(lambda x: x.name, s)) == set(['snippet1', 'snippet2'])

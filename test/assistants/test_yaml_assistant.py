@@ -142,6 +142,6 @@ class TestYamlAssistant(object):
         self.ya._run = [{'snippet': 'mysnippet'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
-                                    and_return(snippet.Snippet('mysnippet.yaml', [{'log_i': 'spam'}]))
+                                    and_return(snippet.Snippet('mysnippet.yaml', {'run': [{'log_i': 'spam'}]}))
         self.ya.run()
         assert ('INFO', 'spam') in self.tlh.msgs
