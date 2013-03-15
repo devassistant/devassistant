@@ -55,6 +55,22 @@ will will add new row in src/Makefile.am
     If some library is missing them we need to add them into configure.ac like was mentioned
     in step 5)
 
+9) When all project is buildable and no errors occurs then you can add you binary
+    to RPM so that you will modify cdevelopmenttool.spec file stored in your project name directory
+    In that file add your directory in %install section so that new row will be add like:
 
+    install -p -m 755 -D src/my_test ${RPM_BUILD_ROOT}%{_bindir}/my_test
 
+    Also it is needed to mentioned that file in %files section so that new row
+    will be added there like
+
+    %{_bindir}/my_test
+
+10) Update also changelog section so that Package Guidelines will be clear
+
+11) For building RPM package leave your project name directory and run command
+
+    devassistant c -n <your_project_name> -b <build_name>
+
+    build_name can be obtain from mock -r command
 
