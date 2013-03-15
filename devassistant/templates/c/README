@@ -17,3 +17,44 @@ After reading message server will exits.
 client .... This program is used as client for server which is run on the specific port.
 	Client will send message to server and response if server got that message or not.
 	Example : ./client <hostname or localhost> 50000
+
+basic_class ... is the simple program which demostrates who to create simple class in C++.
+
+=== How to add new C/C++ file to project ===
+Here is described guide line how to add new C/C++ file to automake tools.
+
+Let's say that we have added into src/ directory of your already created project
+file named my_test.c. To be sure that file is compile free we need to add them into
+automake tools.
+
+Let's say that my_test.c includes openssl/ssl.h
+
+Steps for compilation and making binaries are following:
+1) Go to you project name directory named by option -n
+2) Update file src/Makefile.am so that we will them at the end into bin_PROGRAMS like
+     bin_PROGRAMS = <actuall_binaries> my_test
+3) Next steps is to tell autotools build my my_test.c file. It is done so that
+will will add new row in src/Makefile.am
+     my_test_SOURCES = my_test.c 
+4) If your program depends on some library like libssl then add row like
+    my_test_LDADD= -lssl
+  and during compilation your program will be build with then library
+5) If you would like to add checking whether some headers are on target system
+    then add following row into configure.ac file like in our example
+    AC_CHECK_HEADERS([openssl/ssl.h])
+5) If you would like to add checking whether some library contains function then add 
+    this row into configure.ac file like in our example
+    AC_CHECK_LIB(ssl, <function_name>)
+6) Now we have prepared new sources for building. Go to directory with your project name and run command
+   autoreconf --install
+   This steps will create ./configure script and all neccessary makefiles
+7) Now run command ./configure which is needed for checking whether we have all header files, libraries
+     etc are existing on the system
+8)  Run make for testing whether my_test.c is compilable without errors.
+    In case that some errors occurs solve them.
+    If some library is missing them we need to add them into configure.ac like was mentioned
+    in step 5)
+
+
+
+
