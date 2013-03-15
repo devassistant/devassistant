@@ -15,5 +15,4 @@ class Snippet(object):
 
     @property
     def run_section(self):
-        print self.parsed_yaml
         return self.parsed_yaml.get('run', {})
