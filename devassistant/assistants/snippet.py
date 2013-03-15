@@ -1,3 +1,4 @@
+import copy
 import os
 
 class Snippet(object):
@@ -8,11 +9,11 @@ class Snippet(object):
 
     @property
     def args(self):
-        return self.parsed_yaml.get('args', {})
+        return copy.deepcopy(self.parsed_yaml.get('args', {}))
 
     def get_arg_by_name(self, name):
         return self.args.get(name, {})
 
     @property
     def run_section(self):
-        return self.parsed_yaml.get('run', {})
+        return copy.deepcopy(self.parsed_yaml.get('run', {}))
