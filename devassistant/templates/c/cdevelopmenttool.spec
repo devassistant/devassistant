@@ -54,6 +54,6 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %changelog
 
-* %{date} User 
+* Fri Mar 15 2013 UserName
 - first Version
 
