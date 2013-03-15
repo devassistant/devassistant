@@ -10,31 +10,13 @@ maven:
 
   args:
     name:
-      flags:
-      - -n
-      - --name
-      help:
-        'Name of project to create'
+      snippet: common_args
 
     eclipse:
-      flags:
-      - -e
-      - --eclipse
-      help:
-        'Create Eclipse project and register it with specified workspace (default: ~/workspace)'
-      action:
-        [default_iff_used, "~/workspace"]
-      nargs:
-        '?'
+      snippet: common_args
 
     github:
-      flags:
-      - -g
-      - --github
-      help:
-        'This will create a Git Hub repository according to the project name and push your source there.'
-      nargs:
-        '?'
+      snippet: common_args
 
   files:
     mavenexample: &mavenexample
