@@ -7,6 +7,7 @@ from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
     assistants_dirs = [os.path.join(os.path.dirname(__file__), 'assistants', 'yaml')]
+    _classes = []
 
     @classmethod
     def get_top_level_assistants(cls):
@@ -19,19 +20,19 @@ class YamlAssistantLoader(object):
 
     @classmethod
     def get_all_classes(cls):
-        parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
-        classes = []
+        if not cls._classes:
+            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
 
-        for y in parsed_yamls.values():
-            classes.append(cls.class_from_yaml(y))
+            for y in parsed_yamls.values():
+                cls._classes.append(cls.class_from_yaml(y))
 
-        for sa in classes:
-            if hasattr(sa, '_subassistants'):
-                # get subassistant classes of sa assistant
-                sub_classes = list(filter(lambda x: x.name in sa._subassistants, classes))
-                sa.get_subassistants = cls.create_get_subassistants_method(sub_classes)
+            for sa in cls._classes:
+                if hasattr(sa, '_subassistants'):
+                    # get subassistant classes of sa assistant
+                    sub_classes = list(filter(lambda x: x.name in sa._subassistants, cls._classes))
+                    sa.get_subassistants = cls.create_get_subassistants_method(sub_classes)
 
-        return classes
+        return cls._classes
 
     @classmethod
     def create_get_subassistants_method(self, sa_list):
