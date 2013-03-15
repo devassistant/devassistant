@@ -29,9 +29,7 @@ maven:
   # create local git repository
   - log_i: 'Creating git repository'
   - cl: cd ${name}/maven
-  - cl: git init
-  - cl: git add *
-  - cl: git commit -m "initial_commit"
+  - snippet: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
   - cl: tar czf ${name}.tar.gz pom.xml src/ run

@@ -30,9 +30,7 @@ jsf:
   # create local git repository
   - log_i: 'Creating git repository'
   - cl: cd $name/jsf
-  - cl: git init
-  - cl: git add *
-  - cl: git commit -m "initial_commit"
+  - snippet: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
   #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
