@@ -1,0 +1,29 @@
+args:
+  name:
+    flags:
+    - -n
+    - --name
+    help:
+      'Name of project to create'
+    required:
+      True
+
+  eclipse:
+    flags:
+    - -e
+    - --eclipse
+    help:
+      'Configure as Eclipse project (uses ~/workspace or specified directory)'
+    action:
+      [default_iff_used, ~/workspace]
+    nargs:
+      '?'
+
+  github:
+    flags:
+    - -g
+    - --github
+    help:
+      'Create a Git Hub repository and push your sources there (uses your system username or specified name)'
+    nargs:
+      '?'

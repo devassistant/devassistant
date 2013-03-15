@@ -26,6 +26,11 @@ c: # name of the assistant as will be used on commandline; should be the same as
       - --ide
       action:
         'store_true' # this option will be a switch without arguments
+
+    eclipse:
+      snippet: common_args # will construct from common_args snippet
+      help: Overriden help # but will override the help of eclipse arg from common_args
+
     mock:
       flags:
       - mock # this argument will be positional
