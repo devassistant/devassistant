@@ -19,6 +19,15 @@ args:
     nargs:
       '?'
 
+  vim:
+    flags:
+    - -v
+    - --vim
+    help:
+      'Configure as VIM editor'
+    action:
+      'store_true'
+
   github:
     flags:
     - -g

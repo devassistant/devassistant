@@ -11,6 +11,7 @@ PWD=`pwd`
 HOME_DIR=`echo $HOME`
 CUR_VIM="$HOME/.vimrc"
 NEW_VIM=`realpath $1`
+echo "New vimrc file which will be used is: $NEW_VIM"
 if [ -f $CUR_VIM ]; then
 	grep "BEGIN_DEVASSISTANT_1" $CUR_VIM 1>/dev/null 2>&1
 	if [ $? -eq 0 ]; then

@@ -22,13 +22,7 @@ c:
       nargs:
         '?'
     vim:
-      flags:
-      - -v
-      - --vim
-      help:
-        'This will prepare VIM editor for better work. vimrc is aktualized'
-      nargs:
-        '?'
+      snippet: common_args
 
     eclipse:
       snippet: common_args
@@ -39,6 +33,10 @@ c:
   files:
     csources: &csources
       source: c/
+    vim_update: &vim_update
+      source: vim_update.sh
+    vimrc: &vimrc
+      source: vimrc
 
   run:
   - log_i: 'Copying c source tree to project destination'
@@ -94,5 +92,11 @@ c:
     #- cl_f: rpmbuild -bs cdevelopmenttool.spec
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
   run_vim:
+    - if not ls $name:
+        - run: run
+    - else:
+        - cl: cd $name
     - log_i: "Settings VIM environment"
+    - cl: cp *vim_update .
+    - cl: cp *vimrc .
     - cl_f: ./vim_update.sh vimrc
