@@ -35,4 +35,5 @@ libtool
 *.zip
 *.gcno
 *.gcda
+cproject.log
 
