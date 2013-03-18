@@ -77,6 +77,12 @@ class TestYamlAssistant(object):
         section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=True)
         assert section is self.ya._run_foo
 
+    def test_get_section_to_run_runs_with_None_parameter(self):
+        self.ya._run = [{'cl': 'ls'}]
+        self.ya._run_foo = [{'cl': 'pwd'}]
+        section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=None)
+        assert section is self.ya._run_foo
+
     def test_run_runs_in_foreground_if_asked(self):
         self.ya._run = [{'cl_f': 'ls'}]
         flexmock(ClHelper).should_receive('run_command').with_args('ls', True, False)

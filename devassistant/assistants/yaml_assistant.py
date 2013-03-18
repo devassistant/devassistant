@@ -102,7 +102,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         if kwargs_override:
             for method in dir(self):
                 if method.startswith('_run_'):
-                    if kwargs.get(method[len('_run_'):], False):
+                    if method[len('_run_'):] in kwargs:
                         to_run = getattr(self, method)
 
         if not to_run:
