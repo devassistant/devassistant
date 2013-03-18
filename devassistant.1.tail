@@ -34,8 +34,8 @@ will print help message for each command
 .B \-b --build
 This will build up SRPM and RPM package for specific language. Source input is tarball and SPEC file
 .TP
-.B \-i --idesettings
-This will install rpm packages needed for development under some IDE environtment
+.B \-v --vim
+This will install rpm packages needed for development under VIM
 .TP
 .B \-e --eclipse
 This will import project into 
