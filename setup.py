@@ -55,7 +55,7 @@ description = 'Developer assistant'
 
 setup(
     name = 'devassistant',
-    version = '0.1.0',
+    version = '0.2.0',
     description = 'Developer assistant',
     long_description = description,
     keywords = 'develop',
