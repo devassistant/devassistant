@@ -21,10 +21,10 @@ c:
         'This will create SRPM and RPM packages.'
       nargs:
         '?'
-    idesettings:
+    vim:
       flags:
-      - -i
-      - --idesettings
+      - -v
+      - --vim
       help:
         'This will prepare VIM editor for better work. vimrc is aktualized'
       nargs:
@@ -58,7 +58,7 @@ c:
     - cl_f: make
     - log_i: 'Calling make distcheck for creating tar ball'
     - cl_f: make distcheck # will create distribution tar ball for later on usage
-  - if defined $idesettings:
+  - if defined $vim:
     - cl_f: ./vim_update.sh vimrc
   - if $eclipse:
     - log_i: 'Creating eclipse project from command line'
@@ -93,5 +93,6 @@ c:
     #- log_i: 'Creating RPM from SRPM over mock'
     #- cl_f: rpmbuild -bs cdevelopmenttool.spec
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
-  run_idesettings:
+  run_vim:
+    - log_i: "Settings VIM environment"
     - cl_f: ./vim_update.sh vimrc
