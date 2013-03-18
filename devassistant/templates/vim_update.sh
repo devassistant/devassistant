@@ -10,15 +10,18 @@ echo "This procedure is used for update your current vim and improve them"
 PWD=`pwd`
 HOME_DIR=`echo $HOME`
 CUR_VIM="$HOME/.vimrc"
-NEW_VIM="$PWD/$1"
+NEW_VIM=`realpath $1`
 if [ -f $CUR_VIM ]; then
 	grep "BEGIN_DEVASSISTANT_1" $CUR_VIM 1>/dev/null 2>&1
 	if [ $? -eq 0 ]; then
-	    echo "$CUR_VIM file was already modified by devassistant"
-	    exit 0
+		grep "$NEW_VIM" $CUR_VIM 1>/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			echo "$CUR_VIM file was already modified by devassistant"
+		    exit 0
+		fi
 	fi
 fi
-echo "" >> $CUR_VIM
+sed -i '/\"BEGIN_DEVASSISTANT_1/,/\"END_DEVASSISTANT_1/d' $CUR_VIM
 echo "\"BEGIN_DEVASSISTANT_1" >> $CUR_VIM
 echo "\"Turning value devassistant to 0 you will used your already defined .vimrc file" >> $CUR_VIM
 echo "\"Turning value devassistant to 1 you will use vimrc defined by devassistant feature" >> $CUR_VIM
