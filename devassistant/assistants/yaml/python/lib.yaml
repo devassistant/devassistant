@@ -3,10 +3,10 @@ lib:
   description: 'Lib assistant will help you create a custom Python library.'
 
   dependencies:
-  - default:
-    - rpm: ['python-setuptools']
-  - _eclipse:
-    - rpm: ['eclipse-pydev']
+  - rpm: ['python-setuptools']
+
+  dependencies_eclipse:
+  - rpm: ['eclipse-pydev']
 
   args:
     name:

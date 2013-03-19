@@ -3,10 +3,10 @@ flask:
   description: 'Flask assistant will help you create a basic Flask project and install its dependencies.'
 
   dependencies:
-  - default:
-    - rpm: ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']
-  - _eclipse:
-    - rpm: ['eclipse-pydev']
+  - rpm: ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']
+
+  dependencies_eclipse:
+  - rpm: ['eclipse-pydev']
 
   args:
     name:

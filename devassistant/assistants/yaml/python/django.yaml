@@ -3,10 +3,10 @@ django:
   description: 'Django assistant will help you create a basic Django project and install its dependencies.'
 
   dependencies:
-  - default:
-    - rpm: ['python-django']
-  - _eclipse:
-    - rpm: ['eclipse-pydev']
+  - rpm: ['python-django']
+
+  dependencies_eclipse:
+  - rpm: ['eclipse-pydev']
 
   args:
     name:

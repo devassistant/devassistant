@@ -38,10 +38,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
     def dependencies(self, **kwargs):
-        for sect in self._dependencies:
-            condition, section = sect.popitem()
-            if condition == 'default' or kwargs.get(condition[1:], False):
-                self._dependencies_section(section)
+        sections = [getattr(self, '_dependencies', [])]
+        for arg in kwargs:
+            if '_dependencies_{0}'.format(arg) in dir(self):
+                sections.append(getattr(self, '_dependencies_{0}'.format(arg)))
+
+        for sect in sections:
+            self._dependencies_section(sect)
 
     def _dependencies_section(self, section, **kwargs):
         for dep in section:

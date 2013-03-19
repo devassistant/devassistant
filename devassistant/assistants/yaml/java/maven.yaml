@@ -2,10 +2,10 @@ maven:
   fullname: Simple Apache Maven Project
 
   dependencies:
-  - default:
-    - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
-  - _eclipse:
-    - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
+  - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
+
+  dependencies_eclipse:
+  - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
 
 
   args:

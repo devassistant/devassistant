@@ -2,12 +2,13 @@ c:
   fullname: C Language Tool
 
   dependencies:
-  - default:
-    - rpm: ['gcc', 'gcc-c++','glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace', 'vim-enhanced', 'vim-X11']
-  - _build:
-    - rpm: ['rpm-build','mock','eclipse-rpm-editor']
-  - _eclipse:
-    - rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
+  - rpm: ['gcc', 'gcc-c++','glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace', 'vim-enhanced', 'vim-X11']
+
+  dependencies_build:
+  - rpm: ['rpm-build','mock','eclipse-rpm-editor']
+
+  dependencies_eclipse:
+  - rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
 
   args:
     name:
