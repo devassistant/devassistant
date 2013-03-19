@@ -16,7 +16,7 @@ function parse () {
         RES=`echo ${RET#*}`
         RES=`echo ${RES#usage: mybin.py}`
         echo "Found command line possibilities: $RES"
-        echo "devassistant.py $RES" >> $MAN_PAGE
+        echo "\fBdevassistant\fP $RES" >> $MAN_PAGE
         echo ".br" >> $MAN_PAGE
         return 
     fi
