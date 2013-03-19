@@ -78,12 +78,12 @@ class YamlAssistant(assistant_base.AssistantBase):
                         self._run_one_section(comm, **kwargs)
                     elif len(section) > i + 1:
                         next_section_dict = section[i + 1]
-                        next_section_comm_type, next_section_comm = next_section_dict.items()[0]
+                        next_section_comm_type, next_section_comm = list(next_section_dict.items())[0]
                         if next_section_comm_type == 'else':
                             execute_else = True
                 elif comm_type == 'else':
                     # else on its own means error, otherwise execute it
-                    if not section[i - 1].items()[0][0].startswith('if'):
+                    if not list(section[i - 1].items())[0][0].startswith('if'):
                         logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
                     elif execute_else:
                         execute_else = False
