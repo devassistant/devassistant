@@ -9,6 +9,7 @@ from devassistant import exceptions
 from devassistant.command_helpers import ClHelper
 from devassistant.logger import logger
 from devassistant import settings
+from devassistant import version
 
 class ClCommand(object):
     @classmethod
@@ -52,6 +53,7 @@ class DotDevassistantCommand(object):
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
             i += 1
+        f.write('devassistant_version={0}'.format(version.VERSION))
         f.write('subassistant_path={0}'.format(' '.join(path)))
         f.close()
 
