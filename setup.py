@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from devassistant.version import VERSION
 
 try:
     from setuptools import setup, Command
@@ -55,7 +56,7 @@ description = 'Developer assistant'
 
 setup(
     name = 'devassistant',
-    version = '0.2.0',
+    version = VERSION,
     description = 'Developer assistant',
     long_description = description,
     keywords = 'develop',
