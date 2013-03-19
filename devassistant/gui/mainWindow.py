@@ -6,7 +6,6 @@ from gi.repository import Gtk
 
 from devassistant import assistant_base
 from devassistant import yaml_assistant_loader
-from devassistant.assistants import python
 
 logger = logging.getLogger()
 
@@ -21,8 +20,7 @@ gladefile = "./devel-assistant.glade"
 
 class DevelAssistants(assistant_base.AssistantBase):
     def get_subassistants(self):
-        sa = [python.PythonAssistant]
-        sa.extend(yaml_loader.YamlAssistantLoader.get_top_level_assistants())
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants()
         return sa
     
 class mainWindow(Gtk.Window):
