@@ -136,6 +136,7 @@ class GitHubCommand(object):
             pass
         if not has_push:
             try:
+                ClHelper.run_command("git remote rm origin", True, True)
                 ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, reponame), True, True)
                 try:
                     ClHelper.run_command("git push origin master", True, True)
@@ -147,14 +148,13 @@ class GitHubCommand(object):
 
     @classmethod
     def _github_create_and_push(cls, **kwargs):
-        with plumbum.local.cwd(os.path.abspath(os.path.expanduser(kwargs['name']))):
-            ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
-            logger.info('Registering your project on GitHub as {0}/{1}...'.format(cls._github_username(**kwargs),
-                                                                                  cls._github_reponame(**kwargs)))
-            cls._github_create_repo(**kwargs)
-            logger.info('Pushing your project to the new GitHub repository...')
-            cls._github_push(**kwargs)
-            logger.info('GitHub repository was created and source code pushed.')
+        ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
+        logger.info('Registering your project on GitHub as {0}/{1}...'.format(cls._github_username(**kwargs),
+                                                                              cls._github_reponame(**kwargs)))
+        cls._github_create_repo(**kwargs)
+        logger.info('Pushing your project to the new GitHub repository...')
+        cls._github_push(**kwargs)
+        logger.info('GitHub repository was created and source code pushed.')
 
 
 class LogCommand(object):
