@@ -115,6 +115,7 @@ class GitHubCommand(object):
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
         has_remote = False
+        has_push = False
 
         try:
             result = ClHelper.run_command("git remote show origin")
@@ -124,11 +125,25 @@ class GitHubCommand(object):
 
         if not has_remote:
             try:
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, reponame), True, True)
+                ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
             except plumbum.ProcessExecutionError as e:
                 pass # TODO: what exactly happens here?
 
-        ClHelper.run_command("git push origin master", True, True)
+        try:
+            ClHelper.run_command("git push origin master", True, True)
+            has_push = True
+        except plumbum.ProcessExecutionError as ep:
+            pass
+        if not has_push:
+            try:
+                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, reponame), True, True)
+                try:
+                    ClHelper.run_command("git push origin master", True, True)
+                    has_push = True
+                except plumbum.ProcessExecutionError as ep:
+                    pass
+            except plumbum.ProcessExecutionError as e:
+                pass # TODO: what exactly happens here?
 
     @classmethod
     def _github_create_and_push(cls, **kwargs):
