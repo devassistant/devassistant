@@ -37,7 +37,9 @@ django:
   # make modifications to settings.py so that project can be run immediately
   - cl: sed -i 's|django.db.backends.|django.db.backends.sqlite3|' $basename/$basename/settings.py
   # \(.\) is workaround for ":", which cannot be here because it would mean yaml error
-  - cl: sed -i "s|'NAME'\(.\) ''|'NAME'\1 '$basename'|" $basename/$basename/settings.py
+  - cl: sed -i '1i\import os\n' $basename/$basename/settings.py
+  - cl: sed -i "2i\BASE_DIR = os.path.join(os.path.dirname(__file__), '..')\n" $basename/$basename/settings.py
+  - cl: sed -i "s|'NAME'\(.\) ''|'NAME'\1 os.path.join(BASE_DIR, 'db.sqlite3')|" $basename/$basename/settings.py
   - dda_c: $name
   - cl: cd $basename
   - if $eclipse:
