@@ -3,10 +3,10 @@ flask:
   description: 'Flask assistant will help you create a basic Flask project and install its dependencies.'
 
   dependencies:
-  - rpm: ['python-flask', 'python-flask-sqlalchemy', 'python-flask-wtf']
+  - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf] # TODO: add flask-script
 
   dependencies_eclipse:
-  - rpm: ['eclipse-pydev']
+  - rpm: [eclipse-pydev]
 
   args:
     name:
@@ -27,6 +27,10 @@ flask:
       source: python/.pydevproject
     initpy: &initpy
       source: python/flask/__init__.py
+    indexhtml: &indexhtml
+      source: python/flask/index.html
+    managepy: &managepy
+      source: python/flask/manage.py
 
   run:
   - $dirname: dirname $name
@@ -37,8 +41,13 @@ flask:
   - cl: mkdir -p $name
   - dda_c: $name
   - cl: cd $name
-  - cl: mkdir static templates
-  - cl: cp *initpy .
+  - cl: mkdir -p $basename/static $basename/templates
+  - cl: cp *managepy .
+  - cl: sed -i 's|NAME|$basename|' manage.py
+  - cl: cp *initpy $basename
+  - cl: cp *indexhtml $basename/templates/
+  - cl: sed -i 's|NAME|$basename|' $basename/templates/index.html
+  - cl: touch $basename/static/style.css
   - if $eclipse:
     - log_i: 'Registering as Eclipse project ...'
     - cl: cp *dot_project .
