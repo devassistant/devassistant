@@ -52,14 +52,14 @@ class PyTest(Command):
         raise SystemExit(retcode)
 
 
-description = 'Developer assistant'
+description = ''.join(open('README.rst').readlines())
 
 setup(
     name = 'devassistant',
     version = VERSION,
-    description = 'Developer assistant',
+    description = 'Developer assistant helps you kickstart your projects with ease.',
     long_description = description,
-    keywords = 'develop',
+    keywords = 'develop,kickstart,easy,quick',
     author = 'Bohuslav "Slavek" Kabrda',
     author_email = 'bkabrda@redhat.com',
     url = 'https://github.com/bkabrda/devassistant',
