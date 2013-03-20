@@ -54,7 +54,9 @@ flask:
     - cl: cp *dot_pydevproject .
     - cl: sed -i 's|NAME|$basename|' .project
     - cl: sed -i 's|NAME|$basename|' .pydevproject
+    - cl: cd ../
     - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
+    - cl: cd $name
     - log_i: 'Registered as Eclipse project ...'
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
