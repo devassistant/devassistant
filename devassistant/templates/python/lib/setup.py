@@ -7,7 +7,7 @@ except:
     from distutils.core import setup, find_packages
 
 setup(
-    name = '{{ name }}',
+    name = 'NAME',
     version = '0.0.1',
     description = 'Short description',
     long_description = 'Long description',

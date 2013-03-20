@@ -27,6 +27,12 @@ lib:
       source: python/.pydevproject
     setuppy: &setuppy
       source: python/lib/setup.py
+    license: &license
+      source: python/lib/LICENSE
+    manifestin: &mainfestin
+      source: python/lib/MANIFEST.in
+    readmerst: &readmerst
+      source: python/lib/README.rst
 
   run:
   - $dirname: dirname $name
@@ -39,7 +45,12 @@ lib:
   - cl: cd $name
   - cl: mkdir $basename
   - cl: touch $basename/__init__.py
+  - cl: cp *license .
+  - cl: cp *manifestin .
+  - cl: cp *readmerst .
+  - cl: sed -i 's|NAME|$basename|' README.rst
   - cl: cp *setuppy .
+  - cl: sed -i 's|NAME|$basename|' setup.py
   - if $eclipse:
     - log_i: 'Registering as Eclipse project ...'
     - cl: cp *dot_project .
