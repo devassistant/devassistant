@@ -1,15 +1,10 @@
 import logging
 import os
-import string
-
-import plumbum
 
 from devassistant import assistant_base
 from devassistant import exceptions
-from devassistant import settings
 from devassistant.assistants.command_formatter import CommandFormatter
 from devassistant.assistants.commands import run_command
-from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, PathHelper
 from devassistant.logger import logger
 from devassistant import yaml_snippet_loader
 

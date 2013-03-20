@@ -5,7 +5,6 @@ from devassistant.cli import argparse_generator
 from devassistant.cli import path_runner
 from devassistant import exceptions
 from devassistant import logger
-from devassistant import settings
 
 class CliRunner(object):
     @classmethod

@@ -1,5 +1,4 @@
 import os
-import yaml
 
 from devassistant import argument
 from devassistant import yaml_loader

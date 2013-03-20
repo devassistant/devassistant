@@ -147,7 +147,7 @@ class YUMHelper(object):
 
     @classmethod
     def is_group_installed(cls, group):
-        cmd = plumubm.local[cls.c_yum]['group', 'list', '"{0}"'.format(group)]
+        cmd = plumbum.local[cls.c_yum]['group', 'list', '"{0}"'.format(group)]
         logger.info('Checking for presence of group {0}...'.format(group))
 
         output = cmd()

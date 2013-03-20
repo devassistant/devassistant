@@ -1,14 +1,10 @@
-import getpass
 import os
-import sys
 
-import github
 import jinja2
 import plumbum
 
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.logger import logger
 from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper
 
 class AssistantBase(object):
@@ -67,7 +63,6 @@ class AssistantBase(object):
     def is_run_as_leaf(self, **kwargs):
         """Returns True if this assistant was run as last in path, False otherwise."""
         # find the last subassistant_N
-        leaf_class = None
         i = 0
         while i < len(kwargs): # len(kwargs) is maximum of subassistant_N keys
             if settings.SUBASSISTANT_N_STRING.format(i) in kwargs:

@@ -1,5 +1,3 @@
-import logging
-
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 

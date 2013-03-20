@@ -2,7 +2,6 @@ import argparse
 
 from gettext import gettext as _
 
-from devassistant import exceptions
 from devassistant import settings
 
 class ArgumentParser(argparse.ArgumentParser):

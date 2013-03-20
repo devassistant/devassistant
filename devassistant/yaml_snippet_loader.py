@@ -1,7 +1,5 @@
 import os
 
-import yaml
-
 from devassistant import yaml_loader
 from devassistant.assistants import snippet
 
