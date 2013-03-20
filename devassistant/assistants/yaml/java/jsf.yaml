@@ -2,7 +2,7 @@ jsf:
   fullname: Simple JavaServer Faces Project
 
   dependencies:
-  -rpm: ['mojarra','jetty-server','jetty-webapp','tomcat-el-2.2-api','tomcat-jsp-2.2-api']
+  - rpm: ['mojarra','jetty-server','jetty-webapp','tomcat-el-2.2-api','tomcat-jsp-2.2-api']
   - rpm: ['tomcat-servlet-3.0-api','mvn-local','maven-war-plugin','maven-shade-plugin']
   - rpm: ['maven-resources-plugin','maven-clean-plugin','junit4']
 
