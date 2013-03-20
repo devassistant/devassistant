@@ -4,6 +4,7 @@ import os
 
 import github
 import plumbum
+import yaml
 
 from devassistant import exceptions
 from devassistant.command_helpers import ClHelper
@@ -53,8 +54,9 @@ class DotDevassistantCommand(object):
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
             i += 1
-        f.write('devassistant_version={0}'.format(version.VERSION))
-        f.write('subassistant_path={0}'.format(' '.join(path)))
+        to_write = {'devassistant_version': version.VERSION,
+                    'subassistant_path': path}
+        yaml.dump(to_write, stream=f, default_flow_style=False)
         f.close()
 
 class GitHubCommand(object):
