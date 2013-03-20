@@ -103,7 +103,8 @@ class GitHubCommand(object):
             if reponame in map(lambda x: x.name, user.get_repos()):
                 raise exceptions.RunException('Repository already exists on GiHub.')
             else:
-                user.create_repo(reponame)
+                new_repo = user.create_repo(reponame)
+                logger.info('Your new repository: {0}'.format(new_repo.html_url))
         except github.GithubException as e:
             raise exceptions.RunException('GitHub error: {0}'.format(e))
 
