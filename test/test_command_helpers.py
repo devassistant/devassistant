@@ -12,3 +12,11 @@ class TestClHelper(object):
     ])
     def test_connect_quoted(self, arg_list, expected):
         assert ClHelper._connect_quoted(arg_list) == expected
+
+    def test_connect_quoted_both_quote_types_in_first_part(self):
+        assert ClHelper._connect_quoted([u'-i',
+                                         u'"s|\'NAME\'.',
+                                         u"''|'NAME'.",
+                                         u'\'asd\'|"',
+                                         u'asd/asd/settings.py']) == \
+               [u'-i', u"\"s|'NAME'. ''|'NAME'. 'asd'|\"", u'asd/asd/settings.py']

@@ -75,7 +75,11 @@ class ClHelper(object):
                 else:
                     single_i = arg_list[i].find("'")
                     double_i = arg_list[i].find('"')
-                    looking_for = arg_list[i][single_i if single_i > -1 else double_i]
+                    if single_i >= 0 and double_i >=0:
+                        # if we find both, we need to take the first one
+                        looking_for = arg_list[i][min(single_i, double_i)]
+                    else:
+                        looking_for = arg_list[i][single_i if single_i > -1 else double_i]
                     if arg_list[i].count(looking_for) % 2 == 0: # even number of quotes in this string => just add it
                         proper_list.append(arg_list[i])
                         looking_for = None
