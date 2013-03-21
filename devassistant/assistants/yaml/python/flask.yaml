@@ -63,3 +63,6 @@ flask:
   - if defined $github:
     - github: create_and_push
   - log_i: 'Flask project $basename in $dirname has been created.'
+  - log_i: 'If this is your first flask application then'
+  - log_i: 'run application over command: ./manage.py'
+  - log_i: 'For more information about Flask project visit page: https://flask.pocoo.org/docs/tutorial/'
