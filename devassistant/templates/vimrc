@@ -27,7 +27,6 @@ set bg=dark
 
 map <F12> :!cscope -Rqb<CR>:cs kill 0<CR>:cs add cscope.out<CR>
 
-
 filetype off                   " required!
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
@@ -45,6 +44,7 @@ Bundle 'vadimr/bclose.vim'
 Bundle 'vim-scripts/taglist.vim'
 Bundle 'vim-scripts/easybuffer.vim'
 Bundle 'Lokaltog/vim-powerline'
+"Bundle 'git://git.wincent.com/command-t.git'
 
 
 
@@ -76,3 +76,13 @@ nnoremap <leader>r :ConqueTermSplit
 
 let g:ConqueTerm_CloseOnEnd = 1
 :let mapleader = ","
+
+function! MyHelp()
+    echo "----------------------------------------------------------"
+    echo "^x^n- used for omni completition"
+    echo "----------------------------------------------------------"
+    echo "\n\n\n"
+endfunction
+
+map <F1> :call MyHelp()<CR>
+
