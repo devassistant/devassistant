@@ -57,6 +57,9 @@ c:
     - cl_f: make
     - log_i: 'Calling make distcheck for creating tar ball'
     - cl_f: make distcheck # will create distribution tar ball for later on usage
+    - log_i: 'More information about autotools can be found here:'
+    - log_i: 'automake: www.gnu.org/software/automake/manual/automake.html'
+    - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
   - if defined $vim:
     - cl_f: ./vim_update.sh vimrc
   - if $eclipse:
