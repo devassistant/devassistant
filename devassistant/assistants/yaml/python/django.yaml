@@ -57,6 +57,5 @@ django:
   - if defined $github:
     - github: create_and_push
   - log_i: 'Django project $basename in $dirname has been created.'
-  - log_i: 'If this is your first dJango application then'
-  - log_i: 'run application over command: python manage.py runserver'
-  - log_i: 'For more information about Django project visit page: https://www.djangoproject.com'
+  - log_i: 'To run the application use: ./manage.py runserver'
+  - log_i: 'For more information about Django project visit https://www.djangoproject.com'
