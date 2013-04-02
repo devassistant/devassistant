@@ -10,6 +10,9 @@ c:
   dependencies_eclipse:
   - rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
 
+  dependencies_vim:
+  - rpm: ['vim-nerdtree']
+
   args:
     name:
       snippet: common_args
@@ -38,6 +41,14 @@ c:
       source: vim_update.sh
     vimrc: &vimrc
       source: vimrc
+    vimdoc: &vimdoc
+      source: vim/doc/
+    vimplugin: &vimplugin
+      source: vim/plugin/
+    vimpixmaps: &vimpixmaps
+      source: vim/pixmaps/
+    vimultisnips: &vimultisnips
+      source: UltiSnips-2.2.tar.gz
 
   run:
   - log_i: 'Copying c source tree to project destination'
@@ -63,8 +74,6 @@ c:
     - log_i: 'More information about autotools can be found here:'
     - log_i: 'automake: www.gnu.org/software/automake/manual/automake.html'
     - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
-  - if defined $vim:
-    - cl_f: ./vim_update.sh vimrc
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
@@ -80,7 +89,13 @@ c:
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
   run_vim:
     - log_i: "Settings VIM environment"
-    #- cl_f: *vim_update ./*vimrc
+    - cl_f: cp -rv *vimplugin ~/.vim/
+    - cl_f: cp -rv *vimdoc ~/.vim/
+    - cl_f: cp -rv *vimpixmaps ~/.vim/
+    - cl_f: tar -xzvf *vimultisnips -C ~/.vim/
+    - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
+    - log_i: "Calling *vim_update *vimrc"
+    - cl_f: bash *vim_update *vimrc
 
   run_eclipse:
     - if not ls $name:
