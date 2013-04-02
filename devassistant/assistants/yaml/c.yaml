@@ -65,7 +65,28 @@ c:
     - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
   - if defined $vim:
     - cl_f: ./vim_update.sh vimrc
-  - if $eclipse:
+  - if defined $build:
+    - log_i: 'Creating spec file'
+    - cl: rpmdev-setuptree
+    - cl: rm -f ~/rpmbuild/SPECS/cdevelopmenttool.spec
+    - cl: cp cdevelopmenttool-1.0.tar.gz ~/rpmbuild/SOURCES
+    - cl: cp cdevelopmenttool.spec ~/rpmbuild/SPECS
+    - cl: cd ~/rpmbuild/SPECS
+    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
+    - log_i: 'Creating RPM from tarball'
+    - cl_f: rpmbuild -ba cdevelopmenttool.spec
+    #- log_i: 'Creating RPM from SRPM over mock'
+    #- cl_f: rpmbuild -bs cdevelopmenttool.spec
+    #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+  run_vim:
+    - log_i: "Settings VIM environment"
+    #- cl_f: *vim_update ./*vimrc
+
+  run_eclipse:
+    - if not ls $name:
+        - log_i: "Project was not created yet. It's creating now"
+        - run: run
+    - cl: cd $name
     - log_i: 'Creating eclipse project from command line'
     - cl_f: make clean
     - cl: cd ..
@@ -83,26 +104,11 @@ c:
     - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -data $eclipse
     - log_i: 'Import to Eclipse is done.'
     - log_i: 'Start eclipse for developping.'
-  - if defined $build:
-    - log_i: 'Creating spec file'
-    - cl: rpmdev-setuptree
-    - cl: rm -f ~/rpmbuild/SPECS/cdevelopmenttool.spec
-    - cl: cp cdevelopmenttool-1.0.tar.gz ~/rpmbuild/SOURCES
-    - cl: cp cdevelopmenttool.spec ~/rpmbuild/SPECS
-    - cl: cd ~/rpmbuild/SPECS
-    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
-    - log_i: 'Creating RPM from tarball'
-    - cl_f: rpmbuild -ba cdevelopmenttool.spec
-    #- log_i: 'Creating RPM from SRPM over mock'
-    #- cl_f: rpmbuild -bs cdevelopmenttool.spec
-    #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
-  run_vim:
-    - log_i: "Settings VIM environment"
-    #- cl_f: *vim_update ./*vimrc
+
   run_github:
     - log_i: "Push on GitHub repository"
     - if not ls $name:
-        - log_i: "Project were not created yet. It will be created now"
+        - log_i: "Project wasn't created yet. It's creating now"
         - run: run
         - cl: cd ../
     - github: create_and_push
