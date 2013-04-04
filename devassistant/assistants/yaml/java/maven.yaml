@@ -37,6 +37,6 @@ maven:
   - cl: mvn-local -q -o -B package
   - log_i: 'Done'
   - if $eclipse:
-    - snippet: eclipse(java)
+    - snippet: eclipse(run_java)
   - if defined $github:
     - github: create_and_push

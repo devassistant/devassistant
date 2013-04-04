@@ -85,7 +85,7 @@ c:
     - log_i: 'Creating RPM from tarball'
     - cl_f: rpmbuild -ba cdevelopmenttool.spec
   - if $eclipse:
-    - snippet: eclipse(c)
+    - snippet: eclipse(run_c)
     #- log_i: 'Creating RPM from SRPM over mock'
     #- cl_f: rpmbuild -bs cdevelopmenttool.spec
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm

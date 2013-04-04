@@ -52,7 +52,7 @@ lib:
   - cl: cp *setuppy .
   - cl: sed -i 's|NAME|$basename|' setup.py
   - if $eclipse:
-    - snippet: eclipse(c)
+    - snippet: eclipse(run_python)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:

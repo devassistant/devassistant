@@ -39,4 +39,4 @@ jsf:
   - if defined $github:
     - github: create_and_push
   - if $eclipse:
-    - snippet: eclipse(java)
+    - snippet: eclipse(run_java)

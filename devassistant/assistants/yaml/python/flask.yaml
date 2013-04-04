@@ -49,7 +49,7 @@ flask:
   - cl: sed -i 's|NAME|$basename|' $basename/templates/index.html
   - cl: touch $basename/static/style.css
   - if $eclipse:
-    - snippet: eclipse(c)
+    - snippet: eclipse(run_python)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:
