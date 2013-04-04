@@ -1,0 +1,65 @@
+args:
+  eclipse:
+    flags:
+    - -e
+    - --eclipse
+    help:
+      'Configure as Eclipse project (uses ~/workspace or specified directory)'
+    action:
+      [default_iff_used, ~/workspace]
+    nargs:
+      '?'
+
+run_c:
+- log_i: 'Creating eclipse project from command line'
+- cl_f: make clean
+- cl: cd ..
+- cl: mkdir -p $eclipse/$name
+- if ls $name/.eclipseproject:
+  - log_i: 'Project was not imported to eclipse environment yet'
+  - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
+  - cl: mv $name/.eclipseproject $name/.project
+  - cl: cp $name/.project $eclipse/$name/.project
+  - cl: cp $name/.cproject $eclipse/$name/.cproject
+  - cl: cp $name/.autotools $eclipse/$name/.autotools
+  - log_i: 'Copying neccessary files was done'
+- else:
+  - log_i: 'Project was already imported into eclipse environment'
+- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -data $eclipse
+- log_i: 'Import to Eclipse is done.'
+- log_i: 'Start eclipse for developping.'
+
+run_python:
+- log_i: 'Registering as Eclipse project ...'
+- cl: cp *dot_project .
+- cl: cp *dot_pydevproject .
+- cl: sed -i 's|NAME|$basename|' .project
+- cl: sed -i 's|NAME|$basename|' .pydevproject
+- cl: cd ../
+- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
+- cl: cd $name
+- log_i: 'Registered as Eclipse project ...'
+
+# Django is special
+run_django:
+- log_i: 'Registering as Eclipse project ...'
+- cl: cp *dot_project .
+- cl: cp *dot_pydevproject .
+- cl: sed -i 's|NAME|$basename|' .project
+- cl: sed -i 's|NAME|$basename|' .pydevproject
+- cl: cd ../
+- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
+- cl: cd $basename
+- log_i: 'Registered as Eclipse project.'
+
+run_java:
+- log_i: 'Creating eclipse project from command line'
+- cl: mkdir -p $eclipse/$name
+- cl: mv .eclipseproject .project
+- cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
+- cl: cp .project $eclipse/$name/.project
+- cl: cp .classpath $eclipse/$name/.classpath
+- cl: cp -r .settings/ $eclipse/$name/
+# TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
+#- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
+- log_i: 'You can now import this project into your Eclipse workspace'

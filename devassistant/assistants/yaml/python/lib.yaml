@@ -13,7 +13,7 @@ lib:
       snippet: common_args
 
     eclipse:
-      snippet: common_args
+      snippet: eclipse
 
     github:
       snippet: common_args
@@ -52,15 +52,7 @@ lib:
   - cl: cp *setuppy .
   - cl: sed -i 's|NAME|$basename|' setup.py
   - if $eclipse:
-    - log_i: 'Registering as Eclipse project ...'
-    - cl: cp *dot_project .
-    - cl: cp *dot_pydevproject .
-    - cl: sed -i 's|NAME|$basename|' .project
-    - cl: sed -i 's|NAME|$basename|' .pydevproject
-    - cl: cd ../
-    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
-    - cl: cd $name
-    - log_i: 'Registered as Eclipse project ...'
+    - snippet: eclipse(c)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:

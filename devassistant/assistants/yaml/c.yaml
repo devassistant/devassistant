@@ -29,7 +29,7 @@ c:
       snippet: common_args
 
     eclipse:
-      snippet: common_args
+      snippet: eclipse
 
     github:
       snippet: common_args
@@ -84,9 +84,12 @@ c:
     - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
     - log_i: 'Creating RPM from tarball'
     - cl_f: rpmbuild -ba cdevelopmenttool.spec
+  - if $eclipse:
+    - snippet: eclipse(c)
     #- log_i: 'Creating RPM from SRPM over mock'
     #- cl_f: rpmbuild -bs cdevelopmenttool.spec
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
+
   run_vim:
     - log_i: "Settings VIM environment"
     - cl_f: cp -rv *vimplugin ~/.vim/
@@ -96,29 +99,6 @@ c:
     - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
     - log_i: "Calling *vim_update *vimrc"
     - cl_f: bash *vim_update *vimrc
-
-  run_eclipse:
-    - if not ls $name:
-        - log_i: "Project was not created yet. It's creating now"
-        - run: run
-    - cl: cd $name
-    - log_i: 'Creating eclipse project from command line'
-    - cl_f: make clean
-    - cl: cd ..
-    - cl: mkdir -p $eclipse/$name
-    - if ls $name/.eclipseproject:
-      - log_i: 'Project was not imported to eclipse environment yet'
-      - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
-      - cl: mv $name/.eclipseproject $name/.project
-      - cl: cp $name/.project $eclipse/$name/.project
-      - cl: cp $name/.cproject $eclipse/$name/.cproject
-      - cl: cp $name/.autotools $eclipse/$name/.autotools
-      - log_i: 'Copying neccessary files was done'
-    - else:
-      - log_i: 'Project was already imported into eclipse environment'
-    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -data $eclipse
-    - log_i: 'Import to Eclipse is done.'
-    - log_i: 'Start eclipse for developping.'
 
   run_github:
     - log_i: "Push on GitHub repository"

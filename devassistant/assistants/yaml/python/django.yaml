@@ -13,7 +13,7 @@ django:
       snippet: common_args
 
     eclipse:
-      snippet: common_args
+      snippet: eclipse
 
     github:
       snippet: common_args
@@ -43,15 +43,7 @@ django:
   - dda_c: $name
   - cl: cd $basename
   - if $eclipse:
-    - log_i: 'Registering as Eclipse project ...'
-    - cl: cp *dot_project .
-    - cl: cp *dot_pydevproject .
-    - cl: sed -i 's|NAME|$basename|' .project
-    - cl: sed -i 's|NAME|$basename|' .pydevproject
-    - cl: cd ../
-    - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
-    - cl: cd $basename
-    - log_i: 'Registered as Eclipse project.'
+    - snippet: eclipse(django)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:
