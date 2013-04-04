@@ -66,9 +66,16 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type == 'snippet':
-                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm)
+                    # if there is parenthesis, then snippet is being called with argument
+                    snippet_tuple = comm.split('(')
+                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snippet_tuple[0])
                     if snippet:
-                        self._run_one_section(snippet.run_section, **kwargs)
+                        section_name = snippet_tuple[1].strip(')') if len(snippet_tuple) > 1 else ''
+                        section = snippet.get_run_section(section_name)
+                        if section:
+                            self._run_one_section(section, **kwargs)
+                        else:
+                            logger.warning('Couldn\'t find section "{0}", in snippet {1} skipping.'.format(section_name, snippet_tuple[0]))
                     else:
                         logger.warning('Couldn\'t find snippet {0}, skipping.'.format(comm))
                 elif comm_type.startswith('if'):

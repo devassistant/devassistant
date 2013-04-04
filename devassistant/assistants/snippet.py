@@ -14,6 +14,7 @@ class Snippet(object):
     def get_arg_by_name(self, name):
         return self.args.get(name, {})
 
-    @property
-    def run_section(self):
-        return copy.deepcopy(self.parsed_yaml.get('run', {}))
+    def get_run_section(self, section_name=''):
+        run_section = 'run_' + section_name if 'run_' + section_name in self.parsed_yaml else 'run'
+
+        return copy.deepcopy(self.parsed_yaml.get(run_section, {}))
