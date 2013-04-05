@@ -16,3 +16,6 @@ class Snippet(object):
 
     def get_run_section(self, section_name='run'):
         return copy.deepcopy(self.parsed_yaml.get(section_name or 'run', {}))
+
+    def get_dependencies_section(self, section_name='dependencies'):
+        return copy.deepcopy(self.parsed_yaml.get(section_name or 'dependencies', {}))

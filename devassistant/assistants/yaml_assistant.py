@@ -68,6 +68,14 @@ class YamlAssistant(assistant_base.AssistantBase):
             # rpm dependencies (can't handle anything else yet)
             if dep_type == 'rpm':
                 self._install_dependencies(*dep_list, **kwargs)
+            elif dep_type == 'snippet':
+                snippet, section_name = self._get_snippet_and_section_name(dep_list, **kwargs)
+                section = snippet.get_dependencies_section(section_name) if snippet else None
+                if section:
+                    self._dependencies_section(section, **kwargs)
+                else:
+                    logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
+                                                                                                                 dep_list.split('(')[0]))
             else:
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
@@ -94,14 +102,12 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type == 'snippet':
                     snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
-                    if snippet:
-                        section = snippet.get_run_section(section_name)
-                        if section:
-                            self._run_one_section(section, **kwargs)
-                        else:
-                            logger.warning('Couldn\'t find section "{0}", in snippet {1} skipping.'.format(section_name, snippet_tuple[0]))
+                    section = snippet.get_run_section(section_name) if snippet else None
+                    if section:
+                        self._run_one_section(section, **kwargs)
                     else:
-                        logger.warning('Couldn\'t find snippet {0}, skipping.'.format(comm))
+                        logger.warning('Couldn\'t find run section "{0}", in snippet {1} skipping.'.format(section_name,
+                                                                                                           comm.split('(')[0]))
                 elif comm_type.startswith('if'):
                     if self._evaluate(comm_type[2:].strip(), **kwargs):
                         self._run_one_section(comm, **kwargs)

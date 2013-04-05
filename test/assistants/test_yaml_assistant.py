@@ -165,6 +165,15 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert ('INFO', 'foo') in self.tlh.msgs
 
+    def test_dependencies_snippet(self):
+        self.ya._dependencies = [{'snippet': 'mysnippet(dependencies_foo)'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('mysnippet').\
+                                    and_return(snippet.Snippet('mysnippet.yaml',
+                                        {'dependencies_foo': [{'rpm': ['bar']}]}))
+        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
+        self.ya.dependencies()
+
 class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir
 
