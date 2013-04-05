@@ -37,6 +37,10 @@ files:
     source: python/django/.project
   dot_pydevproject_django: &dot_pydevproject_django
     source: python/django/.pydevproject
+  dot_eclipseproject_jsf: &dot_eclipseproject_jsf
+    source: java/jsf/.eclipseproject
+  dot_eclipseproject_maven: &dot_eclipseproject_maven
+    source: java/maven/.eclipseproject
 
 run_c:
 - log_i: 'Creating eclipse project from command line'
@@ -64,8 +68,12 @@ run_c:
 run_python:
 - $basename: basename $name
 - log_i: 'Registering as Eclipse project ...'
-- cl: cp *dot_project_python .
-- cl: cp *dot_pydevproject_python .
+- if grep django manage.py:
+  - cl: cp *dot_project_django .
+  - cl: cp *dot_pydevproject_django .
+- else:
+  - cl: cp *dot_project_python .
+  - cl: cp *dot_pydevproject_python .
 - cl: sed -i 's|NAME|$basename|' .project
 - cl: sed -i 's|NAME|$basename|' .pydevproject
 - cl: cd ../
@@ -73,26 +81,18 @@ run_python:
 - cl: cd $basename
 - log_i: 'Registered as Eclipse project ...'
 
-run_django:
-- $basename: basename $name
-- log_i: 'Registering as Eclipse Django project ...'
-- cl: cp *dot_project_django .
-- cl: cp *dot_pydevproject_django .
-- cl: sed -i 's|NAME|$basename|' .project
-- cl: sed -i 's|NAME|$basename|' .pydevproject
-- cl: cd ../
-- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $basename -data $eclipse
-- cl: cd $basename
-- log_i: 'Registered as Eclipse Django project ...'
-
 run_java:
 - log_i: 'Creating eclipse project from command line'
 - cl: mkdir -p $eclipse/$name
-- cl: mv .eclipseproject .project
+- if grep jsf pom.xml:
+  - cl: cp *dot_eclipseproject_jsf .project
+- else:
+  - cl: cp *dot_eclipseproject_maven .project
 - cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
 - cl: cp .project $eclipse/$name/.project
 - cl: cp .classpath $eclipse/$name/.classpath
-- cl: cp -r .settings/ $eclipse/$name/
+- if ls .settings/:
+  - cl: cp -r .settings/ $eclipse/$name/
 # TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
 #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
 - log_i: 'You can now import this project into your Eclipse workspace'

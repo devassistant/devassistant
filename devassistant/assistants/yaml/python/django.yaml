@@ -39,7 +39,7 @@ django:
   - dda_c: $basename
   - cl: cd $basename
   - if $eclipse:
-    - snippet: eclipse(run_django)
+    - snippet: eclipse(run_python)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:
