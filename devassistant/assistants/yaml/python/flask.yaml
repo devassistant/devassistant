@@ -21,10 +21,6 @@ flask:
   files:
     gitignore: &gitignore
       source: python/.gitignore
-    dot_project: &dot_project
-      source: python/.project
-    dot_pydevproject: &dot_pydevproject
-      source: python/.pydevproject
     initpy: &initpy
       source: python/flask/__init__.py
     indexhtml: &indexhtml

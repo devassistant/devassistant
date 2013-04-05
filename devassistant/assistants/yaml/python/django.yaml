@@ -21,10 +21,6 @@ django:
   files:
     gitignore: &gitignore
       source: python/.gitignore
-    dot_project: &dot_project
-      source: python/django/.project
-    dot_pydevproject: &dot_pydevproject
-      source: python/django/.pydevproject
 
   run:
   - $dirname: dirname $name
@@ -43,7 +39,7 @@ django:
   - dda_c: $basename
   - cl: cd $basename
   - if $eclipse:
-    - snippet: eclipse(run_python)
+    - snippet: eclipse(run_django)
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:

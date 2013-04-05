@@ -21,10 +21,6 @@ lib:
   files:
     gitignore: &gitignore
       source: python/.gitignore
-    dot_project: &dot_project
-      source: python/.project
-    dot_pydevproject: &dot_pydevproject
-      source: python/.pydevproject
     setuppy: &setuppy
       source: python/lib/setup.py
     license: &license

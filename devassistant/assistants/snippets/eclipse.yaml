@@ -22,6 +22,16 @@ args:
     nargs:
       '?'
 
+files:
+  dot_project_python: &dot_project_python
+    source: python/.project
+  dot_pydevproject_python: &dot_pydevproject_python
+    source: python/.pydevproject
+  dot_project_django: &dot_project_django
+    source: python/django/.project
+  dot_pydevproject_django: &dot_pydevproject_django
+    source: python/django/.pydevproject
+
 run_c:
 - log_i: 'Creating eclipse project from command line'
 - cl_f: make clean
@@ -44,14 +54,26 @@ run_c:
 run_python:
 - $basename: basename $name
 - log_i: 'Registering as Eclipse project ...'
-- cl: cp *dot_project .
-- cl: cp *dot_pydevproject .
+- cl: cp *dot_project_python .
+- cl: cp *dot_pydevproject_python .
 - cl: sed -i 's|NAME|$basename|' .project
 - cl: sed -i 's|NAME|$basename|' .pydevproject
 - cl: cd ../
 - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $basename -data $eclipse
 - cl: cd $basename
 - log_i: 'Registered as Eclipse project ...'
+
+run_django:
+- $basename: basename $name
+- log_i: 'Registering as Eclipse Django project ...'
+- cl: cp *dot_project_django .
+- cl: cp *dot_pydevproject_django .
+- cl: sed -i 's|NAME|$basename|' .project
+- cl: sed -i 's|NAME|$basename|' .pydevproject
+- cl: cd ../
+- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $basename -data $eclipse
+- cl: cd $basename
+- log_i: 'Registered as Eclipse Django project ...'
 
 run_java:
 - log_i: 'Creating eclipse project from command line'
