@@ -93,11 +93,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type == 'snippet':
-                    # if there is parenthesis, then snippet is being called with argument
-                    snippet_tuple = comm.split('(')
-                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snippet_tuple[0])
+                    snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
                     if snippet:
-                        section_name = snippet_tuple[1].strip(')') if len(snippet_tuple) > 1 else ''
                         section = snippet.get_run_section(section_name)
                         if section:
                             self._run_one_section(section, **kwargs)
@@ -148,6 +145,13 @@ class YamlAssistant(assistant_base.AssistantBase):
         if not to_run:
             logger.debug('Couldn\'t find section {0} or any other appropriate.'.format(section))
         return to_run
+
+    def _get_snippet_and_section_name(self, snippet_call, **kwargs):
+        # if there is parenthesis, then snippet is being called with argument
+        snippet_tuple = snippet_call.split('(')
+        snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snippet_tuple[0])
+        section_name = snippet_tuple[1].strip(')') if len(snippet_tuple) > 1 else ''
+        return (snippet, section_name)
 
     def _assign_variable(self, variable, comm, kwargs):
         """Assigns value of another variable or result of command to given variable.
