@@ -107,7 +107,9 @@ class RPMHelper(object):
     @classmethod
     def rpm_q(cls, rpm_name):
         try:
-            return plumbum.local[cls.c_rpm]('-q', rpm_name).strip()
+            # if we install by e.g. virtual provide, then rpm -q foo will fail
+            # therefore we always use rpm -q --whatprovides foo
+            return plumbum.local[cls.c_rpm]['-q']['--whatprovides'](rpm_name).strip()
         except plumbum.ProcessExecutionError:
             return False
 
