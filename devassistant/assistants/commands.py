@@ -40,7 +40,9 @@ class DotDevassistantCommand(object):
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
         if comm_type == 'dda_c':
-            cls._dot_devassistant_create(comm, **kwargs)
+            return cls._dot_devassistant_create(comm, **kwargs)
+        elif comm_type == 'dda_r':
+            return cls._dot_devassistant_read(comm, **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
 
@@ -58,6 +60,17 @@ class DotDevassistantCommand(object):
                     'subassistant_path': path}
         yaml.dump(to_write, stream=f, default_flow_style=False)
         f.close()
+
+    @classmethod
+    def _dot_devassistant_read(cls, comm, **kwargs):
+        """Don't use this directly from assistants (yet), raises uncaught exception
+        if anything goes wrong."""
+        dot_devassistant = os.path.join(comm, '.devassistant')
+        with open(dot_devassistant, 'r') as stream:
+            result = yaml.load(stream)
+
+        result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
+        return result
 
 class GitHubCommand(object):
     @classmethod
