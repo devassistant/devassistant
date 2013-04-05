@@ -185,6 +185,19 @@ class TestYamlAssistant(object):
         flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
         self.ya.dependencies()
 
+    def test_snippet_uses_its_own_files_section(self):
+        self.ya._run = [{'snippet': 'mysnippet'}, {'log_w': '*first'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('mysnippet').\
+                                    and_return(snippet.Snippet('mysnippet.yaml',
+                                        {'files': {'first': {'source': 'from/snippet'}},
+                                         'run': [{'log_i': '*first'}]}))
+        self.ya.run()
+        assert filter(lambda x: x[0] == 'INFO' and x[1].endswith('from/snippet'), self.tlh.msgs)
+        # make sure that after the snippet ends, we use the old files section
+        assert filter(lambda x: x[0] == 'WARNING' and x[1].endswith('f/g'), self.tlh.msgs)
+
+
 class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir
 

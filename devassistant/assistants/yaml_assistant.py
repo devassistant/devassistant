@@ -104,7 +104,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                     snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
                     section = snippet.get_run_section(section_name) if snippet else None
                     if section:
+                        # push and pop snippet's files into kwargs
+                        if '__files__' in kwargs:
+                            kwargs['__files__'].append(snippet.get_files_section())
+                        else:
+                            kwargs['__files__'] = [snippet.get_files_section()]
                         self._run_one_section(section, **kwargs)
+                        kwargs['__files__'].pop()
                     else:
                         logger.warning('Couldn\'t find run section "{0}", in snippet {1} skipping.'.format(section_name,
                                                                                                            comm.split('(')[0]))
@@ -124,7 +130,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                         execute_else = False
                         self._run_one_section(comm, **kwargs)
                 else:
-                    run_command(comm_type, CommandFormatter.format(comm, self.template_dir, self._files, **kwargs), **kwargs)
+                    files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
+                    run_command(comm_type, CommandFormatter.format(comm, self.template_dir, files, **kwargs), **kwargs)
 
     def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
         """Returns the proper section to run.

@@ -23,3 +23,6 @@ class Snippet(object):
         if section_name != 'dependencies':
             deps.extend(copy.deepcopy(self.parsed_yaml.get(section_name, [])))
         return deps
+
+    def get_files_section(self):
+        return copy.deepcopy(self.parsed_yaml.get('files', {}))
