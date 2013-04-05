@@ -30,27 +30,16 @@ run_c:
 - log_i: 'Start eclipse for developping.'
 
 run_python:
+- $basename: basename $name
 - log_i: 'Registering as Eclipse project ...'
 - cl: cp *dot_project .
 - cl: cp *dot_pydevproject .
 - cl: sed -i 's|NAME|$basename|' .project
 - cl: sed -i 's|NAME|$basename|' .pydevproject
 - cl: cd ../
-- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
-- cl: cd $name
-- log_i: 'Registered as Eclipse project ...'
-
-# Django is special
-run_django:
-- log_i: 'Registering as Eclipse project ...'
-- cl: cp *dot_project .
-- cl: cp *dot_pydevproject .
-- cl: sed -i 's|NAME|$basename|' .project
-- cl: sed -i 's|NAME|$basename|' .pydevproject
-- cl: cd ../
-- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $name -data $eclipse
+- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import $basename -data $eclipse
 - cl: cd $basename
-- log_i: 'Registered as Eclipse project.'
+- log_i: 'Registered as Eclipse project ...'
 
 run_java:
 - log_i: 'Creating eclipse project from command line'
