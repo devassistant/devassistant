@@ -15,7 +15,11 @@ class Snippet(object):
         return self.args.get(name, {})
 
     def get_run_section(self, section_name='run'):
-        return copy.deepcopy(self.parsed_yaml.get(section_name or 'run', {}))
+        return copy.deepcopy(self.parsed_yaml.get(section_name or 'run', []))
 
     def get_dependencies_section(self, section_name='dependencies'):
-        return copy.deepcopy(self.parsed_yaml.get(section_name or 'dependencies', {}))
+        # we also want to include the basic "dependencies" section
+        deps = copy.deepcopy(self.parsed_yaml.get('dependencies', []))
+        if section_name != 'dependencies':
+            deps.extend(copy.deepcopy(self.parsed_yaml.get(section_name, [])))
+        return deps

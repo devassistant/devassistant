@@ -174,6 +174,17 @@ class TestYamlAssistant(object):
         flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
         self.ya.dependencies()
 
+    def test_dependencies_snippet_also_installs_default_dependencies(self):
+        self.ya._dependencies = [{'snippet': 'mysnippet(dependencies_foo)'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('mysnippet').\
+                                    and_return(snippet.Snippet('mysnippet.yaml',
+                                        {'dependencies_foo': [{'rpm': ['bar']}],
+                                         'dependencies': [{'rpm': ['spam']}]}))
+        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('spam').and_return(True)
+        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
+        self.ya.dependencies()
+
 class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir
 
