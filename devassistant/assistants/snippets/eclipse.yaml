@@ -23,6 +23,12 @@ args:
       '?'
 
 files:
+  dot_eclipseproject_c: &dot_eclipseproject_c
+    source: c/.eclipseproject
+  dot_cproject_c: &dot_cproject_c
+    source: c/.cproject
+  dot_autotools_c: &dot_autotools_c
+    source: c/.autotools
   dot_project_python: &dot_project_python
     source: python/.project
   dot_pydevproject_python: &dot_pydevproject_python
@@ -35,19 +41,23 @@ files:
 run_c:
 - log_i: 'Creating eclipse project from command line'
 - cl_f: make clean
-- cl: cd ..
 - cl: mkdir -p $eclipse/$name
-- if ls $name/.eclipseproject:
+- if not ls $name/.project:
   - log_i: 'Project was not imported to eclipse environment yet'
-  - cl: sed -i s|<name>cdevelassistant<|<name>$name<| $name/.eclipseproject
-  - cl: mv $name/.eclipseproject $name/.project
-  - cl: cp $name/.project $eclipse/$name/.project
-  - cl: cp $name/.cproject $eclipse/$name/.cproject
-  - cl: cp $name/.autotools $eclipse/$name/.autotools
+  - cl: cp *dot_eclipseproject_c .
+  - cl: cp *dot_cproject_c .
+  - cl: cp *dot_autotools_c .
+  - cl: sed -i s|<name>cdevelassistant<|<name>$name<| .eclipseproject
+  - cl: mv .eclipseproject .project
+  - cl: cp .project $eclipse/$name/.project
+  - cl: cp .cproject $eclipse/$name/.cproject
+  - cl: cp .autotools $eclipse/$name/.autotools
   - log_i: 'Copying neccessary files was done'
 - else:
   - log_i: 'Project was already imported into eclipse environment'
+- cl: cd ..
 - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./$name -data $eclipse
+- cl: cd $name
 - log_i: 'Import to Eclipse is done.'
 - log_i: 'Start eclipse for developping.'
 
