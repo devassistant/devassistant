@@ -165,7 +165,7 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert ('INFO', 'foo') in self.tlh.msgs
 
-class TestYamlAssistantRequiresProject(object):
+class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir
 
     def setup_method(self, method):
