@@ -16,11 +16,13 @@ class TestYamlAssistant(object):
 
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant()
+        self.ya.role = 'creator'
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
         self.ya2 = yaml_assistant.YamlAssistant()
         self.ya2._files = {}
+        self.ya2.role = 'creator'
         self.ya2._run = [{'if $ide':
                             [{'if ls /notachance': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
@@ -162,3 +164,33 @@ class TestYamlAssistant(object):
                                                                                   'run_foo': [{'log_i': 'foo'}]}))
         self.ya.run()
         assert ('INFO', 'foo') in self.tlh.msgs
+
+class TestYamlAssistantRequiresProject(object):
+    template_dir = yaml_assistant.YamlAssistant.template_dir
+
+    def setup_method(self, method):
+        self.ya = yaml_assistant.YamlAssistant()
+        self.ya.role = 'modifier'
+        self.ya._files = {}
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.dda = {'subassistant_path': ['foo', 'bar', 'baz']}
+
+    def test_dependencies_install_dependencies_for_subassistant_path(self):
+        flexmock(self.ya).should_receive('proper_kwargs').and_return(self.dda)
+        self.ya._dependencies = [{'rpm': ['spam']}]
+        self.ya._dependencies_foo = [{'rpm': ['beans']}]
+        self.ya._dependencies_foo_bar_baz = [{'rpm': ['eggs']}]
+        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False, False).one_by_one()
+        flexmock(YUMHelper).should_receive('install').with_args('spam').and_return(True)
+        flexmock(YUMHelper).should_receive('install').with_args('beans').and_return(True)
+        flexmock(YUMHelper).should_receive('install').with_args('eggs').and_return(True)
+        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True, True, True).one_by_one()
+        self.ya.dependencies()
+
+    def test_run_chooses_proper_method(self):
+        flexmock(self.ya).should_receive('proper_kwargs').and_return(self.dda)
+        self.ya._run = [{'log_i': 'wrong!'}]
+        self.ya._run_foo = [{'log_i': 'wrong too!'}]
+        self.ya._run_foo_bar_baz = [{'log_i': 'correct'}]
+        self.ya.run()
+        assert ('INFO', 'correct') in self.tlh.msgs

@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 
@@ -13,7 +14,18 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     _run = []
 
+    def proper_kwargs(self, **kwargs):
+        """Returns kwargs possibly updated with values from .devassistant
+        file, when appropriate."""
+        if self.role == 'modifier':
+            try:
+                kwargs.update(run_command('dda_r', '.', **kwargs))
+            except BaseException as e:
+                raise exceptions.RunException('Couldn\'t find properly formatted .devassistant in current dir: {0}'.format(e))
+        return kwargs
+
     def logging(self, **kwargs):
+        kwargs = self.proper_kwargs(**kwargs)
         for l in self._logging:
             handler_type, l_list = l.popitem()
             if handler_type == 'file':
@@ -33,7 +45,16 @@ class YamlAssistant(assistant_base.AssistantBase):
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
     def dependencies(self, **kwargs):
+        kwargs = self.proper_kwargs(**kwargs)
         sections = [getattr(self, '_dependencies', [])]
+        if self.role == 'modifier':
+            # if subassistant_path is "foo bar baz", then search for dependency sections
+            # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
+            for i in range(1, len(kwargs['subassistant_path']) + 1):
+                possible_dep_section = '_dependencies_{0}'.format('_'.join(kwargs['subassistant_path'][:i]))
+                if possible_dep_section in dir(self):
+                    sections.append(getattr(self, possible_dep_section))
+        # install these dependencies in any case
         for arg in kwargs:
             if '_dependencies_{0}'.format(arg) in dir(self):
                 sections.append(getattr(self, '_dependencies_{0}'.format(arg)))
@@ -51,7 +72,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
     def run(self, **kwargs):
-        to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
+        kwargs = self.proper_kwargs(**kwargs)
+        if self.role == 'modifier':
+            to_run = self._get_section_to_run(section='run_{0}'.format('_'.join(kwargs['subassistant_path'])),
+                                              kwargs_override=False, # TODO: is override False correct?
+                                              **kwargs)
+        else:
+            to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
         self._run_one_section(to_run, **kwargs)
 
     def _run_one_section(self, section, **kwargs):
@@ -97,7 +124,15 @@ class YamlAssistant(assistant_base.AssistantBase):
                     run_command(comm_type, CommandFormatter.format(comm, self.template_dir, self._files, **kwargs), **kwargs)
 
     def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
-        to_run = None
+        """Returns the proper section to run.
+        Args:
+            section: name of section to run
+            kwargs_override: whether or not first of [_run_{arg} for arg in kwargs] is preffered over specified section
+            **kwargs: devassistant arguments
+        Returns:
+            section to run - dict (if not found, returns empty dict)
+        """
+        to_run = {}
 
         if section:
             underscored = '_' + section

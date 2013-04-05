@@ -22,6 +22,7 @@ class TestYamlAssistantLoader(object):
         assert klass.name == 'c'
         assert klass.fullname == 'C Language Tool'
         assert klass.description == 'C Language Tool description...'
+        assert klass.role == 'creator'
         assert len(klass.args) == 1
         assert klass._dependencies == [{'default': [{'rpm': ['rpm']}]}]
         assert klass._files == {
