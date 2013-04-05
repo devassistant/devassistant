@@ -8,7 +8,7 @@ c:
   - rpm: ['rpm-build','mock','eclipse-rpm-editor']
 
   dependencies_eclipse:
-  - rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
+  - snippet: eclipse(dependencies_c)
 
   dependencies_vim:
   - rpm: ['vim-nerdtree']

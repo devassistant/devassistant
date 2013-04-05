@@ -6,7 +6,7 @@ flask:
   - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf] # TODO: add flask-script
 
   dependencies_eclipse:
-  - rpm: [eclipse-pydev]
+  - snippet: eclipse(dependencies_python)
 
   args:
     name:

@@ -1,3 +1,15 @@
+dependencies:
+- rpm: ['eclipse']
+
+dependencies_c:
+- rpm: ['eclipse-mylyn-context-cdt','eclipse-egit','eclipse-cdt','eclipse-cdt-parsers','eclipse-cdt-sdk']
+
+dependencies_java:
+- rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
+
+dependencies_python:
+- rpm: ['eclipse-pydev']
+
 args:
   eclipse:
     flags:

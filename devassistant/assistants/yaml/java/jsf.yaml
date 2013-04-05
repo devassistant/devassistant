@@ -7,7 +7,7 @@ jsf:
   - rpm: ['maven-resources-plugin','maven-clean-plugin','junit4']
 
   dependencies_eclipse:
-  - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
+  - snippet: eclipse(dependencies_java)
 
   args:
     name:

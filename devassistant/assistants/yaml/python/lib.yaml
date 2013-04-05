@@ -6,7 +6,7 @@ lib:
   - rpm: ['python-setuptools']
 
   dependencies_eclipse:
-  - rpm: ['eclipse-pydev']
+  - snippet: eclipse(dependencies_python)
 
   args:
     name:

@@ -5,8 +5,7 @@ maven:
   - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
 
   dependencies_eclipse:
-  - rpm: ['eclipse-jdt','eclipse-m2e-core','eclipse-egit']
-
+  - snippet: eclipse(dependencies_java)
 
   args:
     name:
