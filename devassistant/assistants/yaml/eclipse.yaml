@@ -1,0 +1,47 @@
+eclipse:
+  fullname: Eclipse import assistant
+  description: This assistant can import already created project into Eclipse.
+    Just run it in the projects directory.
+  role: modifier
+
+  args:
+    # using snippet doesn't pay of here, as we would need to override
+    # pretty much all the attributes...
+    eclipse: # so that user can change his workspace
+      flags:
+      - -e
+      - --eclipse
+      default: ~/workspace
+      help: Specify your workspace other than ~/workspace.
+
+  dependencies:
+  - snippet: eclipse
+
+  dependencies_python:
+  - snippet: eclipse(dependencies_python)
+
+  dependencies_c:
+  - snippet: eclipse(dependencies_c)
+
+  dependencies_java:
+  - snippet: eclipse(dependencies_java)
+
+
+
+  run_python_flask:
+  - snippet: eclipse(run_python)
+
+  run_python_django:
+  - snippet: eclipse(run_python)
+
+  run_python_lib:
+  - snippet: eclipse(run_python)
+
+  run_c:
+  - snippet: eclipse(run_c)
+
+  run_java_jsf:
+  - snippet: eclipse(run_java)
+
+  run_java_maven:
+  - snippet: eclipse(run_java)
