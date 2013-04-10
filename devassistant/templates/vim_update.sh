@@ -35,6 +35,8 @@ echo "\"END_DEVASSISTANT_1" >> $CUR_VIM
 echo ""
 echo ""
 echo "Updating of ~/.vimrc file was successfull"
+echo "************************************"
 echo "For turning on devassistant vimrc file"
 echo "open ~/.vimrc file and change value \"let devassistant=0\" to \"let devassistant=1\""
+echo "************************************"
 echo "After pressing F1 you see help about commands etc."

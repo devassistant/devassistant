@@ -12,7 +12,6 @@ c:
 
   dependencies_vim:
   - snippet: vim(dependencies_c)
-  ['vim-nerdtree']
 
   args:
     name:
@@ -27,7 +26,7 @@ c:
       nargs:
         '?'
     vim:
-      snippet: common_args
+      snippet: vim
 
     eclipse:
       snippet: eclipse
@@ -38,18 +37,6 @@ c:
   files:
     csources: &csources
       source: c/
-    vim_update: &vim_update
-      source: vim_update.sh
-    vimrc: &vimrc
-      source: vimrc
-    vimdoc: &vimdoc
-      source: vim/doc/
-    vimplugin: &vimplugin
-      source: vim/plugin/
-    vimpixmaps: &vimpixmaps
-      source: vim/pixmaps/
-    vimultisnips: &vimultisnips
-      source: UltiSnips-2.2.tar.gz
 
   run:
   - log_i: 'Copying c source tree to project destination'
@@ -76,14 +63,7 @@ c:
     - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
     - cl: cd ..
   - if $vim:
-    - log_i: "Settings VIM environment"
-    - cl_f: cp -rv *vimplugin ~/.vim/
-    - cl_f: cp -rv *vimdoc ~/.vim/
-    - cl_f: cp -rv *vimpixmaps ~/.vim/
-    - cl_f: tar -xzvf *vimultisnips -C ~/.vim/
-    - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
-    - log_i: "Calling *vim_update *vimrc"
-    - cl_f: bash *vim_update *vimrc
+    - snippet: vim(run_c)
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
@@ -102,6 +82,3 @@ c:
   - if $github:
     - log_i: "Push on GitHub repository"
     - github: create_and_push
-  - if $eclipse:
-    - snippet: eclipse(c)
-

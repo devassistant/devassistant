@@ -19,13 +19,13 @@ let g:clang_snippets = 1
 let g:clang_snippets_engine = 'snipmate'
 let g:clang_use_library = 1
 let g:NERDTreeWinPos = "right"
-let mapleader = ","
 let Tlist_Auto_Open = 1
 let Tlist_Use_SingleClick = 1
 set bg=dark
 set runtimepath+=~/.vim/UltiSnips
 
-"command :q :qall
+map <F2> :previous<CR>          "map F2 to next buffer
+map <F3> :next<CR>              "map F3 to next buffer
 
 map <F12> :!cscope -Rqb<CR>:cs kill 0<CR>:cs add cscope.out<CR>
 
@@ -54,7 +54,7 @@ nnoremap <leader>t :ConqueTermSplit bash<CR>
 nnoremap <leader>r :ConqueTermSplit 
 
 let g:ConqueTerm_CloseOnEnd = 1
-:let mapleader = ","
+let mapleader = ","
 
 function! MyHelp()
     echo "----------------------------------------------------------"
@@ -62,6 +62,7 @@ function! MyHelp()
     echo "^p - used for completition of current word (Previous) before cursor"
     echo "^n - used for completition of current word (Next) after cursor"
     echo "^x^f- Completion filename in current directory"
+    echo ", t - will call plugin vim-command-t for searching files recursivelly from current directory"
     echo ":TlistAddFilesRecursive for adding files to tag list"
     echo "----------------------------------------------------------"
     echo "\n\n\n"
