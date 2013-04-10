@@ -11,7 +11,8 @@ c:
   - snippet: eclipse(dependencies_c)
 
   dependencies_vim:
-  - rpm: ['vim-nerdtree']
+  - snippet: vim(dependencies_c)
+  ['vim-nerdtree']
 
   args:
     name:
@@ -57,9 +58,8 @@ c:
     - dda_c: $name
     - cl: cd $name
     - snippet: git_init_add_commit
-  - else:
-    - cl: cd $name
   - if not defined $build:
+    - cl: cd $name
     - log_i: 'Run autoreconf'
     - cl_f: autoreconf --install
     - log_i: 'Run configure script'
@@ -67,13 +67,23 @@ c:
     - log_i: 'Compilation sources'
     - cl_f: make
     - log_i: 'Calling make distcheck for creating tar ball'
-    - cl_f: make distcheck # will create distribution tar ball for later on usage
+    - cl_f: make distcheck
     - log_i: 'Inside $name project is the README file where are described steps'
     - log_i: 'how to integrate a new sources into your project.'
     - log_i: 'In case of any troubles please read manual for automake / autoconf.'
     - log_i: 'More information about autotools can be found here:'
     - log_i: 'automake: www.gnu.org/software/automake/manual/automake.html'
     - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
+    - cl: cd ..
+  - if $vim:
+    - log_i: "Settings VIM environment"
+    - cl_f: cp -rv *vimplugin ~/.vim/
+    - cl_f: cp -rv *vimdoc ~/.vim/
+    - cl_f: cp -rv *vimpixmaps ~/.vim/
+    - cl_f: tar -xzvf *vimultisnips -C ~/.vim/
+    - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
+    - log_i: "Calling *vim_update *vimrc"
+    - cl_f: bash *vim_update *vimrc
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
@@ -89,21 +99,9 @@ c:
     #- log_i: 'Creating RPM from SRPM over mock'
     #- cl_f: rpmbuild -bs cdevelopmenttool.spec
     #- cl_f: mock -r $build ~/rpmbuild/SRPMS/cdevelopmenttool-1.0-0.src.rpm
-
-  run_vim:
-    - log_i: "Settings VIM environment"
-    - cl_f: cp -rv *vimplugin ~/.vim/
-    - cl_f: cp -rv *vimdoc ~/.vim/
-    - cl_f: cp -rv *vimpixmaps ~/.vim/
-    - cl_f: tar -xzvf *vimultisnips -C ~/.vim/
-    - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
-    - log_i: "Calling *vim_update *vimrc"
-    - cl_f: bash *vim_update *vimrc
-
-  run_github:
+  - if $github:
     - log_i: "Push on GitHub repository"
-    - if not ls $name:
-        - log_i: "Project wasn't created yet. It's creating now"
-        - run: run
-        - cl: cd ../
     - github: create_and_push
+  - if $eclipse:
+    - snippet: eclipse(c)
+
