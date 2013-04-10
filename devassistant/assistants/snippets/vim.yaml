@@ -1,5 +1,5 @@
 dependencies:
--rpm: ['vim-nerdtree', 'vim-command-t', 'vim-enhanced', 'vim-X11' ]
+- rpm: ['vim-nerdtree', 'vim-enhanced', 'vim-command-t', 'vim-X11']
 
 args:
   vim:
@@ -26,11 +26,19 @@ files:
     source: vim/pixmaps/
   vimultisnips: &vimultisnips
     source: UltiSnips-2.2.tar.gz
+  vimjediftplugin: &vimjediftplugin
+    source: vim/jedi-vim/ftplugin
+  vimjediplugin: &vimjediplugin
+    source: vim/jedi-vim/plugin
+  vimjediautoload: &vimjediautoload
+    source: vim/jedi-vim/autoload
+  vimjediafter: &vimjediafter
+    source: vim/jedi-vim/after
 
 run_c:
   - log_i: "Settings VIM environment C language"
   - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -rv *vimplugintaglist ~/.vim/pluging/taglist.vim
+  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/taglist.vim
   - cl_f: cp -rv *vimdoc ~/.vim/
   - cl_f: cp -rv *vimpixmaps ~/.vim/
   - cl: tar -xzvf *vimultisnips -C ~/.vim/
@@ -41,10 +49,10 @@ run_c:
 run_java:
   - log_i: "Settings VIM environment for Java language"
   - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -rv *vimplugintaglist ~/.vim/pluging/taglist.vim
-  - cl_f: cp -rv *vimplugintaglist ~/.vim/plugin/javabrowser.vim
-  - cl_f: cp -rv *vimdoc ~/.vim/
-  - cl_f: cp -rv *vimpixmaps ~/.vim/
+  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/taglist.vim
+  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/javabrowser.vim
+  - cl_f: cp -v *vimdoc ~/.vim/
+  - cl_f: cp -v *vimpixmaps ~/.vim/
   - cl: tar -xzvf *vimultisnips -C ~/.vim/
   - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
   - log_i: "Calling *vim_update *vimrc"
@@ -53,11 +61,6 @@ run_java:
 run_ruby:
   - log_i: "Settings VIM environment for Ruby language"
   - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -rv *vimplugin ~/.vim/
-  - cl_f: cp -rv *vimdoc ~/.vim/
-  - cl_f: cp -rv *vimpixmaps ~/.vim/
-  - cl: tar -xzvf *vimultisnips -C ~/.vim/
-  - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
   - log_i: "Calling *vim_update *vimrc"
   - cl_f: bash *vim_update *vimrc
 
@@ -65,11 +68,10 @@ run_ruby:
 run_python:
   - log_i: "Settings VIM environment for Python language"
   - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -rv *vimplugin ~/.vim/
-  - cl_f: cp -rv *vimdoc ~/.vim/
-  - cl_f: cp -rv *vimpixmaps ~/.vim/
-  - cl: tar -xzvf *vimultisnips -C ~/.vim/
-  - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
+  - cl_f: cp -rv *vimjediftplugin ~/.vim/
+  - cl_f: cp -rv *vimjediautoload ~/.vim/
+  - cl_f: cp -rv *vimjediafter ~/.vim/
+  - cl_f: cp -rv *vimjediplugin ~/.vim/
   - log_i: "Calling *vim_update *vimrc"
   - cl_f: bash *vim_update *vimrc
 

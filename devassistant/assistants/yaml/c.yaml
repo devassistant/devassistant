@@ -11,7 +11,7 @@ c:
   - snippet: eclipse(dependencies_c)
 
   dependencies_vim:
-  - snippet: vim(dependencies_c)
+  - snippet: vim(dependencies)
 
   args:
     name:
@@ -39,12 +39,15 @@ c:
       source: c/
 
   run:
-  - log_i: 'Copying c source tree to project destination'
   - if not ls $name:
+    - log_i: 'Copying c source tree to project destination'
     - cl_f: cp -r *csources $name
     - dda_c: $name
     - cl: cd $name
     - snippet: git_init_add_commit
+    - cl: cd ..
+  - else:
+    - log_i: 'Project is already existing'  
   - if not defined $build:
     - cl: cd $name
     - log_i: 'Run autoreconf'
@@ -62,7 +65,7 @@ c:
     - log_i: 'automake: www.gnu.org/software/automake/manual/automake.html'
     - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
     - cl: cd ..
-  - if $vim:
+  - if defined $vim:
     - snippet: vim(run_c)
   - if defined $build:
     - log_i: 'Creating spec file'

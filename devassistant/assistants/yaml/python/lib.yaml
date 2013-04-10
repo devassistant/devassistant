@@ -18,6 +18,9 @@ lib:
     github:
       snippet: common_args
 
+    vim:
+      snippet: vim
+
   files:
     gitignore: &gitignore
       source: python/.gitignore
@@ -47,6 +50,8 @@ lib:
   - cl: sed -i 's|NAME|$basename|' README.rst
   - cl: cp *setuppy .
   - cl: sed -i 's|NAME|$basename|' setup.py
+  - if defined $vim:
+    - snippet: vim(run_python)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .

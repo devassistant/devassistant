@@ -8,6 +8,9 @@ django:
   dependencies_eclipse:
   - snippet: eclipse(dependencies_python)
 
+  dependencies_vim:
+  - snippet: vim(dependencies)
+
   args:
     name:
       snippet: common_args
@@ -17,6 +20,9 @@ django:
 
     github:
       snippet: common_args
+
+    vim:
+      snippet: vim
 
   files:
     gitignore: &gitignore
@@ -38,6 +44,8 @@ django:
   - cl: sed -i "s|'NAME'\(.\) ''|'NAME'\1 os.path.join(BASE_DIR, 'db.sqlite3')|" $basename/$basename/settings.py
   - dda_c: $basename
   - cl: cd $basename
+  - if defined $vim:
+    - snippet: vim(run_python)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .
