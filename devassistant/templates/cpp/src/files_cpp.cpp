@@ -12,7 +12,7 @@ int writeFile()
     if(testFile.is_open())
     {
         testFile << "This is basic line,\n";
-        testFile << "Created by C Development Assistant\n";
+        testFile << "Created by C++ Development Assistant\n";
         testFile.close();
         cout << "Text has been written to file successfully" << endl;
     }

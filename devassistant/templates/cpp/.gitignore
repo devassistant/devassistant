@@ -1,0 +1,39 @@
+# Git ignore for C/C++ language
+# Compiled object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so*
+*.dylib
+
+# Compiled Statis libraries
+*.lai
+*.la
+*.a
+
+# Autotools issues
+/autom4te.cache
+/stamp-h1
+Makefile
+/config.status
+/config.log
+/config.h
+/aclocal.m4
+Makefile.in
+/config/
+/config.h.in
+/configure
+*~
+/build*/
+m4
+GIT_VERSION
+libtool
+.deps
+*.tar*
+*.zip
+*.gcno
+*.gcda
+cproject.log
+

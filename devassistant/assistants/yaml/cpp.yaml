@@ -1,8 +1,8 @@
-c:
-  fullname: C Language Tool
+cpp:
+  fullname: C++ Language Tool
 
   dependencies:
-  - rpm: ['gcc', 'glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace', 'vim-enhanced', 'vim-X11']
+  - rpm: ['gcc-c++','glibc-devel', 'automake', 'autoconf','valgrind','gdb','ddd','strace', 'vim-enhanced', 'vim-X11']
 
   dependencies_build:
   - rpm: ['rpm-build','mock','eclipse-rpm-editor']
@@ -35,13 +35,13 @@ c:
       snippet: common_args
 
   files:
-    csources: &csources
-      source: c/
+    cppsources: &cppsources
+      source: cpp/
 
   run:
   - if not ls $name:
-    - log_i: 'Copying c source tree to project destination'
-    - cl_f: cp -r *csources $name
+    - log_i: 'Copying c++ source tree to project destination'
+    - cl_f: cp -r *cppsources $name
     - dda_c: $name
     - cl: cd $name
     - snippet: git_init_add_commit
@@ -78,7 +78,7 @@ c:
     - log_i: 'Creating RPM from tarball'
     - cl_f: rpmbuild -ba cdevelopmenttool.spec
   - if $eclipse:
-    - snippet: eclipse(run_c)
+    - snippet: eclipse(run_cpp)
   - if $github:
     - log_i: "Push on GitHub repository"
     - github: create_and_push

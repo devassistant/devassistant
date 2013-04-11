@@ -7,7 +7,9 @@ Group: Applications
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: libtool
-Requires: gcc
+Requires: gcc-c++
+BuildRequires: autoconf
+BuildRequires: automake
 
 %description
 This is sample spec file created on the base of c binary packages
@@ -25,10 +27,8 @@ make %{?_smp_mflags}
 rm -rf ${RPM_BUILD_ROOT}
 make install DESTDIR=$RPM_BUILD_ROOT
 
-install -p -m 755 -D src/client ${RPM_BUILD_ROOT}%{_bindir}/client
-install -p -m 755 -D src/server ${RPM_BUILD_ROOT}%{_bindir}/server
-install -p -m 755 -D src/fileOperations ${RPM_BUILD_ROOT}%{_bindir}/fileOperations
-install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/simpleThread
+install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/basic_class
+install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/fileOperations_cpp
 %post
 
 %postun
@@ -41,10 +41,8 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files
 %defattr(-,root,root)
-%{_bindir}/client
-%{_bindir}/fileOperations
-%{_bindir}/server
-%{_bindir}/simpleThread
+%{_bindir}/fileOperations_cpp
+%{_bindir}/basic_class
 
 %define date    %(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 
