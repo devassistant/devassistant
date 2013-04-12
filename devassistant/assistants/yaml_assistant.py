@@ -83,7 +83,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         kwargs = self.proper_kwargs(**kwargs)
         if self.role == 'modifier':
             to_run = self._get_section_to_run(section='run_{0}'.format('_'.join(kwargs['subassistant_path'])),
-                                              kwargs_override=False, # TODO: is override False correct?
+                                              kwargs_override=True,
                                               **kwargs)
         else:
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
