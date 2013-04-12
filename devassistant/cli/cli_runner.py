@@ -2,9 +2,9 @@ import logging
 import sys
 
 from devassistant.cli import argparse_generator
-from devassistant.cli import path_runner
 from devassistant import exceptions
 from devassistant import logger
+from devassistant import path_runner
 
 class CliRunner(object):
     @classmethod
