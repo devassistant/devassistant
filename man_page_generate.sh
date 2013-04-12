@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROG="./mybin.py"
+PROG="./devassistant.py"
 MAN_PAGE="devassistant.1"
 MAN_PAGE_FIRST="devassistant.1.head"
 MAN_PAGE_SECOND="devassistant.1.tail"

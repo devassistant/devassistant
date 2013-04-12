@@ -10,13 +10,14 @@ class YamlAssistantLoader(object):
     _classes = []
 
     @classmethod
-    def get_top_level_assistants(cls):
+    def get_top_level_assistants(cls, roles=['creator', 'modifier']):
         assistants = cls.get_all_classes()
         are_subassistants = set()
         for a in assistants:
             if hasattr(a, '_subassistants'):
                 are_subassistants.update(a._subassistants)
-        return filter(lambda x: x.name not in are_subassistants, assistants)
+        top_level = filter(lambda x: x.name not in are_subassistants, assistants)
+        return filter(lambda x: x.role in roles, top_level)
 
     @classmethod
     def get_all_classes(cls):
