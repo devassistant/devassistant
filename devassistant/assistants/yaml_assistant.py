@@ -87,19 +87,17 @@ class YamlAssistant(assistant_base.AssistantBase):
                                               **kwargs)
         else:
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
-        self._run_one_section(to_run, **kwargs)
+        self._run_one_section(to_run, kwargs)
 
-    def _run_one_section(self, section, **kwargs):
+    def _run_one_section(self, section, kwargs):
         execute_else = False
 
         for i, command_dict in enumerate(section):
             for comm_type, comm in command_dict.items():
                 if comm_type.startswith('run'):
                     s = self._get_section_to_run(section=comm, kwargs_override=False, **kwargs)
-                    self._run_one_section(s, **kwargs)
-                elif comm_type.startswith('$'):
-                    # intentionally pass kwargs as dict, not as keywords
-                    self._assign_variable(comm_type, comm, kwargs)
+                    # use copy of kwargs, so that local kwargs don't get modified
+                    self._run_one_section(s, copy.deepcopy(kwargs))
                 elif comm_type == 'snippet':
                     snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
                     section = snippet.get_run_section(section_name) if snippet else None
@@ -109,14 +107,19 @@ class YamlAssistant(assistant_base.AssistantBase):
                             kwargs['__files__'].append(snippet.get_files_section())
                         else:
                             kwargs['__files__'] = [snippet.get_files_section()]
-                        self._run_one_section(section, **kwargs)
+                        # use copy of kwargs, so that local kwargs don't get modified
+                        self._run_one_section(section, copy.deepcopy(kwargs))
                         kwargs['__files__'].pop()
                     else:
                         logger.warning('Couldn\'t find run section "{0}", in snippet {1} skipping.'.format(section_name,
                                                                                                            comm.split('(')[0]))
+                elif comm_type.startswith('$'):
+                    # intentionally pass kwargs as dict, not as keywords
+                    self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
                     if self._evaluate(comm_type[2:].strip(), **kwargs):
-                        self._run_one_section(comm, **kwargs)
+                        # run with original kwargs, so that they might be changed for code after this if
+                        self._run_one_section(comm, kwargs)
                     elif len(section) > i + 1:
                         next_section_dict = section[i + 1]
                         next_section_comm_type, next_section_comm = list(next_section_dict.items())[0]
@@ -128,7 +131,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                         logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
                     elif execute_else:
                         execute_else = False
-                        self._run_one_section(comm, **kwargs)
+                        # run with original kwargs, so that they might be changed for code after this if
+                        self._run_one_section(comm, kwargs)
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
                     run_command(comm_type, CommandFormatter.format(comm, self.template_dir, files, **kwargs), **kwargs)

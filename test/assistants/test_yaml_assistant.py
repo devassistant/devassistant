@@ -148,6 +148,18 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert ('INFO', '') in self.tlh.msgs
 
+    def test_assign_variable_in_condition_modifies_outer_scope(self):
+        self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
+        self.ya.run(foo='foo', spam='spam')
+        assert('INFO', 'spam') in self.tlh.msgs
+
+    def test_assign_variable_in_snippet_or_run_doesnt_modify_outer_scope(self):
+        self.ya._run = [{'run': 'run_blah'}, {'log_i': '$foo'}]
+        self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
+        self.ya.run(foo='foo', spam='spam')
+        assert('INFO', 'yes, I ran') in self.tlh.msgs
+        assert('INFO', 'foo') in self.tlh.msgs
+
     def test_run_snippet(self):
         self.ya._run = [{'snippet': 'mysnippet'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
