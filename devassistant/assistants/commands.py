@@ -28,6 +28,7 @@ class ClCommand(object):
         try:
             result = ClHelper.run_command(comm, fg, i)
         except plumbum.ProcessExecutionError as e:
+            logger.error(e)
             raise exceptions.RunException(e)
 
         return result.strip() if hasattr(result, 'strip') else result
@@ -114,12 +115,16 @@ class GitHubCommand(object):
         user = gh.get_user()
         try:
             if reponame in map(lambda x: x.name, user.get_repos()):
-                raise exceptions.RunException('Repository already exists on GiHub.')
+                msg = 'Repository already exists on GitHub'
+                logger.error(msg)
+                raise exceptions.RunException(msg)
             else:
                 new_repo = user.create_repo(reponame)
                 logger.info('Your new repository: {0}'.format(new_repo.html_url))
         except github.GithubException as e:
-            raise exceptions.RunException('GitHub error: {0}'.format(e))
+            msg = 'GitHub error: {0}'.format(e)
+            logger.log(msg)
+            raise exceptions.RunException(msg)
 
     @classmethod
     def _github_push(cls, **kwargs):

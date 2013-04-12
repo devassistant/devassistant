@@ -25,4 +25,5 @@ class CliRunner(object):
         try:
             pr.run()
         except exceptions.ExecutionException as ex:
-            logger.logger.error(*ex.args)
+            # error is already logged, just catch it and silently exit here
+            pass
