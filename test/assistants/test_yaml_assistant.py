@@ -123,6 +123,11 @@ class TestYamlAssistant(object):
         self.ya2.run(ide=True)
         assert ('DEBUG', 'ifelse') in self.tlh.msgs
 
+    def test_successful_command_with_no_output_evaluates_to_true(self):
+        self.ya._run = [{'if true': [{'log_i': 'success'}]}]
+        self.ya.run()
+        assert('INFO', 'success') in self.tlh.msgs
+
     def test_run_else(self):
         self.ya2.run()
         assert ('DEBUG', 'else') in self.tlh.msgs

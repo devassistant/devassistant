@@ -117,7 +117,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
-                    if self._evaluate(comm_type[2:].strip(), **kwargs):
+                    # check returned False (exit code != 0), because if commands succeeds without output, we get empty string
+                    if self._evaluate(comm_type[2:].strip(), **kwargs) != False:
                         # run with original kwargs, so that they might be changed for code after this if
                         self._run_one_section(comm, kwargs)
                     elif len(section) > i + 1:
