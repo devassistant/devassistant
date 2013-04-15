@@ -1,0 +1,45 @@
+rails:
+  fullname: Ruby on Rails
+  description: 'Ruby on Rails assistant will help you create a basic web application using Ruby on Rails framework.'
+
+  dependencies:
+  - rpm:
+    - rubygem(rails)
+    - rubygem(sqlite3)
+    - rubygem(jquery-rails)
+    - rubygem(coffee-rails)
+    - rubygem(sass-rails)
+    - rubygem(uglifier)
+    - rubygem(therubyracer)
+
+  args:
+    name:
+      snippet: common_args
+
+    github:
+      snippet: common_args
+
+    vim:
+      snippet: vim
+
+  run:
+  - $dirname: dirname $name
+  - $basename: basename $name
+  - log_i: 'Creating Ruby on Rails project $basename in $dirname ...'
+  - if ls $name:
+    - log_e: '$name already exists, cannot proceed.'
+  - cl: mkdir -p $dirname
+  - cl: cd $dirname
+  - cl_f: rails new $basename --skip-bundle
+  # Enable some JavaScript engine.
+  - cl: sed -i "/# gem 'therubyracer', :platforms => :ruby/ s/# //" $basename/Gemfile
+  - dda_c: $basename
+  - cl: cd $basename
+  - if defined $vim:
+    - snippet: vim(run_ruby)
+  - snippet: git_init_add_commit
+  - if defined $github:
+    - github: create_and_push
+  - log_i: 'Ruby on Rails project $basename in $dirname has been created.'
+  - log_i: 'To run the application use: rails s'
+  - log_i: 'For more information about Ruby on Rails project visit http://rubyonrails.org'
