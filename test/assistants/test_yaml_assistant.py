@@ -127,6 +127,11 @@ class TestYamlAssistant(object):
         self.ya2.run()
         assert ('DEBUG', 'else') in self.tlh.msgs
 
+    def test_run_failed_if_doesnt_log_error(self):
+        self.ya._run = [{'if ls /dontlogfailure': [{'dont': 'runthis'}]}]
+        self.ya.run()
+        assert 'ERROR' not in map(lambda x: x[0], self.tlh.msgs)
+
     def test_assign_variable_from_nonexisting_variable(self):
         self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
         self.ya.run()

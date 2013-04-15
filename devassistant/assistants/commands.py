@@ -21,14 +21,18 @@ class ClCommand(object):
     def run(cls, comm_type, comm, **kwargs):
         fg = False
         i = False
+        log_error = True
         if 'f' in comm_type:
             fg = True
         if 'i' in comm_type:
             i = True
+        if 'n' in comm_type:
+            log_error = False
         try:
             result = ClHelper.run_command(comm, fg, i)
         except plumbum.ProcessExecutionError as e:
-            logger.error(e)
+            if log_error:
+                logger.error(e)
             raise exceptions.RunException(e)
 
         return result.strip() if hasattr(result, 'strip') else result

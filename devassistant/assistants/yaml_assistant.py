@@ -203,7 +203,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             result = self._get_var_name(expr[8:]) in kwargs
         else:
             try:
-                result = run_command('cl', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
+                result = run_command('cl_n', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException:
                 result = False
 
