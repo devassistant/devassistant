@@ -126,7 +126,7 @@ run_java:
 - cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
 - cl: cp .project $eclipse/$name/.project
 - cl: cp .classpath $eclipse/$name/.classpath
-- if ls .settings/:
+- if test -d .settings/:
   - cl: cp -r .settings/ $eclipse/$name/
 # TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
 #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./

@@ -32,7 +32,7 @@ django:
   - $dirname: dirname $name
   - $basename: basename $name
   - log_i: 'Creating Django project $basename in $dirname ...'
-  - if ls $name:
+  - if test -d $name:
     - log_e: '$name already exists, cannot proceed.'
   - cl: cd $dirname
   - cl: django_admin startproject $basename

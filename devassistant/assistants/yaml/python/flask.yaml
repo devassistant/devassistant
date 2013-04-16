@@ -38,7 +38,7 @@ flask:
   - $dirname: dirname $name
   - $basename: basename $name
   - log_i: 'Creating Flask project $basename in $dirname ...'
-  - if ls $name:
+  - if test -d $name:
     - log_e: '$name already exists, cannot proceed.'
   - cl: mkdir -p $name
   - dda_c: $name

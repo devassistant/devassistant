@@ -24,7 +24,7 @@ class TestYamlAssistant(object):
         self.ya2._files = {}
         self.ya2.role = 'creator'
         self.ya2._run = [{'if $ide':
-                            [{'if ls /notachance': [{'log_d': 'ifif'}]},
+                            [{'if test -d /notachance': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
                          {'else': [{'log_d': 'else'}]}]
 
@@ -133,7 +133,7 @@ class TestYamlAssistant(object):
         assert ('DEBUG', 'else') in self.tlh.msgs
 
     def test_run_failed_if_doesnt_log_error(self):
-        self.ya._run = [{'if ls /dontlogfailure': [{'dont': 'runthis'}]}]
+        self.ya._run = [{'if test -d /dontlogfailure': [{'dont': 'runthis'}]}]
         self.ya.run()
         assert 'ERROR' not in map(lambda x: x[0], self.tlh.msgs)
 
