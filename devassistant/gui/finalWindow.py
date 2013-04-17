@@ -24,6 +24,7 @@ class finalWindow(object):
         self.finalWindow.hide()
 
     def open_window(self, widget, data=None):
+        logging.info(self.parent.kwargs)
         logging.info("open window")
         selection = self.parent.listView.get_selection()
         subselection = self.parent.sublistView.get_selection()
@@ -94,7 +95,10 @@ class finalWindow(object):
         logging.info("run button")
         for btn in self.button:
             #logging.info(btn)
+            if btn.get_active() == True:
+                self.parent.kwargs[btn.get_label()]=None
             logging.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
+        logging.info(self.parent.kwargs)
         self.parent.runWindow.open_window(widget, data)
         self.finalWindow.hide()
         

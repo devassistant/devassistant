@@ -5,6 +5,7 @@ Created on Wed Apr  3 13:16:47 2013
 @author: Petr Hracek
 """
 
+import os
 import mainWindow
 import finalWindow
 from devassistant.logger import logging
@@ -37,10 +38,30 @@ class pathWindow(object):
             md.run()
             md.destroy()
         else:
-            self.parent.finalWindow.open_window(widget, data)
-            self.pathWindow.hide()
+            # check whether directory is existing
+            if os.path.isdir(self.dirName.get_text()) == False:
+                md=Gtk.MessageDialog(None,
+                                     Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                     Gtk.MessageType.WARNING,
+                                     Gtk.ButtonsType.CLOSE,
+                                     "Directory {0} does not exists".format(self.dirName.get_text()))
+                md.run()
+                md.destroy()
+            elif os.path.isdir(self.dirName.get_text()+"/"+self.entryProjectName.get_text()) == True:
+                md=Gtk.MessageDialog(None,
+                                     Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                     Gtk.MessageType.WARNING,
+                                     Gtk.ButtonsType.CLOSE,
+                                     "Directory {0} already exists".format(self.dirName.get_text()+"/"+self.entryProjectName.get_text()))
+                md.run()
+                md.destroy()
+            else:
+                self.parent.kwargs['name']=self.dirName.get_text()+"/"+self.entryProjectName.get_text()
+                self.parent.finalWindow.open_window(widget, data)
+                self.pathWindow.hide()
         
     def open_window(self, widget, data=None):
+        logging.info(type(self.parent.kwargs))
         logging.info("Prev window")
         self.pathWindow.show_all()
    

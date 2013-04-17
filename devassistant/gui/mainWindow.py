@@ -28,7 +28,7 @@ class mainWindow(object):
         self.mainWin = self.builder.get_object("mainWindow")
         self.pathWindow = pathWindow.pathWindow(self, self.mainWin, self.builder)
         self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
-        self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder)
+        self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, DevelAssistants())
         self.mainhandlers = {
                     "on_nextMainBtn_clicked": self.next_window,
                     "on_cancelMainBtn_clicked": Gtk.main_quit,
@@ -55,6 +55,7 @@ class mainWindow(object):
         self.main, self.subas = DevelAssistants().get_subassistant_chain()
         self.store = Gtk.ListStore(str)
         self.substore = Gtk.ListStore(str)
+        self.kwargs = {}
         k = 0
         for ass in self.subas:
             self.store.append([ass[0].fullname])
@@ -99,6 +100,9 @@ class mainWindow(object):
                     if tool == ass[0].fullname:
                         if not ass[1]:
                             logging.info("All is OK, we can go to the next screen")
+                            self.kwargs['subassistant_0']=ass[0].name
+                            if self.kwargs.has_key('sub_assistant_1') == True:
+                                del (self.kwargs['sub_assistnant_1'])
                             self.pathWindow.open_window(widget, data=None)
                             self.mainWin.hide()
                         else:
@@ -113,8 +117,13 @@ class mainWindow(object):
                                 md.run()
                                 md.destroy()
                             else:
-                                self.pathWindow.open_window(widget, data=None)
-                                self.mainWin.hide()
+                                subtool = submodel[subpath_list][0]
+                                for sub in ass[1]:
+                                    if subtool == sub[0].fullname:
+                                        self.kwargs['subassistant_0']=ass[0].name
+                                        self.kwargs['subassistant_1']=sub[0].name
+                                        self.pathWindow.open_window(widget, data=None)
+                                        self.mainWin.hide()
 
     def open_window(self, widget, data=None):
         logging.info("Prev window")
@@ -129,6 +138,9 @@ class mainWindow(object):
         if path_list != None:
             tool = model[path_list][0]
             if tool in map(lambda x: x[0].fullname, self.subas):
+                logging.info(type(self.subas))
+                subassistant = self.subas.get_subassistant_chain()
+                logging.info(subassistant)
                 for ass in self.subas:
                     if tool == ass[0].fullname:
                         if not ass[1]:
