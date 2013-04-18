@@ -4,13 +4,13 @@ rails:
 
   dependencies:
   - rpm:
-    - rubygem-rails
-    - rubygem-sqlite3
-    - rubygem-jquery-rails
-    - rubygem-coffee-rails
-    - rubygem-sass-rails
-    - rubygem-uglifier
-    - rubygem-therubyracer
+    - rubygem(rails)
+    - rubygem(sqlite3)
+    - rubygem(jquery-rails)
+    - rubygem(coffee-rails)
+    - rubygem(sass-rails)
+    - rubygem(uglifier)
+    - rubygem(therubyracer)
 
   args:
     name:
