@@ -87,7 +87,11 @@ class YamlAssistant(assistant_base.AssistantBase):
                                               **kwargs)
         else:
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
+        if 'pre_run' in dir(self):
+            self._run_one_section(self.pre_run, kwargs)
         self._run_one_section(to_run, kwargs)
+        if 'post_run' in dir(self):
+            self._run_one_section(self.post_run, kwargs)
 
     def _run_one_section(self, section, kwargs):
         execute_else = False

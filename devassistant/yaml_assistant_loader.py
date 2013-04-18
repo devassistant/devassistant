@@ -77,5 +77,7 @@ class YamlAssistantLoader(object):
         for k, v in attrs.items():
             if k.startswith('run') or k.startswith('dependencies'):
                 setattr(CustomYamlAssistant, '_{0}'.format(k), v)
+        CustomYamlAssistant.pre_run = attrs.get('pre_run', [])
+        CustomYamlAssistant.post_run = attrs.get('post_run', [])
 
         return CustomYamlAssistant
