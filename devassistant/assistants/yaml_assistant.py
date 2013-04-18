@@ -18,10 +18,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""
         if self.role == 'modifier':
-            try:
-                kwargs.update(run_command('dda_r', kwargs.get('path', '.'), **kwargs))
-            except BaseException as e:
-                raise exceptions.RunException('Couldn\'t find properly formatted .devassistant in current dir: {0}'.format(e))
+            kwargs.update(run_command('dda_r', kwargs.get('path', '.'), **kwargs))
         return kwargs
 
     def logging(self, **kwargs):

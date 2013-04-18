@@ -71,8 +71,13 @@ class DotDevassistantCommand(object):
         """Don't use this directly from assistants (yet), raises uncaught exception
         if anything goes wrong."""
         dot_devassistant = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
-        with open(dot_devassistant, 'r') as stream:
-            result = yaml.load(stream)
+        try:
+            with open(dot_devassistant, 'r') as stream:
+                result = yaml.load(stream)
+        except IOError as e:
+            msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
+            logger.error(msg)
+            raise exceptions.RunException(e)
 
         result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
         return result
