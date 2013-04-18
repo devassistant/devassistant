@@ -1,5 +1,5 @@
 dependencies:
-- rpm: ['vim-nerdtree', 'vim-enhanced', 'vim-command-t', 'vim-X11']
+- rpm: ['vim-nerdtree', 'vim-enhanced', 'vim-command-t', 'vim-X11', 'ctags']
 
 args:
   vim:
