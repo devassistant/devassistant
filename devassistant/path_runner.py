@@ -5,7 +5,6 @@ class PathRunner(object):
     def __init__(self, path, parsed_args):
         self.path = path
         self.parsed_args = parsed_args
-        print("path {0} and parsed_args {1}".format(path,parsed_args))
 
 
     def _logging(self):
