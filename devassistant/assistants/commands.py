@@ -70,7 +70,7 @@ class DotDevassistantCommand(object):
     def _dot_devassistant_read(cls, comm, **kwargs):
         """Don't use this directly from assistants (yet), raises uncaught exception
         if anything goes wrong."""
-        dot_devassistant = os.path.join(comm, '.devassistant')
+        dot_devassistant = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
         with open(dot_devassistant, 'r') as stream:
             result = yaml.load(stream)
 

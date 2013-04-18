@@ -36,3 +36,13 @@ args:
       'Create a Git Hub repository and push your sources there (uses your system username or specified name)'
     nargs:
       '?'
+
+  # meant for modifier assistants when specifying path to already existing project
+  path:
+    flags:
+    - -p
+    - --path
+    help:
+      'Specify path to you project (defaults to current working directory if not used).'
+    nargs:
+      '?'

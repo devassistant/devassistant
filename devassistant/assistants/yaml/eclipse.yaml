@@ -13,6 +13,8 @@ eclipse:
       - --eclipse
       default: ~/workspace
       help: Specify your workspace other than ~/workspace.
+    path:
+      snippet: common_args
 
   dependencies:
   - snippet: eclipse
@@ -27,6 +29,9 @@ eclipse:
   - snippet: eclipse(dependencies_java)
 
 
+  pre_run:
+  - if $path:
+    - cl: cd $path
 
   run_python_flask:
   - snippet: eclipse(run_python)
