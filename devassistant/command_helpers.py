@@ -36,7 +36,7 @@ class ClHelper(object):
             run_cmd = cmd.popen(stderr=subprocess.STDOUT)
             lines = []
             while run_cmd.poll() == None:
-                line = run_cmd.stdout.readline().strip('\n')
+                line = run_cmd.stdout.readline().strip(b'\n')
                 if line:
                     enc = getattr(run_cmd, 'encoding', 'utf-8')
                     lines.append(line.decode(enc))
