@@ -1,3 +1,5 @@
+import logging
+
 from flexmock import flexmock
 import pytest
 
@@ -89,7 +91,7 @@ class TestYamlAssistant(object):
 
     def test_run_runs_in_foreground_if_asked(self):
         self.ya._run = [{'cl_f': 'ls'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('ls', True, False)
+        flexmock(ClHelper).should_receive('run_command').with_args('ls', True, logging.DEBUG)
         self.ya.run(foo='bar')
 
     def test_run_logs_command_at_debug(self):

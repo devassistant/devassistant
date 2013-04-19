@@ -12,7 +12,7 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, fg=False, log_as_info=False):
+    def run_command(cls, cmd_str, fg=False, log_level=logging.DEBUG):
         """Runs a command from string, e.g. "cp foo bar" """
         split_string = cmd_str.split()
 
@@ -30,7 +30,7 @@ class ClHelper(object):
                 cmd = cmd[i]
             # log the invocation
             formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
-            cls.log_and_print(formatted_string, fg, 'd')
+            cls.log_and_print(formatted_string, fg, log_level)
 
             # actually invoke the command
             run_cmd = cmd.popen(stderr=subprocess.STDOUT)
@@ -41,7 +41,7 @@ class ClHelper(object):
                     enc = getattr(run_cmd, 'encoding', 'utf-8')
                     lines.append(line.decode(enc))
                     formatted_string = settings.COMMAND_OUTPUT_STRING.format(line=line)
-                    cls.log_and_print(formatted_string, fg, 'd')
+                    cls.log_and_print(formatted_string, fg, log_level)
 
             retcode = run_cmd.poll()
             result = '\n'.join(lines)
@@ -52,10 +52,10 @@ class ClHelper(object):
                 raise plumbum.ProcessExecutionError(cmd_str, retcode, result, '')
 
     @classmethod
-    def log_and_print(cls, line, fg, level='d'):
+    def log_and_print(cls, line, fg, level):
         if fg:
             print(line)
-        logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[level]], line)
+        logger.log(level, line)
 
     @classmethod
     def _connect_quoted(cls, arg_list):

@@ -20,16 +20,16 @@ class ClCommand(object):
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
         fg = False
-        i = False
+        log_level = logging.DEBUG
         log_error = True
         if 'f' in comm_type:
             fg = True
         if 'i' in comm_type:
-            i = True
+            log_level = logging.INFO
         if 'n' in comm_type:
             log_error = False
         try:
-            result = ClHelper.run_command(comm, fg, i)
+            result = ClHelper.run_command(comm, fg, log_level)
         except plumbum.ProcessExecutionError as e:
             if log_error:
                 logger.error(e)
