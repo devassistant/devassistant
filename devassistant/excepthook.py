@@ -25,8 +25,12 @@ def excepthook(type, value, traceback):
 
     if run_section_frames:
         pp = DAPrettyPrinter()
-        print('In {0} assistant'.format(run_section_frames[0].f_locals['self'].fullname))
-        print('  At {0}'.format(run_section_frames[0].f_locals['self']._source_file))
+        # keep last file to reference it if we are still in the file, but in
+        # different run section/condition
+        last_file = run_section_frames[0].f_locals['self']._source_file
+        print('File {0}'.format(last_file))
+        print('  In {0} assistant'.format(run_section_frames[0].f_locals['self'].fullname))
+
         for frame in run_section_frames:
             current_command_dict = frame.f_locals['command_dict']
             print_up_to = frame.f_locals['section'].index(current_command_dict) + 1
@@ -37,7 +41,11 @@ def excepthook(type, value, traceback):
             print('\n')
             ccd_short = str(current_command_dict)
             ccd_short = ccd_short[:46] + ' ...' if len(ccd_short) > 50 else ccd_short
-            print('In {0}:'.format(ccd_short))
+
+            if 'snippet' in frame.f_locals:
+                last_file = frame.f_locals['snippet'].path
+            print('File {0}:'.format(last_file))
+            print('  In {0}:'.format(ccd_short))
 
     old_excepthook(type, value, traceback)
 
