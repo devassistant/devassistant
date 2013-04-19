@@ -22,21 +22,49 @@ jsf:
   files:
     jsfexample: &jsfexample
       source: java/jsf/
+    classpath: &classpath
+      source: java/jsf/.classpath
+    eclipseproject: &eclipseproject
+      source: java/jsf/.eclipseproject
+    runscript: &runscript
+      source: java/jsf/run
+    spec: &spec
+      source: java/jsf/devassistant-jsf-example.spec
+    gitignore: &gitignore
+      source: java/jsf/.gitignore
+    pom: &pom
+      source: java/jsf/pom.xml
+
 
   run:
+  - $dirname: dirname $name
+  - $basename: basename $name
   - log_i: 'Creating simple JSF project'
+  - if test -d $name:
+    - log_e: '$name already exists, cannot proceed.'
   - cl: mkdir -p $name
-  - cl: cp -r *jsfexample $name
+  - $abspath: readlink -f $name
+  - dda_c: ${name}
+  - cl: cd ${name}
+  - cl: cp *classpath .
+  - cl: cp *eclipseproject .
+  - cl: cp *runscript .
+  - cl: cp *pom .
+  - cl: cp *spec .
+  - cl: cp *gitignore .
+  - cl: cd *jsfexample
+  - cl: cp -r ./src/ ${abspath}
+  - cl: cd ${abspath}
   # create local git repository
   - log_i: 'Creating git repository'
-  - cl: cd $name/jsf
   - snippet: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
   #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
   - cl: tar czf devassistant-jsf-example.tar.gz src/ pom.xml run
   - log_i: 'Done'
-  - if defined $github:
-    - github: create_and_push
   - if $eclipse:
     - snippet: eclipse(run_java)
+  - if $github:
+    - log_i: 'Push on GitHub repository'
+    - github: create_and_push
