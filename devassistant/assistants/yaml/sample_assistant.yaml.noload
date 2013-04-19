@@ -1,8 +1,7 @@
 c: # name of the assistant as will be used on commandline; should be the same as filename
   fullname: C Language Tool # descriptive name that will be shown to user
-  description: This is a description of what this assistant does.
-
   subassistants: [foo, bar] # names of subassistants of this assistant
+  description: This is a description of what this assistant does.
 
   dependencies: # dependencies of this assistant; you can use either names/provides of packages or yum groups
   # these dependencies will always be installed
@@ -10,6 +9,9 @@ c: # name of the assistant as will be used on commandline; should be the same as
 
   dependencies_mock: # these dependencies will be installed after 'default' when mock parameter is used
   - rpm: [mock]
+
+  dependencies_eclipse:
+  - snippet: eclipse(dependencies_c) # install dependencies from snippet eclipse, section dependencies_c
 
   logging: # additional logging handlers, only file handlers are currently supported
   - file: ['debug', '$name/cproject.log'] # runs in the very beginning and logs everything at debug level
@@ -61,8 +63,8 @@ c: # name of the assistant as will be used on commandline; should be the same as
   - $foo: basename $name # assign result of cli command basename $name to variable $foo
   - cl_f: echo $foo
   - snippet: git_init_add_commit # this will run the named snippet at this place
+  - snippet: spamspamspam(run_forrest_run) # will run section run_forrest_run of snippet spamspamspam
 
   run_mock: # if mock parameter is specified, use this instead of "run"
-  - cl_f: mock blah blah # "cl_f" runs the command in foreground, displaying its output interactively
-  - cl_i: ls spam # "cl_i" makes the command itself logged not on debug level, but on info level, that shows by default
-  - cl_if: ls beans # combines cl_i and cl_f
+  - cl_f: mock blah blah # "cl_f" runs the command in foreground, displaying its output interactively (and without the INFO: prefixed like it is with cl_i)
+  - cl_i: ls spam # "cl_i" works pretty much like cl_f, but instead of printing directly, it logs the command on INFO level (== it is displayed to user in cli, for example)
