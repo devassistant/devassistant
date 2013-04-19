@@ -1,8 +1,12 @@
+import logging
 import os
+import subprocess
+import sys
 
 import plumbum
 from plumbum.cmd import ls, sudo
 
+from devassistant import exceptions
 from devassistant import settings
 from devassistant.logger import logger
 
@@ -10,7 +14,6 @@ class ClHelper(object):
     @classmethod
     def run_command(cls, cmd_str, fg=False, log_as_info=False):
         """Runs a command from string, e.g. "cp foo bar" """
-        result = None
         split_string = cmd_str.split()
 
         for i, s in enumerate(split_string):
@@ -26,19 +29,33 @@ class ClHelper(object):
             for i in fixed_args:
                 cmd = cmd[i]
             # log the invocation
-            log_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
-            if log_as_info:
-                logger.info(log_string)
-            else:
-                logger.debug(log_string)
+            formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
+            cls.log_and_print(formatted_string, fg, 'd')
 
             # actually invoke the command
-            if fg:
-                result = cmd & plumbum.FG
-            else:
-                result = cmd()
+            run_cmd = cmd.popen(stderr=subprocess.STDOUT)
+            lines = []
+            while run_cmd.poll() == None:
+                line = run_cmd.stdout.readline().strip('\n')
+                if line:
+                    enc = getattr(run_cmd, 'encoding', 'utf-8')
+                    lines.append(line.decode(enc))
+                    formatted_string = settings.COMMAND_OUTPUT_STRING.format(line=line)
+                    cls.log_and_print(formatted_string, fg, 'd')
 
-        return result
+            retcode = run_cmd.poll()
+            result = '\n'.join(lines)
+            if retcode == 0:
+                logger.debug(lines)
+                return result
+            else:
+                raise plumbum.ProcessExecutionError(cmd_str, retcode, result, '')
+
+    @classmethod
+    def log_and_print(cls, line, fg, level='d'):
+        if fg:
+            print(line)
+        logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[level]], line)
 
     @classmethod
     def _connect_quoted(cls, arg_list):

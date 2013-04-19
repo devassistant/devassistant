@@ -97,12 +97,11 @@ class TestYamlAssistant(object):
         # distributions (due to Fedora's usrmove), so use something that should be common
         self.ya._run = [{'cl': 'id'}]
         self.ya.run(foo='bar')
-        assert self.tlh.msgs == [('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id'))]
-
+        assert ('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id')) in self.tlh.msgs
     def test_run_logs_command_at_info_if_asked(self):
         self.ya._run = [{'cl_i': 'id'}]
         self.ya.run(foo='bar')
-        assert self.tlh.msgs == [('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id'))]
+        assert ('INFO', settings.COMMAND_LOG_STRING.format(cmd='/usr/bin/id')) in self.tlh.msgs
 
     def test_log(self):
         self.ya._run = [{'log_w': 'foo!'}]
