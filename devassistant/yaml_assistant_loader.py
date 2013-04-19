@@ -24,8 +24,9 @@ class YamlAssistantLoader(object):
         if not cls._classes:
             parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
 
-            for y in parsed_yamls.values():
+            for s, y in parsed_yamls.items():
                 cls._classes.append(cls.class_from_yaml(y))
+                cls._classes[-1]._source_file = s
 
             for sa in cls._classes:
                 if hasattr(sa, '_subassistants'):

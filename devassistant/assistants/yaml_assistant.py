@@ -101,15 +101,16 @@ class YamlAssistant(assistant_base.AssistantBase):
                     self._run_one_section(s, copy.deepcopy(kwargs))
                 elif comm_type == 'snippet':
                     snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
-                    section = snippet.get_run_section(section_name) if snippet else None
-                    if section:
+                    # don't shadow "section" variable because we need to access it in sys.excepthook
+                    sect = snippet.get_run_section(section_name) if snippet else None
+                    if sect:
                         # push and pop snippet's files into kwargs
                         if '__files__' in kwargs:
                             kwargs['__files__'].append(snippet.get_files_section())
                         else:
                             kwargs['__files__'] = [snippet.get_files_section()]
                         # use copy of kwargs, so that local kwargs don't get modified
-                        self._run_one_section(section, copy.deepcopy(kwargs))
+                        self._run_one_section(sect, copy.deepcopy(kwargs))
                         kwargs['__files__'].pop()
                     else:
                         logger.warning('Couldn\'t find run section "{0}", in snippet {1} skipping.'.format(section_name,

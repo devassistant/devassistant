@@ -1,10 +1,14 @@
+import sys
+
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 
 class PathRunner(object):
-    def __init__(self, path, parsed_args):
+    def __init__(self, path, parsed_args, override_sys_excepthook=True):
         self.path = path
         self.parsed_args = parsed_args
+        if override_sys_excepthook:
+            import devassistant.excepthook
 
     def _logging(self):
         """Registers a logging handler from the leaf assistant, if specified"""
