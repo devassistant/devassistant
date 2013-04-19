@@ -21,7 +21,7 @@ class CliRunner(object):
         ch = assistant.get_subassistant_chain()
         parsed_args = argparse_generator.ArgparseGenerator.generate_argument_parser(ch).parse_args()
         path = assistant.get_selected_subassistant_path(**vars(parsed_args))
-        pr = path_runner.PathRunner(path, parsed_args)
+        pr = path_runner.PathRunner(path, vars(parsed_args))
         try:
             pr.run()
         except exceptions.ExecutionException as ex:

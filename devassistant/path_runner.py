@@ -6,11 +6,10 @@ class PathRunner(object):
         self.path = path
         self.parsed_args = parsed_args
 
-
     def _logging(self):
         """Registers a logging handler from the leaf assistant, if specified"""
         if 'logging' in vars(self.path[-1].__class__) or isinstance(self.path[-1], yaml_assistant.YamlAssistant):
-            self.path[-1].logging(**vars(self.parsed_args))
+            self.path[-1].logging(**self.parsed_args)
 
     def _run_path_errors(self):
         """Gathers errors from *Assistant.errors methods
@@ -20,7 +19,7 @@ class PathRunner(object):
         errors = []
         for a in self.path:
             if 'errors' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                errors.extend(a.errors(**vars(self.parsed_args)))
+                errors.extend(a.errors(**self.parsed_args))
         return errors
 
     def _run_path_dependencies(self):
@@ -30,7 +29,7 @@ class PathRunner(object):
         """
         for a in self.path:
             if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                a.dependencies(**vars(self.parsed_args))
+                a.dependencies(**self.parsed_args)
 
     def _run_path_run(self):
         """Runs *Assistant.run methods.
@@ -39,7 +38,7 @@ class PathRunner(object):
         """
         for a in self.path:
             if 'run' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                a.run(**vars(self.parsed_args))
+                a.run(**self.parsed_args)
 
     def run(self):
         """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.
