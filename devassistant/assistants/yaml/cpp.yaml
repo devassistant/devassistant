@@ -47,23 +47,22 @@ cpp:
     - snippet: git_init_add_commit
     - cl: cd ..
   - else:
-    - log_i: 'Project is already existing'  
+    - log_i: 'Project already exists'  
   - if not defined $build:
     - cl: cd $name
     - log_i: 'Run autoreconf'
     - cl_f: autoreconf --install
     - log_i: 'Run configure script'
     - cl_f: ./configure
-    - log_i: 'Compilation sources'
+    - log_i: 'Compiling sources'
     - cl_f: make
-    - log_i: 'Calling make distcheck for creating tar ball'
+    - log_i: 'Run make distcheck to create tar ball'
     - cl_f: make distcheck
-    - log_i: 'Inside $name project is the README file where are described steps'
-    - log_i: 'how to integrate a new sources into your project.'
-    - log_i: 'In case of any troubles please read manual for automake / autoconf.'
+    - log_i: 'In $name/README file are described steps how to add and build'
+    - log_i: 'new C++ source file by autotools'
     - log_i: 'More information about autotools can be found here:'
-    - log_i: 'automake: www.gnu.org/software/automake/manual/automake.html'
-    - log_i: 'autoconf: www.gnu.org/software/autoconf/manual/autoconf.html' 
+    - log_i: 'automake: http://www.gnu.org/software/automake/manual/automake.html'
+    - log_i: 'autoconf: http://www.gnu.org/software/autoconf/manual/autoconf.html' 
     - cl: cd ..
   - if defined $vim:
     - snippet: vim(run_c)
