@@ -1,6 +1,5 @@
 import os
 
-import jinja2
 import plumbum
 
 from devassistant import exceptions
@@ -24,7 +23,8 @@ class AssistantBase(object):
 
     # don't override these, used internally
     _dot_devassistant_path = None
-    _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+    # we don't use this currently, so let's keep it commented so that we don't depend on jinja for no reason
+    # _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     def get_subassistants(self):
         return []

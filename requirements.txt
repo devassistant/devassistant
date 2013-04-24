@@ -1,4 +1,3 @@
-jinja2
 plumbum
 PyGithub
 PyYAML
