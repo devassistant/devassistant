@@ -41,6 +41,7 @@ class mainWindow(object):
                     "on_pathWindow_delete_event": Gtk.main_quit,
                     "on_finalWindow_delete_event": Gtk.main_quit,
                     "on_runWindow_delete_event": Gtk.main_quit,
+                    "on_runWindow_visibility_notify_event" : self.runWindow.visibility_event,
                     "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                     "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
                     "on_runFinalBtn_clicked": self.finalWindow.run_btn,
@@ -139,8 +140,6 @@ class mainWindow(object):
             tool = model[path_list][0]
             if tool in map(lambda x: x[0].fullname, self.subas):
                 logging.info(type(self.subas))
-                subassistant = self.subas.get_subassistant_chain()
-                logging.info(subassistant)
                 for ass in self.subas:
                     if tool == ass[0].fullname:
                         if not ass[1]:
