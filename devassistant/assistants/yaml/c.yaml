@@ -44,6 +44,8 @@ c:
     - cl_f: cp -r *csources $name
     - dda_c: $name
     - cl: cd $name
+    - cl: sed -i s|CDevelopmentTool|$name| configure.ac
+    - cl: mv cdevelopmenttool.spec $name.spec
     - snippet: git_init_add_commit
     - cl: cd ..
   - else:
@@ -69,13 +71,13 @@ c:
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
-    - cl: rm -f ~/rpmbuild/SPECS/cdevelopmenttool.spec
-    - cl: cp cdevelopmenttool-1.0.tar.gz ~/rpmbuild/SOURCES
-    - cl: cp cdevelopmenttool.spec ~/rpmbuild/SPECS
+    - cl: rm -f ~/rpmbuild/SPECS/$name.spec
+    - cl: cp $name-0.0.tar.gz ~/rpmbuild/SOURCES
+    - cl: cp $name.spec ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
-    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/cdevelopmenttool.spec
+    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/$name.spec
     - log_i: 'Creating RPM from tarball'
-    - cl_f: rpmbuild -ba cdevelopmenttool.spec
+    - cl_f: rpmbuild -ba $name.spec
   - if $eclipse:
     - snippet: eclipse(run_c)
   - if $github:

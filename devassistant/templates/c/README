@@ -20,8 +20,8 @@ client .... This program is used as client for server which is run on the specif
 
 basic_class ... is the simple program which demostrates who to create simple class in C++.
 
-=== How to add new C/C++ file to project ===
-Here is described guide line how to add new C/C++ file to automake tools.
+=== How to add new C file to project ===
+Here is described guide line how to add new C file to automake tools.
 
 Let's say that we have added into src/ directory of your already created project
 file named my_test.c. To be sure that file is compile free we need to add them into
