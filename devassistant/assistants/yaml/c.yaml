@@ -46,6 +46,7 @@ c:
     - cl: cd $name
     - cl: sed -i s|CDevelopmentTool|$name| configure.ac
     - cl: mv cdevelopmenttool.spec $name.spec
+    - cl: sed -i s|cdevelopmenttool|$name| $name.spec
     - snippet: git_init_add_commit
     - cl: cd ..
   - else:
@@ -56,10 +57,11 @@ c:
     - cl_f: autoreconf --install
     - log_i: 'Run configure script'
     - cl_f: ./configure
+    - cl_f: make clean
     - log_i: 'Compiling sources'
     - cl_f: make
     - log_i: 'Run make distcheck to create tar ball'
-    - cl_f: make distcheck
+    - cl_f: make dist
     - log_i: 'In $name/README file are described steps how to add and build'
     - log_i: 'new C source file by autotools'
     - log_i: 'More information about autotools can be found here:'
@@ -72,8 +74,8 @@ c:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
     - cl: rm -f ~/rpmbuild/SPECS/$name.spec
-    - cl: cp $name-0.0.tar.gz ~/rpmbuild/SOURCES
-    - cl: cp $name.spec ~/rpmbuild/SPECS
+    - cl: cp $name/$name-0.0.tar.gz ~/rpmbuild/SOURCES
+    - cl: cp $name/$name.spec ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
     - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/$name.spec
     - log_i: 'Creating RPM from tarball'

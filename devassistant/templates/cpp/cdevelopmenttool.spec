@@ -1,5 +1,5 @@
 Name: cdevelopmenttool
-Version: 1.0
+Version: 0.0
 Release: 0
 Summary: C Language example delivered by Development Assistant Tool
 License: BSD and GPLv3+ and GPLv2+ and GPLv2
@@ -12,7 +12,7 @@ BuildRequires: autoconf
 BuildRequires: automake
 
 %description
-This is sample spec file created on the base of c binary packages
+This is sample spec file created on the base of c++ binary packages
 It is a part of Development Assistant Tool
 
 
@@ -27,8 +27,8 @@ make %{?_smp_mflags}
 rm -rf ${RPM_BUILD_ROOT}
 make install DESTDIR=$RPM_BUILD_ROOT
 
-install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/basic_class
-install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/fileOperations_cpp
+install -p -m 755 -D basic_class ${RPM_BUILD_ROOT}%{_bindir}/basic_class
+install -p -m 755 -D fileOperations_cpp ${RPM_BUILD_ROOT}%{_bindir}/fileOperations_cpp
 %post
 
 %postun

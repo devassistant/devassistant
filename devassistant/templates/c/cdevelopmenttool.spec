@@ -1,5 +1,5 @@
 Name: cdevelopmenttool
-Version: 1.0
+Version: 0.0
 Release: 0
 Summary: C Language example delivered by Development Assistant Tool
 License: BSD and GPLv3+ and GPLv2+ and GPLv2
@@ -25,10 +25,10 @@ make %{?_smp_mflags}
 rm -rf ${RPM_BUILD_ROOT}
 make install DESTDIR=$RPM_BUILD_ROOT
 
-install -p -m 755 -D src/client ${RPM_BUILD_ROOT}%{_bindir}/client
-install -p -m 755 -D src/server ${RPM_BUILD_ROOT}%{_bindir}/server
-install -p -m 755 -D src/fileOperations ${RPM_BUILD_ROOT}%{_bindir}/fileOperations
-install -p -m 755 -D src/simpleThread ${RPM_BUILD_ROOT}%{_bindir}/simpleThread
+install -p -m 755 -D client ${RPM_BUILD_ROOT}%{_bindir}/client
+install -p -m 755 -D server ${RPM_BUILD_ROOT}%{_bindir}/server
+install -p -m 755 -D fileOperations ${RPM_BUILD_ROOT}%{_bindir}/fileOperations
+install -p -m 755 -D simpleThread ${RPM_BUILD_ROOT}%{_bindir}/simpleThread
 %post
 
 %postun
