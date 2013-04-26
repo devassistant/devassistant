@@ -24,8 +24,6 @@ files:
     source: vim/plugin/taglist.vim
   vimpixmaps: &vimpixmaps
     source: vim/pixmaps/
-  vimultisnips: &vimultisnips
-    source: UltiSnips-2.2.tar.gz
   vimjediftplugin: &vimjediftplugin
     source: vim/jedi-vim/ftplugin
   vimjediplugin: &vimjediplugin
@@ -41,8 +39,6 @@ run_c:
   - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/taglist.vim
   - cl_f: cp -rv *vimdoc ~/.vim/
   - cl_f: cp -rv *vimpixmaps ~/.vim/
-  - cl: tar -xzvf *vimultisnips -C ~/.vim/
-  - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
   - log_i: "Calling *vim_update *vimrc"
   - cl_f: bash *vim_update *vimrc
 
@@ -53,8 +49,6 @@ run_java:
   - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/javabrowser.vim
   - cl_f: cp -v *vimdoc ~/.vim/
   - cl_f: cp -v *vimpixmaps ~/.vim/
-  - cl: tar -xzvf *vimultisnips -C ~/.vim/
-  - cl: mv ~/.vim/UltiSnips-2.2 ~/.vim/UltiSnips
   - log_i: "Calling *vim_update *vimrc"
   - cl_f: bash *vim_update *vimrc
 
