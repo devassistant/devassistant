@@ -156,15 +156,16 @@
               <object class="GtkTreeView" id="storeView">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="border_width">6</property>
+                <property name="events">GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK</property>
                 <property name="model">storeList</property>
                 <property name="headers_visible">False</property>
                 <property name="headers_clickable">False</property>
+                <property name="enable_search">False</property>
+                <signal name="cursor-changed" handler="on_store_view_cursor_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="padding">10</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -578,7 +579,7 @@
   </object>
   <object class="GtkListStore" id="storeList">
     <columns>
-      <!-- column-name Available -->
+      <!-- column-name assistants -->
       <column type="gchararray"/>
     </columns>
   </object>

@@ -16,7 +16,7 @@ gladefile = "./devel-assistant.glade"
 
 class DevelAssistants(assistant_base.AssistantBase):
     def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants()
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['creator'])
         return sa
 
 
@@ -45,7 +45,7 @@ class mainWindow(object):
                     "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                     "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
                     "on_runFinalBtn_clicked": self.finalWindow.run_btn,
-                    "on_store_list_selection_changed": self.store_view_cursor_changed,
+                    "on_store_view_cursor_changed": self.store_view_cursor_changed,
                         }
         self.builder.connect_signals(self.mainhandlers)
         self.listView = self.builder.get_object("storeView")
@@ -134,7 +134,9 @@ class mainWindow(object):
         logging.info("Cancel window")
 
     def store_view_cursor_changed(self, selection):
-        (model, path_list) = selection.get_selected()
+        logging.info("cursor changed")
+        select = selection.get_selection()
+        (model, path_list) = select.get_selected()
         self.substore.clear()
         if path_list != None:
             tool = model[path_list][0]
