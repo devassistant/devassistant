@@ -11,7 +11,7 @@ import pathWindow
 import finalWindow
 import runWindow
 
-gladefile = "./devel-assistant.glade"
+gladefile = "./devassistant/gui/devel-assistant.glade"
 
 
 class DevelAssistants(assistant_base.AssistantBase):

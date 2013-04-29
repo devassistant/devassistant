@@ -24,6 +24,7 @@
 
 import logging
 import sys
+from devassistant.gui import mainWindow
 
 
 try:
@@ -33,5 +34,4 @@ except RuntimeError, e:
     print "%s: %r" % (e.__class__.__name__, str(e))
     sys.exit(1)
 
-import mainWindow
 mainWindow.mainWindow()
