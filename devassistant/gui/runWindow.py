@@ -22,7 +22,7 @@ class RunLoggingHandler(logging.Handler):
 
     def emit(self, record):
         text_iter = self.textbuffer.get_end_iter()
-        self.textbuffer.insert(text_iter,record.getMessage())
+        self.textbuffer.insert(text_iter,"{0}\n".format(record.getMessage()))
 
 class runWindow(object):
     def __init__(self,  parent, finalWindow, builder, assistant):
@@ -34,7 +34,7 @@ class runWindow(object):
         self.textViewLog.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.assistant = assistant
         self.tlh = RunLoggingHandler(self.textbuffer)
-        #logger.addHandler(self.tlh)
+        logger.addHandler(self.tlh)
         FORMAT = "%(asctime)s %(levelname)s %(message)s"
         self.tlh.setFormatter(logging.Formatter(FORMAT))
         logger.setLevel(logging.INFO)

@@ -8,7 +8,7 @@ Created on Wed Apr  3 13:16:47 2013
 import os
 import mainWindow
 import finalWindow
-from devassistant.logger import logging
+from devassistant.logger import logger
 from gi.repository import Gtk
 
 class pathWindow(object):
@@ -61,8 +61,8 @@ class pathWindow(object):
                 self.pathWindow.hide()
         
     def open_window(self, widget, data=None):
-        logging.info(type(self.parent.kwargs))
-        logging.info("Prev window")
+        logger.info(type(self.parent.kwargs))
+        logger.info("Prev window")
         self.pathWindow.show_all()
    
     def prev_window(self, widget, data=None):

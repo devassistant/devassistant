@@ -7,7 +7,7 @@ Created on Wed Apr  3 13:16:47 2013
 
 import mainWindow
 import pathWindow
-from devassistant.logger import logging
+from devassistant.logger import logger
 from gi.repository import Gtk
 
 class finalWindow(object):
@@ -24,8 +24,8 @@ class finalWindow(object):
         self.finalWindow.hide()
 
     def open_window(self, widget, data=None):
-        logging.info(self.parent.kwargs)
-        logging.info("open window")
+        logger.info(self.parent.kwargs)
+        logger.info("open window")
         selection = self.parent.listView.get_selection()
         subselection = self.parent.sublistView.get_selection()
         title = Gtk.Label("List of all available options:")
@@ -61,12 +61,12 @@ class finalWindow(object):
                                     elif sub.flags[1] == '--github':
                                         actBtn.connect("clicked", self.github_toggled)
                         else:
-                            logging.info("final_open_window {0}".format(submodel[subpath_list][0]))
+                            logger.info("final_open_window {0}".format(submodel[subpath_list][0]))
                             for sub in ass[1]:
-                                logging.info("ass[1] is: {0}".format(sub[0].fullname))
+                                logger.info("ass[1] is: {0}".format(sub[0].fullname))
                                 if submodel[subpath_list][0] == sub[0].fullname:
                                     for arg in sub[0].args:
-                                        logging.info(arg)
+                                        logger.info(arg)
                                         if arg.flags[1] != '--name':
                                             label = Gtk.Label()
                                             label.set_text(arg.kwargs['help'])
@@ -82,23 +82,23 @@ class finalWindow(object):
         self.boxMain.pack_start(boxFinal, False, False, 6)
         self.finalWindow.show_all()
     def eclipse_toggled(self, widget, data=None):
-        logging.info("Eclipse_clicked")
+        logger.info("Eclipse_clicked")
         active = widget.get_active()
-        logging.info(active)
+        logger.info(active)
         
     def github_toggled(self, widget, data=None):
-        logging.info("Github clicked")
+        logger.info("Github clicked")
         active = widget.get_active()
-        logging.info(active)
+        logger.info(active)
 
     def run_btn(self, widget, data=None):
-        logging.info("run button")
+        logger.info("run button")
         for btn in self.button:
-            #logging.info(btn)
+            #logger.info(btn)
             if btn.get_active() == True:
                 self.parent.kwargs[btn.get_label()]=None
-            logging.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
-        logging.info(self.parent.kwargs)
+            logger.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
+        logger.info(self.parent.kwargs)
         self.parent.runWindow.open_window(widget, data)
         self.finalWindow.hide()
         

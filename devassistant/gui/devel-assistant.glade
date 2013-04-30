@@ -6,6 +6,7 @@
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
+    <property name="gravity">center</property>
     <signal name="delete-event" handler="on_finalWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="boxMain">
@@ -126,7 +127,9 @@
     <property name="can_focus">False</property>
     <property name="border_width">6</property>
     <property name="title" translatable="yes">Development Assistant wizard</property>
-    <property name="window_position">center</property>
+    <property name="resizable">False</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="gravity">center</property>
     <signal name="delete-event" handler="on_mainWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box1">
@@ -516,7 +519,6 @@
     <property name="border_width">6</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
-    <signal name="visibility-notify-event" handler="on_runWindow_visibility_notify_event" swapped="no"/>
     <signal name="delete-event" handler="on_runWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box17">
@@ -529,6 +531,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">in</property>
+            <signal name="visibility-notify-event" handler="on_scrolledwindow1_visibility_notify_event" swapped="no"/>
             <child>
               <object class="GtkTextView" id="textViewLog">
                 <property name="visible">True</property>
