@@ -132,7 +132,7 @@ class GitHubCommand(object):
                 logger.info('Your new repository: {0}'.format(new_repo.html_url))
         except github.GithubException as e:
             msg = 'GitHub error: {0}'.format(e)
-            logger.log(msg)
+            logger.error(msg)
             raise exceptions.RunException(msg)
 
     @classmethod
