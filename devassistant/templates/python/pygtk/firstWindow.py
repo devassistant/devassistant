@@ -13,6 +13,7 @@ class firstWindow(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
         self.firstWin = self.builder.get_object("firstWindow")
+        self.entrytextview = self.builder.get_object("entrytextview")
         self.secondWin = secondWindow.secondWindow(self, self.firstWin, self.builder)
         self.lastWin = lastWindow.lastWindow(self, self.secondWin, self.builder)
         self.mainhandlers = {
@@ -33,6 +34,7 @@ class firstWindow(object):
                     "on_treeview_cursor_changed": self.secondWin.cursor_changed,
                     "on_centeredBtn_clicked" : self.lastWin.centered_clicked,
                     "on_editBtn_clicked" : self.lastWin.editable_clicked,
+                    "on_listviewexample_cursor_changed": self.store_view_cursor_changed,
                         }
         self.builder.connect_signals(self.mainhandlers)
         self.listView = self.builder.get_object("listviewexample")
@@ -79,6 +81,9 @@ class firstWindow(object):
         self.firstWin.show_all()
 
     def store_view_cursor_changed(self, selection):
-        logging.info("cursor changed")
         select = selection.get_selection()
-        (model, path_list) = select.get_selected()
+        if select != None:
+            (model, path_list) = select.get_selected()
+            if path_list != None:
+                row = model[path_list]
+                self.entrytextview.set_text("{0} - {1}({2})".format(row[0],row[1],row[2]))

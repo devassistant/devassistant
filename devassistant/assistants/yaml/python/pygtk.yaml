@@ -1,0 +1,51 @@
+pygtk:
+  fullname: PyGTK
+  description: 'PyGTK assistant will help you create a basic PyGTK application with some basic functionality of widgets.'
+
+  dependencies:
+  - rpm: ['glade3', 'gtk3', 'pygtk2','pygobject2', 'pygobject3']
+
+  dependencies_eclipse:
+  - snippet: eclipse(dependencies_python)
+
+  dependencies_vim:
+  - snippet: vim(dependencies)
+
+  args:
+    name:
+      snippet: common_args
+
+    eclipse:
+      snippet: eclipse
+
+    github:
+      snippet: common_args
+
+    vim:
+      snippet: vim
+
+  files:
+    gitignore: &gitignore
+      source: python/.gitignore
+    pygtksources: &pygtksources
+      source: python/pygtk
+
+  run:
+  - $dirname: dirname $name
+  - $basename: basename $name
+  - log_i: 'Creating PyGTK project $basename in $dirname ...'
+  - if test -d $name:
+    - log_e: '$name already exists, cannot proceed.'
+  - else:
+    - cl_i: cp -r *pygtksources $name
+  - cl: cd $name
+  - if defined $vim:
+    - snippet: vim(run_python)
+  - if $eclipse:
+    - snippet: eclipse(run_python)
+  - cl: cp *gitignore .
+  - snippet: git_init_add_commit
+  - if defined $github:
+    - github: create_and_push
+  - log_i: 'PyGTK project $basename in $dirname has been created.'
+  - log_i: 'To run the application use: ./template-gui.py'

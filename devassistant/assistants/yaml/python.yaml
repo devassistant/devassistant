@@ -1,6 +1,6 @@
 python:
   fullname: Python
-  subassistants: [django, flask, lib]
+  subassistants: [django, flask, lib, pygtk]
   description: This is base Python assistant, you have to choose a specific project type.
 
   dependencies:
