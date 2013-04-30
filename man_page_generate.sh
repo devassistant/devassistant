@@ -33,4 +33,5 @@ fi
 cat $MAN_PAGE_FIRST > $MAN_PAGE
 parse $PROG
 cat $MAN_PAGE_SECOND >> $MAN_PAGE
-gzip $MAN_PAGE
+#Man page should not be compresses in source tree
+#gzip $MAN_PAGE
