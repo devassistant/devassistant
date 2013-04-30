@@ -3,7 +3,7 @@ flask:
   description: 'Flask assistant will help you create a basic Flask project and install its dependencies.'
 
   dependencies:
-  - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf] # TODO: add flask-script
+  - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf, python-flask-script]
 
   dependencies_eclipse:
   - snippet: eclipse(dependencies_python)
