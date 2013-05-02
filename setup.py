@@ -68,7 +68,7 @@ setup(
     include_package_data = True,
     entry_points = {'console_scripts':['devassistant=devassistant.bin:CreatorAssistant.main',
                                        'devassistant-modify=devassistant.bin:ModifierAssistant.main']},
-    install_requires=['plumbum', 'PyYaml', 'PyGithub'],
+    install_requires=['plumbum', 'PyYaml', 'PyGithub>=1.14.2'],
     setup_requires = [],
     classifiers = ['Development Status :: 3 - Alpha',
                    'Environment :: Console',
