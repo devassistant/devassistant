@@ -46,7 +46,6 @@ pygtk:
   - cl: cp *gitignore .
   - snippet: git_init_add_commit
   - if defined $github:
-    - cl: cd ..
     - github: create_and_push
   - log_i: 'PyGTK project $basename in $dirname has been created.'
   - log_i: 'To run the application use: ./template-gui.py'

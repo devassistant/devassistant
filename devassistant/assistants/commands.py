@@ -178,7 +178,7 @@ class GitHubCommand(object):
 
     @classmethod
     def _github_create_and_push(cls, **kwargs):
-        ClHelper.run_command('cd {0}'.format(os.path.abspath(os.path.expanduser(kwargs['name']))))
+        # we assume we're in the project directory
         logger.info('Registering your project on GitHub as {0}/{1}...'.format(cls._github_username(**kwargs),
                                                                               cls._github_reponame(**kwargs)))
         cls._github_create_repo(**kwargs)

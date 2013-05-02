@@ -66,6 +66,5 @@ jsf:
   - if $eclipse:
     - snippet: eclipse(run_java)
   - if $github:
-    - log_i: 'Push on GitHub repository'
-    - cl: cd ..
+    - log_i: 'Push to GitHub repository'
     - github: create_and_push
