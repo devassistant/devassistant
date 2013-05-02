@@ -48,11 +48,10 @@ cpp:
     - cl: mv cdevelopmenttool.spec $name.spec
     - cl: sed -i s|cdevelopmenttool|$name| $name.spec
     - snippet: git_init_add_commit
-    - cl: cd ..
   - else:
+    - cl: cd $name
     - log_i: 'Project already exists'  
   - if not defined $build:
-    - cl: cd $name
     - log_i: 'Run autoreconf'
     - cl_f: autoreconf --install
     - log_i: 'Run configure script'
@@ -67,7 +66,6 @@ cpp:
     - log_i: 'More information about autotools can be found here:'
     - log_i: 'automake: http://www.gnu.org/software/automake/manual/automake.html'
     - log_i: 'autoconf: http://www.gnu.org/software/autoconf/manual/autoconf.html' 
-    - cl: cd ..
   - if defined $vim:
     - snippet: vim(run_c)
   - if defined $build:

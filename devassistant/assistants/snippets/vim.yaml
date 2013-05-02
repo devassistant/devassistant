@@ -1,5 +1,8 @@
 dependencies:
-- rpm: ['vim-nerdtree', 'vim-enhanced', 'vim-command-t', 'vim-X11', 'ctags']
+- rpm: ['vim-nerdtree', 'vim-enhanced', 'vim-command-t', 'vim-X11', 'ctags', 'vim-taglist']
+
+dependencies_python:
+- rpm: ['vim-jedi', 'python-jedi']
 
 args:
   vim:
@@ -16,56 +19,8 @@ files:
     source: vim_update.sh
   vimrc: &vimrc
     source: vimrc
-  vimdoc: &vimdoc
-    source: vim/doc/
-  vimpluginjava: &vimpluginjava
-    source: vim/plugin/javabrowser.vim
-  vimplugintaglist: &vimplugintaglist
-    source: vim/plugin/taglist.vim
-  vimpixmaps: &vimpixmaps
-    source: vim/pixmaps/
-  vimjediftplugin: &vimjediftplugin
-    source: vim/jedi-vim/ftplugin
-  vimjediplugin: &vimjediplugin
-    source: vim/jedi-vim/plugin
-  vimjediautoload: &vimjediautoload
-    source: vim/jedi-vim/autoload
-  vimjediafter: &vimjediafter
-    source: vim/jedi-vim/after
 
-run_c:
-  - log_i: "Settings VIM environment C language"
-  - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/taglist.vim
-  - cl_f: cp -rv *vimdoc ~/.vim/
-  - cl_f: cp -rv *vimpixmaps ~/.vim/
+run:
+  - log_i: "Settings VIM environment"
   - log_i: "Calling *vim_update *vimrc"
   - cl_f: bash *vim_update *vimrc
-
-run_java:
-  - log_i: "Settings VIM environment for Java language"
-  - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/taglist.vim
-  - cl_f: cp -v *vimplugintaglist ~/.vim/plugin/javabrowser.vim
-  - cl_f: cp -v *vimdoc ~/.vim/
-  - cl_f: cp -v *vimpixmaps ~/.vim/
-  - log_i: "Calling *vim_update *vimrc"
-  - cl_f: bash *vim_update *vimrc
-
-run_ruby:
-  - log_i: "Settings VIM environment for Ruby language"
-  - cl: mkdir -p ~/.vim/plugin
-  - log_i: "Calling *vim_update *vimrc"
-  - cl_f: bash *vim_update *vimrc
-
-
-run_python:
-  - log_i: "Settings VIM environment for Python language"
-  - cl: mkdir -p ~/.vim/plugin
-  - cl_f: cp -rv *vimjediftplugin ~/.vim/
-  - cl_f: cp -rv *vimjediautoload ~/.vim/
-  - cl_f: cp -rv *vimjediafter ~/.vim/
-  - cl_f: cp -rv *vimjediplugin ~/.vim/
-  - log_i: "Calling *vim_update *vimrc"
-  - cl_f: bash *vim_update *vimrc
-

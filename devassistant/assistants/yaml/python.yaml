@@ -5,3 +5,6 @@ python:
 
   dependencies:
   - rpm: ['python']
+
+  dependencies_vim:
+  - snippet: vim(dependencies_python)
