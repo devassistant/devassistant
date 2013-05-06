@@ -31,9 +31,9 @@ class ClHelper(object):
         proc = subprocess.Popen(cmd_str, stdin=stdin_pipe, stdout=stdout_pipe, stderr=stderr_pipe, shell=True)
         # decode because of Python 3
         # str because of Python 2, so that it doesn't print u'foo', but just 'foo'
-        stdout, stderr = map(lambda x: str(x.strip().decode('utf8')) if x else '', proc.communicate())
-        loggable_stdout = '\n'.join(map(lambda cmd: settings.OUTPUT_LOG_STRING.format(cmd=cmd), stdout.splitlines()))
-        loggable_stderr = '\n'.join(map(lambda cmd: settings.OUTPUT_LOG_STRING.format(cmd=cmd), stderr.splitlines()))
+        stdout, stderr = map(lambda x: x.strip().decode('utf8') if x else '', proc.communicate())
+        loggable_stdout = '\n'.join(map(lambda line: settings.COMMAND_OUTPUT_STRING.format(line=line), stdout.splitlines()))
+        loggable_stderr = '\n'.join(map(lambda line: settings.COMMAND_OUTPUT_STRING.format(line=line), stderr.splitlines()))
         if not fg:
             if stdout:
                 logger.log(log_level, loggable_stdout)
