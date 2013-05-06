@@ -3,7 +3,6 @@ import logging
 import os
 
 import github
-import plumbum
 import yaml
 
 from devassistant import exceptions
@@ -30,7 +29,7 @@ class ClCommand(object):
             log_error = False
         try:
             result = ClHelper.run_command(comm, fg, log_level)
-        except plumbum.ProcessExecutionError as e:
+        except exceptions.ClException as e:
             if log_error:
                 logger.error(e)
             raise exceptions.RunException(e)
@@ -150,19 +149,19 @@ class GitHubCommand(object):
         try:
             result = ClHelper.run_command("git remote show origin")
             has_remote = True
-        except plumbum.ProcessExecutionError as e:
+        except exceptions.ClException as e:
             pass
 
         if not has_remote:
             try:
                 ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
-            except plumbum.ProcessExecutionError as e:
+            except exceptions.ClException as e:
                 pass # TODO: what exactly happens here?
 
         try:
             ClHelper.run_command("git push origin master", True, True)
             has_push = True
-        except plumbum.ProcessExecutionError as ep:
+        except exceptions.ClException as ep:
             pass
         if not has_push:
             try:
@@ -171,9 +170,9 @@ class GitHubCommand(object):
                 try:
                     ClHelper.run_command("git push origin master", True, True)
                     has_push = True
-                except plumbum.ProcessExecutionError as ep:
+                except exceptions.ClException as ep:
                     pass
-            except plumbum.ProcessExecutionError as e:
+            except exceptions.ClException as e:
                 pass # TODO: what exactly happens here?
 
     @classmethod

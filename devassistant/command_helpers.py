@@ -2,9 +2,7 @@ import logging
 import os
 import subprocess
 import sys
-
-import plumbum
-from plumbum.cmd import ls, sudo
+import threading
 
 from devassistant import exceptions
 from devassistant import settings
@@ -14,109 +12,38 @@ class ClHelper(object):
     @classmethod
     def run_command(cls, cmd_str, fg=False, log_level=logging.DEBUG):
         """Runs a command from string, e.g. "cp foo bar" """
-        split_string = cmd_str.split()
-
-        for i, s in enumerate(split_string):
-            if '~' in s:
-                split_string[i] = os.path.expanduser(s)
-        # hack for cd to behave like shell cd and stay in the directory
-        if split_string[0] == 'cd':
-            plumbum.local.cwd.chdir(split_string[1])
-        else:
-            cmd = plumbum.local[split_string[0]]
-            fixed_args = cls._connect_quoted(split_string[1:])
-            fixed_args = cls._strip_trailing_quotes(fixed_args)
-            for i in fixed_args:
-                cmd = cmd[i]
-            # log the invocation
-            formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd)
-            cls.log_and_print(formatted_string, fg, log_level)
-
-            # actually invoke the command
-            run_cmd = cmd.popen(stderr=subprocess.STDOUT)
-            lines = []
-            while run_cmd.poll() == None:
-                line = run_cmd.stdout.readline().strip(b'\n')
-                if line:
-                    enc = getattr(run_cmd, 'encoding', 'utf-8')
-                    lines.append(line.decode(enc))
-                    formatted_string = settings.COMMAND_OUTPUT_STRING.format(line=line)
-                    cls.log_and_print(formatted_string, fg, log_level)
-
-            retcode = run_cmd.poll()
-            result = '\n'.join(lines)
-            if retcode == 0:
-                logger.debug(lines)
-                return result
-            else:
-                raise plumbum.ProcessExecutionError(cmd_str, retcode, result, '')
-
-    @classmethod
-    def log_and_print(cls, line, fg, level):
+        formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd_str)
         if fg:
-            print(line)
-        logger.log(level, line)
+            print(formatted_string)
+        logger.log(log_level, formatted_string)
 
-    @classmethod
-    def _connect_quoted(cls, arg_list):
-        """Returns list where quoted arguments to CL commands are not split
-        into multiple items as in given arg_list. Certainly not an optimal
-        solution (would need a finite state machine to do that properly...)
+        if cmd_str.startswith('cd '):
+            # special-case cd to behave like shell cd and stay in the directory
+            try:
+                os.chdir(os.path.expanduser(cmd_str.split()[1]))
+            except OSError as e:
+                raise exceptions.ClException(cmd_str, 1, '', str(e))
+            return ''
 
-        See https://github.com/bkabrda/devassistant/issues/24 for problem report.
-        Args:
-            arg_list: list of arguments not containing the actual invoked binary
-        Returns:
-            list of arguments where no quoted strings are separated
-        """
-        i = 0
-        proper_list = []
-        constructing = []
-        looking_for = None
-        in_middle = False
+        stdin_pipe = None
+        stdout_pipe = None if fg else subprocess.PIPE
+        stderr_pipe = None if fg else subprocess.PIPE
+        proc = subprocess.Popen(cmd_str, stdin=stdin_pipe, stdout=stdout_pipe, stderr=stderr_pipe, shell=True)
+        # decode because of Python 3
+        # str because of Python 2, so that it doesn't print u'foo', but just 'foo'
+        stdout, stderr = map(lambda x: str(x.strip().decode('utf8')) if x else '', proc.communicate())
+        loggable_stdout = '\n'.join(map(lambda cmd: settings.OUTPUT_LOG_STRING.format(cmd=cmd), stdout.splitlines()))
+        loggable_stderr = '\n'.join(map(lambda cmd: settings.OUTPUT_LOG_STRING.format(cmd=cmd), stderr.splitlines()))
+        if not fg:
+            if stdout:
+                logger.log(log_level, loggable_stdout)
+            if stderr:
+                logger.log(log_level, loggable_stderr)
 
-        while i < len(arg_list):
-            if in_middle:
-                constructing.append(arg_list[i])
-            elif not '"' in arg_list[i] and not "'" in arg_list[i] and not looking_for:
-                proper_list.append(arg_list[i])
-            else:
-                if looking_for and looking_for in arg_list[i]:
-                    constructing.append(arg_list[i])
-                    proper_list.append(' '.join(constructing))
-                    looking_for = None
-                    in_middle = False
-                    constructing = []
-                elif looking_for and looking_for not in arg_list[i]:
-                    constructing.append(arg_list[i])
-                else:
-                    single_i = arg_list[i].find("'")
-                    double_i = arg_list[i].find('"')
-                    if single_i >= 0 and double_i >=0:
-                        # if we find both, we need to take the first one
-                        looking_for = arg_list[i][min(single_i, double_i)]
-                    else:
-                        looking_for = arg_list[i][single_i if single_i > -1 else double_i]
-                    if arg_list[i].count(looking_for) % 2 == 0: # even number of quotes in this string => just add it
-                        proper_list.append(arg_list[i])
-                        looking_for = None
-                    else:
-                        constructing.append(arg_list[i])
-            i += 1
-
-        # append any remains from constructing (odd number of quotes/other problem...)
-        proper_list.extend(constructing)
-
-        return proper_list
-
-    @classmethod
-    def _strip_trailing_quotes(cls, arg_list):
-        proper_list = []
-
-        for arg in arg_list:
-            proper_list.append(arg.strip('"\''))
-
-        return proper_list
+        if proc.returncode == 0:
+            return stdout.strip()
+        else:
+            raise exceptions.ClException(cmd_str, proc.returncode, stdout, stderr if not fg else 'See command output above.')
 
 class RPMHelper(object):
     c_rpm = 'rpm'
@@ -126,8 +53,8 @@ class RPMHelper(object):
         try:
             # if we install by e.g. virtual provide, then rpm -q foo will fail
             # therefore we always use rpm -q --whatprovides foo
-            return plumbum.local[cls.c_rpm]['-q']['--whatprovides'](rpm_name).strip()
-        except plumbum.ProcessExecutionError:
+            return ClHelper.run_command(' '.join([cls.c_rpm, '-q', '--whatprovides', rpm_name.strip()]))
+        except exceptions.ClException:
             return False
 
     @classmethod
@@ -154,22 +81,21 @@ class YUMHelper(object):
 
     @classmethod
     def install(cls, *args):
-        cmd = plumbum.local[cls.c_yum]['install']
+        cmd = ['sudo', cls.c_yum, 'install']
+        quoted_args = map(lambda arg: '"{arg}"'.format(arg=arg) if '(' in arg else arg, args)
+        cmd.extend(quoted_args)
         logger.info('Installing: {0}'.format(', '.join(args)))
-        for arg in args:
-            cmd = cmd[arg]
         try:
-            (sudo[cmd]) & plumbum.FG
+            ClHelper.run_command(' '.join(cmd), fg=True, log_level=logging.INFO)
             return args
-        except plumbum.ProcessExecutionError:
+        except exceptions.ClException:
             return False
 
     @classmethod
     def is_group_installed(cls, group):
-        cmd = plumbum.local[cls.c_yum]['group', 'list', '"{0}"'.format(group)]
         logger.info('Checking for presence of group {0}...'.format(group))
 
-        output = cmd()
+        output = ClHelper.run_command(' '.join([cls.c_yum, 'group', 'list', '"{0}"'.format(group)]))
         if 'Installed Groups' in output:
             logger.info('Found %s', group)
             return True
@@ -185,19 +111,19 @@ class PathHelper(object):
     def path_exists(cls, path):
         try:
             return ls(path).strip()
-        except plumbum.ProcessExecutionError:
+        except exceptions.ClException:
             return False
 
     @classmethod
     def mkdir_p(cls, path):
         try:
-            return plumbum.local[cls.c_mkdir]('-p', path)
-        except plumbum.ProcessExecutionError:
+            return ClHelper.run_command(' '.join([cls.c_mkdir, '-p', path]))
+        except exceptions.ClException:
             return False
 
     @classmethod
     def cp(cls, src, dest):
         try:
-            return plumbum.local[cls.c_cp](src, dest)
-        except plumbum.ProcessExecutionError:
+            return ClHelper.run_command(' '.join([cls.c_cp, src, dest]))
+        except exceptions.ClException:
             return False

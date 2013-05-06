@@ -23,7 +23,8 @@ class PyTest(Command):
         pass
 
     def run(self):
-        import plumbum
+        from devassistant.command_helpers import ClHelper
+        from devassistant.exceptions import ClException
         # only one test runner => just run the tests
         runners = ['py.test-2.7', 'py.test-3.3']
         if self.test_runner:
@@ -35,18 +36,14 @@ class PyTest(Command):
                 print('Running tests using "{0}":'.format(runner))
 
             retcode = 0
-            try:
-                cmd = plumbum.local[runner]
-            except plumbum.commands.CommandNotFound as e:
-                print('{0} runner is not present, skipping.'.format(runner))
-                continue
-
+            cmd = [runner]
             try:
                 for a in self.args:
-                    cmd = cmd[a]
-                (cmd['test']) & plumbum.FG
-            except plumbum.ProcessExecutionError as e:
-                retcode = 1
+                    cmd.append(a)
+                cmd.append('test')
+                ClHelper.run_command(' '.join(cmd), fg=True)
+            except ClException as e:
+                retcode = e.returncode
                 print(e.stdout)
 
         raise SystemExit(retcode)
@@ -68,7 +65,7 @@ setup(
     include_package_data = True,
     entry_points = {'console_scripts':['devassistant=devassistant.bin:CreatorAssistant.main',
                                        'devassistant-modify=devassistant.bin:ModifierAssistant.main']},
-    install_requires=['plumbum', 'PyYaml', 'PyGithub>=1.14.2'],
+    install_requires=['PyYaml', 'PyGithub>=1.14.2'],
     setup_requires = [],
     classifiers = ['Development Status :: 3 - Alpha',
                    'Environment :: Console',

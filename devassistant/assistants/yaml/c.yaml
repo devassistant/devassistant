@@ -44,9 +44,9 @@ c:
     - cl_i: cp -r *csources $name
     - dda_c: $name
     - cl: cd $name
-    - cl: sed -i s|CDevelopmentTool|$name| configure.ac
+    - cl: sed -i "s|CDevelopmentTool|$name|" configure.ac
     - cl: mv cdevelopmenttool.spec $name.spec
-    - cl: sed -i s|cdevelopmenttool|$name| $name.spec
+    - cl: sed -i "s|cdevelopmenttool|$name|" $name.spec
     - snippet: git_init_add_commit
   - else:
     - cl: cd $name

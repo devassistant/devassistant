@@ -1,7 +1,5 @@
 import os
 
-import plumbum
-
 from devassistant import exceptions
 from devassistant import settings
 from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper
@@ -119,7 +117,6 @@ class AssistantBase(object):
 
     def _git_create_repo(self, path, gitignore, **kwargs):
         PathHelper.cp(gitignore, path)
-        with plumbum.local.cwd(os.path.abspath(os.path.expanduser(path))):
-            ClHelper.run_command('git init')
-            ClHelper.run_command('git add .')
-            ClHelper.run_command('git commit -m "Initial commit."')
+        ClHelper.run_command('git init')
+        ClHelper.run_command('git add .')
+        ClHelper.run_command('git commit -m "Initial commit."')

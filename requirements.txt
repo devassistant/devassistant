@@ -1,3 +1,2 @@
-plumbum
 PyGithub
 PyYAML
