@@ -40,7 +40,7 @@ pygtk:
     - cl_i: cp -r *pygtksources $name
   - cl: cd $name
   - if defined $vim:
-    - snippet: vim(run_python)
+    - snippet: vim(run)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .

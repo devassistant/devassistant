@@ -51,7 +51,7 @@ flask:
   - cl: sed -i 's|NAME|$basename|' $basename/templates/index.html
   - cl: touch $basename/static/style.css
   - if defined $vim:
-    - snippet: vim(run_python)
+    - snippet: vim(run)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .

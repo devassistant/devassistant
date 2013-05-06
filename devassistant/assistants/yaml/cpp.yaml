@@ -67,7 +67,7 @@ cpp:
     - log_i: 'automake: http://www.gnu.org/software/automake/manual/automake.html'
     - log_i: 'autoconf: http://www.gnu.org/software/autoconf/manual/autoconf.html' 
   - if defined $vim:
-    - snippet: vim(run_c)
+    - snippet: vim(run)
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree

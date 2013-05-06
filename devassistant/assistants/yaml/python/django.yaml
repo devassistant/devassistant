@@ -45,7 +45,7 @@ django:
   - dda_c: $basename
   - cl: cd $basename
   - if defined $vim:
-    - snippet: vim(run_python)
+    - snippet: vim(run)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .

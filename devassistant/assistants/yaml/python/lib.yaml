@@ -51,7 +51,7 @@ lib:
   - cl: cp *setuppy .
   - cl: sed -i 's|NAME|$basename|' setup.py
   - if defined $vim:
-    - snippet: vim(run_python)
+    - snippet: vim(run)
   - if $eclipse:
     - snippet: eclipse(run_python)
   - cl: cp *gitignore .

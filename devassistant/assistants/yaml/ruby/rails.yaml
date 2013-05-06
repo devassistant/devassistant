@@ -36,7 +36,7 @@ rails:
   - dda_c: $basename
   - cl: cd $basename
   - if defined $vim:
-    - snippet: vim(run_ruby)
+    - snippet: vim(run)
   - snippet: git_init_add_commit
   - if defined $github:
     - github: create_and_push
