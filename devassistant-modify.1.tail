@@ -1,0 +1,60 @@
+.SH SUDOERS CHANGES
+For right
+.B developer assistant
+functionality user has to be added to sudoers file. This is needs because developer assistant can install additional packages which are needed by assistants.
+
+This can be done so that user will switch to user root (by \fBsu -\fP command) and write down command visudo.
+
+Following row has to be added at the end of that file
+
+<user_name> ALL=(ALL) /usr/bin/yum, /usr/bin/yum-builddep
+
+user_name ... is not \fBroot\fP but real username which will run devassistant (can be obtained by command \fBid\fP).
+
+.SH GITHUB INTEGRATION
+If github option is used for export projects to the GitHub repository then
+user has to have already created account on the GitHub server.
+Without that it is not possible to upload projects on the GitHub server
+
+.SH DESCRIPTION
+.B Developer assistant
+is based on idea of per-{language/framework/...} "assistants" with hierarchical structure like this:
+
+                  MainAssistant
+                  /           \\
+                 /             \\
+              Python          Ruby
+              /   \\            / \\
+             /     \\          /   \\
+          Django  Flask    Rails Sinatra
+
+The basic task of each assistant is to create a project in location specified by
+.B -n name
+(either relative or absolute path) and install its dependencies via \fBYum\fP.
+Optionally, if any environment setup is required,
+.B devassistant
+does that as well.
+Most of the assistants have common arguments (see below), but there may also be some language specific options in some of the assistants.
+
+.SH LANGUAGE SUPPORT
+Currently supported languages are:
+.IP
+Eclipse
+assistant can import already created project into \fBEclipse\fP.
+Just run it in the projects directory.
+
+.SH COMMON OPTIONS
+.TP
+.B \-h --help
+print help for selected assistant
+.TP
+.B \-e --eclipse
+import project into
+.I eclipse 
+environment. Uses ~/workspace workspace by default, which can be overriden by specifying another path.
+.TP
+.B \-p --path
+Specify path to your project (defaults to current working directory if not used)
+
+.SH "SEE ALSO"
+.BR devassistant (1)
