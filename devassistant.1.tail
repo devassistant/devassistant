@@ -67,3 +67,6 @@ generate a SPEC file, SRPM and mock-build RPM.
 .B \-v --vim
 install vim settings specific for this language (backs up your original vim settings)
 .TP
+
+.SH "SEE ALSO"
+.BR devassistant-modify (1)
