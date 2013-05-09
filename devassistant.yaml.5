@@ -1,0 +1,81 @@
+.\" Copyright Petr Hracek, 2013
+.\"
+.\" This page is distributed under GPL.
+.\"
+.TH DEVASSISTANT.YAML 1 2013-03-12 "" "Linux User's Manual"
+.SH NAME
+devassistant.yaml \- Users guide for creating yaml configuration files which are used by devassistant
+.SH DESCRIPTION
+The
+.B devassistant
+yaml configuration files are used each language where its specified what will be done over whole devassistant workflow
+
+Some example assistant can be found in that location Python-site-packages/devassistant/assistants/yaml/sample_assistant.yaml.noload 
+
+.SH HOW TO CREATE NEW ASSISTANT
+
+Each assistant should begin with
+
+.B <name_assistant>:
+.TP
+Next attributes are:
+.TP
+fullname: <descriptive name that will be shown to user>
+.TP
+description: <This is a description of what this assistant does.
+.TP
+
+dependencies:
+
+- default: #these dependencies will always be installed
+
+- rpm: [gcc, '@foo'] #use apostrophes around @ not to get syntax error when using yaml
+
+.SH MAKING YOUR COMMAND LINE OPTION
+
+This have to be placed in section:
+.B args:
+
+next
+.B name
+specify what name will be used as option
+
+.B flags:
+are used for specifing command line flags
+
+.B - -<name>
+specify short option
+
+.B - --<name_log>
+specify long option
+
+
+SH SUPPORTED COMMANDS IN RUN SECTIONS
+
+.TP
+.B dda_c:
+will creates .devassistant file (with default initial content) in directory $name specified by parameter -n 
+
+.TP
+.B cl:
+runs the command on backround without any interaction
+
+.TP
+.B cl_f:
+runs the command in foreground, displaying its output interactively
+
+.TP
+.B cl_i:
+ makes the command itself logged not on debug level, but on info level
+
+.TP
+.B cl_if:
+combines cl_i and cl_f
+
+.TP
+.B log_d:
+will print message in debug level.
+
+.TP
+.B if:
+This is used as condition when user wants to diferentiate what should be run in case that condition is fullfield
