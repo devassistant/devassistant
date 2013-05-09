@@ -1,7 +1,7 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-include devassistant.1.gz
+include devassistant.1
 include devassistant.bash
 recursive-include devassistant/assistants/yaml *.noload *.yaml
 recursive-include devassistant/assistants/snippets *.yaml
