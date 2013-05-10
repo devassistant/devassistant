@@ -2,7 +2,7 @@ import os
 
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper, PKCONHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
@@ -102,14 +102,14 @@ class AssistantBase(object):
 
         for dep in dep_list:
             if dep.startswith('@'):
-                if not YUMHelper.is_group_installed(dep):
+                if not PKCONHelper.is_group_installed(dep):
                     to_install.append(dep)
             else:
                 if not RPMHelper.is_rpm_installed(dep):
                     to_install.append(dep)
 
         if to_install: # only invoke YUM if we actually have something to install
-            if not YUMHelper.install(*to_install):
+            if not PKCONHelper.install(*to_install):
                 raise exceptions.RunException('Failed to install: {0}'.format(' '.join(to_install)))
 
         for pkg in to_install:

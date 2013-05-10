@@ -1,16 +1,3 @@
-.SH SUDOERS CHANGES
-For right
-.B developer assistant
-functionality user has to be added to sudoers file. This is needs because developer assistant can install additional packages which are needed by assistants.
-
-This can be done so that user will switch to user root (by \fBsu -\fP command) and write down command visudo.
-
-Following row has to be added at the end of that file
-
-<user_name> ALL=(ALL) /usr/bin/yum, /usr/bin/yum-builddep
-
-user_name ... is not \fBroot\fP but real username which will run devassistant (can be obtained by command \fBid\fP).
-
 .SH GITHUB INTEGRATION
 If github option is used for export projects to the GitHub repository then
 user has to have already created account on the GitHub server.

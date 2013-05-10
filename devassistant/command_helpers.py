@@ -103,6 +103,33 @@ class YUMHelper(object):
         logger.info('Not found')
         return False
 
+class PKCONHelper(object):
+    c_pkcon = 'pkcon'
+
+    @classmethod
+    def install(cls, *args):
+        cmd = [ cls.c_pkcon, 'install']
+        quoted_args = map(lambda arg: '"{arg}"'.format(arg=arg) if '(' in arg else arg, args)
+        cmd.extend(quoted_args)
+        logger.info('Installing: {0}'.format(', '.join(args)))
+        try:
+            ClHelper.run_command(' '.join(cmd), fg=True, log_level=logging.INFO)
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_group_installed(cls, group):
+        logger.info('Checking for presence of group {0}...'.format(group))
+
+        output = ClHelper.run_command(' '.join([cls.c_pkcon, 'search', 'group', '"{0}"'.format(group)]))
+        if 'Installed' in output:
+            logger.info('Found %s', group)
+            return True
+
+        logger.info('Not found')
+        return False
+
 class PathHelper(object):
     c_cp = 'cp'
     c_mkdir = 'mkdir'
