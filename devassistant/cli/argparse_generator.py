@@ -24,7 +24,7 @@ class ArgparseGenerator(object):
                                                description=cls.subparsers_description)
             # from Python 3.3, subparsers are optional by default => make them required
             subparsers.required=True
-            for subas in sorted(cur_subas, lambda x, y: cmp(x[0].name, y[0].name)):
+            for subas in sorted(cur_subas, key=lambda x: x[0].name):
                 cls.add_subparsers_to(subas, subparsers, level=1)
 
         return parser
@@ -39,5 +39,5 @@ class ArgparseGenerator(object):
             subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
                                           title=cls.subassistants_string,
                                           description=cls.subparsers_description)
-            for subas_tuple in sorted(assistant_tuple[1], lambda x, y: cmp(x[0].name, y[0].name)):
+            for subas_tuple in sorted(assistant_tuple[1], key=lambda x: x[0].name):
                 cls.add_subparsers_to(subas_tuple, subparsers, level + 1)
