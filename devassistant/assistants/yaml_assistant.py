@@ -42,6 +42,14 @@ class YamlAssistant(assistant_base.AssistantBase):
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
     def dependencies(self, **kwargs):
+        """Returns all dependencies of this assistant with regards to specified kwargs.
+
+        This is "mapping" of dependency types to actual dependencies
+        (keeps order, types can repeat), e.g.
+        Example:
+        [('rpm', ['rubygems']), ('gem', ['mygem']), ('rpm', ['spam']), ...]
+        """
+
         kwargs = self.proper_kwargs(**kwargs)
         sections = [getattr(self, '_dependencies', [])]
         if self.role == 'modifier':
@@ -56,25 +64,34 @@ class YamlAssistant(assistant_base.AssistantBase):
             if '_dependencies_{0}'.format(arg) in dir(self):
                 sections.append(getattr(self, '_dependencies_{0}'.format(arg)))
 
+        deps = []
+
         for sect in sections:
-            self._dependencies_section(sect)
+            deps.extend(self._dependencies_section(sect))
+
+        return deps
 
     def _dependencies_section(self, section, **kwargs):
+        # "deps" is the same structure as gets returned by "dependencies" method
+        deps = []
+
         for dep in section:
             dep_type, dep_list = dep.popitem()
             # rpm dependencies (can't handle anything else yet)
-            if dep_type == 'rpm':
-                self._install_dependencies(*dep_list, **kwargs)
-            elif dep_type == 'snippet':
+            if dep_type == 'snippet':
                 snippet, section_name = self._get_snippet_and_section_name(dep_list, **kwargs)
                 section = snippet.get_dependencies_section(section_name) if snippet else None
                 if section:
-                    self._dependencies_section(section, **kwargs)
+                    deps.extend(self._dependencies_section(section, **kwargs))
                 else:
                     logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
                                                                                                                  dep_list.split('(')[0]))
+            elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
+                deps.append((dep_type, dep_list))
             else:
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
+
+        return deps
 
     def run(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)

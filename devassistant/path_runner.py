@@ -2,6 +2,7 @@ import sys
 
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
+from devassistant.command_helpers import RPMHelper, YUMHelper
 
 class PathRunner(object):
     def __init__(self, path, parsed_args, override_sys_excepthook=True):
@@ -26,14 +27,40 @@ class PathRunner(object):
                 errors.extend(a.errors(**self.parsed_args))
         return errors
 
+    def _install_rpm_dependencies(self, *dep_list, **kwargs):
+        to_install = []
+
+        for dep in dep_list:
+            if dep.startswith('@'):
+                if not YUMHelper.is_group_installed(dep):
+                    to_install.append(dep)
+            else:
+                if not RPMHelper.is_rpm_installed(dep):
+                    to_install.append(dep)
+
+        if to_install: # only invoke YUM if we actually have something to install
+            if not YUMHelper.install(*to_install):
+                raise exceptions.RunException('Failed to install: {0}'.format(' '.join(to_install)))
+
+        for pkg in to_install:
+            RPMHelper.was_rpm_installed(pkg)
+
     def _run_path_dependencies(self):
         """Runs *Assistant.dependencies methods.
         Raises:
             devassistant.exceptions.DependencyException with a cause if something goes wrong
         """
+        deps = []
+
         for a in self.path:
             if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                a.dependencies(**self.parsed_args)
+                deps.extend(a.dependencies(**self.parsed_args))
+
+        # collide rpm deps to install them in one shot, install them first
+        rpm_deps = reduce(lambda x, y: x + y, [dep[1] for dep in deps if dep[0] == 'rpm'], [])
+        other_deps = [dep for dep in deps if dep[0] != 'rpm']
+
+        self._install_rpm_dependencies(*rpm_deps, **self.parsed_args)
 
     def _run_path_run(self):
         """Runs *Assistant.run methods.

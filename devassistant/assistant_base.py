@@ -2,7 +2,7 @@ import os
 
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.command_helpers import ClHelper, PathHelper, RPMHelper, YUMHelper, PKCONHelper
+from devassistant.command_helpers import ClHelper, PathHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
@@ -96,24 +96,6 @@ class AssistantBase(object):
             devassistant.exceptions.RunException containing the error message
         """
         pass
-
-    def _install_dependencies(self, *dep_list, **kwargs):
-        to_install = []
-
-        for dep in dep_list:
-            if dep.startswith('@'):
-                if not PKCONHelper.is_group_installed(dep):
-                    to_install.append(dep)
-            else:
-                if not RPMHelper.is_rpm_installed(dep):
-                    to_install.append(dep)
-
-        if to_install: # only invoke YUM if we actually have something to install
-            if not PKCONHelper.install(*to_install):
-                raise exceptions.RunException('Failed to install: {0}'.format(' '.join(to_install)))
-
-        for pkg in to_install:
-            RPMHelper.was_rpm_installed(pkg)
 
     def _git_create_repo(self, path, gitignore, **kwargs):
         PathHelper.cp(gitignore, path)
