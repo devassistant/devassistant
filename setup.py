@@ -67,7 +67,7 @@ setup(
                                        'devassistant-modify=devassistant.bin:ModifierAssistant.main']},
     install_requires=['PyYaml', 'PyGithub>=1.14.2'],
     setup_requires = [],
-    classifiers = ['Development Status :: 3 - Alpha',
+    classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
                    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',

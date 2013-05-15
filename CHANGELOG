@@ -1,3 +1,8 @@
+0.3.1
+- Abandoned plumbum, implemented own simpler and more suitable solution.
+- Assistants are now sorted by name in usage output.
+- Yum is executed via pkexec, so that users don't have to alter sudoers.
+
 0.3.0
 - Changelog starts here, although some versions were already released.
 - At this point, devassistant can create C, C++, various Python, Java and Ruby projects
