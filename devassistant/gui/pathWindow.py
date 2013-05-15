@@ -62,6 +62,12 @@ class pathWindow(object):
         
     def open_window(self, widget, data=None):
         logger.info(type(self.parent.kwargs))
+        try:
+            path = os.path.expanduser('~')
+        except Exception:
+            path = ''
+        if os.path.isdir(path):
+            self.dirName.set_text(path)
         logger.info("Prev window")
         self.pathWindow.show_all()
    

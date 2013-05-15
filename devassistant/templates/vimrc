@@ -22,7 +22,6 @@ let g:NERDTreeWinPos = "right"
 let Tlist_Auto_Open = 1
 let Tlist_Use_SingleClick = 1
 set bg=dark
-set runtimepath+=~/.vim/UltiSnips
 
 map <F2> :previous<CR>          "map F2 to next buffer
 map <F3> :next<CR>              "map F3 to next buffer
