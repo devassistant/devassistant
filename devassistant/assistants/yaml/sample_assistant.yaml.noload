@@ -49,10 +49,10 @@ c: # name of the assistant as will be used on commandline; should be the same as
       source: c/server.c
 
   run: # gets executed by default; fails and immediately exits if any command fails
-  - cl: mkdir -p $name # uses `name` from the parameters above
+  - cl: mkdir -p "$name" # uses `name` from the parameters above
   - dda_c: $name # creates .devassistant file (with default initial content) in directory $name
   - log_d: 'Some debugging message' # log_d logs at debug level
-  - cl: cp *clientc $name # copies file from `clientc` file entry above to location `$name`
+  - cl: cp *clientc "$name" # copies file from `clientc` file entry above to location `$name`
   - if $ide: # condition based on variable (this one checks $ide, which is cli argument)
     - if not ls ~/.vimrc/blahblah: # use not to negate condition, condition can also be cli argument
       - cl: mkdir ~/.vimrc/blahblah
@@ -60,8 +60,8 @@ c: # name of the assistant as will be used on commandline; should be the same as
       - log_i: 'blahblah already exists'
   - log_i: 'Finished'
   - run: run_misc # runs "run_misc" section here
-  - $foo: basename $name # assign result of cli command basename $name to variable $foo
-  - cl_f: echo $foo
+  - $foo: basename "$name" # assign result of cli command basename $name to variable $foo
+  - cl_f: echo "$foo"
   - snippet: git_init_add_commit # this will run the named snippet at this place
   - snippet: spamspamspam(run_forrest_run) # will run section run_forrest_run of snippet spamspamspam
 
