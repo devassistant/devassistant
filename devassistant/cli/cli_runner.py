@@ -26,4 +26,4 @@ class CliRunner(object):
             pr.run()
         except exceptions.ExecutionException as ex:
             # error is already logged, just catch it and silently exit here
-            pass
+            sys.exit(1)
