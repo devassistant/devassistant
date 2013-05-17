@@ -34,22 +34,22 @@ lib:
       source: python/lib/README.rst
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating library project $basename in $dirname ...'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p $name
+  - cl: mkdir -p "$name"
   - dda_c: $name
-  - cl: cd $name
-  - cl: mkdir $basename
-  - cl: touch $basename/__init__.py
+  - cl: cd "$name"
+  - cl: mkdir "$basename"
+  - cl: touch "$basename/__init__.py"
   - cl: cp *license .
   - cl: cp *manifestin .
   - cl: cp *readmerst .
-  - cl: sed -i 's|NAME|$basename|' README.rst
+  - cl: sed -i "s|NAME|$basename|" README.rst
   - cl: cp *setuppy .
-  - cl: sed -i 's|NAME|$basename|' setup.py
+  - cl: sed -i "s|NAME|$basename|" setup.py
   - if defined $vim:
     - snippet: vim(run)
   - if $eclipse:

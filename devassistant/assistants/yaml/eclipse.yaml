@@ -31,7 +31,7 @@ eclipse:
 
   pre_run:
   - if $path:
-    - cl: cd $path
+    - cl: cd "$path"
 
   run_python_flask:
   - snippet: eclipse(run_python)

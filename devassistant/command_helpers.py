@@ -20,7 +20,11 @@ class ClHelper(object):
         if cmd_str.startswith('cd '):
             # special-case cd to behave like shell cd and stay in the directory
             try:
-                os.chdir(os.path.expanduser(cmd_str.split()[1]))
+                directory = os.path.expanduser(cmd_str.split()[1])
+                # delete any qoutes, the quoting is automatical in os.chdir
+                directory = directory.replace('"', '')
+                directory = directory.replace('\'', '')
+                os.chdir(directory)
             except OSError as e:
                 raise exceptions.ClException(cmd_str, 1, '', str(e))
             return ''

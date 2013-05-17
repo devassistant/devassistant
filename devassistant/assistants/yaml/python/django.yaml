@@ -29,21 +29,21 @@ django:
       source: python/.gitignore
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating Django project $basename in $dirname ...'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: cd $dirname
-  - cl: django_admin startproject $basename
+  - cl: cd "$dirname"
+  - cl: django_admin startproject "$basename"
   # make modifications to settings.py so that project can be run immediately
-  - cl: sed -i 's|django.db.backends.|django.db.backends.sqlite3|' $basename/$basename/settings.py
+  - cl: sed -i "s|django.db.backends.|django.db.backends.sqlite3|" "$basename/$basename/settings.py"
   # \(.\) is workaround for ":", which cannot be here because it would mean yaml error
-  - cl: sed -i '1i\import os\n' $basename/$basename/settings.py
-  - cl: sed -i "2i\BASE_DIR = os.path.join(os.path.dirname(__file__), '..')\n" $basename/$basename/settings.py
-  - cl: sed -i "s|'NAME'\(.\) ''|'NAME'\1 os.path.join(BASE_DIR, 'db.sqlite3')|" $basename/$basename/settings.py
+  - cl: sed -i "1i\import os\n" "$basename/$basename/settings.py"
+  - cl: sed -i "2i\BASE_DIR = os.path.join(os.path.dirname(__file__), '..')\n" "$basename/$basename/settings.py"
+  - cl: sed -i "s|'NAME'\(.\) ''|'NAME'\1 os.path.join(BASE_DIR, 'db.sqlite3')|" "$basename/$basename/settings.py"
   - dda_c: $basename
-  - cl: cd $basename
+  - cl: cd "$basename"
   - if defined $vim:
     - snippet: vim(run)
   - if $eclipse:

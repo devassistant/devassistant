@@ -23,18 +23,18 @@ rails:
       snippet: vim
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating Ruby on Rails project $basename in $dirname ...'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p $dirname
-  - cl: cd $dirname
-  - cl_f: rails new $basename --skip-bundle
+  - cl: mkdir -p "$dirname"
+  - cl: cd "$dirname"
+  - cl_f: rails new "$basename" --skip-bundle
   # Enable some JavaScript engine.
-  - cl: sed -i "/# gem 'therubyracer', :platforms => :ruby/ s/# //" $basename/Gemfile
+  - cl: sed -i "/# gem 'therubyracer', :platforms => :ruby/ s/# //" "$basename/Gemfile"
   - dda_c: $basename
-  - cl: cd $basename
+  - cl: cd "$basename"
   - if defined $vim:
     - snippet: vim(run)
   - snippet: git_init_add_commit

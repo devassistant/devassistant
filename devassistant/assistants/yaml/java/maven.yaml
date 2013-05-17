@@ -30,28 +30,28 @@ maven:
       source: java/maven/pom.xml
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating simple Maven project'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p ${name}
-  - $abspath: readlink -f $name
-  - dda_c: ${name}
-  - cl: cd ${name}
+  - cl: mkdir -p "${name}"
+  - $abspath: readlink -f "$name"
+  - dda_c: "${name}"
+  - cl: cd "${name}"
   - cl: cp *classpath .
   - cl: cp *eclipseproject .
   - cl: cp *runscript .
   - cl: cp *pom .
   - cl: cd *mavenexample
-  - cl: cp -r ./src/ ${abspath}
-  - cl: cd ${abspath}
+  - cl: cp -r ./src/ "${abspath}"
+  - cl: cd "${abspath}"
   # create local git repository
   - log_i: 'Creating git repository'
   - snippet: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
-  - cl: tar czf ${name}.tar.gz pom.xml ./src/ run
+  - cl: tar czf "${name}.tar.gz" pom.xml ./src/ run
   - log_i: 'Building project'
   - cl: mvn-local -q -o -B package
   - log_i: 'Done'

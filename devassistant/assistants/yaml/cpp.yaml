@@ -39,17 +39,17 @@ cpp:
       source: cpp/
 
   run:
-  - if not ls $name:
+  - if not ls "$name":
     - log_i: 'Copying c++ source tree to project destination'
-    - cl_f: cp -r *cppsources $name
-    - dda_c: $name
-    - cl: cd $name
-    - cl: sed -i s|CDevelopmentTool|$name| configure.ac
-    - cl: mv cdevelopmenttool.spec $name.spec
-    - cl: sed -i s|cdevelopmenttool|$name| $name.spec
+    - cl_f: cp -r *cppsources "$name"
+    - dda_c: "$name"
+    - cl: cd "$name"
+    - cl: sed -i "s|CDevelopmentTool|$name|" configure.ac
+    - cl: mv cdevelopmenttool.spec "$name.spec"
+    - cl: sed -i "s|cdevelopmenttool|$name|" "$name.spec"
     - snippet: git_init_add_commit
   - else:
-    - cl: cd $name
+    - cl: cd "$name"
     - log_i: 'Project already exists'  
   - if not defined $build:
     - log_i: 'Run autoreconf'
@@ -71,13 +71,13 @@ cpp:
   - if defined $build:
     - log_i: 'Creating spec file'
     - cl: rpmdev-setuptree
-    - cl: rm -f ~/rpmbuild/SPECS/$name.spec
-    - cl: cp $name/$name-0.0.tar.gz ~/rpmbuild/SOURCES
-    - cl: cp $name/$name.spec ~/rpmbuild/SPECS
+    - cl: rm -f "~/rpmbuild/SPECS/$name.spec"
+    - cl: cp "$name/$name-0.0.tar.gz" ~/rpmbuild/SOURCES
+    - cl: cp "$name/$name.spec" ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
-    - cl_f: sudo yum-builddep ~/rpmbuild/SPECS/$name.spec
+    - cl_f: sudo yum-builddep "~/rpmbuild/SPECS/$name.spec"
     - log_i: 'Creating RPM from tarball'
-    - cl_f: rpmbuild -ba $name.spec
+    - cl_f: rpmbuild -ba "$name.spec"
   - if $eclipse:
     - snippet: eclipse(run_cpp)
   - if $github:

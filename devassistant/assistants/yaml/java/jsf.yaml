@@ -37,15 +37,15 @@ jsf:
 
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating simple JSF project'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p $name
-  - $abspath: readlink -f $name
-  - dda_c: ${name}
-  - cl: cd ${name}
+  - cl: mkdir -p "$name"
+  - $abspath: readlink -f "$name"
+  - dda_c: "${name}"
+  - cl: cd "${name}"
   - cl: cp *classpath .
   - cl: cp *eclipseproject .
   - cl: cp *runscript .
@@ -53,8 +53,8 @@ jsf:
   - cl: cp *spec .
   - cl: cp *gitignore .
   - cl: cd *jsfexample
-  - cl: cp -r ./src/ ${abspath}
-  - cl: cd ${abspath}
+  - cl: cp -r ./src/ "${abspath}"
+  - cl: cd "${abspath}"
   # create local git repository
   - log_i: 'Creating git repository'
   - snippet: git_init_add_commit

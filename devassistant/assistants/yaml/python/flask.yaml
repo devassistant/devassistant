@@ -35,21 +35,21 @@ flask:
       source: python/flask/manage.py
 
   run:
-  - $dirname: dirname $name
-  - $basename: basename $name
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - log_i: 'Creating Flask project $basename in $dirname ...'
-  - if test -d $name:
+  - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p $name
+  - cl: mkdir -p "$name"
   - dda_c: $name
-  - cl: cd $name
-  - cl: mkdir -p $basename/static $basename/templates
+  - cl: cd "$name"
+  - cl: mkdir -p "$basename/static" "$basename/templates"
   - cl: cp *managepy .
-  - cl: sed -i 's|NAME|$basename|' manage.py
-  - cl: cp *initpy $basename
-  - cl: cp *indexhtml $basename/templates/
-  - cl: sed -i 's|NAME|$basename|' $basename/templates/index.html
-  - cl: touch $basename/static/style.css
+  - cl: sed -i "s|NAME|$basename|" manage.py
+  - cl: cp *initpy "$basename"
+  - cl: cp *indexhtml "$basename/templates/"
+  - cl: sed -i "s|NAME|$basename|" "$basename/templates/index.html"
+  - cl: touch "$basename/static/style.css"
   - if defined $vim:
     - snippet: vim(run)
   - if $eclipse:
