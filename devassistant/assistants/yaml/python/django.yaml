@@ -35,7 +35,7 @@ django:
   - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
   - cl: cd "$dirname"
-  - cl: django_admin startproject "$basename"
+  - cl: django-admin startproject "$basename"
   # make modifications to settings.py so that project can be run immediately
   - cl: sed -i "s|django.db.backends.|django.db.backends.sqlite3|" "$basename/$basename/settings.py"
   # \(.\) is workaround for ":", which cannot be here because it would mean yaml error
