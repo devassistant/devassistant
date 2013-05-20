@@ -52,11 +52,9 @@ run_c:
 - log_i: 'Creating eclipse project from command line'
 - cl: cd "$name"
 - cl_f: make clean
-- cl: cd ..
 - cl: mkdir -p "$eclipse/$name"
 - if not ls "$name/.project":
   - log_i: 'Project was not imported to eclipse environment yet'
-  - cl: cd "$name"
   - cl: cp *dot_eclipseproject_c .
   - cl: cp *dot_cproject_c .
   - cl: cp *dot_autotools_c .
@@ -68,7 +66,7 @@ run_c:
   - log_i: 'Copying neccessary files was done'
 - else:
   - log_i: 'Project was already imported into eclipse environment'
-- cl: cd ..
+- cl: cd ../
 - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import "./$name" -data "$eclipse"
 - cl: cd "$name"
 - log_i: 'Import to Eclipse is done.'
@@ -78,11 +76,9 @@ run_cpp:
 - log_i: 'Creating eclipse project from command line'
 - cl: cd "$name"
 - cl_f: make clean
-- cl: cd ..
 - cl: mkdir -p "$eclipse/$name"
 - if not ls "$name/.project":
   - log_i: 'Project was not imported to eclipse environment yet'
-  - cl: cd "$name"
   - cl: cp *dot_eclipseproject_cpp .
   - cl: cp *dot_cproject_cpp .
   - cl: cp *dot_autotools_cpp .
@@ -94,7 +90,7 @@ run_cpp:
   - log_i: 'Copying neccessary files was done'
 - else:
   - log_i: 'Project was already imported into eclipse environment'
-- cl: cd ..
+- cl: cd ../
 - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import "./$name" -data "$eclipse"
 - cl: cd "$name"
 - log_i: 'Import to Eclipse is done.'

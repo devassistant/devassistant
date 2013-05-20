@@ -70,14 +70,17 @@ c:
     - snippet: vim(run)
   - if defined $build:
     - log_i: 'Creating spec file'
+    - $dirname: pwd
     - cl: rpmdev-setuptree
     - cl: rm -f "~/rpmbuild/SPECS/$name.spec"
-    - cl: cp "$name/$name-0.0.tar.gz" ~/rpmbuild/SOURCES
-    - cl: cp "$name/$name.spec" ~/rpmbuild/SPECS
+    - cl: cp "$name-0.0.tar.gz" ~/rpmbuild/SOURCES
+    - cl: cp "$name.spec" ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
     - cl_i: sudo yum-builddep "~/rpmbuild/SPECS/$name.spec"
     - log_i: 'Creating RPM from tarball'
     - cl_i: rpmbuild -ba "$name.spec"
+    - cl_f: cd "$dirname"
+  - cl: cd ../
   - if $eclipse:
     - snippet: eclipse(run_c)
   - if $github:
