@@ -1,4 +1,5 @@
 import os
+import re
 import string
 
 class CommandFormatter(object):
@@ -33,5 +34,18 @@ class CommandFormatter(object):
         new_comm = ' '.join(new_comm)
 
         # substitute cli arguments for their values
-        return string.Template(new_comm).safe_substitute(kwargs)
+        substituted = string.Template(new_comm).safe_substitute(kwargs)
 
+        # we want to do homedir expansion in quotes (which bash doesn't)
+        # therefore we must hack around this here
+        regex = re.compile('\\\\*~')
+        return regex.sub(cls._homedir_expand, substituted)
+
+    @classmethod
+    def _homedir_expand(cls, matchobj):
+        if len(matchobj.group(0)) % 2 == 0:
+            # even length => odd number of backslashes => eat one and don't expand
+            return matchobj.group(0)[:-2] + '~'
+        else:
+            # odd length => even number of backslashes => expand an
+            return matchobj.group(0)[:-1] + os.path.expanduser('~')
