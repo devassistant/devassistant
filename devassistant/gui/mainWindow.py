@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import logging
 
 from gi.repository import Gtk
 
@@ -57,6 +58,13 @@ class mainWindow(object):
         self.store = Gtk.ListStore(str)
         self.substore = Gtk.ListStore(str)
         self.kwargs = {}
+        # Used for debugging
+        #console_handler = logging.StreamHandler(stream=sys.stdout)
+        #console_formatter = logging.Formatter('%(levelname)s - %(message)s')
+        #console_handler.setFormatter(console_formatter)
+        #console_handler.setLevel(logging.INFO)
+        #logger.addHandler(console_handler)
+        # End used for debugging
         k = 0
         for ass in self.subas:
             self.store.append([ass[0].fullname])
