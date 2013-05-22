@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-import logging
+#import logging
 
 from gi.repository import Gtk
 
@@ -43,6 +43,7 @@ class mainWindow(object):
                     "on_finalWindow_delete_event": Gtk.main_quit,
                     "on_runWindow_delete_event": Gtk.main_quit,
                     "on_scrolledwindow1_visibility_notify_event" : self.runWindow.visibility_event,
+                    "on_runWindow_visibility_notify_event" : self.runWindow.window_visibility_event,
                     "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                     "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
                     "on_runFinalBtn_clicked": self.finalWindow.run_btn,
@@ -144,22 +145,23 @@ class mainWindow(object):
     def store_view_cursor_changed(self, selection):
         logger.info("cursor changed")
         select = selection.get_selection()
-        (model, path_list) = select.get_selected()
-        self.substore.clear()
-        if path_list != None:
-            tool = model[path_list][0]
-            if tool in map(lambda x: x[0].fullname, self.subas):
-                logger.info(type(self.subas))
-                for ass in self.subas:
-                    if tool == ass[0].fullname:
-                        if not ass[1]:
-                            self.labelMainWindow.hide()
-                            self.sublistView.hide()
-                        else:
-                            for sub in ass[1]:
-                                self.labelMainWindow.show_all()
-                                self.sublistView.show_all()
-                                self.substore.append([sub[0].fullname])
-            else:
-                self.labelMainWindow.hide()
-                self.sublistView.hide()
+        if select != None:
+            (model, path_list) = select.get_selected()
+            self.substore.clear()
+            if path_list != None:
+                tool = model[path_list][0]
+                if tool in map(lambda x: x[0].fullname, self.subas):
+                    logger.info(type(self.subas))
+                    for ass in self.subas:
+                        if tool == ass[0].fullname:
+                            if not ass[1]:
+                                self.labelMainWindow.hide()
+                                self.sublistView.hide()
+                            else:
+                                for sub in ass[1]:
+                                    self.labelMainWindow.show_all()
+                                    self.sublistView.show_all()
+                                    self.substore.append([sub[0].fullname])
+                else:
+                    self.labelMainWindow.hide()
+                    self.sublistView.hide()
