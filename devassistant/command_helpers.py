@@ -10,8 +10,12 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, fg=False, log_level=logging.DEBUG):
+    def run_command(cls, cmd_str, fg=False, log_level=logging.DEBUG, realtime_output=False):
         """Runs a command from string, e.g. "cp foo bar" """
+        if fg and realtime_output:
+            # realtime output only makes sense with logging (fg command is realtime automatically)
+            raise ValueError('Cannot use both realtime_output and fg.')
+
         formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd_str)
         if fg:
             print(formatted_string)
@@ -29,23 +33,41 @@ class ClHelper(object):
 
         stdin_pipe = None
         stdout_pipe = None if fg else subprocess.PIPE
-        stderr_pipe = None if fg else subprocess.PIPE
-        proc = subprocess.Popen(cmd_str, stdin=stdin_pipe, stdout=stdout_pipe, stderr=stderr_pipe, shell=True)
-        # decode because of Python 3
-        # str because of Python 2, so that it doesn't print u'foo', but just 'foo'
-        stdout, stderr = map(lambda x: x.strip().decode('utf8') if x else '', proc.communicate())
-        loggable_stdout = '\n'.join(map(lambda line: settings.COMMAND_OUTPUT_STRING.format(line=line), stdout.splitlines()))
-        loggable_stderr = '\n'.join(map(lambda line: settings.COMMAND_OUTPUT_STRING.format(line=line), stderr.splitlines()))
-        if not fg:
-            if stdout:
-                logger.log(log_level, loggable_stdout)
-            if stderr:
-                logger.log(log_level, loggable_stderr)
+        stderr_pipe = None if fg else subprocess.PIPE if not realtime_output else subprocess.STDOUT
+        proc = subprocess.Popen(cmd_str,
+                                stdin=stdin_pipe,
+                                stdout=stdout_pipe,
+                                stderr=stderr_pipe,
+                                shell=True)
+        if realtime_output:
+            stdout = []
+            stderr = ''
+            while proc.poll() == None:
+                output = proc.stdout.readline().strip().decode('utf8')
+                stdout.append(output)
+                logger.log(log_level, settings.COMMAND_OUTPUT_STRING.format(line=output))
+            stdout = '\n'.join(stdout)
+            stderr = ''
+        else:
+            # decode because of Python 3
+            stdout, stderr = map(lambda x: x.strip().decode('utf8') if x else '', proc.communicate())
+            loggable_stdout = '\n'.join(map(lambda ln: settings.COMMAND_OUTPUT_STRING.format(line=ln),
+                                            stdout.splitlines()))
+            loggable_stderr = '\n'.join(map(lambda ln: settings.COMMAND_OUTPUT_STRING.format(line=ln),
+                                            stderr.splitlines()))
+            if not fg:
+                if stdout:
+                    logger.log(log_level, loggable_stdout)
+                if stderr:
+                    logger.log(log_level, loggable_stderr)
 
         if proc.returncode == 0:
             return stdout.strip()
         else:
-            raise exceptions.ClException(cmd_str, proc.returncode, stdout, stderr if not fg else 'See command output above.')
+            raise exceptions.ClException(cmd_str,
+                                         proc.returncode,
+                                         stdout,
+                                         stderr if not fg else 'See command output above.')
 
 class RPMHelper(object):
     c_rpm = 'rpm'
@@ -82,13 +104,44 @@ class YUMHelper(object):
     c_yum = 'yum'
 
     @classmethod
+    def resolve(cls, *args):
+        logger.info('Resolving dependencies ...')
+        import yum
+        y = yum.YumBase()
+        for arg in args:
+            if arg.startswith('@'):
+                y.selectGroup(arg[1:])
+            else:
+                pkg = y.returnPackageByDep(arg)
+                y.install(pkg)
+        y.resolveDeps()
+        logger.info('Installing/Updating:')
+        to_install = []
+        for pkg in y.tsInfo.getMembers():
+            to_install.append(pkg.po.ui_envra)
+            logger.info(pkg.po.ui_envra)
+
+        return to_install
+
+    @classmethod
     def install(cls, *args):
-        cmd = ['pkexec', cls.c_yum, 'install']
-        quoted_args = map(lambda arg: '"{arg}"'.format(arg=arg) if '(' in arg else arg, args)
-        cmd.extend(quoted_args)
-        logger.info('Installing: {0}'.format(', '.join(args)))
+        to_install = cls.resolve(*args)
         try:
-            ClHelper.run_command(' '.join(cmd), fg=True, log_level=logging.INFO)
+            # Python 2 compat
+            input = raw_input
+        except NameError:
+            pass
+        yes = input('Is this ok? [y/n]: ')
+        while not yes.lower()[0] in ['y', 'n']:
+            yes = input('Wrong choice. Please choose from [y/n]: ')
+        if yes.lower()[0] != 'y':
+            return False
+
+        cmd = ['pkexec', cls.c_yum, '-y', 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), to_install)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, realtime_output=True)
             return args
         except exceptions.ClException:
             return False
