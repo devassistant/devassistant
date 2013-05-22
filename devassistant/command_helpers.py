@@ -77,7 +77,10 @@ class RPMHelper(object):
         try:
             # if we install by e.g. virtual provide, then rpm -q foo will fail
             # therefore we always use rpm -q --whatprovides foo
-            return ClHelper.run_command(' '.join([cls.c_rpm, '-q', '--whatprovides', rpm_name.strip()]))
+            return ClHelper.run_command(' '.join([cls.c_rpm,
+                                                  '-q',
+                                                  '--whatprovides',
+                                                  '"' + rpm_name.strip() + '"']))
         except exceptions.ClException:
             return False
 
