@@ -82,6 +82,8 @@ class DotDevassistantCommand(object):
         return result
 
 class GitHubCommand(object):
+
+    _token = ""
     @classmethod
     def matches(cls, comm_type):
         return comm_type == 'github'
@@ -115,18 +117,40 @@ class GitHubCommand(object):
         Raises:
             devassistant.exceptions.RunException on error
         """
+        has_token = False
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
-        password = getpass.getpass(prompt='GitHub password:', stream=None)
-
-        gh = github.Github(username, password)
+        try:
+            cls._token = ClHelper.run_command("git config github.token")
+            has_token = True
+        except exceptions.ClException as e:
+            pass # TODO: what exactly happens here?
+        if has_token:
+            try:
+                gh = github.Github(cls._token)
+                user = gh.get_user()
+            except github.GithubException as e:
+                msg = 'GitHub token is not valid'
+                has_token = False
+                logger.error(msg)
+                password = getpass.getpass(prompt='GitHub password:', stream=None)
+                gh = github.Github(username, password)
+        else:
+            password = getpass.getpass(prompt='GitHub password:', stream=None)
+            gh = github.Github(username, password)
         user = gh.get_user()
         try:
             if reponame in map(lambda x: x.name, user.get_repos()):
                 msg = 'Repository already exists on GitHub'
                 logger.error(msg)
-                raise exceptions.RunException(msg)
+                #raise exceptions.RunException(msg)
             else:
+                if not has_token:
+                    auth = user.create_authorization(["repo"],"Developer Assistant")
+                    cls._token = auth.token
+                    logger.info('Token is: {0}'.format(cls._token))
+                    ClHelper.run_command("git config --global github.token {0}".format(cls._token))
+                    ClHelper.run_command("git config --global github.user {0}".format(username))
                 new_repo = user.create_repo(reponame)
                 logger.info('Your new repository: {0}'.format(new_repo.html_url))
         except github.GithubException as e:
@@ -145,30 +169,44 @@ class GitHubCommand(object):
         reponame = cls._github_reponame(**kwargs)
         has_remote = False
         has_push = False
-
+        gh = github.Github(cls._token)
+        os.chdir(reponame)
         try:
             result = ClHelper.run_command("git remote show origin")
             has_remote = True
         except exceptions.ClException as e:
             pass
 
-        if not has_remote:
-            try:
-                ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
-            except exceptions.ClException as e:
-                pass # TODO: what exactly happens here?
-
+        user = gh.get_user()
+        if not has_push:
+            # create ssh keys here
+            rsa_key = "{0}/.ssh/dev_assistant_rsa".format(os.path.expanduser('~'))
+            if os.path.isfile("{0}.pub".format(rsa_key)) == False:
+                ClHelper.run_command("ssh-keygen -t rsa -f {0} -N \"\" -C \"DeveloperAssistant\"".format(rsa_key), True, True)
+            public_content = ClHelper.run_command("cat {0}.pub".format(rsa_key))
         try:
-            ClHelper.run_command("git push origin master", True, True)
+            ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
+            ClHelper.run_command("git push -u origin master", True, True)
             has_push = True
         except exceptions.ClException as ep:
             pass
+        except github.GithubException as e:
+            msg = 'GitHub error: {0}'.format(e)
+            logger.error(msg)
         if not has_push:
             try:
+                user.create_key(user.create_key("DeveloperAssistant", public_content))
+            except github.GithubException as ge:
+                pass
+            try:
+                user.create_key(user.create_key("DeveloperAssistant", public_content))
+            except github.GithubException as ge:
+                pass
+            try:
                 ClHelper.run_command("git remote rm origin", True, True)
-                ClHelper.run_command("git remote add origin https://github.com/{0}/{1}.git".format(username, reponame), True, True)
+                ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
                 try:
-                    ClHelper.run_command("git push origin master", True, True)
+                    ClHelper.run_command("git push -u origin master", True, True)
                     has_push = True
                 except exceptions.ClException as ep:
                     pass
