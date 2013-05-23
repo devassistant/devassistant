@@ -117,6 +117,24 @@ class GitHubCommand(object):
         return cls._token
 
     @classmethod
+    def _github_authorization(cls, **kwargs):
+        """ Store token into ~/.gitconfig.
+
+        If token is not defined then store them into ~/.gitconfig file
+
+        """
+
+        username = cls._github_username(**kwargs)
+        if not cls._token:
+            try:
+                auth = cls._user.create_authorization(["repo"], "DeveloperAssistant")
+                ClHelper.run_command("git config --global github.token {0}".format(auth.token))
+                ClHelper.run_command("git config --global github.user {0}".format(username))
+            except github.GithubException as e:
+                msg = 'Creating authorization failed: {0}'.format(e)
+                raise exceptions.RunException(msg)
+
+    @classmethod
     def _github_reponame(cls, **kwargs):
         """Extracts reponame from name, which is possibly a path."""
         return os.path.basename(kwargs['name'])
@@ -129,14 +147,15 @@ class GitHubCommand(object):
                 gh = github.Github(login_or_token=token)
                 cls._user = gh.get_user()
                 # try if the authentication was successful
-                u.id()
+                cls._user.name
             except github.GithubException:
                 # login with username/password
                 password = getpass.getpass(prompt='GitHub password: ', stream=None)
                 gh = github.Github(login_or_token=username, password=password)
                 cls._user = gh.get_user()
+                cls._token = None
                 try:
-                    u.id()
+                    cls._user.name
                 except github.GithubException as e:
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
                     logger.error(msg)
@@ -144,6 +163,37 @@ class GitHubCommand(object):
                     cls._user = None
                     raise exceptions.RunException(msg)
         return cls._user
+
+    @classmethod
+    def _github_push_repo(cls, **kwargs):
+        ClHelper.run_command("git push -u origin master", True, True)
+
+    @classmethod
+    def _github_remote_show_origin(cls, **kwargs):
+        try:
+            result = ClHelper.run_command("git remote show origin",)
+        except exceptions.ClException as e:
+            msg = 'Problem with getting remote content: {0}'.format(e)
+
+    @classmethod
+    def _github_add_remote_origin(cls, **kwargs):
+        username = cls._github_username(**kwargs)
+        reponame = cls._github_reponame(**kwargs)
+        try:
+            ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
+        except exceptions.ClException as e:
+            msg = "Command git remote add failed: {0}".format(e)
+            raise exceptions.RunException(msg)
+
+    @classmethod
+    def _github_create_ssh_key(cls, **kwargs):
+        try:
+            # create ssh keys here
+            if os.path.isfile("{0}/.ssh/dev_assistant_rsa.pub".format(os.path.expanduser('~'))) == False:
+                ClHelper.run_command("ssh-keygen -t rsa -f {0}/.ssh/dev_assistant_rsa -N \"\" -C \"DeveloperAssistant\"".format(os.path.expanduser('~')))
+            return ClHelper.run_command("cat {0}/.ssh/dev_assistant_rsa.pub".format(os.path.expanduser('~')))
+        except exceptions.ClException as ep:
+            pass
 
     @classmethod
     def _github_create_repo(cls, **kwargs):
@@ -177,27 +227,20 @@ class GitHubCommand(object):
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
         has_push = False
-        if not cls._token:
-            auth = cls._user.create_authorization(["repo"], "DeveloperAssistant")
-            ClHelper.run_command("git config --global github.token {0}".format(auth.token))
-            ClHelper.run_command("git config --global github.user {0}".format(username))
+        cls._github_authorization(**kwargs)
         os.chdir(reponame)
         try:
-            result = ClHelper.run_command("git remote show origin",)
-            ClHelper.run_command("git push -u origin master", True, True)
+            cls._github_remote_show_origin(**kwargs)
+            cls._github_push_repo(**kwargs)
             has_push = True
         except exceptions.ClException as e:
             logger.info("Remote show origin failed")
             pass
         if not has_push:
-            # create ssh keys here
-            if os.path.isfile("{0}/.ssh/dev_assistant_rsa.pub".format(os.path.expanduser('~'))) == False:
-                ClHelper.run_command("ssh-keygen -t rsa -f {0}/.ssh/dev_assistant_rsa -N \"\" -C \"DeveloperAssistant\"".format(os.path.expanduser('~')))
-            public_content = ClHelper.run_command("cat {0}/.ssh/dev_assistant_rsa.pub".format(os.path.expanduser('~')))
+            public_content = cls._github_create_ssh_key(**kwargs)
             try:
-                ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".format(username, reponame), True, True)
-                ClHelper.run_command("git push -u origin master", True, True)
-                has_push = True
+                cls._github_add_remote_origin(**kwargs)
+                cls._github_push_repo(**kwargs)
             except exceptions.ClException as ep:
                 pass
             except github.GithubException as e:
