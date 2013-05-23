@@ -84,7 +84,7 @@ class DotDevassistantCommand(object):
 class GitHubCommand(object):
 
     _token = ""
-    user = None
+    _user = None
     @classmethod
     def matches(cls, comm_type):
         return comm_type == 'github'
@@ -102,6 +102,11 @@ class GitHubCommand(object):
 
     @classmethod
     def _github_username(cls, **kwargs):
+        try:
+            cls._token = ClHelper.run_command("git config github.token")
+        except exceptions.ClException as e:
+            # token is not available yet
+            pass 
         return kwargs['github'] or getpass.getuser()
 
     @classmethod
@@ -118,37 +123,45 @@ class GitHubCommand(object):
         Raises:
             devassistant.exceptions.RunException on error
         """
-        has_token = False
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
-        try:
-            cls._token = ClHelper.run_command("git config github.token")
-            has_token = True
-        except exceptions.ClException as e:
-            pass # TODO: what exactly happens here?
-        if has_token:
-            try:
-                gh = github.Github(cls._token)
-            except github.GithubException as e:
-                has_token = False
-                password = getpass.getpass(prompt='GitHub token is not valid. Enter password:', stream=None)
-                gh = github.Github(username, password)
-        else:
+        if not cls._token:
             password = getpass.getpass(prompt='GitHub password:', stream=None)
             gh = github.Github(username, password)
-        cls.user = gh.get_user()
+        else:
+            gh = github.Github(cls._token)
+        cls._user = gh.get_user()
         try:
-            if reponame in map(lambda x: x.name, cls.user.get_repos()):
+            if reponame in map(lambda x: x.name, cls._user.get_repos()):
                 msg = 'Repository already exists on GitHub'
                 logger.error(msg)
                 raise exceptions.RunException(msg)
             else:
-                new_repo = cls.user.create_repo(reponame)
+                new_repo = cls._user.create_repo(reponame)
                 logger.info('Your new repository: {0}'.format(new_repo.html_url))
         except github.GithubException as e:
-            msg = 'GitHub error: {0}'.format(e)
-            logger.error(msg)
-            raise exceptions.RunException(msg)
+            if not cls._token:
+                msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
+                logger.error(msg)
+                raise exceptions.RunException(msg)
+            else:
+                # in case that token is not valid (modified by user)
+                cls._token = ""
+                password = getpass.getpass(prompt='GitHub password:', stream=None)
+                gh = github.Github(username, password)
+                cls._user = gh.get_user()
+                if reponame in map(lambda x: x.name, cls._user.get_repos()):
+                    msg = 'Repository already exists on GitHub'
+                    logger.error(msg)
+                    raise exceptions.RunException(msg)
+                else:
+                    try:
+                        new_repo = cls._user.create_repo(reponame)
+                        logger.info('Your new repository: {0}'.format(new_repo.html_url))
+                    except github.GithubException as ge:
+                        msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
+                        logger.error(msg)
+                        raise exceptions.RunException(msg)
 
     @classmethod
     def _github_push(cls, **kwargs):
@@ -160,14 +173,8 @@ class GitHubCommand(object):
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
         has_push = False
-        has_token = False
-        try:
-            cls._token = ClHelper.run_command("git config github.token")
-            has_token = True
-        except exceptions.ClException as e:
-            pass # TODO: what exactly happens here?
-        if not has_token:
-            auth = cls.user.create_authorization(["repo"], "DeveloperAssistant")
+        if not cls._token:
+            auth = cls._user.create_authorization(["repo"], "DeveloperAssistant")
             ClHelper.run_command("git config --global github.token {0}".format(auth.token))
             ClHelper.run_command("git config --global github.user {0}".format(username))
         os.chdir(reponame)
@@ -176,6 +183,7 @@ class GitHubCommand(object):
             ClHelper.run_command("git push -u origin master", True, True)
             has_push = True
         except exceptions.ClException as e:
+            logger.info("Remote show origin failed")
             pass
         if not has_push:
             # create ssh keys here
