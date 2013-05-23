@@ -82,9 +82,9 @@ class DotDevassistantCommand(object):
         return result
 
 class GitHubCommand(object):
-
     _token = ""
     _user = None
+
     @classmethod
     def matches(cls, comm_type):
         return comm_type == 'github'
@@ -102,17 +102,48 @@ class GitHubCommand(object):
 
     @classmethod
     def _github_username(cls, **kwargs):
-        try:
-            cls._token = ClHelper.run_command("git config github.token")
-        except exceptions.ClException as e:
-            # token is not available yet
-            pass 
+        # TODO: use git config github.user?
         return kwargs['github'] or getpass.getuser()
+
+    @classmethod
+    def _github_token(cls, **kwargs):
+        if not cls._token:
+            try:
+                cls._token = ClHelper.run_command("git config github.token")
+            except exceptions.ClException as e:
+                # token is not available yet
+                pass
+
+        return cls._token
 
     @classmethod
     def _github_reponame(cls, **kwargs):
         """Extracts reponame from name, which is possibly a path."""
         return os.path.basename(kwargs['name'])
+
+    @classmethod
+    def _get_gh_user(cls, username, token, **kwargs):
+        if not cls._user:
+            try:
+                # try logging with token
+                gh = github.Github(login_or_token=token)
+                cls._user = gh.get_user()
+                # try if the authentication was successful
+                u.id()
+            except github.GithubException:
+                # login with username/password
+                password = getpass.getpass(prompt='GitHub password: ', stream=None)
+                gh = github.Github(login_or_token=username, password=password)
+                cls._user = gh.get_user()
+                try:
+                    u.id()
+                except github.GithubException as e:
+                    msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
+                    logger.error(msg)
+                    # reset cls._user to None, so that we don't use it if calling this multiple times
+                    cls._user = None
+                    raise exceptions.RunException(msg)
+        return cls._user
 
     @classmethod
     def _github_create_repo(cls, **kwargs):
@@ -125,43 +156,16 @@ class GitHubCommand(object):
         """
         username = cls._github_username(**kwargs)
         reponame = cls._github_reponame(**kwargs)
-        if not cls._token:
-            password = getpass.getpass(prompt='GitHub password:', stream=None)
-            gh = github.Github(username, password)
+        token = cls._github_token(**kwargs)
+        gh_user = cls._get_gh_user(username, token, **kwargs)
+
+        if reponame in map(lambda x: x.name, gh_user.get_repos()):
+            msg = 'Repository already exists on GitHub'
+            logger.error(msg)
+            raise exceptions.RunException(msg)
         else:
-            gh = github.Github(cls._token)
-        cls._user = gh.get_user()
-        try:
-            if reponame in map(lambda x: x.name, cls._user.get_repos()):
-                msg = 'Repository already exists on GitHub'
-                logger.error(msg)
-                raise exceptions.RunException(msg)
-            else:
-                new_repo = cls._user.create_repo(reponame)
-                logger.info('Your new repository: {0}'.format(new_repo.html_url))
-        except github.GithubException as e:
-            if not cls._token:
-                msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
-                logger.error(msg)
-                raise exceptions.RunException(msg)
-            else:
-                # in case that token is not valid (modified by user)
-                cls._token = ""
-                password = getpass.getpass(prompt='GitHub password:', stream=None)
-                gh = github.Github(username, password)
-                cls._user = gh.get_user()
-                if reponame in map(lambda x: x.name, cls._user.get_repos()):
-                    msg = 'Repository already exists on GitHub'
-                    logger.error(msg)
-                    raise exceptions.RunException(msg)
-                else:
-                    try:
-                        new_repo = cls._user.create_repo(reponame)
-                        logger.info('Your new repository: {0}'.format(new_repo.html_url))
-                    except github.GithubException as ge:
-                        msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
-                        logger.error(msg)
-                        raise exceptions.RunException(msg)
+            new_repo = cls._user.create_repo(reponame)
+            logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
     @classmethod
     def _github_push(cls, **kwargs):
