@@ -39,14 +39,16 @@ c:
       source: c/
 
   run:
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
   - if not ls "$name":
     - log_i: 'Copying c source tree to project destination'
     - cl_i: cp -r *csources "$name"
     - dda_c: "$name"
     - cl: cd "$name"
-    - cl: sed -i "s|CDevelopmentTool|$name|" configure.ac
-    - cl: mv cdevelopmenttool.spec "$name.spec"
-    - cl: sed -i "s|cdevelopmenttool|$name|" "$name.spec"
+    - cl: sed -i "s|CDevelopmentTool|$basename|" configure.ac
+    - cl: mv cdevelopmenttool.spec "$basename.spec"
+    - cl: sed -i "s|cdevelopmenttool|$basename|" "$basename.spec"
     - snippet: git_init_add_commit
   - else:
     - cl: cd "$name"
@@ -72,13 +74,13 @@ c:
     - log_i: 'Creating spec file'
     - $dirname: pwd
     - cl: rpmdev-setuptree
-    - cl: rm -f "~/rpmbuild/SPECS/$name.spec"
-    - cl: cp "$name-0.0.tar.gz" ~/rpmbuild/SOURCES
-    - cl: cp "$name.spec" ~/rpmbuild/SPECS
+    - cl: rm -f "~/rpmbuild/SPECS/$basename.spec"
+    - cl: cp "$basename-0.0.tar.gz" ~/rpmbuild/SOURCES
+    - cl: cp "$basename.spec" ~/rpmbuild/SPECS
     - cl: cd ~/rpmbuild/SPECS
-    - cl_i: sudo yum-builddep "~/rpmbuild/SPECS/$name.spec"
+    - cl_i: sudo yum-builddep "~/rpmbuild/SPECS/$basename.spec"
     - log_i: 'Creating RPM from tarball'
-    - cl_i: rpmbuild -ba "$name.spec"
+    - cl_i: rpmbuild -ba "$basename.spec"
     - cl_f: cd "$dirname"
   - cl: cd ../
   - if $eclipse:
