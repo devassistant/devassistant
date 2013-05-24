@@ -13,7 +13,7 @@ import argparse
 import threading, thread
 import time
 import locale
-#from devassistant.gui.logger_gui import logger_gui
+from devassistant.gui.logger_gui import logger_gui
 from devassistant.logger import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -37,7 +37,7 @@ class RunLoggingHandler(logging.Handler):
     def emit(self, record):
         it = self.textbuffer.get_end_iter()
         #self.textbuffer.place_cursor(it)
-        self.textbuffer.insert(it,record.getMessage()+'\n')
+        self.textbuffer.insert(it,record.getMessage(),-1)
 
 class runWindow(object):
     def __init__(self,  parent, finalWindow, builder, assistant):
@@ -60,12 +60,12 @@ class runWindow(object):
 
 
     def visibility_event(self, widget, data=None):
-        #logger_gui.info("ListView Visibility event")
+        logger_gui.info("ListView Visibility event")
         thread = threading.Thread(target=self.devassistant_start)
         thread.start()
 
     def devassistant_start(self):
-        #logger_gui.info("Thread run")
+        logger_gui.info("Thread run")
         path = self.assistant.get_selected_subassistant_path(**self.parent.kwargs)
         pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:

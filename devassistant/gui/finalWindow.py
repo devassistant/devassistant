@@ -11,7 +11,7 @@ import os
 import getpass
 
 from devassistant.logger import logger
-#from devassistant.gui.logger_gui import logger_gui
+from devassistant.gui.logger_gui import logger_gui
 from gi.repository import Gtk
 
 class finalWindow(object):
@@ -36,7 +36,7 @@ class finalWindow(object):
         self.finalWindow.hide()
 
     def open_window(self, widget, data=None):
-        #logger_gui.info("open window")
+        logger_gui.info("open window")
         selection = self.parent.listView.get_selection()
         subselection = self.parent.sublistView.get_selection()
         title = Gtk.Label("List of all available options:")
@@ -87,12 +87,12 @@ class finalWindow(object):
                                         vbox_left.pack_start(labelGitHub,False,False,0)
                                         vbox_right.pack_start(new_box,False,False,0)
                         else:
-                            #logger_gui.info("final_open_window {0}".format(submodel[subpath_list][0]))
+                            logger_gui.info("final_open_window {0}".format(submodel[subpath_list][0]))
                             for sub in ass[1]:
-                                #logger_gui.info("ass[1] is: {0}".format(sub[0].fullname))
+                                logger_gui.info("ass[1] is: {0}".format(sub[0].fullname))
                                 if submodel[subpath_list][0] == sub[0].fullname:
                                     for arg in sub[0].args:
-                                        #logger_gui.info(arg)
+                                        logger_gui.info(arg)
                                         if arg.flags[1] != '--name':
                                             label = Gtk.Label()
                                             label.set_text(arg.kwargs['help'])
@@ -108,31 +108,31 @@ class finalWindow(object):
         self.boxMain.pack_start(boxFinal, False, False, 6)
         self.finalWindow.show_all()
     def eclipse_toggled(self, widget, data=None):
-        #logger_gui.debug("Eclipse_clicked")
+        logger_gui.debug("Eclipse_clicked")
         active = widget.get_active()
-        #logger_gui.info(active)
+        logger_gui.info(active)
         if active == True:
             self.eclipseEntry.set_editable(1)
         else:
             self.eclipseEntry.set_editable(0)
         
     def github_toggled(self, widget, data=None):
-        #logger_gui.info("Github clicked")
+        logger_gui.info("Github clicked")
         active = widget.get_active()
-        #logger_gui.info(active)
+        logger_gui.info(active)
         if active == True:
             self.githubEntry.set_editable(1)
         else:
             self.githubEntry.set_editable(0)
 
     def run_btn(self, widget, data=None):
-        #logger_gui.info("run button")
+        logger_gui.info("run button")
         for btn in self.button:
-            #logger_gui.info(btn)
+            logger_gui.info(btn)
             if btn.get_active() == True:
                 self.parent.kwargs[btn.get_label()]=None
-            #logger_gui.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
-        #logger_gui.info(self.parent.kwargs)
+            logger_gui.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
+        logger_gui.info(self.parent.kwargs)
         self.parent.runWindow.open_window(widget, data)
         self.finalWindow.hide()
         

@@ -11,7 +11,7 @@ from devassistant.logger import logger
 from devassistant.gui import pathWindow
 from devassistant.gui import finalWindow
 from devassistant.gui import runWindow
-#from devassistant.gui.logger_gui import logger_gui
+from devassistant.gui.logger_gui import logger_gui
 
 gladefile = "./devassistant/gui/devel-assistant.glade"
 
@@ -64,7 +64,7 @@ class mainWindow(object):
         console_formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s')
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.INFO)
-        #logger_gui.addHandler(console_handler)
+        logger_gui.addHandler(console_handler)
         # End used for debugging
         k = 0
         for ass in self.subas:
@@ -75,7 +75,7 @@ class mainWindow(object):
                     self.sublistView.hide()
                 else:
                     for sub in ass[1]:
-                        #logger_gui.info("subas:%s and %s" % (sub[0].name, sub[0].fullname))
+                        logger_gui.info("subas:%s and %s" % (sub[0].name, sub[0].fullname))
                         self.substore.append([sub[0].fullname])
                         self.labelMainWindow.show()
                         self.sublistView.show()
@@ -97,7 +97,7 @@ class mainWindow(object):
         self.pathWindow.browsePath()
 
     def next_window(self, widget, data=None):
-        #logger_gui.info("Next window")
+        logger_gui.info("Next window")
         selection = self.listView.get_selection()
         subselection = self.sublistView.get_selection()
         model, path_list = selection.get_selected()
@@ -106,19 +106,19 @@ class mainWindow(object):
             tool = model[path_list][0]
             if tool in map(lambda x: x[0].fullname, self.subas):
                 for ass in self.subas:
-                    #logger_gui.info("Assistant:{0}".format(ass[0].fullname))
+                    logger_gui.info("Assistant:{0}".format(ass[0].fullname))
                     if tool == ass[0].fullname:
                         if not ass[1]:
-                            #logger_gui.info("All is OK, we can go to the next screen")
+                            logger_gui.info("All is OK, we can go to the next screen")
                             self.kwargs['subassistant_0']=ass[0].name
                             if self.kwargs.has_key('sub_assistant_1') == True:
                                 del (self.kwargs['sub_assistnant_1'])
                             self.pathWindow.open_window(widget, data=None)
                             self.mainWin.hide()
                         else:
-                            #logger_gui.info(subpath_list)
+                            logger_gui.info(subpath_list)
                             if subpath_list == None:
-                                #logger_gui.info("No subassistant have been selected")
+                                logger_gui.info("No subassistant have been selected")
                                 md=Gtk.MessageDialog(None,
                                                      Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                                      Gtk.MessageType.WARNING,
@@ -136,11 +136,11 @@ class mainWindow(object):
                                         self.mainWin.hide()
 
     def open_window(self, widget, data=None):
-        #logger_gui.info("Prev window")
+        logger_gui.info("Prev window")
         self.mainWin.show_all()
 
     def store_view_cursor_changed(self, selection):
-        #logger_gui.info("cursor changed")
+        logger_gui.info("cursor changed")
         select = selection.get_selection()
         if select != None:
             (model, path_list) = select.get_selected()
@@ -148,7 +148,7 @@ class mainWindow(object):
             if path_list != None:
                 tool = model[path_list][0]
                 #if tool in map(lambda x: x[0].fullname, self.subas):
-                #    #logger_gui.info(type(self.subas))
+                #    logger_gui.info(type(self.subas))
                 for ass in self.subas:
                     if tool == ass[0].fullname:
                         if not ass[1]:
