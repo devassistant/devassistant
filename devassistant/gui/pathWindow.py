@@ -8,6 +8,7 @@ Created on Wed Apr  3 13:16:47 2013
 import os
 import mainWindow
 import finalWindow
+#from devassistant.gui.logger_gui import logger_gui
 from devassistant.logger import logger
 from gi.repository import Gtk
 
@@ -61,14 +62,15 @@ class pathWindow(object):
                 self.pathWindow.hide()
         
     def open_window(self, widget, data=None):
-        logger.info(type(self.parent.kwargs))
+        #logger_gui.info(type(self.parent.kwargs))
         try:
             path = os.path.expanduser('~')
         except Exception:
             path = ''
         if os.path.isdir(path):
             self.dirName.set_text(path)
-        logger.info("Prev window")
+        self.dirName.set_text("/home/phracek/work/devassistant")
+        #logger_gui.info("Prev window")
         self.pathWindow.show_all()
    
     def prev_window(self, widget, data=None):

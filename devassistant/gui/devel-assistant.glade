@@ -548,7 +548,6 @@
     <property name="border_width">6</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
-    <signal name="visibility-notify-event" handler="on_runWindow_visibility_notify_event" swapped="no"/>
     <signal name="delete-event" handler="on_runWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box17">
@@ -561,11 +560,11 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">in</property>
-            <signal name="visibility-notify-event" handler="on_scrolledwindow1_visibility_notify_event" swapped="no"/>
             <child>
               <object class="GtkTextView" id="textViewLog">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <signal name="visibility-notify-event" handler="on_textViewLog_visibility_notify_event" swapped="no"/>
               </object>
             </child>
           </object>
