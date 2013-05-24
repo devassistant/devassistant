@@ -69,7 +69,6 @@ class pathWindow(object):
             path = ''
         if os.path.isdir(path):
             self.dirName.set_text(path)
-        self.dirName.set_text("/home/phracek/work/devassistant")
         #logger_gui.info("Prev window")
         self.pathWindow.show_all()
    
