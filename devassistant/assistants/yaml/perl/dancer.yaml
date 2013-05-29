@@ -1,0 +1,74 @@
+:dancer:
+  fullname: Dancer
+  description: 'Dancer assistant helps you to create a basic web application using the Dancer framework.'
+
+  dependencies:
+  - rpm:
+    # Assistant:
+    - coreutils
+    # Dancer:
+    - perl(Dancer)
+    # Makefile.PL
+    - perl(ExtUtils::MakeMaker)
+    - perl(strict)
+    - perl(Test::More)
+    - perl(YAML)
+    - perl(warnings)
+    # Tests:
+    - perl(Dancer::Test)
+  dependencies_cgi:
+  - rpm:
+    - perl(FindBin)
+    - perl(Plack::Runner)
+  dependencies_fastcgi:
+  - rpm:
+    - perl(Plack::Handler::FCGI)
+
+  args:
+    name:
+      snippet: common_args
+
+    github:
+      snippet: common_args
+
+    cgi:
+      flags:
+      - --cgi
+      help: 'Enable support for running the application through CGI'
+      action:
+        'store_true'
+
+    fastcgi:
+      flags:
+      - --fastcgi
+      help: 'Enable support for running the application through FastCGI'
+      action:
+        'store_true'
+
+  run:
+  - $dirname: dirname "$name"
+  - $modulename: basename "$name"
+  # XXX: Double-collons are translated by the dancer tool into a hyphen.
+  - $basename: echo "$modulename" | sed s/::/-/g
+  - $name: printf '%s/%s' "$dirname" "$basename"
+  - log_i: "Project name will be '$basename'."
+  - if test -d "$name":
+    - log_e: "Directory '$name' already exists, nothing to do."
+  - log_i: "Creating Dancer project '$basename' in '$dirname'"
+  - cl: mkdir -p "$dirname"
+  - cl: cd $dirname
+  - cl: dancer --no-check --application "$modulename"
+  - cl: cd $basename
+  - dda_c: .
+  - cl: sed -i -e '1i ^\\.devassistant$' MANIFEST.SKIP
+  - snippet: git_init_add_commit
+  - if defined $github:
+    - github: create_and_push
+  - log_i: "Dancer project '$basename' has been created in '$dirname'."
+  - log_i: "To work on the poject, move to '$name' directory, and:"
+  - log_i: "To start the application, execute './bin/app.pl'."
+  - log_i: 'To view the web interface, connect to <http://localhost:3000/>.'
+  - log_i: "To change your application settings, execute `./bin/app.pl --help'."
+  - log_i: 'To get more details about Dancer framework, read Dancer::Introduction,'
+  - log_i: 'Dancer::Tutorial, Dancer::Cookbook, and Dancer POD documentation'
+  - log_i: "by executing 'perldoc Dancer::Introduction' etc."

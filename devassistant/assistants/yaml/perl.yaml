@@ -1,10 +1,11 @@
 perl:
-  fullname: Perl
-  subassistants: [class]
-  description: This is base Perl assistant, you have to choose a specific project type.
+  fullname: Perl base
+  subassistants: [ class, dancer ]
+  description: This is a base Perl assistant. You have to choose a specific project type.
 
   dependencies:
-  - rpm: ['perl']
+  - rpm:
+    - perl
 
   dependencies_vim:
   - snippet: vim(dependencies_perl)
