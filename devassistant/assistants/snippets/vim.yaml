@@ -4,6 +4,9 @@ dependencies:
 dependencies_python:
 - rpm: ['vim-jedi', 'python-jedi']
 
+dependencies_perl:
+- rpm: ['vim-perl-support', 'perl-Text-VimColor']
+
 args:
   vim:
     flags:
