@@ -150,7 +150,7 @@ class GitHubCommand(object):
                 cls._user.name
             except github.GithubException:
                 # login with username/password
-                password = getpass.getpass(prompt='GitHub password: ', stream=None)
+                password = ClHelper.run_command("zenity --title=\"GitHub password\" --text \"Enter password:\" --entry --hide-text")
                 gh = github.Github(login_or_token=username, password=password)
                 cls._user = gh.get_user()
                 cls._token = None
