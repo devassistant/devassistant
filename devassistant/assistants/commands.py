@@ -6,7 +6,7 @@ import github
 import yaml
 
 from devassistant import exceptions
-from devassistant.command_helpers import ClHelper
+from devassistant.command_helpers import ClHelper, ZenityHelper
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version
@@ -150,7 +150,7 @@ class GitHubCommand(object):
                 cls._user.name
             except github.GithubException:
                 # login with username/password
-                password = ClHelper.run_command("zenity --title=\"GitHub password\" --text \"Enter password:\" --entry --hide-text")
+                password = ZenityHelper.ask_for_password(title='Github Password')
                 gh = github.Github(login_or_token=username, password=password)
                 cls._user = gh.get_user()
                 cls._token = None

@@ -185,3 +185,18 @@ class PathHelper(object):
             return ClHelper.run_command(' '.join([cls.c_cp, src, dest]))
         except exceptions.ClException:
             return False
+
+class ZenityHelper(object):
+    c_zenity = 'zenity'
+
+    @classmethod
+    def ask_for_password(cls, title, text='Enter password:', input_type='entry', options=[]):
+        return cls.ask_for_custom_input(title, text, input_type, options)
+
+    @classmethod
+    def ask_for_custom_input(cls, title, text, input_type, options):
+        cmd = [cls.c_zenity, '--title=' + title, '--text=' + text, '--' + input_type, ' '.join(options)]
+        try:
+            return ClHelper.run_command(' '.join(cmd))
+        except exceptions.ClException:
+            return False
