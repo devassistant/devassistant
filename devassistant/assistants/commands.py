@@ -136,7 +136,7 @@ class GitHubAuth(object):
         """
         if not cls._token:
             try:
-                auth = cls._user.create_authorization(["repo"], "DeveloperAssistant")
+                auth = cls._user.create_authorization(scopes=['repo', 'user'], note="DeveloperAssistant")
                 ClHelper.run_command("git config --global github.token {0}".format(auth.token))
                 ClHelper.run_command("git config --global github.user {0}".format(cls._user.login))
             except github.GithubException as e:
@@ -146,14 +146,39 @@ class GitHubAuth(object):
     def _github_create_ssh_key(cls, **kwargs):
         try:
             # create ssh keys here
-            if not os.path.isfile("{0}/.ssh/devassistant_rsa.pub".format(os.path.expanduser('~'))):
-                ClHelper.run_command("ssh-keygen -t rsa -f {0}/.ssh/devassistant_rsa\
-                                     -N \"\" -C \"DeveloperAssistant\"".format(os.path.expanduser('~')))
-            public_key = ClHelper.run_command("cat {0}/.ssh/dev_assistant_rsa.pub".\
-                                              format(os.path.expanduser('~')))
+            if not os.path.isfile("{home}/.ssh/{keyname}.pub".format(home=os.path.expanduser('~'),
+                                                                     keyname=settings.GITHUB_SSH_KEY_NAME)):
+                ClHelper.run_command("ssh-keygen -t rsa -f {home}/.ssh/{keyname}\
+                                     -N \"\" -C \"DeveloperAssistant\"".\
+                                     format(home=os.path.expanduser('~'),
+                                            keyname=settings.GITHUB_SSH_KEY_NAME))
+            public_key = ClHelper.run_command("cat {home}/.ssh/{keyname}.pub".\
+                                              format(home=os.path.expanduser('~'),
+                                                     keyname=settings.GITHUB_SSH_KEY_NAME))
             cls._user.create_key("devassistant", public_key)
+            # next, create ~/.ssh/config entry for the key, if system username != GH username
+            cls._github_create_ssh_config_entry(**kwargs)
         except exceptions.ClException as ep:
             pass
+
+    @classmethod
+    def _github_create_ssh_config_entry(cls, **kwargs):
+        if getpass.getuser() != cls._user.login:
+            ssh_config = os.path.expanduser('~/.ssh/config')
+            user_github_string = 'github.com-{0}'.format(cls._user.login)
+            needs_to_add_config_entry = True
+
+            if os.path.isfile(ssh_config):
+                fh = open(ssh_config)
+                config_content = fh.read()
+                if user_github_string in config_content:
+                    needs_to_add_config_entry = False
+                fh.close()
+            if needs_to_add_config_entry:
+                fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0600), 'a')
+                fh.write(settings.GITHUB_SSH_CONFIG.format(username=cls._user.login,
+                                                           keyname=settings.GITHUB_SSH_KEY_NAME))
+                fh.close()
 
     @classmethod
     def github_authenticated(cls, func):
