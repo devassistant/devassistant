@@ -86,15 +86,15 @@ class GitHubAuth(object):
     _token = None
 
     @classmethod
-    def _github_username(cls, **kwargs):
-        # TODO: use git config github.user?
+    def _github_login(cls, **kwargs):
         return kwargs['github'] or getpass.getuser()
 
     @classmethod
     def _github_token(cls, **kwargs):
         if not cls._token:
             try:
-                cls._token = ClHelper.run_command("git config github.token")
+                cls._token = ClHelper.run_command("git config github.token.{login}".format(
+                    login=cls._github_login(**kwargs)))
             except exceptions.ClException as e:
                 # token is not available yet
                 pass
@@ -102,7 +102,7 @@ class GitHubAuth(object):
         return cls._token
 
     @classmethod
-    def _get_gh_user(cls, username, token, **kwargs):
+    def _get_github_user(cls, login, token, **kwargs):
         if not cls._user:
             try:
                 # try logging with token
@@ -113,9 +113,9 @@ class GitHubAuth(object):
             except github.GithubException:
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
-                # login with username/password
+                # login with login/password
                 password = getpass.getpass(prompt='GitHub password: ', stream=None)
-                gh = github.Github(login_or_token=username, password=password)
+                gh = github.Github(login_or_token=login, password=password)
                 cls._user = gh.get_user()
                 try:
                     cls._user.login
@@ -137,26 +137,35 @@ class GitHubAuth(object):
         if not cls._token:
             try:
                 auth = cls._user.create_authorization(scopes=['repo', 'user'], note="DeveloperAssistant")
-                ClHelper.run_command("git config --global github.token {0}".format(auth.token))
-                ClHelper.run_command("git config --global github.user {0}".format(cls._user.login))
+                ClHelper.run_command("git config --global github.token.{login} {token}".format(
+                    login=cls._user.login,
+                    token=auth.token))
+                ClHelper.run_command("git config --global github.user.{login} {login}".format(
+                    login=cls._user.login))
             except github.GithubException as e:
                 logger.warning('Creating authorization failed: {0}'.format(e))
 
     @classmethod
     def _github_create_ssh_key(cls, **kwargs):
         try:
+            login = cls._user.login
+            pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
+                                                       keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
             # create ssh keys here
-            if not os.path.isfile("{home}/.ssh/{keyname}.pub".format(home=os.path.expanduser('~'),
-                                                                     keyname=settings.GITHUB_SSH_KEY_NAME)):
-                ClHelper.run_command("ssh-keygen -t rsa -f {home}/.ssh/{keyname}\
-                                     -N \"\" -C \"DeveloperAssistant\"".\
-                                     format(home=os.path.expanduser('~'),
-                                            keyname=settings.GITHUB_SSH_KEY_NAME))
-            public_key = ClHelper.run_command("cat {home}/.ssh/{keyname}.pub".\
-                                              format(home=os.path.expanduser('~'),
-                                                     keyname=settings.GITHUB_SSH_KEY_NAME))
-            cls._user.create_key("devassistant", public_key)
-            # next, create ~/.ssh/config entry for the key, if system username != GH username
+            if not os.path.isfile('{pkey_path}.pub'.format(pkey_path=pkey_path)):
+                ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
+                                     -N \"\" -C \"DeveloperAssistant\"'.\
+                                     format(pkey_path=pkey_path))
+                ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
+            public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))
+            # find out if this key is already registered with this user
+            for key in cls._user.get_keys():
+                # don't use "==" because we have comments etc added in public_key
+                if key._key in public_key:
+                    break
+            else:
+                cls._user.create_key("devassistant", public_key)
+            # next, create ~/.ssh/config entry for the key, if system username != GH login
             cls._github_create_ssh_config_entry(**kwargs)
         except exceptions.ClException as ep:
             pass
@@ -176,8 +185,9 @@ class GitHubAuth(object):
                 fh.close()
             if needs_to_add_config_entry:
                 fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0600), 'a')
-                fh.write(settings.GITHUB_SSH_CONFIG.format(username=cls._user.login,
-                                                           keyname=settings.GITHUB_SSH_KEY_NAME))
+                fh.write(settings.GITHUB_SSH_CONFIG.format(
+                            login=cls._user.login,
+                            keyname=settings.GITHUB_SSH_KEYNAME.format(login=cls._user.login)))
                 fh.close()
 
     @classmethod
@@ -188,7 +198,7 @@ class GitHubAuth(object):
         def inner(func_cls, *args, **kwargs):
             if not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
-                func_cls._user = cls._get_gh_user(cls._github_username(**kwargs),
+                func_cls._user = cls._get_github_user(cls._github_login(**kwargs),
                                                   cls._github_token(**kwargs),
                                                   **kwargs)
                 # create ssh key for pushing
@@ -232,8 +242,13 @@ class GitHubCommand(object):
     @GitHubAuth.github_authenticated
     def _github_add_remote_origin(cls, **kwargs):
         reponame = cls._github_reponame(**kwargs)
-        ClHelper.run_command("git remote add origin git@github.com:{0}/{1}.git".\
-                             format(cls._user.login, reponame), True, True)
+        # if system username != GH login, we need to use git@github.com-{login}:...
+        # else just git@github.com:...
+        dash_login = ''
+        if getpass.getuser() != cls._user.login:
+            dash_login = '-' + cls._user.login
+        ClHelper.run_command("git remote add origin git@github.com{dash_login}:{login}/{reponame}.git".\
+                             format(dash_login=dash_login, login=cls._user.login, reponame=reponame), True, True)
 
     @classmethod
     @GitHubAuth.github_authenticated
