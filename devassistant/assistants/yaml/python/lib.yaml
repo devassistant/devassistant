@@ -6,7 +6,7 @@ lib:
   - rpm: ['python-setuptools']
 
   dependencies_eclipse:
-  - snippet: eclipse(dependencies_python)
+  - call: eclipse.dependencies_python
 
   args:
     name:
@@ -51,11 +51,11 @@ lib:
   - cl: cp *setuppy .
   - cl: sed -i "s|NAME|$basename|" setup.py
   - if defined $vim:
-    - snippet: vim(run)
+    - call: vim.run
   - if $eclipse:
-    - snippet: eclipse(run_python)
+    - call: eclipse.run_python
   - cl: cp *gitignore .
-  - snippet: git_init_add_commit
+  - call: git_init_add_commit
   - if defined $github:
     - github: create_and_push
   - log_i: 'Library project $basename in $dirname has been created.'

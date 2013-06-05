@@ -5,7 +5,7 @@ maven:
   - rpm: ['maven-local','maven-jar-plugin','maven-clean-plugin','junit']
 
   dependencies_eclipse:
-  - snippet: eclipse(dependencies_java)
+  - call: eclipse.dependencies_java
 
   args:
     name:
@@ -48,7 +48,7 @@ maven:
   - cl: cd "${abspath}"
   # create local git repository
   - log_i: 'Creating git repository'
-  - snippet: git_init_add_commit
+  - call: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
   - cl: tar czf "${name}.tar.gz" pom.xml ./src/ run
@@ -56,7 +56,7 @@ maven:
   - cl: mvn-local -q -o -B package
   - log_i: 'Done'
   - if $eclipse:
-    - snippet: eclipse(run_java)
+    - call: eclipse.run_java
   - if $github:
     - log_i: 'Push to GitHub repository'
     - github: create_and_push

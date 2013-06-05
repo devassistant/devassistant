@@ -78,10 +78,9 @@ class YamlAssistant(assistant_base.AssistantBase):
         for dep in section:
             dep_type, dep_list = dep.popitem()
             # rpm dependencies (can't handle anything else yet)
-            if dep_type == 'snippet':
-                snippet, section_name = self._get_snippet_and_section_name(dep_list, **kwargs)
-                section = snippet.get_dependencies_section(section_name) if snippet else None
-                if section:
+            if dep_type == 'call':
+                section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
+                if section is not None:
                     deps.extend(self._dependencies_section(section, **kwargs))
                 else:
                     logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
@@ -112,26 +111,28 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         for i, command_dict in enumerate(section):
             for comm_type, comm in command_dict.items():
-                if comm_type.startswith('run'):
-                    s = self._get_section_to_run(section=comm, kwargs_override=False, **kwargs)
-                    # use copy of kwargs, so that local kwargs don't get modified
-                    self._run_one_section(s, copy.deepcopy(kwargs))
-                elif comm_type == 'snippet':
-                    snippet, section_name = self._get_snippet_and_section_name(comm, **kwargs)
-                    # don't shadow "section" variable because we need to access it in sys.excepthook
-                    sect = snippet.get_run_section(section_name) if snippet else None
-                    if sect:
-                        # push and pop snippet's files into kwargs
+                if comm_type.startswith('call'):
+                    # calling workflow:
+                    # 1) get proper run section (either from self or from snippet)
+                    # 2) if running snippet, add its files to kwargs['__files__']
+                    # 3) actually run
+                    # 4) if running snippet, pop its files from kwargs['__files__']
+                    sect = self._get_section_from_call(comm, 'run')
+                    if self._is_snippet_call(comm, **kwargs):
+                        # we're calling a snippet => add files to kwargs
+                        snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
                         if '__files__' in kwargs:
                             kwargs['__files__'].append(snippet.get_files_section())
                         else:
                             kwargs['__files__'] = [snippet.get_files_section()]
-                        # use copy of kwargs, so that local kwargs don't get modified
-                        self._run_one_section(sect, copy.deepcopy(kwargs))
-                        kwargs['__files__'].pop()
+
+                    if sect is None:
+                        logger.warning('No section to run: {0}.'.format(comm))
                     else:
-                        logger.warning('Couldn\'t find run section "{0}", in snippet {1} skipping.'.format(section_name,
-                                                                                                           comm.split('(')[0]))
+                        self._run_one_section(sect, copy.deepcopy(kwargs))
+
+                    if self._is_snippet_call(comm, **kwargs):
+                        kwargs['__files__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
@@ -156,6 +157,41 @@ class YamlAssistant(assistant_base.AssistantBase):
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
                     run_command(comm_type, CommandFormatter.format(comm, self.template_dir, files, **kwargs), **kwargs)
+
+    def _is_snippet_call(self, cmd_call, **kwargs):
+        return not (cmd_call == 'self' or cmd_call.startswith('self.'))
+
+    def _get_section_from_call(self, cmd_call, section_type, **kwargs):
+        """Returns a section form call.
+
+        Examples:
+            if section_type == dependencies, then
+              cmd_call == self.dependencies_bar returns content of dependencies_bar from this assistant
+            if section_type == run, then
+              cmd_call == self.run_foo returns run_foo of this assistant
+              cmd_call == eclipse.run_python returns run_python section of eclipse snippet
+
+        Args:
+            cmd_call - a string with the call, e.g. "eclipse.run_python"
+            section_type - either "dependencies" or "run"
+
+        Returns:
+            Section (a dict), if found, otherwise None."""
+
+        section = None
+        call_parts = cmd_call.split('.')
+        section_name = call_parts[1] if len(call_parts) > 1 else section_type
+
+        if call_parts[0] == 'self':
+            section = getattr(self, '_' + section_name, None)
+        else:
+            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
+            if section_type == 'run':
+                section = snippet.get_run_section(section_name) if snippet else None
+            else:
+                section = snippet.get_dependencies_section(section_name) if snippet else None
+
+        return section
 
     def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
         """Returns the proper section to run.
@@ -182,13 +218,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         if not to_run:
             logger.debug('Couldn\'t find section {0} or any other appropriate.'.format(section))
         return to_run
-
-    def _get_snippet_and_section_name(self, snippet_call, **kwargs):
-        # if there is parenthesis, then snippet is being called with argument
-        snippet_tuple = snippet_call.split('(')
-        snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snippet_tuple[0])
-        section_name = snippet_tuple[1].strip(')') if len(snippet_tuple) > 1 else ''
-        return (snippet, section_name)
 
     def _assign_variable(self, variable, comm, kwargs):
         """Assigns value of another variable or result of command to given variable.

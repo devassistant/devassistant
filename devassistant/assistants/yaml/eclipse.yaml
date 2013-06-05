@@ -17,16 +17,16 @@ eclipse:
       snippet: common_args
 
   dependencies:
-  - snippet: eclipse
+  - call: eclipse
 
   dependencies_python:
-  - snippet: eclipse(dependencies_python)
+  - call: eclipse.dependencies_python
 
   dependencies_c:
-  - snippet: eclipse(dependencies_c)
+  - call: eclipse.dependencies_c
 
   dependencies_java:
-  - snippet: eclipse(dependencies_java)
+  - call: eclipse.dependencies_java
 
 
   pre_run:
@@ -34,19 +34,19 @@ eclipse:
     - cl: cd "$path"
 
   run_python_flask:
-  - snippet: eclipse(run_python)
+  - call: eclipse.run_python
 
   run_python_django:
-  - snippet: eclipse(run_python)
+  - call: eclipse.run_python
 
   run_python_lib:
-  - snippet: eclipse(run_python)
+  - call: eclipse.run_python
 
   run_c:
-  - snippet: eclipse(run_c)
+  - call: eclipse.run_c
 
   run_java_jsf:
-  - snippet: eclipse(run_java)
+  - call: eclipse.run_java
 
   run_java_maven:
-  - snippet: eclipse(run_java)
+  - call: eclipse.run_java

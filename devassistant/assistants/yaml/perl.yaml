@@ -8,4 +8,4 @@ perl:
     - perl
 
   dependencies_vim:
-  - snippet: vim(dependencies_perl)
+  - call: vim.dependencies_perl

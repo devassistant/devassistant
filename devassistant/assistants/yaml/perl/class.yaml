@@ -6,7 +6,7 @@ class:
   - rpm: ['perl']
 
   dependencies_vim:
-  - snippet: vim(dependencies_perl)
+  - class: vim.dependencies_perl
 
   args:
     name:
@@ -34,9 +34,9 @@ class:
     - cl_i: cp -r *perlsources "$name"
   - cl: cd "$name"
   - if defined $vim:
-    - snippet: vim(run)
+    - call: vim.run
   - cl: cp *gitignore .
-  - snippet: git_init_add_commit
+  - call: git_init_add_commit
   - if defined $github:
     - github: create_and_push
   - log_i: 'Perl basic class project $basename in $dirname has been created.'

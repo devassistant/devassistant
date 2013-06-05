@@ -7,7 +7,7 @@ jsf:
   - rpm: ['maven-resources-plugin','maven-clean-plugin','junit4']
 
   dependencies_eclipse:
-  - snippet: eclipse(dependencies_java)
+  - call: eclipse.dependencies_java
 
   args:
     name:
@@ -57,14 +57,14 @@ jsf:
   - cl: cd "${abspath}"
   # create local git repository
   - log_i: 'Creating git repository'
-  - snippet: git_init_add_commit
+  - call: git_init_add_commit
   # create tarball
   - log_i: 'Creating tarball'
   #- cl: git archive --format tar HEAD | gzip -9 > JSFexample.tar.gz
   - cl: tar czf devassistant-jsf-example.tar.gz src/ pom.xml run
   - log_i: 'Done'
   - if $eclipse:
-    - snippet: eclipse(run_java)
+    - call: eclipse.run_java
   - if $github:
     - log_i: 'Push to GitHub repository'
     - github: create_and_push

@@ -11,7 +11,7 @@ c: # name of the assistant as will be used on commandline; should be the same as
   - rpm: [mock]
 
   dependencies_eclipse:
-  - snippet: eclipse(dependencies_c) # install dependencies from snippet eclipse, section dependencies_c
+  - call: eclipse.dependencies_c # install dependencies from snippet eclipse, section dependencies_c
 
   logging: # additional logging handlers, only file handlers are currently supported
   - file: ['debug', '$name/cproject.log'] # runs in the very beginning and logs everything at debug level
@@ -59,11 +59,11 @@ c: # name of the assistant as will be used on commandline; should be the same as
     - else:
       - log_i: 'blahblah already exists'
   - log_i: 'Finished'
-  - run: run_misc # runs "run_misc" section here
+  - call: self.run_misc # runs "run_misc" section here
   - $foo: basename "$name" # assign result of cli command basename $name to variable $foo
   - cl_f: echo "$foo"
-  - snippet: git_init_add_commit # this will run the named snippet at this place
-  - snippet: spamspamspam(run_forrest_run) # will run section run_forrest_run of snippet spamspamspam
+  - call: git_init_add_commit # this will run the named snippet at this place
+  - call: spamspamspam.run_forrest_run # will run section run_forrest_run of snippet spamspamspam
 
   run_mock: # if mock parameter is specified, use this instead of "run"
   - cl_f: mock blah blah # "cl_f" runs the command in foreground, displaying its output interactively (and without the INFO: prefixed like it is with cl_i)

@@ -6,10 +6,10 @@ pygtk:
   - rpm: ['glade3', 'gtk3', 'pygtk2','pygobject2', 'pygobject3']
 
   dependencies_eclipse:
-  - snippet: eclipse(dependencies_python)
+  - call: eclipse.dependencies_python
 
   dependencies_vim:
-  - snippet: vim(dependencies)
+  - call: vim.dependencies
 
   args:
     name:
@@ -40,11 +40,11 @@ pygtk:
     - cl_i: cp -r *pygtksources "$name"
   - cl: cd "$name"
   - if defined $vim:
-    - snippet: vim(run)
+    - call: vim.run
   - if $eclipse:
-    - snippet: eclipse(run_python)
+    - call: eclipse.run_python
   - cl: cp *gitignore .
-  - snippet: git_init_add_commit
+  - call: git_init_add_commit
   - if defined $github:
     - github: create_and_push
   - log_i: 'PyGTK project $basename in $dirname has been created.'

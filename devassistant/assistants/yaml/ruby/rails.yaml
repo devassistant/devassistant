@@ -36,8 +36,8 @@ rails:
   - dda_c: $basename
   - cl: cd "$basename"
   - if defined $vim:
-    - snippet: vim(run)
-  - snippet: git_init_add_commit
+    - call: vim.run
+  - call: git_init_add_commit
   - if defined $github:
     - github: create_and_push
   - log_i: 'Ruby on Rails project $basename in $dirname has been created.'
