@@ -184,7 +184,7 @@ class GitHubAuth(object):
                     needs_to_add_config_entry = False
                 fh.close()
             if needs_to_add_config_entry:
-                fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0600), 'a')
+                fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0o600), 'a')
                 fh.write(settings.GITHUB_SSH_CONFIG.format(
                             login=cls._user.login,
                             keyname=settings.GITHUB_SSH_KEYNAME.format(login=cls._user.login)))
