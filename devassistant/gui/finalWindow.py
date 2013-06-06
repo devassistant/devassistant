@@ -11,7 +11,7 @@ import os
 import getpass
 
 from devassistant.logger import logger
-from devassistant.gui.logger_gui import logger_gui
+from devassistant.logger import logger_gui
 from gi.repository import Gtk
 
 class finalWindow(object):
@@ -92,19 +92,34 @@ class finalWindow(object):
                                 logger_gui.info("ass[1] is: {0}".format(sub[0].fullname))
                                 if submodel[subpath_list][0] == sub[0].fullname:
                                     for arg in sub[0].args:
-                                        logger_gui.info(arg)
-                                        if arg.flags[1] != '--name':
+                                        number = len(arg.flags) - 1
+                                        if arg.flags[number] != '--name':
                                             label = Gtk.Label()
                                             label.set_text(arg.kwargs['help'])
                                             label.set_alignment(0, 0)
-                                            actBtn = Gtk.CheckButton(arg.flags[1][2:])
+                                            actBtn = Gtk.CheckButton(arg.flags[number][2:])
                                             vbox_left.pack_start(actBtn, True, True, 0)
                                             vbox_right.pack_start(label, True, True, 0)
                                             self.button.append(actBtn)
-                                            if arg.flags[1] == '--eclipse':
+                                            if arg.flags[number] == '--eclipse':
                                                 actBtn.connect("clicked", self.eclipse_toggled)
-                                            elif arg.flags[1] == '--github':
+                                                labelEclipse = Gtk.Label()
+                                                labelEclipse.set_text("")
+                                                new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
+                                                new_box.set_homogeneous(False)
+                                                new_box.pack_start(self.eclipseEntry,False,False,0)
+                                                new_box.pack_start(self.browseBtn,False,False,0)
+                                                vbox_left.pack_start(labelEclipse,False,False,0)
+                                                vbox_right.pack_start(new_box,False,False,0)
+                                            elif arg.flags[number] == '--github':
                                                 actBtn.connect("clicked", self.github_toggled)
+                                                labelGitHub = Gtk.Label()
+                                                labelGitHub.set_text("")
+                                                new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
+                                                new_box.set_homogeneous(False)
+                                                new_box.pack_start(self.githubEntry,False,False,0)
+                                                vbox_left.pack_start(labelGitHub,False,False,0)
+                                                vbox_right.pack_start(new_box,False,False,0)
         self.boxMain.pack_start(boxFinal, False, False, 6)
         self.finalWindow.show_all()
     def eclipse_toggled(self, widget, data=None):

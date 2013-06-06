@@ -7,11 +7,11 @@ from gi.repository import Gtk
 from devassistant import assistant_base
 from devassistant import yaml_assistant_loader
 from devassistant.logger import logger
+from devassistant.logger import logger_gui
 
 from devassistant.gui import pathWindow
 from devassistant.gui import finalWindow
 from devassistant.gui import runWindow
-from devassistant.gui.logger_gui import logger_gui
 
 gladefile = "./devassistant/gui/devel-assistant.glade"
 
@@ -67,14 +67,14 @@ class mainWindow(object):
         logger_gui.addHandler(console_handler)
         # End used for debugging
         k = 0
-        for ass in self.subas:
+        for ass in sorted(self.subas, key=lambda x: x[0].fullname):
             self.store.append([ass[0].fullname])
             if k == 0:
                 if not ass[1]:
                     self.labelMainWindow.hide()
                     self.sublistView.hide()
                 else:
-                    for sub in ass[1]:
+                    for sub in sorted(ass[1], key=lambda y: y[0].fullname):
                         logger_gui.info("subas:%s and %s" % (sub[0].name, sub[0].fullname))
                         self.substore.append([sub[0].fullname])
                         self.labelMainWindow.show()
@@ -149,13 +149,13 @@ class mainWindow(object):
                 tool = model[path_list][0]
                 #if tool in map(lambda x: x[0].fullname, self.subas):
                 #    logger_gui.info(type(self.subas))
-                for ass in self.subas:
+                for ass in sorted(self.subas, key=lambda x: x[0].fullname):
                     if tool == ass[0].fullname:
                         if not ass[1]:
                             self.labelMainWindow.hide()
                             self.sublistView.hide()
                         else:
-                            for sub in ass[1]:
+                            for sub in sorted(ass[1], key=lambda y: y[0].fullname):
                                 self.labelMainWindow.show_all()
                                 self.sublistView.show_all()
                                 self.substore.append([sub[0].fullname])

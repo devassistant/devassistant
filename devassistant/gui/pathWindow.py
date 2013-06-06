@@ -8,8 +8,8 @@ Created on Wed Apr  3 13:16:47 2013
 import os
 import mainWindow
 import finalWindow
-from devassistant.gui.logger_gui import logger_gui
 from devassistant.logger import logger
+from devassistant.logger import logger_gui
 from gi.repository import Gtk
 
 class pathWindow(object):

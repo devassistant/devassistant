@@ -119,7 +119,7 @@
     <property name="border_width">6</property>
     <property name="title" translatable="yes">Development Assistant wizard</property>
     <property name="resizable">False</property>
-    <property name="window_position">center-on-parent</property>
+    <property name="window_position">center</property>
     <property name="gravity">center</property>
     <signal name="delete-event" handler="on_mainWindow_delete_event" swapped="no"/>
     <child>
@@ -284,7 +284,7 @@
     <property name="border_width">6</property>
     <property name="title" translatable="yes">Project specification - Developer Assistant</property>
     <property name="resizable">False</property>
-    <property name="window_position">mouse</property>
+    <property name="window_position">center</property>
     <signal name="delete-event" handler="on_pathWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box6">
@@ -583,7 +583,7 @@
             </child>
             <child>
               <object class="GtkButton" id="cancelRunBtn">
-                <property name="label" translatable="yes">Cancel</property>
+                <property name="label" translatable="yes">Quit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
