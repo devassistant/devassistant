@@ -1,0 +1,69 @@
+lamp:
+  fullname: Apache, Mysql and PHP helper
+
+  dependencies:
+  # Apache things
+  - rpm: ['httpd']
+  # PHP issues
+  - rpm: ['php' , 'phpMyAdmin']
+  - rpm: ['php-mysql']
+  # MySQL issues
+  - rpm: ['mysql', 'mysql-server']
+
+  dependencies_vim:
+  - call: vim.dependencies
+
+  args:
+    name:
+      snippet: common_args
+
+    vim:
+      snippet: vim
+
+    github:
+      snippet: common_args
+
+    rootdbpwd:
+      flags:
+      - -r
+      - --rootdb
+      help: 'Root password for mysql db. Do not specify root password is not defined'
+
+  files:
+    phpfiles: &phpfiles
+      source: apache/lamp/sample_page/*
+    create_db: &create_db
+      source: apache/lamp/create_database.php
+    create_table: &create_table
+      source: apache/lamp/create_table.php
+    lamp_config: &lamp_config
+      source: apache/lamp/lamp_config.sh
+
+  run:
+  - $dirname: dirname "$name"
+  - $basename: basename "$name"
+  - $homedir: echo ~
+  - if not ls "$homedir/public_html/$basename":
+    - log_i: 'Copying AMP source tree to project destination'
+    - cl: chmod 755 $homedir
+    - cl_f: pkexec *lamp_config $basename $homedir
+    - if defined $rootdbpwd:
+      - cl_f: php *create_db $rootdbpwd
+    - else:
+      - cl_f: php *create_db
+    - cl_f: php *create_table
+    - cl: mkdir -p $homedir/public_html/$basename
+    - cl_f: cp -v *phpfiles "$homedir/public_html/$basename"
+    - cl_f: cd "$homedir/public_html/$basename"
+    - call: git_init_add_commit
+    - cl_f: pwd
+  - else:
+    - cl_f: cd "$homedir/public_html/$basename"
+    - log_i: 'Project already exists'  
+  - if defined $vim:
+    - call: vim.run
+  - if $github:
+    - cl: cd "$homedir/public_html/$basename"
+    - log_i: "Push on GitHub repository"
+    - github: create_and_push
+  - log_i: "Web application is localhost/$name"

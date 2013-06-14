@@ -6,6 +6,8 @@ SAMPLE_PHPMYADMIN=/usr/share/phpMyAdmin/config.sample.inc.php
 NEW_PHPMYADMIN=/usr/share/phpMyAdmin/config.inc.php
 PHP=/usr/bin/php
 
+# CORRECT POLICT
+
 echo "Checking SELinux..."
 SELINUX=`getenforce`
 echo "SELinux is: $SELINUX"
@@ -17,6 +19,7 @@ if [ $SELINUX == "Enforcing" ]; then
 else
     echo "SELinux is disabled"
 fi
+#BEGIN-D-BUS
 # httpd activation
 echo "Activation httpd.service"
 systemctl enable httpd.service
@@ -26,6 +29,7 @@ echo "Actiovation mysqld.service"
 systemctl enable mysqld.service
 systemctl restart mysqld.service
 
+#END D-BUS
 echo "Modify $NEW_PHPMYADMIN"
 if [ -f $NEW_PHPMYADMIN ]; then
     echo "Already modified"
