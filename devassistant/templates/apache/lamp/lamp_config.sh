@@ -11,14 +11,6 @@ PHP=/usr/bin/php
 echo "Checking SELinux..."
 SELINUX=`getenforce`
 echo "SELinux is: $SELINUX"
-if [ $SELINUX == "Enforcing" ]; then
-    echo "Switching SELinux to Permissive"
-    setenforce 0
-    SELINUX=`getenforce`
-    echo "SELinux is: $SELINUX"
-else
-    echo "SELinux is disabled"
-fi
 #BEGIN-D-BUS
 # httpd activation
 echo "Activation httpd.service"
