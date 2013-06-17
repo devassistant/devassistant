@@ -81,10 +81,10 @@ class pathWindow(object):
         
     def browse_path(self, window):
         dialog = Gtk.FileChooserDialog(
-            "Please choose directory", self.pathWindow,
-            Gtk.FileChooserAction.SELECT_FOLDER,
+            "Choose project directory", self.pathWindow,
+            Gtk.FileChooserAction.CREATE_FOLDER,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+             "Select", Gtk.ResponseType.OK)
             )
         response = dialog.run()
         if response == Gtk.ResponseType.OK:

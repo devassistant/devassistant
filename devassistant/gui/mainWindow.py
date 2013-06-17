@@ -150,15 +150,18 @@ class mainWindow(object):
                 #if tool in map(lambda x: x[0].fullname, self.subas):
                 #    logger_gui.info(type(self.subas))
                 for ass in sorted(self.subas, key=lambda x: x[0].fullname):
-                    if tool == ass[0].fullname:
+                    if tool== ass[0].fullname:
                         if not ass[1]:
-                            self.labelMainWindow.hide()
-                            self.sublistView.hide()
+                            self.labelMainWindow.set_sensitive(False)
+                            self.labelMainWindow.set_text("No available subassistant.")
+                            self.sublistView.set_sensitive(False)
                         else:
                             for sub in sorted(ass[1], key=lambda y: y[0].fullname):
-                                self.labelMainWindow.show_all()
-                                self.sublistView.show_all()
+                                self.labelMainWindow.set_sensitive(True)
+                                self.labelMainWindow.set_text("Select subassistant:")
+                                self.sublistView.set_sensitive(True)
                                 self.substore.append([sub[0].fullname])
             else:
-                self.labelMainWindow.hide()
-                self.sublistView.hide()
+                self.labelMainWindow.set_sensitive(False)
+                self.labelMainWindow.set_text("No available subassistant.")
+                self.sublistView.set_sensitive(False)

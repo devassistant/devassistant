@@ -23,10 +23,10 @@ class finalWindow(object):
         self.boxMain = builder.get_object("boxMain")
         self.button = []
         self.githubEntry = Gtk.Entry()
-        self.githubEntry.set_editable(0)
+        self.githubEntry.set_sensitive(False)
         self.githubEntry.set_text(getpass.getuser())
         self.eclipseEntry = Gtk.Entry()
-        self.eclipseEntry.set_editable(0)
+        self.eclipseEntry.set_editable(False)
         self.eclipseEntry.set_text(os.path.expanduser("~/workspace"))
         self.browseBtn = Gtk.Button("Browse")
         self.browseBtn.connect("clicked", self.browse_clicked)
@@ -39,7 +39,7 @@ class finalWindow(object):
         logger_gui.info("open window")
         selection = self.parent.listView.get_selection()
         subselection = self.parent.sublistView.get_selection()
-        title = Gtk.Label("List of all available options:")
+        title = Gtk.Label("Available options:")
         title.set_alignment(0,0)
         self.boxMain.pack_start(title, False, False, 12)
         boxFinal = Gtk.Box(spacing=12)
@@ -63,6 +63,7 @@ class finalWindow(object):
                                     label = Gtk.Label()
                                     label.set_text(sub.kwargs['help'])
                                     label.set_alignment(0, 0)
+                                    label.set_line_wrap(True)
                                     actBtn = Gtk.CheckButton(sub.flags[1][2:])
                                     vbox_left.pack_start(actBtn, False, False, 0)
                                     vbox_right.pack_start(label, False, False, 0)
@@ -97,6 +98,7 @@ class finalWindow(object):
                                             label = Gtk.Label()
                                             label.set_text(arg.kwargs['help'])
                                             label.set_alignment(0, 0)
+                                            label.set_line_wrap(True)
                                             actBtn = Gtk.CheckButton(arg.flags[number][2:])
                                             vbox_left.pack_start(actBtn, True, True, 0)
                                             vbox_right.pack_start(label, True, True, 0)
@@ -127,18 +129,18 @@ class finalWindow(object):
         active = widget.get_active()
         logger_gui.info(active)
         if active == True:
-            self.eclipseEntry.set_editable(1)
+            self.eclipseEntry.set_sensitive(True)
         else:
-            self.eclipseEntry.set_editable(0)
+            self.eclipseEntry.set_sensitive(False)
         
     def github_toggled(self, widget, data=None):
         logger_gui.info("Github clicked")
         active = widget.get_active()
         logger_gui.info(active)
         if active == True:
-            self.githubEntry.set_editable(1)
+            self.githubEntry.set_sensitive(True)
         else:
-            self.githubEntry.set_editable(0)
+            self.githubEntry.set_sensitive(False)
 
     def run_btn(self, widget, data=None):
         logger_gui.info("run button")

@@ -3,10 +3,12 @@
   <!-- interface-requires gtk+ 3.0 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkWindow" id="finalWindow">
+    <property name="width_request">500</property>
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Select options which will be entered into devassistant</property>
+    <property name="title" translatable="yes">Developer Assistant setup wizard</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
+    <property name="default_width">500</property>
     <property name="gravity">center</property>
     <signal name="delete-event" handler="on_finalWindow_delete_event" swapped="no"/>
     <child>
@@ -44,7 +46,8 @@
               <object class="GtkHBox" id="box16">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">10</property>
+                <property name="border_width">12</property>
+                <property name="spacing">12</property>
                 <property name="homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="cancelFinalBtn">
@@ -52,7 +55,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="border_width">10</property>
                     <signal name="clicked" handler="on_cancelFinalBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
@@ -63,11 +65,10 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="prevFinalBtn">
-                    <property name="label" translatable="yes">Prev</property>
+                    <property name="label" translatable="yes">Back</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="border_width">10</property>
                     <signal name="clicked" handler="on_prevFinalBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
@@ -82,7 +83,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="border_width">10</property>
                     <signal name="clicked" handler="on_runFinalBtn_clicked" swapped="no"/>
                   </object>
                   <packing>
@@ -95,7 +95,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">10</property>
+                <property name="padding">6</property>
                 <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
@@ -115,11 +115,14 @@
     </child>
   </object>
   <object class="GtkWindow" id="mainWindow">
+    <property name="width_request">500</property>
+    <property name="height_request">400</property>
     <property name="can_focus">False</property>
     <property name="border_width">6</property>
-    <property name="title" translatable="yes">Development Assistant wizard</property>
+    <property name="title" translatable="yes">Developer Assistant setup wizard</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
+    <property name="default_width">500</property>
     <property name="gravity">center</property>
     <signal name="delete-event" handler="on_mainWindow_delete_event" swapped="no"/>
     <child>
@@ -131,10 +134,12 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkLabel" id="label1">
+            <property name="width_request">500</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="xalign">0</property>
             <property name="yalign">0</property>
-            <property name="label" translatable="yes">Please select development target which you want to setup</property>
+            <property name="label" translatable="yes">Select development target:</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -149,16 +154,23 @@
             <property name="border_width">6</property>
             <property name="spacing">12</property>
             <child>
-              <object class="GtkTreeView" id="storeView">
+              <object class="GtkScrolledWindow" id="scrolledStoreView">
+                <property name="height_request">150</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="events">GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK</property>
-                <property name="model">storeList</property>
-                <property name="headers_visible">False</property>
-                <property name="headers_clickable">False</property>
-                <property name="enable_search">False</property>
-                <property name="enable_grid_lines">horizontal</property>
-                <signal name="cursor-changed" handler="on_store_view_cursor_changed" swapped="no"/>
+                <property name="hscrollbar_policy">never</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <object class="GtkTreeView" id="storeView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">storeList</property>
+                    <property name="headers_visible">False</property>
+                    <property name="headers_clickable">False</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <signal name="cursor-changed" handler="on_store_view_cursor_changed" swapped="no"/>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -182,8 +194,9 @@
               <object class="GtkLabel" id="sublabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="xalign">0</property>
                 <property name="yalign">0</property>
-                <property name="label" translatable="yes">Select which subassistant you would like to setup</property>
+                <property name="label" translatable="yes">Select subassistant:</property>
                 <property name="track_visited_links">False</property>
               </object>
               <packing>
@@ -193,16 +206,25 @@
               </packing>
             </child>
             <child>
-              <object class="GtkTreeView" id="subStoreView">
+              <object class="GtkScrolledWindow" id="scrolledSubView">
+                <property name="height_request">100</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="model">substoreList</property>
-                <property name="headers_visible">False</property>
-                <property name="headers_clickable">False</property>
-                <property name="enable_grid_lines">horizontal</property>
+                <property name="hscrollbar_policy">never</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <object class="GtkTreeView" id="subStoreView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">substoreList</property>
+                    <property name="headers_visible">False</property>
+                    <property name="headers_clickable">False</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                  </object>
+                </child>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
@@ -225,8 +247,8 @@
               <object class="GtkHBox" id="box3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="border_width">10</property>
-                <property name="spacing">10</property>
+                <property name="border_width">12</property>
+                <property name="spacing">12</property>
                 <property name="homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="cancelMainBtn">
@@ -261,7 +283,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">10</property>
+                <property name="padding">6</property>
                 <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
@@ -279,10 +301,9 @@
   </object>
   <object class="GtkWindow" id="pathWindow">
     <property name="width_request">500</property>
-    <property name="height_request">200</property>
     <property name="can_focus">False</property>
     <property name="border_width">6</property>
-    <property name="title" translatable="yes">Project specification - Developer Assistant</property>
+    <property name="title" translatable="yes">Developer Assistant setup wizard</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
     <signal name="delete-event" handler="on_pathWindow_delete_event" swapped="no"/>
@@ -315,6 +336,7 @@
               <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="border_width">12</property>
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkVBox" id="vbox1">
@@ -325,7 +347,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="xalign">0</property>
-                        <property name="label" translatable="yes">Specify project name:</property>
+                        <property name="label" translatable="yes">Project name:</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -338,7 +360,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="xalign">0</property>
-                        <property name="label" translatable="yes">Specify project directory:</property>
+                        <property name="label" translatable="yes">Project directory:</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -478,7 +500,8 @@
               <object class="GtkHBox" id="box8">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">10</property>
+                <property name="border_width">12</property>
+                <property name="spacing">12</property>
                 <property name="homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="cancelPathBtn">
@@ -496,7 +519,7 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="prevPathBtn">
-                    <property name="label" translatable="yes">Prev</property>
+                    <property name="label" translatable="yes">Back</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -526,7 +549,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">10</property>
+                <property name="padding">6</property>
                 <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
@@ -544,10 +567,13 @@
     </child>
   </object>
   <object class="GtkWindow" id="runWindow">
+    <property name="width_request">500</property>
     <property name="can_focus">False</property>
     <property name="border_width">6</property>
+    <property name="title" translatable="yes">Developer Assistant setup wizard</property>
     <property name="resizable">False</property>
     <property name="window_position">center</property>
+    <property name="default_width">500</property>
     <signal name="delete-event" handler="on_runWindow_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box17">
@@ -578,12 +604,14 @@
           <object class="GtkVBox" id="box18">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="border_width">12</property>
+            <property name="spacing">12</property>
             <child>
               <placeholder/>
             </child>
             <child>
               <object class="GtkButton" id="cancelRunBtn">
-                <property name="label" translatable="yes">Quit</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -602,6 +630,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
+            <property name="padding">6</property>
             <property name="pack_type">end</property>
             <property name="position">1</property>
           </packing>
