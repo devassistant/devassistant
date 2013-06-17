@@ -33,7 +33,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     os.makedirs(os.path.dirname(expanded_lfile))
                 # add handler and formatter
                 handler = logging.FileHandler(expanded_lfile, 'a+')
-                formatter = logging.Formatter('%(asctime)-15s %(levelname)s - %(message)s')
+                formatter = logging.Formatter('%(asctime)-15s [%(event_type)] %(levelname)s - %(message)s')
                 handler.setFormatter(formatter)
                 handler.setLevel(getattr(logging, level.upper()))
                 # register handler with the global logger

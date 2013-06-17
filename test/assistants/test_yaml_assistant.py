@@ -89,21 +89,17 @@ class TestYamlAssistant(object):
         section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=None)
         assert section is self.ya._run_foo
 
-    def test_run_runs_in_foreground_if_asked(self):
-        self.ya._run = [{'cl_f': 'ls'}]
-        flexmock(ClHelper).should_receive('run_command').with_args('ls', True, logging.DEBUG)
-        self.ya.run(foo='bar')
-
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
         # distributions (due to Fedora's usrmove), so use something that should be common
         self.ya._run = [{'cl': 'id'}]
         self.ya.run(foo='bar')
-        assert ('DEBUG', settings.COMMAND_LOG_STRING.format(cmd='id')) in self.tlh.msgs
+        assert ('DEBUG', 'id') in self.tlh.msgs
+
     def test_run_logs_command_at_info_if_asked(self):
         self.ya._run = [{'cl_i': 'id'}]
         self.ya.run(foo='bar')
-        assert ('INFO', settings.COMMAND_LOG_STRING.format(cmd='id')) in self.tlh.msgs
+        assert ('INFO', 'id') in self.tlh.msgs
 
     def test_log(self):
         self.ya._run = [{'log_w': 'foo!'}]

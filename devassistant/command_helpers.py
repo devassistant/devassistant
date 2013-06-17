@@ -10,16 +10,10 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, fg=False, log_level=logging.DEBUG, realtime_output=False):
+    def run_command(cls, cmd_str, log_level=logging.DEBUG):
         """Runs a command from string, e.g. "cp foo bar" """
-        if fg and realtime_output:
-            # realtime output only makes sense with logging (fg command is realtime automatically)
-            raise ValueError('Cannot use both realtime_output and fg.')
 
-        formatted_string = settings.COMMAND_LOG_STRING.format(cmd=cmd_str)
-        if fg:
-            print(formatted_string)
-        logger.log(log_level, formatted_string)
+        logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
 
         if cmd_str.startswith('cd '):
             # special-case cd to behave like shell cd and stay in the directory
@@ -32,42 +26,28 @@ class ClHelper(object):
             return ''
 
         stdin_pipe = None
-        stdout_pipe = None if fg else subprocess.PIPE
-        stderr_pipe = None if fg else subprocess.PIPE if not realtime_output else subprocess.STDOUT
+        stdout_pipe = subprocess.PIPE
+        stderr_pipe = subprocess.STDOUT
         proc = subprocess.Popen(cmd_str,
                                 stdin=stdin_pipe,
                                 stdout=stdout_pipe,
                                 stderr=stderr_pipe,
                                 shell=True)
-        if realtime_output:
-            stdout = []
-            stderr = ''
-            while proc.poll() == None:
-                output = proc.stdout.readline().strip().decode('utf8')
-                stdout.append(output)
-                logger.log(log_level, settings.COMMAND_OUTPUT_STRING.format(line=output))
-            stdout = '\n'.join(stdout)
-            stderr = ''
-        else:
-            # decode because of Python 3
-            stdout, stderr = map(lambda x: x.strip().decode('utf8') if x else '', proc.communicate())
-            loggable_stdout = '\n'.join(map(lambda ln: settings.COMMAND_OUTPUT_STRING.format(line=ln),
-                                            stdout.splitlines()))
-            loggable_stderr = '\n'.join(map(lambda ln: settings.COMMAND_OUTPUT_STRING.format(line=ln),
-                                            stderr.splitlines()))
-            if not fg:
-                if stdout:
-                    logger.log(log_level, loggable_stdout)
-                if stderr:
-                    logger.log(log_level, loggable_stderr)
+        stdout = []
+        stderr = ''
+        while proc.poll() == None:
+            output = proc.stdout.readline().strip().decode('utf8')
+            stdout.append(output)
+            logger.log(log_level, output, extra={'event_type': 'cmd_out'})
+        stdout = '\n'.join(stdout) + proc.stdout.read().decode('utf8')
+        stderr = ''
 
         if proc.returncode == 0:
             return stdout.strip()
         else:
             raise exceptions.ClException(cmd_str,
                                          proc.returncode,
-                                         stdout,
-                                         stderr if not fg else 'See command output above.')
+                                         stdout)
 
 class RPMHelper(object):
     c_rpm = 'rpm'
@@ -86,20 +66,20 @@ class RPMHelper(object):
 
     @classmethod
     def is_rpm_installed(cls, rpm_name):
-        logger.info('Checking for presence of {0}...'.format(rpm_name))
+        logger.info('Checking for presence of {0}...'.format(rpm_name), extra={'event_type': 'dep_check'})
 
         found_rpm = cls.rpm_q(rpm_name)
         if found_rpm:
-            logger.info('Found %s', found_rpm)
+            logger.info('Found {0}'.format(found_rpm), extra={'event_type': 'dep_found'})
         else:
-            logger.info('Not found')
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
         return found_rpm
 
     @classmethod
     def was_rpm_installed(cls, rpm_name):
         # TODO: handle failure
         found_rpm = cls.rpm_q(rpm_name)
-        logger.info('Installed %s', found_rpm)
+        logger.info('Installed {0}'.format(found_rpm), extra={'event_type': 'dep_installed'})
         return found_rpm
 
 
@@ -144,7 +124,7 @@ class YUMHelper(object):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), to_install)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, realtime_output=True)
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
             return args
         except exceptions.ClException:
             return False

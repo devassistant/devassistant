@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
+
+import subprocess
+
 from devassistant.version import VERSION
 
 try:
@@ -23,8 +25,6 @@ class PyTest(Command):
         pass
 
     def run(self):
-        from devassistant.command_helpers import ClHelper
-        from devassistant.exceptions import ClException
         # only one test runner => just run the tests
         runners = ['py.test-2.7', 'py.test-3.3']
         if self.test_runner:
@@ -37,14 +37,12 @@ class PyTest(Command):
 
             retcode = 0
             cmd = [runner]
-            try:
-                for a in self.args:
-                    cmd.append(a)
-                cmd.append('test')
-                ClHelper.run_command(' '.join(cmd), fg=True)
-            except ClException as e:
-                retcode = e.returncode
-                print(e.stdout)
+            for a in self.args:
+                cmd.append(a)
+            cmd.append('test')
+            t = subprocess.Popen(cmd)
+            rc = t.wait()
+            retcode = t.returncode or retcode
 
         raise SystemExit(retcode)
 

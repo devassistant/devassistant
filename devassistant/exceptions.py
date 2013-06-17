@@ -1,12 +1,11 @@
 class ClException(BaseException):
-    def __init__(self, command, returncode, stdout, stderr):
+    def __init__(self, command, returncode, output):
         self.command = command
         self.returncode = returncode
-        self.stdout = stdout
-        self.stderr = stderr
+        self.output = output
 
     def __str__(self):
-        return self.stderr
+        return self.output
 
 class ExecutionException(BaseException):
     pass

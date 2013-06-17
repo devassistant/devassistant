@@ -21,14 +21,12 @@ class ClCommand(object):
         fg = False
         log_level = logging.DEBUG
         log_error = True
-        if 'f' in comm_type:
-            fg = True
         if 'i' in comm_type:
             log_level = logging.INFO
         if 'n' in comm_type:
             log_error = False
         try:
-            result = ClHelper.run_command(comm, fg, log_level)
+            result = ClHelper.run_command(comm, log_level)
         except exceptions.ClException as e:
             if log_error:
                 logger.error(e)
@@ -232,7 +230,7 @@ class GitHubCommand(object):
 
     @classmethod
     def _github_push_repo(cls, **kwargs):
-        ClHelper.run_command("git push -u origin master", True, True)
+        ClHelper.run_command("git push -u origin master", logging.INFO)
 
     @classmethod
     def _github_remote_show_origin(cls, **kwargs):
@@ -248,7 +246,7 @@ class GitHubCommand(object):
         if getpass.getuser() != cls._user.login:
             dash_login = '-' + cls._user.login
         ClHelper.run_command("git remote add origin git@github.com{dash_login}:{login}/{reponame}.git".\
-                             format(dash_login=dash_login, login=cls._user.login, reponame=reponame), True, True)
+                             format(dash_login=dash_login, login=cls._user.login, reponame=reponame), logging.INFO)
 
     @classmethod
     @GitHubAuth.github_authenticated
