@@ -1,5 +1,13 @@
+try: # ugly hack for using imp instead of importlib on Python <= 2.6
+    import importlib
+except ImportError:
+    import imp as importlib
+    def import_module(name):
+        fp, pathname, description = importlib.find_module(name)
+        return imp.load_module(name, fp, pathname, description)
+    importlib.import_module = import_module
+    del import_module
 import getpass
-import importlib
 import logging
 import os
 
