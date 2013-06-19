@@ -33,8 +33,11 @@ class ClCommand(object):
             log_level = logging.INFO
         if 'n' in comm_type:
             log_error = False
+        scls = []
+        if '__scls__' in kwargs:
+            scls = reduce(lambda x, y: x + y, kwargs['__scls__'], scls)
         try:
-            result = ClHelper.run_command(comm, log_level)
+            result = ClHelper.run_command(comm, log_level, scls=scls)
         except exceptions.ClException as e:
             if log_error:
                 logger.error(e)

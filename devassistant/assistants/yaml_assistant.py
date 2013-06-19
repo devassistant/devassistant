@@ -121,10 +121,9 @@ class YamlAssistant(assistant_base.AssistantBase):
                     if self._is_snippet_call(comm, **kwargs):
                         # we're calling a snippet => add files to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
-                        if '__files__' in kwargs:
-                            kwargs['__files__'].append(snippet.get_files_section())
-                        else:
-                            kwargs['__files__'] = [snippet.get_files_section()]
+                        if '__files__' not in kwargs:
+                            kwargs['__files__'] = []
+                        kwargs['__files__'].append(snippet.get_files_section())
 
                     if sect is None:
                         logger.warning('No section to run: {0}.'.format(comm))
@@ -154,6 +153,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                         execute_else = False
                         # run with original kwargs, so that they might be changed for code after this if
                         self._run_one_section(comm, kwargs)
+                elif comm_type.startswith('scl'):
+                    if '__scls__' not in kwargs:
+                        kwargs['__scls__'] = []
+                    # list of lists of scl names
+                    kwargs['__scls__'].append(comm_type.split()[1:])
+                    self._run_one_section(comm, kwargs)
+                    kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
                     run_command(comm_type, CommandFormatter.format(comm, self.template_dir, files, **kwargs), **kwargs)

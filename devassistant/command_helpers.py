@@ -10,9 +10,11 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, log_level=logging.DEBUG):
+    def run_command(cls, cmd_str, log_level=logging.DEBUG, scls=[]):
         """Runs a command from string, e.g. "cp foo bar" """
 
+        # format for scl execution if needed
+        cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
 
         if cmd_str.startswith('cd '):
@@ -48,6 +50,13 @@ class ClHelper(object):
             raise exceptions.ClException(cmd_str,
                                          proc.returncode,
                                          stdout)
+
+    @classmethod
+    def format_for_scls(cls, cmd_str, scls):
+        if scls and not cmd_str.startswith('cd '):
+            cmd_str = 'scl enable {scls} - << DA_SCL_EOF {cmd_str} DA_SCL_EOF'.format(cmd_str=cmd_str,
+                                                                                      scls=' '.join(scls))
+        return cmd_str
 
 class RPMHelper(object):
     c_rpm = 'rpm'
