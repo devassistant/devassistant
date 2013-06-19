@@ -218,9 +218,9 @@ class TestYamlAssistant(object):
 
     def test_scl_passes_scls_list_to_command_invocation(self):
         # please don't use $__scls__ in actual assistants :)
-        self.ya._run = [{'scl foo bar': [{'log_i': '$__scls__'}]}]
+        self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
         self.ya.run()
-        assert ('INFO', "[['foo', 'bar']]") in self.tlh.msgs
+        assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
 
 class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir

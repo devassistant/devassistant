@@ -7,7 +7,7 @@ class TestClHelper(object):
         assert ClHelper.format_for_scls('foo', []) == 'foo'
 
     def test_format_for_scls_some_scls(self):
-        scls = ['scl1', 'scl2']
+        scls = ['enable', 'scl1', 'scl2']
         cmd = 'foo bar'
         expected = 'scl enable scl1 scl2 - << DA_SCL_EOF\n foo bar \nDA_SCL_EOF'
         assert ClHelper.format_for_scls(cmd, scls) == expected

@@ -54,8 +54,8 @@ class ClHelper(object):
     @classmethod
     def format_for_scls(cls, cmd_str, scls):
         if scls and not cmd_str.startswith('cd '):
-            cmd_str = 'scl enable {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.format(cmd_str=cmd_str,
-                                                                                          scls=' '.join(scls))
+            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.format(cmd_str=cmd_str,
+                                                                                   scls=' '.join(scls))
         return cmd_str
 
 class RPMHelper(object):
