@@ -9,7 +9,7 @@ from devassistant import path_runner
 class CliRunner(object):
     @classmethod
     def register_console_logging_handler(cls):
-        console_handler = logging.StreamHandler(stream=sys.stdout)
+        console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(levelname)s - %(message)s')
         console_handler.setFormatter(logger.DevassistantClFormatter())
         console_handler.setLevel(logging.INFO)
