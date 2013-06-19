@@ -1,8 +1,8 @@
 import getpass
+import importlib
 import logging
 import os
 
-import github
 import yaml
 
 from devassistant import exceptions
@@ -82,6 +82,10 @@ class DotDevassistantCommand(object):
 class GitHubAuth(object):
     _user = None
     _token = None
+    try:
+        _gh_module = importlib.import_module('github')
+    except:
+        _gh_module = None
 
     @classmethod
     def _github_login(cls, **kwargs):
@@ -104,21 +108,21 @@ class GitHubAuth(object):
         if not cls._user:
             try:
                 # try logging with token
-                gh = github.Github(login_or_token=token)
+                gh = cls._gh_module.Github(login_or_token=token)
                 cls._user = gh.get_user()
                 # try if the authentication was successful
                 cls._user.login
-            except github.GithubException:
+            except cls._gh_module.GithubException:
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
                 # login with username/password
                 password = ZenityHelper.ask_for_password(title='Github Password')
-                gh = github.Github(login_or_token=username, password=password)
+                gh = cls._gh_module.Github(login_or_token=username, password=password)
                 cls._user = gh.get_user()
                 try:
                     cls._user.login
                     cls._github_create_auth(**kwargs) # create auth for future use
-                except github.GithubException as e:
+                except cls._gh_module.GithubException as e:
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
                     logger.error(msg)
                     # reset cls._user to None, so that we don't use it if calling this multiple times
@@ -140,7 +144,7 @@ class GitHubAuth(object):
                     token=auth.token))
                 ClHelper.run_command("git config --global github.user.{login} {login}".format(
                     login=cls._user.login))
-            except github.GithubException as e:
+            except cls._gh_module.GithubException as e:
                 logger.warning('Creating authorization failed: {0}'.format(e))
 
     @classmethod
@@ -192,9 +196,12 @@ class GitHubAuth(object):
     def github_authenticated(cls, func):
         """Does user authentication, creates SSH keys if needed and injects "_user" attribute
         into class/object bound to the decorated function.
+        Don't call any other methods of this class manually, this should be everything you need.
         """
         def inner(func_cls, *args, **kwargs):
-            if not func_cls._user:
+            if not cls._gh_module:
+                logger.warning('PyGithub not installed, skipping github authentication procedures.')
+            elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
                 func_cls._user = cls._get_github_user(cls._github_login(**kwargs),
                                                   cls._github_token(**kwargs),
@@ -207,6 +214,10 @@ class GitHubAuth(object):
 
 class GitHubCommand(object):
     _user = None
+    try:
+        _gh_module = importlib.import_module('github')
+    except:
+        _gh_module = None
 
     @classmethod
     def matches(cls, comm_type):
@@ -214,6 +225,9 @@ class GitHubCommand(object):
 
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
+        if not cls._gh_module:
+            logger.warning('PyGithub not installed, cannot execute github command.')
+            return
         if comm == 'create_repo':
             cls._github_create_repo(**kwargs)
         elif comm == 'push':
