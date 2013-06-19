@@ -57,6 +57,16 @@ class TestYamlAssistant(object):
         flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True)
         self.ya.dependencies()
 
+    def test_dependencies_if(self):
+        self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
+        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('foo').and_return(True)
+        self.ya.dependencies(x='x')
+
+    def test_dependencies_else(self):
+        self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
+        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
+        self.ya.dependencies()
+
     def test_run_pass(self):
         self.ya._run = [{'cl': 'true'}, {'cl': 'ls'}]
         self.ya.run()

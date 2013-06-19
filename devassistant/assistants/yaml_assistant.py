@@ -67,28 +67,46 @@ class YamlAssistant(assistant_base.AssistantBase):
         deps = []
 
         for sect in sections:
-            deps.extend(self._dependencies_section(sect))
+            deps.extend(self._dependencies_section(sect, **kwargs))
 
         return deps
 
     def _dependencies_section(self, section, **kwargs):
         # "deps" is the same structure as gets returned by "dependencies" method
+        execute_else = False
         deps = []
 
-        for dep in section:
-            dep_type, dep_list = dep.popitem()
-            # rpm dependencies (can't handle anything else yet)
-            if dep_type == 'call':
-                section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
-                if section is not None:
-                    deps.extend(self._dependencies_section(section, **kwargs))
+        for i, dep in enumerate(section):
+            for dep_type, dep_list in dep.items():
+                # rpm dependencies (can't handle anything else yet)
+                if dep_type == 'call':
+                    section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
+                    if section is not None:
+                        deps.extend(self._dependencies_section(section, **kwargs))
+                    else:
+                        logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
+                                                                                                                     dep_list.split('(')[0]))
+                elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
+                    deps.append((dep_type, dep_list))
+                ### TODO: this is not completely DRY, the conditionals here use completely the same logic as in run sections
+                elif dep_type.startswith('if'):
+                    # check returned False (exit code != 0), because if commands succeeds without output, we get empty string
+                    if self._evaluate(dep_type[2:].strip(), **kwargs) != False:
+                        deps.extend(self._dependencies_section(dep_list, **kwargs))
+                    elif len(section) > i + 1:
+                        next_section_dict = section[i + 1]
+                        next_section_dep_type, next_section_dep = list(next_section_dict.items())[0]
+                        if next_section_dep_type == 'else':
+                            execute_else = True
+                elif dep_type == 'else':
+                    # else on its own means error, otherwise execute it
+                    if not list(section[i - 1].items())[0][0].startswith('if'):
+                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                    elif execute_else:
+                        execute_else = False
+                        deps.extend(self._dependencies_section(dep_list, **kwargs))
                 else:
-                    logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
-                                                                                                                 dep_list.split('(')[0]))
-            elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
-                deps.append((dep_type, dep_list))
-            else:
-                logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
+                    logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
         return deps
 
