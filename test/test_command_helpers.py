@@ -9,7 +9,7 @@ class TestClHelper(object):
     def test_format_for_scls_some_scls(self):
         scls = ['scl1', 'scl2']
         cmd = 'foo bar'
-        expected = 'scl enable scl1 scl2 - << DA_SCL_EOF foo bar DA_SCL_EOF'
+        expected = 'scl enable scl1 scl2 - << DA_SCL_EOF\n foo bar \nDA_SCL_EOF'
         assert ClHelper.format_for_scls(cmd, scls) == expected
 
     def test_format_for_scls_leaves_cd_untouched(self):
