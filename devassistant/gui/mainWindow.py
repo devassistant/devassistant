@@ -3,6 +3,8 @@ import sys
 import logging
 
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
 
 from devassistant import assistant_base
 from devassistant import yaml_assistant_loader
@@ -13,8 +15,13 @@ from devassistant.gui import pathWindow
 from devassistant.gui import finalWindow
 from devassistant.gui import runWindow
 
-gladefile = "./devassistant/gui/devel-assistant.glade"
+import threading, thread
+import gobject
 
+GLib.threads_init()
+Gdk.threads_init()
+
+gladefile = "./devassistant/gui/devel-assistant.glade"
 
 class DevelAssistants(assistant_base.AssistantBase):
     def get_subassistants(self):
@@ -38,7 +45,7 @@ class mainWindow(object):
                 "on_browsePathBtn_clicked": self.pathWindow.browse_path,
                 "on_cancelPathBtn_clicked": Gtk.main_quit,
                 "on_cancelFinalBtn_clicked": Gtk.main_quit,
-                "on_cancelRunBtn_clicked": Gtk.main_quit,
+                "on_cancelRunBtn_clicked": self.runWindow.close_btn,
                 "on_nextPathBtn_clicked": self.pathWindow.next_window,
                 "on_pathWindow_delete_event": Gtk.main_quit,
                 "on_finalWindow_delete_event": Gtk.main_quit,
@@ -91,7 +98,9 @@ class mainWindow(object):
         subcolumn = Gtk.TreeViewColumn("List of languages", subrenderer, text=0)
         self.sublistView.append_column(subcolumn)
         self.mainWin.show_all()
+        Gdk.threads_enter()
         Gtk.main()
+        Gdk.threads_leave()
 
     def browse_path(self, window):
         self.pathWindow.browsePath()

@@ -20,13 +20,12 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
-
-GLib.threads_init()
+import gobject
 
 class RunLoggingHandler(logging.Handler):
-    def __init__(self, textview):
+    def __init__(self, treeview):
         logging.Handler.__init__(self)
-        self.textview = textview
+        self.treeview = treeview
 
     def utf8conv(self,x):
         try:
@@ -34,40 +33,76 @@ class RunLoggingHandler(logging.Handler):
         except:
             return x
 
+    def get_iter_last(self, model):
+        itr = model.get_iter_first()
+        last = None
+        while itr:
+            last = itr
+            itr = model.iter_next(itr)
+        return last
+
     def emit(self, record):
-        bufferLog = self.textview.get_buffer()
-        it = bufferLog.get_end_iter()
-        #self.textbuffer.place_cursor(it)
-        bufferLog.insert(it,record.getMessage())
+        msg = record.getMessage()
+        treeStore = self.treeview.get_model()
+        lastRow = self.get_iter_last(treeStore)
+        #print "MSG:%s." % msg
+        Gdk.threads_enter()
+        if record.levelname == "INFO":
+            # Create a new root tree element
+            treeStore.append(None, [msg])
+        else:
+            # Append a new element in tree element
+            if msg is not "":
+                treeStore.append(lastRow, [msg])
+        Gdk.threads_leave()
 
 class runWindow(object):
     def __init__(self,  parent, finalWindow, builder, assistant):
         self.parent = parent
         self.finalWindow = finalWindow
         self.runWindow = builder.get_object("runWindow")
-        self.textViewLog = builder.get_object("textViewLog")
+        self.runTreeView = builder.get_object("runTreeView")
         self.cancelBtn = builder.get_object("cancelRunBtn")
-        self.textbuffer = self.textViewLog.get_buffer()
-        self.textViewLog.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.assistant = assistant
-        self.tlh = RunLoggingHandler(self.textViewLog)
+        self.tlh = RunLoggingHandler(self.runTreeView)
         logger.addHandler(self.tlh)
         FORMAT = "%(levelname)s %(message)s"
         self.tlh.setFormatter(logging.Formatter(FORMAT))
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
+        self.store = Gtk.TreeStore(str)
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Log from current process", renderer, text=0)
+        self.runTreeView.append_column(column)
+        self.runTreeView.set_model(self.store)
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
+        self.thread = threading.Thread(target=self.devassistant_start)
         self.runWindow.show_all()
         self.cancelBtn.set_sensitive(False)
-        thread = threading.Thread(target=self.devassistant_start)
-        thread.start()
+        self.thread.start()
         self.cancelBtn.set_sensitive(True)
-
 
     def visibility_event(self, widget, data=None):
         logger_gui.info("ListView Visibility event")
 
+    def check_thread(self):
+        while self.thread.isAlive():
+            time.sleep(1)
+        self.cancelBtn.set_label("Close")
+
+    def done_thread(self):
+        self.cancelBtn.set_label("Close")
+        return False
+
+    def close_btn(self, widget, data=None):
+        name = self.cancelBtn.get_label()
+        if name == "Cancel":
+            print "Cancelling thread"
+            self.thread.stop()
+        else:
+            print "Quit dialog"
+            Gtk.main_quit()
 
     def devassistant_start(self):
         logger_gui.info("Thread run")
@@ -75,5 +110,8 @@ class runWindow(object):
         pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:
             pr.run()
+            Gdk.threads_enter()
+            self.cancelBtn.set_label("Close")
+            Gdk.threads_leave()
         except exceptions.ExecutionException as ex:
             pass
