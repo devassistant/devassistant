@@ -26,7 +26,6 @@ class ClCommand(object):
 
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
-        fg = False
         log_level = logging.DEBUG
         log_error = True
         if 'i' in comm_type:
@@ -301,7 +300,6 @@ class GitHubCommand(object):
         Raises:
             devassistant.exceptions.RunException on error
         """
-        reponame = cls._github_reponame(**kwargs)
         cls._github_add_remote_origin(**kwargs)
         cls._github_remote_show_origin(**kwargs)
         cls._github_push_repo(**kwargs)

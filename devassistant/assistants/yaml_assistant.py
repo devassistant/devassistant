@@ -84,8 +84,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     if section is not None:
                         deps.extend(self._dependencies_section(section, **kwargs))
                     else:
-                        logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(section_name,
-                                                                                                                     dep_list.split('(')[0]))
+                        logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(dep_list.split('.')))
                 elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
                     deps.append((dep_type, dep_list))
                 ### TODO: this is not completely DRY, the conditionals here use completely the same logic as in run sections

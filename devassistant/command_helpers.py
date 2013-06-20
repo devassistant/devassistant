@@ -1,12 +1,9 @@
 import logging
 import os
 import subprocess
-import sys
 import tempfile
-import threading
 
 from devassistant import exceptions
-from devassistant import settings
 from devassistant.logger import logger
 
 class ClHelper(object):
@@ -37,13 +34,11 @@ class ClHelper(object):
                                 stderr=stderr_pipe,
                                 shell=True)
         stdout = []
-        stderr = ''
         while proc.poll() == None:
             output = proc.stdout.readline().strip().decode('utf8')
             stdout.append(output)
             logger.log(log_level, output, extra={'event_type': 'cmd_out'})
         stdout = '\n'.join(stdout) + proc.stdout.read().decode('utf8')
-        stderr = ''
 
         if proc.returncode == 0:
             return stdout.strip()
@@ -120,11 +115,6 @@ class YUMHelper(object):
     @classmethod
     def install(cls, *args):
         to_install = cls.resolve(*args)
-        try:
-            # Python 2 compat
-            input = raw_input
-        except NameError:
-            pass
         ret = ZenityHelper.ask_for_custom_input(title='\"Question\"',text='\"Do you want to install packages?\"',input_type="question",options=[])
         if ret is False:
             return False
@@ -153,11 +143,12 @@ class YUMHelper(object):
 class PathHelper(object):
     c_cp = 'cp'
     c_mkdir = 'mkdir'
+    c_test = 'test'
 
     @classmethod
     def path_exists(cls, path):
         try:
-            return ls(path).strip()
+            return ClHelper.run_command(' '.join([cls.c_test, '-e', path])).strip()
         except exceptions.ClException:
             return False
 

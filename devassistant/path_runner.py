@@ -1,5 +1,3 @@
-import sys
-
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 from devassistant.command_helpers import RPMHelper, YUMHelper
@@ -58,7 +56,8 @@ class PathRunner(object):
 
         # collide rpm deps to install them in one shot, install them first
         rpm_deps = reduce(lambda x, y: x + y, [dep[1] for dep in deps if dep[0] == 'rpm'], [])
-        other_deps = [dep for dep in deps if dep[0] != 'rpm']
+        # TODO: uncomment when we actually can install other deps
+        # other_deps = [dep for dep in deps if dep[0] != 'rpm']
 
         self._install_rpm_dependencies(*rpm_deps, **self.parsed_args)
 
