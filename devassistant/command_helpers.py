@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 
 from devassistant import exceptions
@@ -100,6 +101,7 @@ class YUMHelper(object):
         logger.info('Resolving dependencies ...')
         import yum
         y = yum.YumBase()
+        y.setCacheDir(tempfile.mkdtemp())
         for arg in args:
             if arg.startswith('@'):
                 y.selectGroup(arg[1:])
