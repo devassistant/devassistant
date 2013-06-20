@@ -123,10 +123,8 @@ class YUMHelper(object):
             input = raw_input
         except NameError:
             pass
-        yes = input('Is this ok? [y/n]: ')
-        while not yes.lower()[0] in ['y', 'n']:
-            yes = input('Wrong choice. Please choose from [y/n]: ')
-        if yes.lower()[0] != 'y':
+        ret = ZenityHelper.ask_for_custom_input(title='\"Question\"',text='\"Do you want to install packages?\"',input_type="question",options=[])
+        if ret is False:
             return False
 
         cmd = ['pkexec', cls.c_yum, '-y', 'install']
