@@ -128,7 +128,7 @@ class GitHubAuth(object):
                 cls._token = None
                 # login with username/password
                 password = ZenityHelper.ask_for_password(title='Github Password')
-                gh = cls._gh_module.Github(login_or_token=username, password=password)
+                gh = cls._gh_module.Github(login_or_token=login, password=password)
                 cls._user = gh.get_user()
                 try:
                     cls._user.login
