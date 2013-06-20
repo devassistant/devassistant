@@ -115,7 +115,19 @@ class YUMHelper(object):
     @classmethod
     def install(cls, *args):
         to_install = cls.resolve(*args)
-        ret = ZenityHelper.ask_for_custom_input(title='\"Question\"',text='\"Do you want to install packages?\"',input_type="question",options=[])
+        # Zenity sucks for package list displaying, as it appends newline for every line with a dash
+        # in question dialog. Therefore we write package names to temp file and use --text-info.
+        # see https://bugzilla.gnome.org/show_bug.cgi?id=702752
+        h, fname = tempfile.mkstemp()
+        f = open(fname, 'w')
+        f.write('\n'.join(to_install))
+        f.close()
+        # TODO: don't hardcode width and height
+        ret = ZenityHelper.ask_for_custom_input(title='"Install following packages?"',
+                                                text='',
+                                                input_type='text-info',
+                                                options=['--filename=' + fname, '--width=500', '--height=700'])
+        os.remove(fname)
         if ret is False:
             return False
 
