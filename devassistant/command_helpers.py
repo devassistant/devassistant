@@ -179,7 +179,7 @@ class ZenityHelper(object):
     c_zenity = 'zenity'
 
     @classmethod
-    def ask_for_password(cls, title, text='Enter password:', input_type='entry', options=[]):
+    def ask_for_password(cls, title, text='\"Enter password:\"', input_type='entry', options=["--hide-text"]):
         return cls.ask_for_custom_input(title, text, input_type, options)
 
     @classmethod
