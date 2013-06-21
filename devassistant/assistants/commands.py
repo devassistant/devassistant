@@ -14,7 +14,7 @@ import os
 import yaml
 
 from devassistant import exceptions
-from devassistant.command_helpers import ClHelper, ZenityHelper
+from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, ZenityHelper
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version
@@ -43,6 +43,48 @@ class ClCommand(object):
             raise exceptions.RunException(e)
 
         return result.strip() if hasattr(result, 'strip') else result
+
+class DependenciesCommand(object):
+    @classmethod
+    def matches(cls, comm_type):
+        return comm_type.startswith('dependencies')
+
+    @classmethod
+    def run(cls, comm_type, comm, **kwargs):
+        # from_struct is not callable from yaml assistants (yet)
+        if comm_type == 'dependencies_from_struct':
+            cls._install_from_struct(struct=comm)
+        elif comm_type == 'dependencies_from_dda':
+            pass
+
+    @classmethod
+    def _install_from_struct(cls, struct):
+        # see YamlAssistant.dependencies docstring to see what the structure looks like
+        # collide rpm deps to install them in one shot, install them first
+        rpm_deps = reduce(lambda x, y: x + y, [dep[1] for dep in struct if dep[0] == 'rpm'], [])
+        # TODO: uncomment when we actually can install other deps
+        # other_deps = [dep for dep in deps if dep[0] != 'rpm']
+
+        cls._install_rpm_dependencies(*rpm_deps)
+
+    @classmethod
+    def _install_rpm_dependencies(cls, *dep_list):
+        to_install = []
+
+        for dep in dep_list:
+            if dep.startswith('@'):
+                if not YUMHelper.is_group_installed(dep):
+                    to_install.append(dep)
+            else:
+                if not RPMHelper.is_rpm_installed(dep):
+                    to_install.append(dep)
+
+        if to_install: # only invoke YUM if we actually have something to install
+            if not YUMHelper.install(*to_install):
+                raise exceptions.RunException('Failed to install: {0}'.format(' '.join(to_install)))
+
+        for pkg in to_install:
+            RPMHelper.was_rpm_installed(pkg)
 
 class DotDevassistantCommand(object):
     @classmethod
@@ -333,7 +375,11 @@ class LogCommand(object):
         else:
             logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, comm))
 
-commands = [ClCommand, DotDevassistantCommand, GitHubCommand, LogCommand]
+commands = [ClCommand,
+            DependenciesCommand,
+            DotDevassistantCommand,
+            GitHubCommand,
+            LogCommand]
 
 def run_command(comm_type, comm, **kwargs):
     for c in commands:
