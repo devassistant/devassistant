@@ -22,7 +22,7 @@ class ClHelper(object):
                 directory = cmd_str.split()[1].replace('"', '').replace('\'', '')
                 os.chdir(directory)
             except OSError as e:
-                raise exceptions.ClException(cmd_str, 1, '', str(e))
+                raise exceptions.ClException(cmd_str, 1, str(e))
             return ''
 
         stdin_pipe = None
