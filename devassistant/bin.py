@@ -26,3 +26,14 @@ class ModifierAssistant(ExecutableAssistant):
     verbose_name = 'Main'
     description = 'Developer assistant will help you work with existing projects.\
                    See subassistants for list of currently available assistants.'
+
+class PreparerAssistant(ExecutableAssistant):
+    def get_subassistants(self):
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['preparer'])
+        return sa
+
+    name = 'main'
+    verbose_name = 'Main'
+    description = 'Developer assistant will help you setup your environment for \
+                   working with upstream projects.\
+                   See subassistants for list of currently available assistants.'

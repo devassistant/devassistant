@@ -1,0 +1,31 @@
+custom:
+  role: preparer
+  fullname: Custom Project
+  description: Set up environment for developing custom project previously created with Devassistant.
+
+  args:
+    url:
+      flags:
+      - -u
+      - --url
+      help:
+        Url of the project git repo (uses http/https/git).
+      required:
+        True
+    path:
+      flags:
+      - -p
+      - --path
+      help:
+        Path where to checkout the repo (will be created if it does not exist).
+      required:
+        True
+
+  run:
+    - if not test -e "$path":
+      - cl: mkdir -p "$path"
+    - cl: cd "$path"
+    - $git_output: git clone "$url"
+    - $dirname: echo "$git_output" | grep "Cloning into" | sed "s|.*'\(.*\)'.*|\1|"
+    - cl: cd "$dirname"
+    - dda_r: .

@@ -62,7 +62,8 @@ setup(
     packages = ['devassistant', 'devassistant.assistants', 'devassistant.cli'],
     include_package_data = True,
     entry_points = {'console_scripts':['devassistant=devassistant.bin:CreatorAssistant.main',
-                                       'devassistant-modify=devassistant.bin:ModifierAssistant.main']},
+                                       'devassistant-modify=devassistant.bin:ModifierAssistant.main',
+                                       'devassistant-prepare=devassistant.bin:PreparerAssistant.main']},
     # PyGithub is in fact optional, but let's keep it here
     install_requires=['PyYaml', 'PyGithub>=1.14.2'],
     setup_requires = [],

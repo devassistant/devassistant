@@ -10,7 +10,7 @@ class YamlAssistantLoader(object):
     _classes = []
 
     @classmethod
-    def get_top_level_assistants(cls, roles=['creator', 'modifier']):
+    def get_top_level_assistants(cls, roles=['creator', 'modifier', 'preparer']):
         assistants = cls.get_all_classes()
         are_subassistants = set()
         for a in assistants:
