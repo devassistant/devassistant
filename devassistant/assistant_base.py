@@ -55,6 +55,7 @@ class AssistantBase(object):
                     currently_searching = subas_list
                     path.append(sa)
                     break # sorry if you shed a tear ;)
+            #TODO: raise if path not found
 
         return path
 

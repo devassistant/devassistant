@@ -28,4 +28,4 @@ custom:
     - $git_output: git clone "$url"
     - $dirname: echo "$git_output" | grep "Cloning into" | sed "s|.*'\(.*\)'.*|\1|"
     - cl: cd "$dirname"
-    - dda_r: .
+    - dependencies_from_dda: .

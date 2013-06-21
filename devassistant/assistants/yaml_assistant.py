@@ -18,6 +18,8 @@ class YamlAssistant(assistant_base.AssistantBase):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""
         if self.role == 'modifier':
+            # TODO: shouldn't rewrite current values (security risk)
+            # we should probably enumerate values that can be loaded
             kwargs.update(run_command('dda_r', kwargs.get('path', '.'), **kwargs))
         return kwargs
 

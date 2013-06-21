@@ -48,9 +48,6 @@ class PathRunner(object):
             if 'run' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 a.run(**self.parsed_args)
 
-    def _run_post_dependencies(self):
-        pass
-
     def run(self):
         """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.
         Raises:
@@ -62,6 +59,3 @@ class PathRunner(object):
             raise exceptions.ExecutionException(errors)
         self._run_path_dependencies()
         self._run_path_run()
-        if self.path[-1].role == 'preparer':
-            self._run_post_dependencies()
-

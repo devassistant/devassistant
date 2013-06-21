@@ -53,9 +53,27 @@ class DependenciesCommand(object):
     def run(cls, comm_type, comm, **kwargs):
         # from_struct is not callable from yaml assistants (yet)
         if comm_type == 'dependencies_from_struct':
-            cls._install_from_struct(struct=comm)
+            struct = comm
         elif comm_type == 'dependencies_from_dda':
-            pass
+            struct = []
+            dda_content = run_command('dda_r', comm, **kwargs)
+            original_assistant_path = dda_content.get('subassistant_path', [])
+            if original_assistant_path:
+                # if we have an original path, try to get original assistant
+                original_path_as_dict = {}
+                for i, subas in enumerate(original_assistant_path):
+                    original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
+                from devassistant.bin import CreatorAssistant
+                from devassistant.assistants import yaml_assistant
+                # TODO: try except if path doesn't exist
+                path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
+                for a in path:
+                    #TODO: maybe figure out more DRY code (similar is in path_runner, too)
+                    if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
+                        struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
+                #TODO: add possibility of installing arbitrary dependencies specified in .devassistant
+
+        cls._install_from_struct(struct)
 
     @classmethod
     def _install_from_struct(cls, struct):
@@ -114,7 +132,7 @@ class DotDevassistantCommand(object):
             del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
         to_write = {'devassistant_version': version.VERSION,
                     'subassistant_path': path,
-                    'kwargs': kwargs}
+                    'original_kwargs': kwargs}
         yaml.dump(to_write, stream=f, default_flow_style=False)
         f.close()
 
