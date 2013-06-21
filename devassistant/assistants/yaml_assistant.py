@@ -260,7 +260,8 @@ class YamlAssistant(assistant_base.AssistantBase):
         kwargs[var_name] = self._evaluate(comm, **kwargs)[1]
 
     def _get_var_name(self, dolar_variable):
-        name = dolar_variable.strip()[1:]
+        name = dolar_variable.strip()
+        name = name.strip('"')[1:]
         return name.strip('{}')
 
     def _evaluate(self, expression, **kwargs):
@@ -274,9 +275,11 @@ class YamlAssistant(assistant_base.AssistantBase):
             invert_success = True
             expr = expr[4:]
 
-        if expr.startswith('$'):
+        if expr.startswith('$') or expr.startswith('"$'):
             var_name = self._get_var_name(expr)
-            if var_name in kwargs:
+            print kwargs
+            print var_name
+            if var_name in kwargs and kwargs[var_name]:
                 success = True
                 output = kwargs[var_name]
             else:
