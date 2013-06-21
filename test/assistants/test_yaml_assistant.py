@@ -163,7 +163,7 @@ class TestYamlAssistant(object):
     def test_assign_variable_from_unsuccessful_command(self):
         self.ya._run = [{'$foo': 'ls spam/spam/spam'}, {'log_i': '$foo'}]
         self.ya.run()
-        assert ('INFO', '') in self.tlh.msgs
+        assert ('INFO', 'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
 
     def test_assign_variable_in_condition_modifies_outer_scope(self):
         self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
