@@ -68,8 +68,11 @@ class DotDevassistantCommand(object):
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
             i += 1
+            # delete the dict member so that we don't write it out with other kwargs again
+            del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
         to_write = {'devassistant_version': version.VERSION,
-                    'subassistant_path': path}
+                    'subassistant_path': path,
+                    'kwargs': kwargs}
         yaml.dump(to_write, stream=f, default_flow_style=False)
         f.close()
 
