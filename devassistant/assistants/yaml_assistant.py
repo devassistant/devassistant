@@ -91,8 +91,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     deps.append((dep_type, dep_list))
                 ### TODO: this is not completely DRY, the conditionals here use completely the same logic as in run sections
                 elif dep_type.startswith('if'):
-                    # check returned False (exit code != 0), because if commands succeeds without output, we get empty string
-                    if self._evaluate(dep_type[2:].strip(), **kwargs) != False:
+                    if self._evaluate(dep_type[2:].strip(), **kwargs)[0]:
                         deps.extend(self._dependencies_section(dep_list, **kwargs))
                     elif len(section) > i + 1:
                         next_section_dict = section[i + 1]
@@ -155,8 +154,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
-                    # check returned False (exit code != 0), because if commands succeeds without output, we get empty string
-                    if self._evaluate(comm_type[2:].strip(), **kwargs) != False:
+                    if self._evaluate(comm_type[2:].strip(), **kwargs)[0]:
                         # run with original kwargs, so that they might be changed for code after this if
                         self._run_one_section(comm, kwargs)
                     elif len(section) > i + 1:
@@ -249,36 +247,47 @@ class YamlAssistant(assistant_base.AssistantBase):
         The result is then put into kwargs (overwriting original value, if already there).
         Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
 
-        If comm evaluates to something that is false, empty string is assigned to variable.
+        Cl commands store both stdout and stderr (as a single string) as the variable value.
+
+        Even if comm evaluates to something that is false, output is still stored and
+        this method doesn't fail.
 
         Args:
             variable: variable to assign to
             comm: either another variable or command to run
         """
         var_name = self._get_var_name(variable)
-        kwargs[var_name] = self._evaluate(comm, **kwargs) or ''
+        kwargs[var_name] = self._evaluate(comm, **kwargs)[1]
 
     def _get_var_name(self, dolar_variable):
         name = dolar_variable.strip()[1:]
         return name.strip('{}')
 
     def _evaluate(self, expression, **kwargs):
-        result = True
-        invert_result = False
+        # was command successful?
+        success = True
+        # command output
+        output = ''
+        invert_success = False
         expr = expression.strip()
         if expr.startswith('not '):
-            invert_result = True
+            invert_success = True
             expr = expr[4:]
 
         if expr.startswith('$'):
             var_name = self._get_var_name(expr)
-            result = kwargs.get(var_name, False)
+            if var_name in kwargs:
+                success = True
+                output = kwargs[var_name]
+            else:
+                success = False
         elif expr.startswith('defined '):
-            result = self._get_var_name(expr[8:]) in kwargs
+            success = self._get_var_name(expr[8:]) in kwargs
         else:
             try:
-                result = run_command('cl_n', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
-            except exceptions.RunException:
-                result = False
+                output = run_command('cl_n', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
+            except exceptions.RunException as ex:
+                success = False
+                output = ex.output 
 
-        return result if not invert_result else not result
+        return (success if not invert_success else not success, output)

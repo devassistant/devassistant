@@ -40,7 +40,7 @@ class ClCommand(object):
         except exceptions.ClException as e:
             if log_error:
                 logger.error(e)
-            raise exceptions.RunException(e)
+            raise e
 
         return result.strip() if hasattr(result, 'strip') else result
 
