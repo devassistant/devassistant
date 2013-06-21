@@ -277,8 +277,6 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         if expr.startswith('$') or expr.startswith('"$'):
             var_name = self._get_var_name(expr)
-            print kwargs
-            print var_name
             if var_name in kwargs and kwargs[var_name]:
                 success = True
                 output = kwargs[var_name]
