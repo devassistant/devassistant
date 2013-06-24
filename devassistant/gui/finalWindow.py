@@ -28,9 +28,6 @@ class finalWindow(object):
         self.eclipseEntry = Gtk.Entry()
         self.eclipseEntry.set_sensitive(False)
         self.eclipseEntry.set_text(os.path.expanduser("~/workspace"))
-        self.browseBtn = Gtk.Button("Browse")
-        self.browseBtn.connect("clicked", self.browse_clicked)
-        self.browseBtn.set_sensitive(False)
         self.grid = Gtk.Grid()
         self.title = Gtk.Label("Available options:")
 
@@ -39,11 +36,18 @@ class finalWindow(object):
         self.finalWindow.hide()
 
     def open_window(self, widget, data=None):
-        logger_gui.info("open window")
+        logger_gui.info("open final window")
         selection = self.parent.listView.get_selection()
         subselection = self.parent.sublistView.get_selection()
         self.boxMain.remove(self.grid)
         self.boxMain.remove(self.title)
+        for btn in self.button:
+            self.button.remove(btn)
+        for btn in self.grid:
+            self.grid.remove(btn)
+        self.browseBtn = Gtk.Button("Browse")
+        self.browseBtn.connect("clicked", self.browse_clicked)
+        self.browseBtn.set_sensitive(False)
         self.title.set_alignment(0,0)
         self.boxMain.pack_start(self.title, False, False, 12)
         self.grid.set_row_homogeneous(True)
@@ -65,12 +69,13 @@ class finalWindow(object):
                                     label.set_alignment(0, 0)
                                     label.set_line_wrap(True)
                                     actBtn = Gtk.CheckButton(sub.flags[1][2:])
-                                    actBtn.set_alignment(0, 0)
+                                    align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
                                     self.button.append(actBtn)
+                                    align.add(actBtn)
                                     if row == 0:
-                                        self.grid.add(actBtn)
+                                        self.grid.add(align)
                                     else:
-                                        self.grid.attach(actBtn, 0, row , 1, 1)
+                                        self.grid.attach(align, 0, row , 1, 1)
                                     self.grid.attach(label, 1, row, 1, 1) 
                                     if sub.flags[1] == '--eclipse':
                                         actBtn.connect("clicked", self.eclipse_toggled)
@@ -108,11 +113,13 @@ class finalWindow(object):
                                             label.set_alignment(0, 0)
                                             label.set_line_wrap(True)
                                             actBtn = Gtk.CheckButton(arg.flags[number][2:])
+                                            align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
                                             self.button.append(actBtn)
+                                            align.add(actBtn)
                                             if row == 0:
-                                                self.grid.add(actBtn)
+                                                self.grid.add(align)
                                             else:
-                                                self.grid.attach(actBtn, 0, row , 1, 1)
+                                                self.grid.attach(align, 0, row , 1, 1)
                                             self.grid.attach(label, 1, row, 1, 1) 
                                             if arg.flags[number] == '--eclipse':
                                                 actBtn.connect("clicked", self.eclipse_toggled)
