@@ -127,9 +127,9 @@ class DotDevassistantCommand(object):
         i = 0
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
+            del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1
             # delete the dict member so that we don't write it out with other kwargs again
-            del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
         to_write = {'devassistant_version': version.VERSION,
                     'subassistant_path': path,
                     'original_kwargs': kwargs}
