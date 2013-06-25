@@ -65,8 +65,11 @@ class DependenciesCommand(object):
                     original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
                 from devassistant.bin import CreatorAssistant
                 from devassistant.assistants import yaml_assistant
-                # TODO: try except if path doesn't exist
-                path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
+                try:
+                    path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
+                except exceptions.AssistantNotFoundException as e:
+                    path = []
+                    logger.warning(e)
                 for a in path:
                     #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                     if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):

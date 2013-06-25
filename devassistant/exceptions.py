@@ -16,3 +16,5 @@ class ClException(RunException):
     def __str__(self):
         return self.output
 
+class AssistantNotFoundException(BaseException):
+    pass

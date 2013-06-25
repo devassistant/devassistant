@@ -46,7 +46,9 @@ class AssistantBase(object):
             List of subassistants objects from chain sorted from first to last.
         """
         path = [self]
+        previous_subas_list = None
         currently_searching = self.get_subassistant_chain()[1]
+
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
         while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs and \
               kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
@@ -55,7 +57,12 @@ class AssistantBase(object):
                     currently_searching = subas_list
                     path.append(sa)
                     break # sorry if you shed a tear ;)
-            #TODO: raise if path not found
+
+            if subas_list == previous_subas_list:
+                raise exceptions.AssistantNotFoundException('No assistant {name} after path {path}.'.format(
+                    name=kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)],
+                    path=path))
+            previous_subas_list = subas_list
 
         return path
 
