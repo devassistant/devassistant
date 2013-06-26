@@ -184,7 +184,10 @@ class DialogHelper(object):
 
     @classmethod
     def get_appropriate_helper(cls):
-        return cls.helpers[0]
+        # TODO: code the logic properly so that we can add more dialog helpers, e.g. for kde
+        # maybe implement an "is_usable" method in display helpers and then choose one
+        # according to its priority? (that would have to be implemented, too
+        return ZenityDialogHelper if 'DISPLAY' in os.environ else TTYDialogHelper
 
     @classmethod
     def ask_for_password(cls, prompt='Your password:', **options):
@@ -201,9 +204,6 @@ class DialogHelper(object):
 
 @DialogHelper.register_helper
 class TTYDialogHelper(object):
-    for_tty = True
-    for_xwindow = False
-
     @classmethod
     def ask_for_password(cls, prompt, **options):
         return getpass.getpass(prompt=prompt + ': ')
@@ -225,8 +225,6 @@ class TTYDialogHelper(object):
 
 @DialogHelper.register_helper
 class ZenityDialogHelper(object):
-    for_tty = False
-    for_xwindow = True
     c_zenity = 'zenity'
 
     @classmethod
