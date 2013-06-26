@@ -79,7 +79,6 @@ fi
 echo "Restarting httpd.service"
 systemctl restart httpd.service
 if [ $? -ne 0 ]; then
-    echo "Check whether SELinux is turn off"
     echo "Check messages by journalctl -xn"
 fi
 echo "Restarting httpd.service done"
