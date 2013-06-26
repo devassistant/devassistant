@@ -190,7 +190,7 @@ class DialogHelper(object):
         return ZenityDialogHelper if 'DISPLAY' in os.environ else TTYDialogHelper
 
     @classmethod
-    def ask_for_password(cls, title='Provide your password', prompt='Your password:', **options):
+    def ask_for_password(cls, title='Provide your password', prompt='Provide your password:', **options):
         """Returns the password typed by user as a string
 
         TODO: could this be a security problem?
