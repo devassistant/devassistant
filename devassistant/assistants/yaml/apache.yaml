@@ -1,7 +1,0 @@
-apache:
-  fullname: Apache web server
-  subassistants: [ lamp ]
-  description: This is base Apache assistant, you have to choose a specific project type.
-
-  dependencies:
-  - rpm: ['httpd']

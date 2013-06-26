@@ -5,7 +5,7 @@ lamp:
   # Apache things
   - rpm: ['httpd']
   # PHP issues
-  - rpm: ['php' , 'phpMyAdmin']
+  - rpm: ['phpMyAdmin']
   - rpm: ['php-mysql']
   # MySQL issues
   - rpm: ['mysql', 'mysql-server']
@@ -31,13 +31,13 @@ lamp:
 
   files:
     phpfiles: &phpfiles
-      source: apache/lamp/sample_page/*
+      source: php/lamp/sample_page/*
     create_db: &create_db
-      source: apache/lamp/create_database.php
+      source: php/lamp/create_database.php
     create_table: &create_table
-      source: apache/lamp/create_table.php
+      source: php/lamp/create_table.php
     lamp_config: &lamp_config
-      source: apache/lamp/apache_config.sh
+      source: php/lamp/apache_config.sh
 
   run:
   - $dirname: dirname "$name"
@@ -66,4 +66,4 @@ lamp:
     - cl: cd "$homedir/public_html/$basename"
     - log_i: "Push on GitHub repository"
     - github: create_and_push
-  - log_i: "Web application is localhost/$name"
+  - log_i: "Web page: http://localhost/$name"
