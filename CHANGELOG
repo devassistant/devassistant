@@ -1,3 +1,18 @@
+- Introduction of "preparer" assistants (use devassitant-prepare binary) that
+  can checkout project from SCM and install it's dependencies according to
+  .devassistant file
+- Perl assistants, PHP assistant
+- New way of dependency installation (first find dependencies via yum api,
+  then show them to user and let him confirm, then install)
+- Interactive commands now use zenity, if available, otherwise they fall
+  back to terminal.
+- New style of calling assistant/snippet sections
+  (call: snippet.section; call: self.run_foo)
+- Support for using SCLs easily (the "scl enable" command in yaml assistants)
+- GitHub backend rewrite (can now create ssh keys and add them to the user,
+  remembers authentication token)
+- Some minor/less visible changes (logging improvement, bugfixing, cleanup)
+
 0.3.1
 - Abandoned plumbum, implemented own simpler and more suitable solution.
 - Assistants are now sorted by name in usage output.
@@ -5,12 +20,15 @@
 
 0.3.0
 - Changelog starts here, although some versions were already released.
-- At this point, devassistant can create C, C++, various Python, Java and Ruby projects
-- Devassistant also has the ability to modify existing projects (import to eclipse so far)
-- The features of created projects include (except for the source code itself):
+- At this point, devassistant can create C, C++, various Python, Java and
+  Ruby projects
+- Devassistant also has the ability to modify existing projects (import to
+  eclipse so far)
+- The features of created projects include (except for the source code itself)
 -- Option to register project into eclipse
 -- Option to push project to GitHub
 -- Option to set up Vim
 - Devassistant can install RPM dependencies
 - GUI is not yet operational (although there is a first testing code)
-- Yaml assistants have pretty nice set of features and you can implement pretty much anything in them (snippets can DRY the code, etc.)
+- Yaml assistants have pretty nice set of features and you can implement pretty
+  much anything in them (snippets can DRY the code, etc.)
