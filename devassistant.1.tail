@@ -28,9 +28,13 @@ Currently supported languages are:
 .IP
 C/C++ language
 .IP
-Python language (Django, Flask and a custom Python library project)
+Python language (Django, Flask , PyGTK (GTK3) and a custom Python library project)
 .IP
 Java language (JSF and a custom Maven project)
+.IP
+Perl language (Basic class and dancer framework)
+.IP
+PHP language (LAMP project)
 
 .SH COMMON OPTIONS
 .TP

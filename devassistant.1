@@ -6,37 +6,30 @@
 .SH NAME
 devassistant \- Developer assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 .SH SYNOPSIS
-\fBdevassistant \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
-.br
 \fBdevassistant \fP c [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+.br
+\fBdevassistant \fP cpp [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
 .br
 \fBdevassistant \fP java jsf [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
 .br
 \fBdevassistant \fP java maven [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
 .br
-\fBdevassistant \fP cpp [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBdevassistant \fP perl class [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
+.br
+\fBdevassistant \fP perl dancer [-h] [--cgi] [-g [GITHUB]] -n NAME [--fastcgi]
+.br
+\fBdevassistant \fP php lamp [-h] [-g [GITHUB]] -n NAME [-r ROOTDB] [-v [VIM]]
 .br
 \fBdevassistant \fP python django [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+.br
+\fBdevassistant \fP python flask [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
 .br
 \fBdevassistant \fP python lib [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
 .br
 \fBdevassistant \fP python pygtk [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
 .br
-\fBdevassistant \fP python flask [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBdevassistant \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
 .br
-.SH SUDOERS CHANGES
-For right
-.B developer assistant
-functionality user has to be added to sudoers file. This is needs because developer assistant can install additional packages which are needed by assistants.
-
-This can be done so that user will switch to user root (by \fBsu -\fP command) and write down command visudo.
-
-Following row has to be added at the end of that file
-
-<user_name> ALL=(ALL) /usr/bin/yum, /usr/bin/yum-builddep
-
-user_name ... is not \fBroot\fP but real username which will run devassistant (can be obtained by command \fBid\fP).
-
 .SH GITHUB INTEGRATION
 If github option is used for export projects to the GitHub repository then
 user has to have already created account on the GitHub server.
@@ -67,9 +60,13 @@ Currently supported languages are:
 .IP
 C/C++ language
 .IP
-Python language (Django, Flask and a custom Python library project)
+Python language (Django, Flask , PyGTK (GTK3) and a custom Python library project)
 .IP
 Java language (JSF and a custom Maven project)
+.IP
+Perl language (Basic class and dancer framework)
+.IP
+PHP language (LAMP project)
 
 .SH COMMON OPTIONS
 .TP
@@ -93,3 +90,6 @@ generate a SPEC file, SRPM and mock-build RPM.
 .B \-v --vim
 install vim settings specific for this language (backs up your original vim settings)
 .TP
+
+.SH "SEE ALSO"
+.BR devassistant-modify (1)
