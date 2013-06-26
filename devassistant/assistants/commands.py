@@ -14,7 +14,7 @@ import os
 import yaml
 
 from devassistant import exceptions
-from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper, ZenityHelper
+from devassistant.command_helpers import ClHelper, DialogHelper, RPMHelper, YUMHelper
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version
@@ -192,7 +192,7 @@ class GitHubAuth(object):
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
                 # login with username/password
-                password = ZenityHelper.ask_for_password(title='Github Password')
+                password = DialogHelper.ask_for_password(title='Github Password')
                 gh = cls._gh_module.Github(login_or_token=login, password=password)
                 cls._user = gh.get_user()
                 try:

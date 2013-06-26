@@ -115,19 +115,8 @@ class YUMHelper(object):
     @classmethod
     def install(cls, *args):
         to_install = cls.resolve(*args)
-        # Zenity sucks for package list displaying, as it appends newline for every line with a dash
-        # in question dialog. Therefore we write package names to temp file and use --text-info.
-        # see https://bugzilla.gnome.org/show_bug.cgi?id=702752
-        h, fname = tempfile.mkstemp()
-        f = open(fname, 'w')
-        f.write('\n'.join(to_install))
-        f.close()
-        # TODO: don't hardcode width and height
-        ret = ZenityHelper.ask_for_custom_input(title='"Install following packages?"',
-                                                text='',
-                                                input_type='text-info',
-                                                options=['--filename=' + fname, '--width=500', '--height=700'])
-        os.remove(fname)
+        ret = DialogHelper.ask_for_confirm_with_message(prompt='Install following packages?',
+                                                        message='\n'.join(to_install))
         if ret is False:
             return False
 
@@ -178,17 +167,92 @@ class PathHelper(object):
         except exceptions.ClException:
             return False
 
+class DialogHelper(object):
+    """This class is to be used in all places where user interaction is required. It will
+    decide on its own which specific helper it is best to use in this place (CommandLine,
+    Zenity, possibly other registered).
+    """
+    helpers = []
+
+    @classmethod
+    def register_helper(cls, helper):
+        """Decorator that appends a helper to list of helpers and then returns it."""
+        cls.helpers.append(helper)
+        return helper
+
+    @classmethod
+    def get_appropriate_helper(cls):
+        return cls.helpers[1]
+
+    @classmethod
+    def ask_for_password(cls, prompt='Your password:', **options):
+        """Returns the password typed by user as a string
+
+        TODO: could this be a security problem?
+        """
+        return cls.get_appropriate_helper().ask_for_password(prompt)
+
+    @classmethod
+    def ask_for_confirm_with_message(cls, prompt='Do you agree?', message='', **options):
+        """Returns True if user agrees, False otherwise"""
+        return cls.get_appropriate_helper().ask_for_confirm_with_message(prompt, message)
+
+@DialogHelper.register_helper
+class TTYDialogHelper(object):
+    for_tty = True
+    for_xwindow = False
+
+    @classmethod
+    def ask_for_password(cls, prompt, **options):
+        pass
+
+    @classmethod
+    def ask_for_confirm_with_message(cls, prompt, message, **options):
+        pass
+
+@DialogHelper.register_helper
 class ZenityHelper(object):
+    for_tty = False
+    for_xwindow = True
     c_zenity = 'zenity'
 
     @classmethod
-    def ask_for_password(cls, title, text='\"Enter password:\"', input_type='entry', options=["--hide-text"]):
-        return cls.ask_for_custom_input(title, text, input_type, options)
+    def ask_for_password(cls, prompt, **options):
+        return cls._ask_for_custom_input('entry',
+                                         {'title': 'Provide your password',
+                                          'text': prompt,
+                                          'hide-text': ''})
 
     @classmethod
-    def ask_for_custom_input(cls, title, text, input_type, options):
-        cmd = [cls.c_zenity, '--title=' + title, '--text=' + text, '--' + input_type, ' '.join(options)]
+    def ask_for_confirm_with_message(cls, prompt, message, **options):
+        # Zenity sucks for package list displaying, as it appends newline for every line with a dash
+        # in question dialog. Therefore we write package names to temp file and use --text-info.
+        # see https://bugzilla.gnome.org/show_bug.cgi?id=702752
+        h, fname = tempfile.mkstemp()
+        f = open(fname, 'w')
+        f.write(message)
+        f.close()
+
+        # TODO: don't hardcode width and height
+        output = cls._ask_for_custom_input('text-info',
+                                           {'title': prompt,
+                                            'filename': fname,
+                                            'width': 500,
+                                            'height': 600})
+        os.remove(fname)
+        return output
+
+    @classmethod
+    def _ask_for_custom_input(cls, input_type, zenity_options):
+        """This is internal helper method, do not use this from outside, rather write your own ask_* method.
+
+        Note, that we can't pass **zenity_options (with the "**") because some option names contain
+        dash, which would get interpreter as minus by Python - e.g. no-wrap=foo would be interpreted as "no minus wrap"."""
+        cmd = '{zenity} --{input_type} {options}'.format(zenity=cls.c_zenity,
+                                                         input_type=input_type,
+                                                         options=' '.join(map(lambda x: '--{k}="{v}"'.format(k=x[0], v=x[1]),
+                                                                              zenity_options.items())))
         try:
-            return ClHelper.run_command(' '.join(cmd))
+            return ClHelper.run_command(cmd)
         except exceptions.ClException:
             return False
