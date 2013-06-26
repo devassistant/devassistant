@@ -1,6 +1,8 @@
+import getpass
 import logging
 import os
 import subprocess
+import sys
 import tempfile
 
 from devassistant import exceptions
@@ -104,11 +106,11 @@ class YUMHelper(object):
                 pkg = y.returnPackageByDep(arg)
                 y.install(pkg)
         y.resolveDeps()
-        logger.info('Installing/Updating:')
+        logger.debug('Installing/Updating:')
         to_install = []
         for pkg in y.tsInfo.getMembers():
             to_install.append(pkg.po.ui_envra)
-            logger.info(pkg.po.ui_envra)
+            logger.debug(pkg.po.ui_envra)
 
         return to_install
 
@@ -182,7 +184,7 @@ class DialogHelper(object):
 
     @classmethod
     def get_appropriate_helper(cls):
-        return cls.helpers[1]
+        return cls.helpers[0]
 
     @classmethod
     def ask_for_password(cls, prompt='Your password:', **options):
@@ -204,11 +206,22 @@ class TTYDialogHelper(object):
 
     @classmethod
     def ask_for_password(cls, prompt, **options):
-        pass
+        return getpass.getpass(prompt=prompt + ': ')
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
-        pass
+        print(prompt + '\n')
+        print(message)
+        if int(sys.version[0]) < 3:
+            input = raw_input
+        prompt += ' [y/n]'
+        while True:
+            print(prompt)
+            choice = input().lower()
+            if choice not in ['y', 'yes', 'n', 'no']:
+                print('You have to write y/yes/n/no (can be in capitals)')
+            else:
+                return choice in ['y', 'yes']
 
 @DialogHelper.register_helper
 class ZenityHelper(object):
