@@ -224,7 +224,7 @@ class TTYDialogHelper(object):
                 return choice in ['y', 'yes']
 
 @DialogHelper.register_helper
-class ZenityHelper(object):
+class ZenityDialogHelper(object):
     for_tty = False
     for_xwindow = True
     c_zenity = 'zenity'
