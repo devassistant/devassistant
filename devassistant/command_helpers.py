@@ -190,12 +190,12 @@ class DialogHelper(object):
         return ZenityDialogHelper if 'DISPLAY' in os.environ else TTYDialogHelper
 
     @classmethod
-    def ask_for_password(cls, prompt='Your password:', **options):
+    def ask_for_password(cls, title='Provide your password', prompt='Your password:', **options):
         """Returns the password typed by user as a string
 
         TODO: could this be a security problem?
         """
-        return cls.get_appropriate_helper().ask_for_password(prompt)
+        return cls.get_appropriate_helper().ask_for_password(title, prompt)
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt='Do you agree?', message='', **options):
@@ -205,8 +205,8 @@ class DialogHelper(object):
 @DialogHelper.register_helper
 class TTYDialogHelper(object):
     @classmethod
-    def ask_for_password(cls, prompt, **options):
-        return getpass.getpass(prompt=prompt + ': ')
+    def ask_for_password(cls, title, prompt, **options):
+        return getpass.getpass(prompt=prompt + ' ')
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
@@ -228,9 +228,9 @@ class ZenityDialogHelper(object):
     c_zenity = 'zenity'
 
     @classmethod
-    def ask_for_password(cls, prompt, **options):
+    def ask_for_password(cls, title, prompt, **options):
         return cls._ask_for_custom_input('entry',
-                                         {'title': 'Provide your password',
+                                         {'title': title,
                                           'text': prompt,
                                           'hide-text': ''})
 

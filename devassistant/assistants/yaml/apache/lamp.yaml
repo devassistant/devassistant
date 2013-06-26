@@ -37,7 +37,7 @@ lamp:
     create_table: &create_table
       source: apache/lamp/create_table.php
     lamp_config: &lamp_config
-      source: apache/lamp/lamp_config.sh
+      source: apache/lamp/apache_config.sh
 
   run:
   - $dirname: dirname "$name"
