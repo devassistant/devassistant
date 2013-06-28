@@ -13,12 +13,18 @@ lamp:
   dependencies_vim:
   - call: vim.dependencies
 
+  dependencies_eclipse:
+  - call: eclipse.dependencies_python
+
   args:
     name:
       snippet: common_args
 
     vim:
       snippet: vim
+
+    eclipse:
+      snippet: eclipse
 
     github:
       snippet: common_args
@@ -27,7 +33,7 @@ lamp:
       flags:
       - -r
       - --rootdb
-      help: 'Root password for mysql db. Do not specify root password is not defined'
+      help: 'Root password for mysql db. Do not specify root password if not needed'
 
   files:
     phpfiles: &phpfiles
@@ -62,7 +68,9 @@ lamp:
     - log_i: 'Project already exists'  
   - if defined $vim:
     - call: vim.run
-  - if $github:
+  - if $eclipse:
+    - call: eclipse.run_php
+  - if defined $github:
     - cl: cd "$homedir/public_html/$basename"
     - log_i: "Push on GitHub repository"
     - github: create_and_push
