@@ -10,7 +10,7 @@ _devassistant_baseopts_c()
 _devassistant_baseopts_python()
 {
 	echo ""
-    local opts='--github --help --eclipse --name'
+    local opts='--github --help --eclipse --name --vim'
     printf %s "$opts"
 }
 
@@ -18,6 +18,27 @@ _devassistant_baseopts_java()
 {
 	echo ""
     local opts='--github --help --eclipse --name'
+    printf %s "$opts"
+}
+
+_devassistant_baseopts_perl()
+{
+	echo ""
+    local opts='--github --help --eclipse --name'
+    printf %s "$opts"
+}
+
+_devassistant_baseopts_perl_dancer()
+{
+	echo ""
+    local opts='--github --cgi --help --eclipse --name --fastcgi'
+    printf %s "$opts"
+}
+
+_devassistant_baseopts_php()
+{
+	echo ""
+    local opts='--github --help --eclipse --name --rootdb --vim'
     printf %s "$opts"
 }
 
@@ -29,7 +50,7 @@ _devassistant()
         _get_comp_words_by_ref -n = cur prev words
 
     # Commands offered as completions
-    local cmds=( c java python )
+    local cmds=( c cpp java python perl php)
 
     local i c cmd subcmd
     for (( i=1; i < ${#words[@]}-1; i++ )) ; do
@@ -44,6 +65,17 @@ _devassistant()
     case $cmd in
 
         c)
+			if [[ $prev == $cmd ]] ; then
+				COMPREPLY=( $( compgen -W '--github --help --vim --build --eclipse --name' -- "$cur" ) )
+				return 0
+			fi
+			if [[ $subcmd == -* ]] ; then
+				COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_c )' -- "$cur" ) )
+				return 0
+			fi
+            ;;
+
+        cpp)
 			if [[ $prev == $cmd ]] ; then
 				COMPREPLY=( $( compgen -W '--github --help --vim --build --eclipse --name' -- "$cur" ) )
 				return 0
@@ -72,10 +104,28 @@ _devassistant()
             return 0
             ;;
 
+        perl)
+            if [[ $prev == $cmd ]] ; then
+                COMPREPLY=( $( compgen -W 'class dancer' -- "$cur" ) )
+                return 0
+            fi
+            case $subcmd in
+                class)
+					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_perl )' -- "$cur" ) )
+					return 0
+					;;
+                dancer)
+					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_perl_dancer )' -- "$cur" ) )
+					return 0
+					;;
+            esac
+            return 0
+            ;;
+
 
         python)
             if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W 'lib django flask' -- "$cur" ) )
+				COMPREPLY=( $( compgen -W 'lib django flask pygtk' -- "$cur" ) )
 				return 0
 			fi
             case $subcmd in
@@ -89,6 +139,24 @@ _devassistant()
 					;;
                 flask)
 					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
+					return 0
+					;;
+                pygtk)
+					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
+					return 0
+					;;
+            esac
+            return 0
+            ;;
+
+        php)
+            if [[ $prev == $cmd ]] ; then
+				COMPREPLY=( $( compgen -W 'lamp' -- "$cur" ) )
+				return 0
+			fi
+            case $subcmd in
+                lamp)
+					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_php )' -- "$cur" ) )
 					return 0
 					;;
             esac
