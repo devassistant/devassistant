@@ -1,3 +1,4 @@
+0.4.0
 - Introduction of "preparer" assistants (use devassitant-prepare binary) that
   can checkout project from SCM and install it's dependencies according to
   .devassistant file
