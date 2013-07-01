@@ -52,7 +52,7 @@ class DependenciesCommand(object):
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
         # from_struct is not callable from yaml assistants (yet)
-        if comm_type == 'dependencies_from_struct':
+        if comm_type == 'dependencies':
             struct = comm
         elif comm_type == 'dependencies_from_dda':
             struct = []

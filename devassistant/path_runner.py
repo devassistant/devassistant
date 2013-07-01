@@ -37,7 +37,7 @@ class PathRunner(object):
             if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 deps.extend(a.dependencies(**self.parsed_args))
 
-        run_command('dependencies_from_struct', deps)
+        run_command('dependencies', deps)
 
     def _run_path_run(self):
         """Runs *Assistant.run methods.
