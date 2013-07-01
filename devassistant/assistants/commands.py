@@ -73,7 +73,7 @@ class DependenciesCommand(object):
                     #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                     if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                         struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
-                #TODO: add possibility of installing arbitrary dependencies specified in .devassistant
+                struct.extend(dda_content.get('dependencies', []))
 
         cls._install_from_struct(struct)
 
