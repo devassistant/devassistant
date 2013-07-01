@@ -1,11 +1,11 @@
 #!/bin/bash
 
-PROG="./devassistant.py"
+PROG="../devassistant.py"
 MAN_PAGE="devassistant.1"
 MAN_PAGE_FIRST="devassistant.1.head"
 MAN_PAGE_SECOND="devassistant.1.tail"
 
-PROG_MODIFY="./devassistant-modify.py"
+PROG_MODIFY="../devassistant-modify.py"
 MAN_PAGE_MODIFY="devassistant-modify.1"
 MAN_PAGE_MODIFY_FIRST="devassistant-modify.1.head"
 MAN_PAGE_MODIFY_SECOND="devassistant-modify.1.tail"
