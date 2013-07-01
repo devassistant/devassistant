@@ -116,7 +116,11 @@ class YUMHelper(object):
 
     @classmethod
     def install(cls, *args):
-        to_install = cls.resolve(*args)
+        try:
+            to_install = cls.resolve(*args)
+        except BaseException as e:
+            logger.error('Failed to resolve dependencies: {exc}'.format(exc=e))
+            return False
         ret = DialogHelper.ask_for_confirm_with_message(prompt='Install following packages?',
                                                         message='\n'.join(to_install))
         if ret is False:
