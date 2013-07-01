@@ -249,12 +249,14 @@ class ZenityDialogHelper(object):
         f.write(message)
         f.close()
 
-        # TODO: don't hardcode width and height
+        lines_num = len(message.splitlines())
+        height = 120 + lines_num * 30
+        # zenity will limit the window to monitor height, so we don't need to check maximum
         output = cls._ask_for_custom_input('text-info',
                                            {'title': prompt,
                                             'filename': fname,
                                             'width': 500,
-                                            'height': 600})
+                                            'height': height})
         os.remove(fname)
         return output
 
