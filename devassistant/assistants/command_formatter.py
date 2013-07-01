@@ -21,7 +21,7 @@ class CommandFormatter(object):
         for c in parts_list:
             if isinstance(c, dict):
                 # TODO: raise a proper error if c['source'] is not present
-                new_comm.append(os.path.join(cls.template_dir, c['source']))
+                new_comm.append(os.path.join(template_dir, c['source']))
             elif c.startswith('*'):
                 c_file = c[1:].strip('{}')
                 if c_file in files:
