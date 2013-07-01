@@ -4,7 +4,7 @@ include README.rst
 include devassistant.1
 include devassistant-modify.1
 include devassistant.bash
-recursive-include devassistant/assistants/yaml *.noload *.yaml
+recursive-include devassistant/assistants/assistants *.noload *.yaml
 recursive-include devassistant/assistants/snippets *.yaml
 recursive-include devassistant/gui *.glade *.py
 recursive-include devassistant/templates *
