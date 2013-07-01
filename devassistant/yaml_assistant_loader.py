@@ -6,7 +6,7 @@ from devassistant import yaml_snippet_loader
 from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
-    assistants_dirs = [os.path.join(os.path.dirname(__file__), 'assistants', 'yaml')]
+    assistants_dirs = [os.path.join(os.path.dirname(__file__), 'assistants', 'assistants')]
     _classes = []
 
     @classmethod
