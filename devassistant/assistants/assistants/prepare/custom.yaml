@@ -31,3 +31,4 @@ custom:
       - log_e: Could not checkout sources - $git_output
     - cl: cd "$dirname"
     - dependencies_from_dda: .
+    - log_i: Your project is prepared in $path/$dirname.
