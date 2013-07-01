@@ -113,9 +113,17 @@ class YamlAssistant(assistant_base.AssistantBase):
     def run(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)
         if self.role == 'modifier':
-            to_run = self._get_section_to_run(section='run_{0}'.format('_'.join(kwargs['subassistant_path'])),
-                                              kwargs_override=True,
-                                              **kwargs)
+            # try to get a section to run from the most specialized one to the least specialized one
+            # e.g. first run_python_django, then run_python and then just run
+            for i in range(len(kwargs['subassistant_path']), -1, -1):
+                path = '_'.join(kwargs['subassistant_path'][0:i])
+                if path:
+                    path = '_' + path
+                to_run = self._get_section_to_run(section='run{path}'.format(path=path),
+                                                  kwargs_override=True,
+                                                  **kwargs)
+                if to_run:
+                    break
         else:
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
         if 'pre_run' in dir(self):

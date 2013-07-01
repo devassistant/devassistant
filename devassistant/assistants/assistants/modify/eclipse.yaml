@@ -33,20 +33,11 @@ eclipse:
   - if $path:
     - cl: cd "$path"
 
-  run_python_flask:
-  - call: eclipse.run_python
-
-  run_python_django:
-  - call: eclipse.run_python
-
-  run_python_lib:
+  run_python:
   - call: eclipse.run_python
 
   run_c:
   - call: eclipse.run_c
 
-  run_java_jsf:
-  - call: eclipse.run_java
-
-  run_java_maven:
+  run_java:
   - call: eclipse.run_java
