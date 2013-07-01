@@ -1,8 +1,3 @@
-.SH GITHUB INTEGRATION
-If github option is used for export projects to the GitHub repository then
-user has to have already created account on the GitHub server.
-Without that it is not possible to upload projects on the GitHub server
-
 .SH DESCRIPTION
 .B Developer assistant
 is based on idea of per-{language/framework/...} "assistants" with hierarchical structure like this:
@@ -15,33 +10,32 @@ is based on idea of per-{language/framework/...} "assistants" with hierarchical 
              /     \\          /   \\
           Django  Flask    Rails Sinatra
 
-The basic task of each assistant is to create a project in location specified by
-.B -n name
-(either relative or absolute path) and install its dependencies via \fBYum\fP.
+The basic task of each modifier assistant is to modify a project in location specified by
+.B -p path
+(defaults to current working directory if not specified) and install dependencies via \fBYum\fP.
 Optionally, if any environment setup is required,
-.B devassistant
+.B devassistant-modify
 does that as well.
-Most of the assistants have common arguments (see below), but there may also be some language specific options in some of the assistants.
+Most of the assistants have common arguments (see below), but there may also be some specific options in some of the assistants.
 
 .SH LANGUAGE SUPPORT
-Currently supported languages are:
+Currently supported modifiers are:
 .IP
 Eclipse
 assistant can import already created project into \fBEclipse\fP.
-Just run it in the projects directory.
+
+.IP
+Vim
+assistant can set up \fBVim\fP editor for several programming languages.
 
 .SH COMMON OPTIONS
 .TP
 .B \-h --help
 print help for selected assistant
 .TP
-.B \-e --eclipse
-import project into
-.I eclipse 
-environment. Uses ~/workspace workspace by default, which can be overriden by specifying another path.
-.TP
 .B \-p --path
 Specify path to your project (defaults to current working directory if not used)
 
 .SH "SEE ALSO"
 .BR devassistant (1)
+.BR devassistant-prepare (1)

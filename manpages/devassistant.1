@@ -4,7 +4,7 @@
 .\"
 .TH DEVASSISTANT 1 2013-03-12 "" "Linux User's Manual"
 .SH NAME
-devassistant \- Developer assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+devassistant \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 .SH SYNOPSIS
 \fBdevassistant \fP c [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
 .br
@@ -31,9 +31,8 @@ devassistant \- Developer assistant is a helper for all developers using (not-on
 \fBdevassistant \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
 .br
 .SH GITHUB INTEGRATION
-If github option is used for export projects to the GitHub repository then
-user has to have already created account on the GitHub server.
-Without that it is not possible to upload projects on the GitHub server
+Devassistant can register and push projects to GitHub. The only prerequisite is that user
+has an active GitHub account.
 
 .SH DESCRIPTION
 .B Developer assistant
@@ -93,3 +92,4 @@ install vim settings specific for this language (backs up your original vim sett
 
 .SH "SEE ALSO"
 .BR devassistant-modify (1)
+.BR devassistant-prepare (1)

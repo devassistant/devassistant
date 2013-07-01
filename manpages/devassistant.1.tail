@@ -1,7 +1,6 @@
 .SH GITHUB INTEGRATION
-If github option is used for export projects to the GitHub repository then
-user has to have already created account on the GitHub server.
-Without that it is not possible to upload projects on the GitHub server
+Devassistant can register and push projects to GitHub. The only prerequisite is that user
+has an active GitHub account.
 
 .SH DESCRIPTION
 .B Developer assistant
@@ -61,3 +60,4 @@ install vim settings specific for this language (backs up your original vim sett
 
 .SH "SEE ALSO"
 .BR devassistant-modify (1)
+.BR devassistant-prepare (1)
