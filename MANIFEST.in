@@ -1,8 +1,8 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-include devassistant.1
-include devassistant-modify.1
+include manpages/*.1
+# TODO: add devassistant.yaml.5 when ready
 include devassistant.bash
 recursive-include devassistant/assistants/assistants *.noload *.yaml
 recursive-include devassistant/assistants/snippets *.yaml
