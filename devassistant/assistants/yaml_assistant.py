@@ -46,10 +46,10 @@ class YamlAssistant(assistant_base.AssistantBase):
     def dependencies(self, **kwargs):
         """Returns all dependencies of this assistant with regards to specified kwargs.
 
-        This is "mapping" of dependency types to actual dependencies
+        This is list of mappings of dependency types to actual dependencies
         (keeps order, types can repeat), e.g.
         Example:
-        [('rpm', ['rubygems']), ('gem', ['mygem']), ('rpm', ['spam']), ...]
+        [{'rpm', ['rubygems']}, {'gem', ['mygem']}, {'rpm', ['spam']}, ...]
         """
 
         kwargs = self.proper_kwargs(**kwargs)
@@ -88,7 +88,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     else:
                         logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(dep_list.split('.')))
                 elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
-                    deps.append((dep_type, dep_list))
+                    deps.append({dep_type: dep_list})
                 ### TODO: this is not completely DRY, the conditionals here use completely the same logic as in run sections
                 elif dep_type.startswith('if'):
                     if self._evaluate(dep_type[2:].strip(), **kwargs)[0]:
@@ -179,7 +179,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    run_command(comm_type, CommandFormatter.format(comm, self.template_dir, files, **kwargs), **kwargs)
+                    run_command(comm_type, CommandFormatter.format(comm_type, comm, self.template_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
@@ -286,7 +286,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             success = self._get_var_name(expr[8:]) in kwargs
         else:
             try:
-                output = run_command('cl_n', CommandFormatter.format(expr, self.template_dir, self._files, **kwargs), **kwargs)
+                output = run_command('cl_n', CommandFormatter.format('cl', expr, self.template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output 

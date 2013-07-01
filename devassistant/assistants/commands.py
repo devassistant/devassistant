@@ -51,7 +51,6 @@ class DependenciesCommand(object):
 
     @classmethod
     def run(cls, comm_type, comm, **kwargs):
-        # from_struct is not callable from yaml assistants (yet)
         if comm_type == 'dependencies':
             struct = comm
         elif comm_type == 'dependencies_from_dda':
@@ -82,9 +81,12 @@ class DependenciesCommand(object):
     def _install_from_struct(cls, struct):
         # see YamlAssistant.dependencies docstring to see what the structure looks like
         # collide rpm deps to install them in one shot, install them first
-        rpm_deps = reduce(lambda x, y: x + y, [dep[1] for dep in struct if dep[0] == 'rpm'], [])
-        # TODO: uncomment when we actually can install other deps
-        # other_deps = [dep for dep in deps if dep[0] != 'rpm']
+        rpm_deps = []
+        for dep_dict in struct:
+            for dep_t, dep_l in dep_dict.items():
+                if dep_t == 'rpm':
+                    rpm_deps.extend(dep_l)
+                # TODO: handle other dep types
 
         cls._install_rpm_dependencies(*rpm_deps)
 

@@ -4,7 +4,10 @@ import string
 
 class CommandFormatter(object):
     @classmethod
-    def format(cls, comm, template_dir, files, **kwargs):
+    def format(cls, comm_type, comm, template_dir, files, **kwargs):
+        if comm_type.startswith('dependencies'): # don't process dependencies
+            return comm
+
         # If command is false/true in yaml file, it gets coverted to False/True
         # which is bool object => convert
         if isinstance(comm, bool):
