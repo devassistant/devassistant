@@ -1,0 +1,9 @@
+.\" Copyright Petr Hracek, 2013
+.\"
+.\" This page is distributed under GPL.
+.\"
+.TH DEVASSISTANT-PREPARE 1 2013-03-12 "" "Linux User's Manual"
+.SH NAME
+devassistant-prepare \- Developer Assistant - Preparer is a helper for all developers using (not-only) Fedora. It helps you set up environment for working with projects from remote SCM.
+
+.SH SYNOPSIS
