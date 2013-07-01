@@ -13,7 +13,7 @@ args:
     - -v
     - --vim
     help:
-      'Configure VIM editor for several programming languages'
+      'Configure VIM editor for various programming languages'
     nargs:
       '?'
 
