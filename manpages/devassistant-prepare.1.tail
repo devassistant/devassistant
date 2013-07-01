@@ -38,4 +38,4 @@ Url of the project git repo (uses http/https/git).
 
 .SH "SEE ALSO"
 .BR devassistant (1)
-.BR devassistant-prepare (1)
+.BR devassistant-modify (1)
