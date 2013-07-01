@@ -14,7 +14,7 @@ class CreatorAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer assistant will help you with creating projects in many different languages.\
+    description = 'Developer Assistant will help you with creating projects in many different languages.\
                    See subassistants for list of currently available assistants.'
 
 class ModifierAssistant(ExecutableAssistant):
@@ -24,7 +24,7 @@ class ModifierAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer assistant will help you work with existing projects.\
+    description = 'Developer Assistant - Modify will help you work with existing projects.\
                    See subassistants for list of currently available assistants.'
 
 class PreparerAssistant(ExecutableAssistant):
@@ -34,6 +34,6 @@ class PreparerAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer assistant will help you setup your environment for \
+    description = 'Developer Assistant - Prepare will help you setup your environment for \
                    working with upstream projects.\
                    See subassistants for list of currently available assistants.'
