@@ -85,6 +85,6 @@ cpp:
   - cl: cd ../
   - if $eclipse:
     - call: eclipse.run_cpp
-  - if $github:
-    - log_i: "Push on GitHub repository"
+  - if defined $github:
+    - log_i: "Push to GitHub repository"
     - github: create_and_push
