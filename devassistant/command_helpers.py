@@ -122,7 +122,7 @@ class YUMHelper(object):
             logger.error('Failed to resolve dependencies: {exc}'.format(exc=e))
             return False
         ret = DialogHelper.ask_for_confirm_with_message(prompt='Install following packages?',
-                                                        message='\n'.join(to_install))
+                                                        message='\n'.join(sorted(to_install)))
         if ret is False:
             return False
 
