@@ -43,7 +43,12 @@ class ClHelper(object):
             output = proc.stdout.readline().strip().decode('utf8')
             stdout.append(output)
             logger.log(log_level, output, extra={'event_type': 'cmd_out'})
-        stdout = '\n'.join(stdout) + proc.stdout.read().decode('utf8')
+        stdout = '\n'.join(stdout)
+        # there may be some remains not read after exiting the previous loop
+        output_rest = proc.stdout.read().strip().decode('utf8')
+        if output_rest:
+            logger.log(log_level, output_rest, extra={'event_type': 'cmd_out'})
+            stdout += '\n' + output_rest
 
         if proc.returncode == 0:
             return stdout.strip()
