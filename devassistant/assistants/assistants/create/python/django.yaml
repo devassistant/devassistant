@@ -39,6 +39,7 @@ django:
   - $basename: basename "$name"
   - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
+  - cl: mkdir -p "$dirname"
   - cl: cd "$dirname"
   - if $venv:
     - cl_i: virtualenv "$basename"
