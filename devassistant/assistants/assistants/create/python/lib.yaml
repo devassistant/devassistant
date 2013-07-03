@@ -3,7 +3,10 @@ lib:
   description: 'Lib assistant will help you create a custom Python library.'
 
   dependencies:
-  - rpm: ['python-setuptools']
+  - if $venv:
+    - rpm: ['python-virtualenv']
+  - else:
+    - rpm: ['python-setuptools']
 
   dependencies_eclipse:
   - call: eclipse.dependencies_python
@@ -21,6 +24,9 @@ lib:
     vim:
       snippet: vim
 
+    venv:
+      snippet: common_args
+
   files:
     gitignore: &gitignore
       source: python/.gitignore
@@ -36,13 +42,17 @@ lib:
   run:
   - $dirname: dirname "$name"
   - $basename: basename "$name"
-  - log_i: 'Creating library project $basename in $dirname ...'
   - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p "$name"
-  - dda_c: $name
-  - cl: cd "$name"
-  - cl: mkdir "$basename"
+  - log_i: 'Creating library project $basename in $dirname ...'
+  - cl: mkdir -p "$dirname"
+  - cl: cd "$dirname"
+  - if $venv:
+    - cl_i: virtualenv "$basename"
+    - cl: cd "$basename"
+  - cl: mkdir -p "$basename/$basename" # create the dir holding the lib and inside it another dir for actual Python files
+  - cl: cd "$basename"
+  - dda_c: .
   - cl: touch "$basename/__init__.py"
   - cl: cp *license .
   - cl: cp *manifestin .
@@ -59,3 +69,5 @@ lib:
   - if defined $github:
     - github: create_and_push
   - log_i: 'Library project $basename in $dirname has been created.'
+  - if $venv:
+    - log_i: 'To switch to the created virtualenv, use "source ${dirname}/${basename}/bin/activate"'
