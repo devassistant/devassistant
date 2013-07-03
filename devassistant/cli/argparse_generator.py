@@ -1,7 +1,7 @@
 import argparse
 
 from devassistant.cli import devassistant_argparse
-
+from devassistant import command_helpers
 from devassistant import settings
 
 class ArgparseGenerator(object):
@@ -16,6 +16,9 @@ class ArgparseGenerator(object):
         # add any arguments of the top assistant
         for arg in cur_as.args:
             arg.add_argument_to(parser)
+
+        # add the argument for UI choice
+        command_helpers.DialogHelper.get_argparse_argument().add_argument_to(parser)
 
         if cur_subas:
             # then add the subassistants as arguments

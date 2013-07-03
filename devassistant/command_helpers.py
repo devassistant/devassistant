@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import logging
 import os
@@ -5,8 +6,10 @@ import subprocess
 import sys
 import tempfile
 
+from devassistant import argument
 from devassistant import exceptions
 from devassistant.logger import logger
+from devassistant import settings
 
 class ClHelper(object):
     @classmethod
@@ -178,20 +181,50 @@ class DialogHelper(object):
     decide on its own which specific helper it is best to use in this place (CommandLine,
     Zenity, possibly other registered).
     """
-    helpers = []
+    helpers = {}
+    # this will be assigned if user overrides UI backend from commandline
+    user_override_helper = None
+
+    @classmethod
+    def get_argparse_argument(cls):
+        """Return argument for argparse, that contains the list of UI choices and has
+        a proper action (which will set a proper attribute of DialogHelper).
+        """
+        help='Force a specific backend for UI dialogs: [{names}]'.format(names=', '.join(cls.helpers.keys()))
+        class UIAction(argparse.Action):
+            klass = cls
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                cls.user_override_helper = values
+                setattr(namespace, self.dest, values)
+
+        arg = argument.Argument(settings.UI_FLAG,
+                                action=UIAction,
+                                required=False,
+                                help=help)
+
+        return arg
 
     @classmethod
     def register_helper(cls, helper):
         """Decorator that appends a helper to list of helpers and then returns it."""
-        cls.helpers.append(helper)
+        cls.helpers[helper.shortname] = helper
         return helper
 
     @classmethod
     def get_appropriate_helper(cls):
-        # TODO: code the logic properly so that we can add more dialog helpers, e.g. for kde
-        # maybe implement an "is_usable" method in display helpers and then choose one
-        # according to its priority? (that would have to be implemented, too
-        return ZenityDialogHelper if 'DISPLAY' in os.environ else TTYDialogHelper
+        if cls.user_override_helper:
+            return cls.helpers['user_override_helper']
+
+        available = []
+        for h in filter(lambda x: x.is_graphical() == ('DISPLAY' in os.environ), cls.helpers.values()):
+            if h.is_available():
+                available.append(h)
+
+        # return always the same (the values traversing from dict above is not deterministic)
+        # we may want to assign some sort of priority to be able to actively influence which
+        # helper will be chosen
+        return sorted(available)[0]
 
     @classmethod
     def ask_for_password(cls, prompt='Provide your password:', **options):
@@ -209,6 +242,16 @@ class DialogHelper(object):
 
 @DialogHelper.register_helper
 class TTYDialogHelper(object):
+    shortname = 'tty'
+
+    @classmethod
+    def is_available(cls):
+        return True
+
+    @classmethod
+    def is_graphical(cls):
+        return False
+
     @classmethod
     def ask_for_password(cls, prompt, **options):
         return getpass.getpass(prompt=prompt + ' ')
@@ -231,6 +274,15 @@ class TTYDialogHelper(object):
 @DialogHelper.register_helper
 class ZenityDialogHelper(object):
     c_zenity = 'zenity'
+    shortname = c_zenity
+
+    @classmethod
+    def is_available(cls):
+        return True if ClHelper.run_command('which {zenity}'.format(zenity=cls.c_zenity)) else False
+
+    @classmethod
+    def is_graphical(cls):
+        return True
 
     @classmethod
     def ask_for_password(cls, prompt, **options):
