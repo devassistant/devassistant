@@ -3,7 +3,12 @@ flask:
   description: 'Flask assistant will help you create a basic Flask project and install its dependencies.'
 
   dependencies:
-  - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf, python-flask-script]
+  - if $venv:
+    - rpm: [python-virtualenv]
+  - else:
+    # if changing, don't forget to also change these in run section in virtualenv installation
+    # this is not completely dry, but mapping of PyPI names to Fedora names would be a pain to do here
+    - rpm: [python-flask, python-flask-sqlalchemy, python-flask-wtf, python-flask-script]
 
   dependencies_eclipse:
   - call: eclipse.dependencies_python
@@ -24,6 +29,9 @@ flask:
     vim:
       snippet: vim
 
+    venv:
+      snippet: common_args
+
   files:
     gitignore: &gitignore
       source: python/.gitignore
@@ -37,12 +45,19 @@ flask:
   run:
   - $dirname: dirname "$name"
   - $basename: basename "$name"
-  - log_i: 'Creating Flask project $basename in $dirname ...'
   - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
-  - cl: mkdir -p "$name"
-  - dda_c: $name
-  - cl: cd "$name"
+  - cl: mkdir -p "$dirname"
+  - cl: cd "$dirname"
+  - if $venv:
+    - cl_i: virtualenv "$basename"
+    - cl: cd "$basename"
+    - log_i: 'Installing Flask and other dependencies into virtual environment ...'
+    - cl_i: source bin/activate && pip install flask flask-sqlalchemy flask-wtf flask-script
+  - log_i: 'Creating Flask project $basename in $dirname ...'
+  - cl: mkdir -p "$basename"
+  - dda_c: $basename
+  - cl: cd "$basename"
   - cl: mkdir -p "$basename/static" "$basename/templates"
   - cl: cp *managepy .
   - cl: sed -i "s|NAME|$basename|" manage.py
@@ -59,5 +74,7 @@ flask:
   - if defined $github:
     - github: create_and_push
   - log_i: 'Flask project $basename in $dirname has been created.'
+  - if $venv:
+    - log_i: 'To switch to the created virtualenv, use "source ${dirname}/${basename}/bin/activate"'
   - log_i: 'To run the application use: ./manage.py runserver'
   - log_i: 'For more information about Flask project visit https://flask.pocoo.org/docs/tutorial/'
