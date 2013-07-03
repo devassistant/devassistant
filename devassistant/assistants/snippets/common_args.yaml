@@ -46,3 +46,12 @@ args:
       'Specify path to you project (defaults to current working directory if not used).'
     nargs:
       '?'
+
+  # for Python assistants that want to allow using virtualenv
+  venv:
+    flags:
+    - --venv
+    action:
+      store_true
+    help:
+      'Use virtualenv to set up project and install dependencies.'

@@ -3,7 +3,10 @@ django:
   description: 'Django assistant will help you create a basic Django project and install its dependencies.'
 
   dependencies:
-  - rpm: ['python-django']
+  - if $venv:
+    - rpm: ['python-virtualenv']
+  - else:
+    - rpm: ['python-django']
 
   dependencies_eclipse:
   - call: eclipse.dependencies_python
@@ -24,6 +27,9 @@ django:
     vim:
       snippet: vim
 
+    venv:
+      snippet: common_args
+
   files:
     gitignore: &gitignore
       source: python/.gitignore
@@ -31,11 +37,19 @@ django:
   run:
   - $dirname: dirname "$name"
   - $basename: basename "$name"
-  - log_i: 'Creating Django project $basename in $dirname ...'
   - if test -d "$name":
     - log_e: '$name already exists, cannot proceed.'
   - cl: cd "$dirname"
-  - cl: django-admin startproject "$basename"
+  - if $venv:
+    - cl_i: virtualenv "$basename"
+    - cl: cd "$basename"
+    - log_i: 'Installing Django into virtual environment ...'
+    - cl_i: source bin/activate && pip install django
+  - log_i: 'Creating Django project $basename in $dirname ...'
+  - if $venv:
+    - cl: source bin/activate && django-admin.py startproject "$basename"
+  - else:
+    - cl: django-admin startproject "$basename"
   # make modifications to settings.py so that project can be run immediately
   - cl: sed -i "s|django.db.backends.|django.db.backends.sqlite3|" "$basename/$basename/settings.py"
   # \(.\) is workaround for ":", which cannot be here because it would mean yaml error
@@ -53,5 +67,7 @@ django:
   - if defined $github:
     - github: create_and_push
   - log_i: 'Django project $basename in $dirname has been created.'
+  - if $venv:
+    - log_i: 'To switch to the created virtualenv, use "source ${dirname}/${basename}/bin/activate"'
   - log_i: 'To run the application use: ./manage.py runserver'
   - log_i: 'For more information about Django project visit https://www.djangoproject.com'
