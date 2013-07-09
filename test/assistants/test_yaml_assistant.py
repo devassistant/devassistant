@@ -177,6 +177,11 @@ class TestYamlAssistant(object):
         assert('INFO', 'yes, I ran') in self.tlh.msgs
         assert('INFO', 'foo') in self.tlh.msgs
 
+    def test_run_snippet_missing(self):
+        self.ya._run = [{'call': 'foo.bar'}]
+        self.ya.run()
+        assert ('WARNING', 'No section to run: foo.bar.') in self.tlh.msgs
+
     def test_run_snippet(self):
         self.ya._run = [{'call': 'mysnippet'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\

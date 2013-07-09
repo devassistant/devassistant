@@ -149,16 +149,19 @@ class YamlAssistant(assistant_base.AssistantBase):
                     if self._is_snippet_call(comm, **kwargs):
                         # we're calling a snippet => add files to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
+                        pop_files = False # set to True if we actually find the snippet
                         if '__files__' not in kwargs:
                             kwargs['__files__'] = []
-                        kwargs['__files__'].append(snippet.get_files_section())
+                        if snippet:
+                            pop_files = True
+                            kwargs['__files__'].append(snippet.get_files_section())
 
                     if sect is None:
                         logger.warning('No section to run: {0}.'.format(comm))
                     else:
                         self._run_one_section(sect, copy.deepcopy(kwargs))
 
-                    if self._is_snippet_call(comm, **kwargs):
+                    if self._is_snippet_call(comm, **kwargs) and pop_files:
                         kwargs['__files__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
