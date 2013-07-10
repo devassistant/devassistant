@@ -1,3 +1,5 @@
+.. _common_assistant_behaviour:
+
 Common Assistant Behaviour
 ==========================
 

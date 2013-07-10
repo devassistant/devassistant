@@ -1,6 +1,4 @@
-.. _GH_assistants: https://github.com/bkabrda/devassistant/tree/master/devassistant/assistants/assistants
-
-__ GH_assistants_
+.. _assistants in our Github repo: https://github.com/bkabrda/devassistant/tree/master/devassistant/assistants/assistants
 
 .. _yaml_assistant_reference:
 
@@ -8,7 +6,7 @@ Yaml Assistant Reference
 ========================
 
 This is a reference manual to writing yaml assistants, hopefully
-up-to-date. For real examples, have a look at assistants in our `Github repo`__.
+up-to-date. For real examples, have a look at `assistants in our Github repo`_.
 The basic rules apply to all assistants, but there are some special
 rules for modifier assistants. And since either me or GitHub wiki is
 stupid, I just can't make intra-page link without using the whole url,
@@ -50,13 +48,13 @@ optional):
 ``description``
   a (verbose) description to show to user (``Bla bla create project bla bla``)
 ``dependencies`` (and ``dependencies_*``)
-  specification of dependencies, see below TODO
+  specification of dependencies, see below `Dependencies`_
 ``args``
-  specification of arguments, see below TODO
+  specification of arguments, see below `Args`_
 ``files``
-  specification of used files, see below TODO
+  specification of used files, see below `Files`_
 ``run`` (and ``run_*``)
-  specification of actual operations, see below TODO
+  specification of actual operations, see below `Run`_
 
 Dependencies
 ------------
@@ -71,7 +69,7 @@ Yaml assistants can express their dependencies in multiple sections.
 
    $ devassistant python --foo
 
-- These rules differ for ``modifier`` assistants, see TODO:ref
+- These rules differ for ``modifier`` assistants, see `Modifier Assistants`_
 
 Each section contains a list of mappings ``dependency type: [list, of, deps]``.
 If you provide more mappings like this: 
@@ -98,7 +96,8 @@ they will be traversed and installed one by one. Supported dependency types:
    - call: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
 
 ``if``, ``else``
-  conditional dependency installation. For more info on conditions, see "Run section" below TODO. For example:
+  conditional dependency installation. For more info on conditions, see "Run section"
+  below `Run`_. For example:
 
 .. code:: yaml
 
@@ -163,8 +162,8 @@ Available argument attributes:
 ``snippet``
   name of the snippet to load this argument from; any other specified attributes
   will override those from the snippet By convention, some arguments
-  should be common to all or most of the assistants. See Common Assistant
-  Behaviour TODO
+  should be common to all or most of the assistants.
+  See :ref:`common_assistant_behaviour`
 
 Files
 -----
@@ -189,7 +188,7 @@ Run
 Run sections are the essence of devassistant. They are responsible for
 preforming all the tasks and actions to set up the environment and
 the project itself. By default, section named ``run`` is invoked
-(this is a bit different for ``modifier`` assistants TODO:ref).
+(this is a bit different for ``modifier`` assistants `Modifier Assistants`_).
 If there is a section named ``run_foo`` and ``foo`` argument is used,
 then **only** ``run_foo`` is invoked. This is different from
 dependencies sections, as the default ``dependencies`` section is used
@@ -322,6 +321,7 @@ existing projects from SCM and setting up the environment according to
 set to ``preparer``
 
 .. code:: yaml
+
    custom:
      role: preparer
 
