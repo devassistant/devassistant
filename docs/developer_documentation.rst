@@ -5,6 +5,7 @@ Developer Documentation
    :maxdepth: 2
 
    developer_documentation/yaml_assistant_reference
+   developer_documentation/common_assistant_behaviour
    developer_documentation/devassistant_core
 
 Overall Design
