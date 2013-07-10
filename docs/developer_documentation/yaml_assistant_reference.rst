@@ -25,9 +25,7 @@ Assistant Content
 -----------------
 
 The top level mapping has to be mapping from assistant name to assistant
-attributes, for example:
-
-.. code:: yaml
+attributes, for example::
 
    python:
      fullname: Python
@@ -63,18 +61,14 @@ Yaml assistants can express their dependencies in multiple sections.
 
 - Packages from section ``dependencies`` are **always** installed.
 - If there is a section named ``dependencies_foo``, then dependencies from this section are installed
-  **iff** ``foo`` argument is used (either via commandline or via gui). For example:
-
-.. code:: sh
+  **iff** ``foo`` argument is used (either via commandline or via gui). For example::
 
    $ devassistant python --foo
 
 - These rules differ for ``modifier`` assistants, see `Modifier Assistants`_
 
 Each section contains a list of mappings ``dependency type: [list, of, deps]``.
-If you provide more mappings like this: 
-
-.. code:: yaml
+If you provide more mappings like this::
 
    dependencies:
    - rpm: [foo]
@@ -86,9 +80,7 @@ they will be traversed and installed one by one. Supported dependency types:
   the dependency list can contain RPM packages or YUM groups
   (groups must begin with ``@`` and be quoted, e.g. ``"@Group name"``)
 ``call``
-  installs dependencies from snippet or other dependency section of this assistant. For example:
-
-.. code:: yaml
+  installs dependencies from snippet or other dependency section of this assistant. For example::
 
    dependencies:
    - call: foo # will install dependencies from snippet "foo", section "dependencies"
@@ -97,9 +89,7 @@ they will be traversed and installed one by one. Supported dependency types:
 
 ``if``, ``else``
   conditional dependency installation. For more info on conditions, see "Run section"
-  below `Run`_. For example:
-
-.. code:: yaml
+  below `Run`_. For example::
 
    dependencies:
    - if $foo:
@@ -107,9 +97,7 @@ they will be traversed and installed one by one. Supported dependency types:
    - else:
      - rpm: [spam]
 
-Full example: 
-
-.. code:: yaml
+Full example::
 
    dependencies: - rpm: [foo, "@bar"]
 
@@ -126,9 +114,7 @@ Arguments are used for specifying commandline arguments or gui inputs.
 Every assistant can have zero to multiple arguments.
 
 The ``args`` section of each yaml assistant is a mapping of arguments to
-their attributes:
-
-.. code:: yaml
+their attributes::
 
    args:
      name:
@@ -170,9 +156,7 @@ Files
 
 This section serves as a list of aliases of files stored in one of the
 template dirs of devassistant. E.g. if the devassistant's template dir
-contains file ``foo/bar``, then you can use:
-
-.. code:: yaml
+contains file ``foo/bar``, then you can use::
 
    files:
      bar: &bar
@@ -248,9 +232,7 @@ List of supported commands follows:
   are not supported)
 ``scl``
   run a whole section in SCL environment of one or more SCLs (note: you **must**
-  use the scriptlet name - usually ``enable`` - because it might vary) - for example:
-
-.. code:: yaml
+  use the scriptlet name - usually ``enable`` - because it might vary) - for example::
 
    run:
    - scl enable python33 postgresql92:
@@ -290,9 +272,7 @@ Modifier Assistants
 
 Modifier assistants are assistants that are supposed to work with
 already created project. They must have ``role`` attribute set to
-``modifier``:
-
-.. code:: yaml
+``modifier``::
 
    eclipse:
      role: modifier``
@@ -318,9 +298,7 @@ Preparer Assistants
 Preparer assistants are assistants that are supposed to checkout
 existing projects from SCM and setting up the environment according to
 ``.devassistant``. Preparer assistants must have a ``role`` attribute
-set to ``preparer``
-
-.. code:: yaml
+set to ``preparer``::
 
    custom:
      role: preparer

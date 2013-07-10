@@ -11,9 +11,7 @@ Creating New Projects
 ---------------------
 
 Developer Assistant can help you create your projects with one line in terminal.
-For example:
-
-.. code:: sh
+For example::
 
    $ devassistant python django -n foo -e -g
 
@@ -38,9 +36,7 @@ Modifying Existing Projects
 ---------------------------
 
 Developer Assistant allows you to work with previously created projects. You can do
-this by using ``devassistant-modify``:
-
-.. code:: sh
+this by using ``devassistant-modify``::
 
    $ devassistant-modify eclipse
 
@@ -54,17 +50,13 @@ Preparing Development Environment for Existing Projects
 
 Developer Assistant can set up environment and install dependencies for already
 existing project located in a remote SCM (e.g. Github). For custom projects created
-by devassistant, you can use the ``custom`` assistant:
-
-.. code:: sh
+by devassistant, you can use the ``custom`` assistant::
 
    $ devassistant-prepare custom -u scm_url -p directory_to_save_to
 
 The plan is to also include assistants for well known and largely developed projects
 (that, of course, don't contain ``.devassistant`` file). So in future you should be
-able to do something like
-
-.. code:: sh
+able to do something like::
 
    $ devassistant-prepare openstack
 

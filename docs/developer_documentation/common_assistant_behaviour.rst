@@ -17,9 +17,7 @@ Common Parameters of Assistants and Their Meanings
   relative path.
 
 To include these parameters in your assistant with common help strings etc., include
-them from ``common_args.yaml`` (``-n``, ``-g``) or ``eclipse.yaml`` (``-e``) snippet:
-
-.. code:: yaml
+them from ``common_args.yaml`` (``-n``, ``-g``) or ``eclipse.yaml`` (``-e``) snippet::
 
    args:
      name:
