@@ -2,6 +2,8 @@
 
 __ GH_assistants_
 
+.. _yaml_assistant_reference:
+
 Yaml Assistant Reference
 ========================
 
