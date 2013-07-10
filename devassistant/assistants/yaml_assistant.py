@@ -84,12 +84,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             for dep_type, dep_list in dep.items():
                 # rpm dependencies (can't handle anything else yet)
                 if dep_type == 'call':
-                    try:
-                        section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
-                    except exceptions.SnippetNotFoundException as e:
-                        logger.warning('Couldn\'t find snippet {snippet} to install deps: {comm}.'.format(snippet=dep_type.split('.')[0],
-                                                                                                          comm=dep_type))
-                        continue
+                    section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
                     if section is not None:
                         deps.extend(self._dependencies_section(section, **kwargs))
                     else:
@@ -150,30 +145,23 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # 2) if running snippet, add its files to kwargs['__files__']
                     # 3) actually run
                     # 4) if running snippet, pop its files from kwargs['__files__']
-                    try:
-                        sect = self._get_section_from_call(comm, 'run')
-                    except exceptions.SnippetNotFoundException as e:
-                        logger.warning('Couldn\'t find snippet {snippet} to run section {comm}.'.format(snippet=comm.split('.')[0],
-                                                                                                        comm=comm))
+                    sect = self._get_section_from_call(comm, 'run')
+
+                    if sect is None:
+                        logger.warning('Couldn\'t find section to run: {0}.'.format(comm))
                         continue
 
                     if self._is_snippet_call(comm, **kwargs):
                         # we're calling a snippet => add files to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
 
-                        pop_files = False # set to True if we actually find the snippet
                         if '__files__' not in kwargs:
                             kwargs['__files__'] = []
-                        if snippet:
-                            pop_files = True
-                            kwargs['__files__'].append(snippet.get_files_section())
+                        kwargs['__files__'].append(snippet.get_files_section())
 
-                    if sect is None:
-                        logger.warning('No section to run: {0}.'.format(comm))
-                    else:
-                        self._run_one_section(sect, copy.deepcopy(kwargs))
+                    self._run_one_section(sect, copy.deepcopy(kwargs))
 
-                    if self._is_snippet_call(comm, **kwargs) and pop_files:
+                    if self._is_snippet_call(comm, **kwargs):
                         kwargs['__files__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
@@ -224,7 +212,8 @@ class YamlAssistant(assistant_base.AssistantBase):
             section_type - either "dependencies" or "run"
 
         Returns:
-            Section (a dict), if found, otherwise None."""
+            section to run - dict, None if not found
+        """
 
         section = None
         call_parts = cmd_call.split('.')
@@ -232,12 +221,15 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         if call_parts[0] == 'self':
             section = getattr(self, '_' + section_name, None)
-        else:
-            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
-            if section_type == 'run':
-                section = snippet.get_run_section(section_name) if snippet else None
-            else:
-                section = snippet.get_dependencies_section(section_name) if snippet else None
+        else: # snippet
+            try:
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
+                if section_type == 'run':
+                    section = snippet.get_run_section(section_name) if snippet else None
+                else:
+                    section = snippet.get_dependencies_section(section_name) if snippet else None
+            except exceptions.SnippetNotFoundException as e:
+                section = None
 
         return section
 
@@ -248,9 +240,9 @@ class YamlAssistant(assistant_base.AssistantBase):
             kwargs_override: whether or not first of [_run_{arg} for arg in kwargs] is preffered over specified section
             **kwargs: devassistant arguments
         Returns:
-            section to run - dict (if not found, returns empty dict)
+            section to run - dict, None if not found
         """
-        to_run = {}
+        to_run = None
 
         if section:
             underscored = '_' + section
@@ -263,8 +255,6 @@ class YamlAssistant(assistant_base.AssistantBase):
                     if method[len('_run_'):] in kwargs:
                         to_run = getattr(self, method)
 
-        if not to_run:
-            logger.debug('Couldn\'t find section {0} or any other appropriate.'.format(section))
         return to_run
 
     def _assign_variable(self, variable, comm, kwargs):
