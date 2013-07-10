@@ -29,3 +29,13 @@ Assistants
   therefore any software distribution can carry its own assistants
   and drop them into the directory from where Developer Assistant
   loads them - they will be loaded on next invocation.
+
+Contributing
+------------
+
+If you want to contribute (bug reporting, new assistants, patches for core,
+improving documentation, ...),
+please use our Github repo:
+
+- code: https://github.com/bkabrda/devassistant
+- issue tracker: https://github.com/bkabrda/devassistant/issues
