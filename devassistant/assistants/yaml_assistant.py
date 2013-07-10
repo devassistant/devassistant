@@ -84,7 +84,12 @@ class YamlAssistant(assistant_base.AssistantBase):
             for dep_type, dep_list in dep.items():
                 # rpm dependencies (can't handle anything else yet)
                 if dep_type == 'call':
-                    section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
+                    try:
+                        section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
+                    except exceptions.SnippetNotFoundException as e:
+                        logger.warning('Couldn\'t find snippet {snippet} to install deps: {comm}.'.format(snippet=dep_type.split('.')[0],
+                                                                                                          comm=dep_type))
+                        continue
                     if section is not None:
                         deps.extend(self._dependencies_section(section, **kwargs))
                     else:
@@ -145,10 +150,17 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # 2) if running snippet, add its files to kwargs['__files__']
                     # 3) actually run
                     # 4) if running snippet, pop its files from kwargs['__files__']
-                    sect = self._get_section_from_call(comm, 'run')
+                    try:
+                        sect = self._get_section_from_call(comm, 'run')
+                    except exceptions.SnippetNotFoundException as e:
+                        logger.warning('Couldn\'t find snippet {snippet} to run section {comm}.'.format(snippet=comm.split('.')[0],
+                                                                                                        comm=comm))
+                        continue
+
                     if self._is_snippet_call(comm, **kwargs):
                         # we're calling a snippet => add files to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
+
                         pop_files = False # set to True if we actually find the snippet
                         if '__files__' not in kwargs:
                             kwargs['__files__'] = []

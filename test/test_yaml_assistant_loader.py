@@ -5,10 +5,21 @@ import yaml
 
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
+from test.logger import TestLoggingHandler
+
 class TestYamlAssistantLoader(object):
     def setup_method(self, method):
         self.yl = YamlAssistantLoader
+        self.reset_yl_assistants_dirs()
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def teardown_method(self, method):
+        # in case that a test changed the dirs
+        self.reset_yl_assistants_dirs()
+
+    def reset_yl_assistants_dirs(self):
         self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'assistants')]
+        self.yl._classes = []
 
     def load_yaml_from_fixture(self, fixture):
         fixture_path = os.path.join(self.yl.assistants_dirs[0], '{0}.yaml'.format(fixture))
@@ -48,3 +59,19 @@ class TestYamlAssistantLoader(object):
     def test_get_top_level_assistants(self):
         clss = YamlAssistantLoader.get_top_level_assistants()
         assert set(['c', 'f']) == set(map(lambda x: x.name, clss))
+
+    def test_class_from_yaml_doesnt_fail_on_missing_snippet(self):
+        self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__),
+                                                'fixtures',
+                                                'assistants_with_snippet_problems')]
+        y = self.load_yaml_from_fixture('no_snippet_for_arg')
+        klass = self.yl.class_from_yaml(y)
+        assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
+
+    def test_class_from_yaml_doesnt_fail_on_missing_arg(self):
+        self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__),
+                                                'fixtures',
+                                                'assistants_with_snippet_problems')]
+        y = self.load_yaml_from_fixture('no_arg_in_snippet')
+        klass = self.yl.class_from_yaml(y)
+        assert ('WARNING', 'Couldn\'t find argument bar in snippet common_args wanted by assistant no_arg_in_snippet.') in self.tlh.msgs

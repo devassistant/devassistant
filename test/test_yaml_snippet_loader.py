@@ -7,7 +7,14 @@ from devassistant.yaml_snippet_loader import YamlSnippetLoader
 class TestYamlSnippetLoader(object):
     def setup_method(self, method):
         self.yl = YamlSnippetLoader
+        self.reset_yl_snippets_dirs()
+
+    def teardown_method(self, method):
+        self.reset_yl_snippets_dirs()
+
+    def reset_yl_snippets_dirs(self):
         self.yl.snippets_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'snippets')]
+        self.yl._snippets = []
 
     def test_get_all_snippets(self):
         # TODO: testing getting the run section should have its own test class

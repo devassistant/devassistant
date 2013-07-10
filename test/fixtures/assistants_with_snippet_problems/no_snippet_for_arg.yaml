@@ -1,0 +1,4 @@
+no_snippet_for_arg:
+  args:
+    bar:
+      snippet: doesnt_exist

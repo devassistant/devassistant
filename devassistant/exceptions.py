@@ -18,3 +18,6 @@ class ClException(RunException):
 
 class AssistantNotFoundException(BaseException):
     pass
+
+class SnippetNotFoundException(BaseException):
+    pass

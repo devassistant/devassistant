@@ -1,5 +1,6 @@
 import os
 
+from devassistant import exceptions
 from devassistant import yaml_loader
 from devassistant.assistants import snippet
 
@@ -23,3 +24,5 @@ class YamlSnippetLoader(object):
         for s in cls.get_all_snippets():
             if s.name == name:
                 return s
+
+        raise exceptions.SnippetNotFoundException('no such snippet: {name}'.format(name=name))

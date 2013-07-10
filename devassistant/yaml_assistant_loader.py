@@ -1,6 +1,8 @@
 import os
 
 from devassistant import argument
+from devassistant import exceptions
+from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 from devassistant.assistants import yaml_assistant
@@ -61,10 +63,23 @@ class YamlAssistantLoader(object):
             if use_snippet:
                 # if snippet is used, take this parameter from snippet and update
                 # it with current arg_params, if any
-                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
+                try:
+                    problem = None
+                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
+                    arg_params = dict(snippet.args.pop(arg_name), **arg_params)
+                except exceptions.SnippetNotFoundException as e:
+                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + str(e)
+                except KeyError as e: # snippet doesn't have the requested argument
+                    problem = 'Couldn\'t find argument {arg} in snippet {snip} wanted by assistant {a}.'
+
+                if problem:
+                    logger.warning(problem.format(snip=use_snippet,
+                                                  arg=arg_name,
+                                                  a=name))
+                    continue
+
                 # this works much like snippet.args.pop(arg_name).update(arg_params),
                 # but unlike it, this actually returns the updated dict
-                arg_params = dict(snippet.args.pop(arg_name, {}), **arg_params)
 
             arg = argument.Argument(*arg_params.pop('flags'), **arg_params)
             CustomYamlAssistant.args.append(arg)
