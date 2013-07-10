@@ -1,5 +1,11 @@
+.. _our issue tracker on Github: https://github.com/bkabrda/devassistant/issues
+
 User Documentation
 ==================
+
+For a brief intro, please see :ref:`overview`. If something seems to be missing
+or unclear either in this documentation or manpages, please let us know.
+Bugs can be reported at `our issue tracker on Github`_.
 
 Creating New Projects
 ---------------------

@@ -17,6 +17,8 @@ Contents
    user_documentation
    developer_documentation
 
+.. _overview:
+
 Overview
 --------
 
