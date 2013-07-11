@@ -3,9 +3,9 @@
 User Documentation
 ==================
 
-For a brief intro, please see :ref:`overview`. If something seems to be missing
-or unclear either in this documentation or manpages, please let us know.
-Bugs can be reported at `our issue tracker on Github`_.
+.. include:: brief-intro.txt
+
+.. _Creating New Projects:
 
 Creating New Projects
 ---------------------
@@ -32,6 +32,8 @@ This line will do the following:
   system username differs from your Github username, you must specify Github username
   as an argument to ``-g``.
 
+.. _Modifying Existing Projects:
+
 Modifying Existing Projects
 ---------------------------
 
@@ -44,6 +46,8 @@ This will import previously created project into Eclipse (and possibly install
 Eclipse and other dependencies implied by the project language). Optionally,
 you can pass ``-p path/to/project`` if your current working directory is not
 the project directory.
+
+.. _Preparing Development Environment for Existing Projects:
 
 Preparing Development Environment for Existing Projects
 -------------------------------------------------------
