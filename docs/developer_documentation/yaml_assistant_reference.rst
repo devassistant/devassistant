@@ -5,12 +5,22 @@
 Yaml Assistant Reference
 ========================
 
-This is a reference manual to writing yaml assistants, hopefully
-up-to-date. For real examples, have a look at `assistants in our Github repo`_.
-The basic rules apply to all assistants, but there are some special
-rules for modifier assistants. And since either me or GitHub wiki is
-stupid, I just can't make intra-page link without using the whole url,
-which sucks. So find "Modifier Assistants" somewhere below.
+*When developing assistants, please make sure that you read proper version
+of documentation. The Yaml DSL of devassistant is still evolving rapidly,
+so consider yourself warned.*
+
+This is a reference manual to writing yaml assistants. Yaml assistants
+use a special DSL defined on this page. For real examples, have a look
+at `assistants in our Github repo`_.
+
+*Why the hell another DSL?*
+  When we started creating devassistant and we were asking people who
+  work in various languages whether they'd consider contributing assistants
+  for those languages, we hit the "I'm not touching Python" barrier. Since
+  we wanted to keep the assistants consistent (centralized logging, sharing
+  common functionality, same backtraces, etc...), we created a new DSL.
+  So now we have something that everyone complains about, including Pythonists,
+  which seems to be consistent too ;)
 
 Assistant Name
 --------------
