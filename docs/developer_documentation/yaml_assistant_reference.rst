@@ -222,7 +222,7 @@ List of supported commands follows:
   (for example ``for $i in ~ls~``) - loop over iterable to which given expression
   evaluates (if it is string, which almost always is, it is split on whitespaces)
 ``$foo``
-  assigns either value of another variable or stdout of a given command to``$foo``
+  assigns result of an `Expression`_ to the given variable
   (doesn't interrupt the assistant execution if command fails)
 ``call``
   run another section of this assistant (e.g.``call: self.run_foo``) of a snippet
@@ -267,7 +267,7 @@ section, it can see all the arguments that are defined.
 Expressions
 ~~~~~~~~~~~
 
-Expressions are expressions, really. They can be used in conditions and
+Expressions are expressions, really. They are used in assignments, conditions and
 as loop "iterables".
 
 Syntax:
