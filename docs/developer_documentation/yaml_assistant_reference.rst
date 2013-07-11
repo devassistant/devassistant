@@ -98,8 +98,8 @@ they will be traversed and installed one by one. Supported dependency types:
    - call: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
 
 ``if``, ``else``
-  conditional dependency installation. For more info on conditions, see "Run section"
-  below `Run`_. For example::
+  conditional dependency installation. For more info on conditions, `Run`_ below.
+  A very simple example::
 
    dependencies:
    - if $foo:
@@ -216,18 +216,8 @@ List of supported commands follows:
 ``dda_[c]``
   ``c`` creates ``.devassistant`` file (containing some sane initial meta
   information about the project) in given directory
-``if``, ``else``
-  conditional execution. The conditions can be:
-  - ``$foo`` - evaluates to true **iff** ``$foo`` has value that evaluates to true
-    (non-empty string, true)
-  - commandline command - evaluates to true **iff** the command returns 0 exit code
-    (doesn't interrupt the assistant execution if command fails); assigns both stdout
-    and stderr lines in the order they were printed by command
-  - not - negates the condition, can only be used once (no, you can't use
-    ``not not not $foo, sorry``)
-  - defined $foo - returns true **iff** ``foo`` variable is defined (meaning that
-    it was set previously or `--foo` argument was used, even though its value may
-    have been false or empty string)
+``if <expression>``, ``else``
+  conditional execution. The conditions must be an `Expression`_.
 ``$foo``
   assigns either value of another variable or stdout of a given command to``$foo``
   (doesn't interrupt the assistant execution if command fails)
@@ -268,6 +258,28 @@ The variable scope works as follows:
 
 All variables are global in the sense that if you call a snippet or another
 section, it can see all the arguments that are defined.
+
+.. _Expression:
+
+Expressions
+~~~~~~~~~~~
+
+Expressions are expressions, really. They can be used in conditions and
+as loop "iterables".
+
+Syntax:
+
+- ``$foo`` - evaluates to true **iff** ``$foo`` has value that evaluates to true
+  (non-empty string, Python's True)
+- ``~commandline command~`` - (yes, that is commandline command surrounded by tildas)
+  evaluates to true **iff** the command returns 0 exit code
+  (doesn't interrupt the assistant execution if command fails); assigns both stdout
+  and stderr lines in the order they were printed by command
+- ``not`` - negates the condition, can only be used once (no, you can't use
+  ``not not not $foo``, sorry)
+- ``defined $foo`` - returns true **iff** ``foo`` variable is defined (meaning that
+  it was set previously or `--foo` argument was used, even though its value may
+  have been false or empty string)
 
 Quoting
 ~~~~~~~
