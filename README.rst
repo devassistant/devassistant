@@ -1,7 +1,7 @@
-devassistant
-============
+Developer Assistant
+===================
 
-Developer Assistant - start developing with ease.
+Start developing with ease!
 
 Devassistant project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 
