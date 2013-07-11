@@ -30,6 +30,34 @@ Assistants
   and drop them into the directory from where Developer Assistant
   loads them - they will be loaded on next invocation.
 
+Assistants
+----------
+Internally, each assistant is represented by a class (subclass of
+devassistant.assistant_base.AssistantBase). This class is constructed
+by devassistant in runtime from parsed yaml files. Each assistant can
+have zero or more subassistants. This effectively forms a tree-like
+structure. For example::
+
+              MainAssistant
+              /           \
+             /             \
+           Python          Ruby
+           /   \            / \
+          /     \          /   \
+       Django  Flask    Rails Sinatra
+
+Each assistant can optionally define arguments that it accepts (either
+on commandline, or from GUI in future). For example, you can run
+the leftmost path with::
+
+   $ devassistant python [python assistant arguments] django [django assistant arguments]
+
+If an assistant has any subassistants, one of them **must** be used. E.g.
+in the example above, you can't use just Python assistant, you have to
+choose between Django and Flask. If Django would get a subassistant, it
+wouldn't be usable on its own any more, etc.
+
+
 Contributing
 ------------
 
