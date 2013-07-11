@@ -18,4 +18,4 @@ Devassistant also allows you to work with a previously created project, for exam
 
 Last but not least, devassistant allows you to check out a project from SCM (either previously created by devassistant with "custom" assistant or a specific project, assuming that you have the individual assistant for it)::
 
-   $ devassistant-prepare custom ./devassistant-prepare.py custom -u scm_url -p directory_to_save_to
+   $ devassistant-prepare custom ./devassistant-prepare.py custom -u scm_url

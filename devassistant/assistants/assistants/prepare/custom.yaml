@@ -18,8 +18,8 @@ custom:
       - --path
       help:
         Path where to checkout the repo (will be created if it does not exist).
-      required:
-        True
+      required: False
+      default: .
 
   run:
     - if not ~test -e "$path"~:

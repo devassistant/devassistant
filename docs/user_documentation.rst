@@ -56,7 +56,7 @@ Developer Assistant can set up environment and install dependencies for already
 existing project located in a remote SCM (e.g. Github). For custom projects created
 by devassistant, you can use the ``custom`` assistant::
 
-   $ devassistant-prepare custom -u scm_url -p directory_to_save_to
+   $ devassistant-prepare custom -u scm_url
 
 The plan is to also include assistants for well known and largely developed projects
 (that, of course, don't contain ``.devassistant`` file). So in future you should be
