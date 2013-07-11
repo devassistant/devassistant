@@ -162,7 +162,11 @@ class YamlAssistant(assistant_base.AssistantBase):
                         kwargs['__files__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
-                    self._assign_variable(comm_type, comm, kwargs)
+                    try:
+                        self._assign_variable(comm_type, comm, kwargs)
+                    except exceptions.YamlSyntaxError as e:
+                        logger.error(e)
+                        raise e
                 elif comm_type.startswith('if'):
                     possible_else = None
                     if len(section) > i + 1: # do we have "else" clause?
@@ -182,15 +186,11 @@ class YamlAssistant(assistant_base.AssistantBase):
                     except exceptions.YamlSyntaxError as e:
                         logger.error(e)
                         raise e
-                    if expression.startswith('$'):
-                        eval_expression = kwargs.get(self._get_var_name(expression), [])
-                    else:
-                        try:
-                            eval_expression = run_command('cl_n', expression)
-                        except exceptions.RunException:
-                            eval_expression = []
-                    if isinstance(eval_expression, str) or (sys.version_info[0] < 3 and isinstance(eval_expression, unicode)):
-                        eval_expression = eval_expression.split()
+                    try:
+                        eval_expression = self._evaluate()
+                    except exceptions.YamlSyntaxError as e:
+                        logger.log(e)
+                        raise e
 
                     for i in eval_expression:
                         kwargs[control_var] = i
@@ -347,6 +347,19 @@ class YamlAssistant(assistant_base.AssistantBase):
         return name.strip('{}')
 
     def _evaluate(self, expression, **kwargs):
+        """Evaluates given expression - can be one of
+        - $foo
+        - "$foo"
+        - ~cl command~
+
+        Returns:
+            tuple (success, value), where
+            - success means whether variable was found or cl command returned zero
+            - value is the evaluated value :)
+
+        Raises:
+            exceptions.YamlSyntaxError if expression is malformed
+        """
         # was command successful?
         success = True
         # command output
@@ -366,11 +379,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                 success = False
         elif expr.startswith('defined '):
             success = self._get_var_name(expr[8:]) in kwargs
-        else:
+        elif expr.startswith('~'): # only one expression surrounded by tildas is allowed now
             try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr, self.template_dir, self._files, **kwargs), **kwargs)
+                output = run_command('cl_n', CommandFormatter.format('cl', expr.strip('~'), self.template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output 
+        else:
+            raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
 
         return (success if not invert_success else not success, output)

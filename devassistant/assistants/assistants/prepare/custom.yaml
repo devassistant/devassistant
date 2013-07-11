@@ -22,11 +22,11 @@ custom:
         True
 
   run:
-    - if not test -e "$path":
+    - if not ~test -e "$path"~:
       - cl: mkdir -p "$path"
     - cl: cd "$path"
-    - $git_output: git clone "$url"
-    - $dirname: echo "$git_output" | grep "Cloning into" | sed "s|.*'\(.*\)'.*|\1|"
+    - $git_output: ~git clone "$url"~
+    - $dirname: ~echo "$git_output" | grep "Cloning into" | sed "s|.*'\(.*\)'.*|\1|"~
     - if not "$dirname":
       - log_e: Could not checkout sources - $git_output
     - cl: cd "$dirname"

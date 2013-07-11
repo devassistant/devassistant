@@ -58,7 +58,7 @@ run_c:
 - cl: cd "$name"
 - cl_f: make clean
 - cl: mkdir -p "$eclipse/$name"
-- if not ls "$name/.project":
+- if not ~ls "$name/.project"~:
   - log_i: 'Project was not imported to eclipse environment yet'
   - cl: cp *dot_eclipseproject_c .
   - cl: cp *dot_cproject_c .
@@ -82,7 +82,7 @@ run_cpp:
 - cl: cd "$name"
 - cl_f: make clean
 - cl: mkdir -p "$eclipse/$name"
-- if not ls "$name/.project":
+- if not ~ls "$name/.project"~:
   - log_i: 'Project was not imported to eclipse environment yet'
   - cl: cp *dot_eclipseproject_cpp .
   - cl: cp *dot_cproject_cpp .
@@ -102,9 +102,9 @@ run_cpp:
 - log_i: 'Start eclipse for developping.'
 
 run_python:
-- $basename: basename "$name"
+- $basename: ~basename "$name"~
 - log_i: 'Registering as Eclipse project ...'
-- if grep django manage.py:
+- if ~grep django manage.py~:
   - cl: cp *dot_project_django .
   - cl: cp *dot_pydevproject_django .
 - else:
@@ -115,29 +115,29 @@ run_python:
 - cl: cd ../
 - cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import "$basename" -data "$eclipse"
 - cl: cd "$basename"
-- log_i: 'Registered as Eclipse project ...'
+- log_i: 'Registered as Eclipse project.'
 
 run_java:
 - log_i: 'Creating eclipse project from command line'
 - cl: mkdir -p "$eclipse/$name"
-- if grep jsf pom.xml:
+- if ~grep jsf pom.xml~:
   - cl: cp *dot_eclipseproject_jsf .project
 - else:
   - cl: cp *dot_eclipseproject_maven .project
 - cl: sed -i "s/<name>PROJECT_NAME</<name>$name</" .project
 - cl: cp .project "$eclipse/$name/.project"
 - cl: cp .classpath "$eclipse/$name/.classpath"
-- if test -d .settings/:
+- if ~test -d .settings/~:
   - cl: cp -r .settings/ "$eclipse/$name/"
 # TODO this is for CDT and it looks like JDT doesn't have similar functionality (?)
 #- cl: eclipse -nosplash -application org.eclipse.cdt.managedbuilder.core.headlessbuild -import ./
 - log_i: 'You can now import this project into your Eclipse workspace'
 
 run_php:
-- $basename: basename "$name"
+- $basename: ~basename "$name~"
 - log_i: 'Registering as Eclipse project ...'
 - cl: mkdir -p "$eclipse/$name"
-- if not ls ".project":
+- if not ~ls ".project"~:
   - log_i: 'Project was not imported to eclipse environment yet'
   - cl: cp -v *dot_eclipseproject_php .
   - cl: sed -i "s|<name>phpassistant<|<name>$name<|" .eclipseproject

@@ -39,9 +39,9 @@ c:
       source: c/
 
   run:
-  - $dirname: dirname "$name"
-  - $basename: basename "$name"
-  - if not ls "$name":
+  - $dirname: ~dirname "$name"~
+  - $basename: ~basename "$name"~
+  - if not ~ls "$name"~:
     - log_i: 'Copying c source tree to project destination'
     - cl_i: cp -r *csources "$name"
     - dda_c: "$name"
@@ -72,7 +72,7 @@ c:
     - call: vim.run
   - if defined $build:
     - log_i: 'Creating spec file'
-    - $dirname: pwd
+    - $dirname: ~pwd~
     - cl: rpmdev-setuptree
     - cl: rm -f "~/rpmbuild/SPECS/$basename.spec"
     - cl: cp "$basename-0.0.tar.gz" ~/rpmbuild/SOURCES

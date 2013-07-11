@@ -37,13 +37,13 @@ jsf:
 
 
   run:
-  - $dirname: dirname "$name"
-  - $basename: basename "$name"
+  - $dirname: ~dirname "$name"~
+  - $basename: ~basename "$name"~
   - log_i: 'Creating simple JSF project'
-  - if test -d "$name":
+  - if ~test -d "$name"~:
     - log_e: '$name already exists, cannot proceed.'
   - cl: mkdir -p "$name"
-  - $abspath: readlink -f "$name"
+  - $abspath: ~readlink -f "$name"~
   - dda_c: "${name}"
   - cl: cd "${name}"
   - cl: cp *classpath .

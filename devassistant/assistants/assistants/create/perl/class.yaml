@@ -25,10 +25,10 @@ class:
       source: perl/class
 
   run:
-  - $dirname: dirname "$name"
-  - $basename: basename "$name"
+  - $dirname: ~dirname "$name"~
+  - $basename: ~basename "$name"~
   - log_i: 'Creating perl class project $basename in $dirname ...'
-  - if test -d "$name":
+  - if ~test -d "$name"~:
     - log_e: '$name already exists, cannot proceed.'
   - else:
     - cl_i: cp -r *perlsources "$name"
