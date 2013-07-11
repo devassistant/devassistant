@@ -218,6 +218,9 @@ List of supported commands follows:
   information about the project) in given directory
 ``if <expression>``, ``else``
   conditional execution. The conditions must be an `Expression`_.
+``for <var> in <expression>``
+  (for example ``for $i in ~ls~``) - loop over iterable to which given expression
+  evaluates (if it is string, which almost always is, it is split on whitespaces)
 ``$foo``
   assigns either value of another variable or stdout of a given command to``$foo``
   (doesn't interrupt the assistant execution if command fails)
