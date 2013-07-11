@@ -21,3 +21,6 @@ class AssistantNotFoundException(BaseException):
 
 class SnippetNotFoundException(BaseException):
     pass
+
+class YamlSyntaxError(ExecutionException):
+    pass

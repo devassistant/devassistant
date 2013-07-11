@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+import sys
 
 from devassistant import assistant_base
 from devassistant import exceptions
@@ -174,6 +175,26 @@ class YamlAssistant(assistant_base.AssistantBase):
                     if not skip_else:
                         logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
                     skip_else = False
+                elif comm_type.startswith('for'):
+                    # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
+                    try:
+                        control_var, expression = self._parse_for(comm_type)
+                    except exceptions.YamlSyntaxError as e:
+                        logger.error(e)
+                        raise e
+                    if expression.startswith('$'):
+                        eval_expression = kwargs.get(self._get_var_name(expression), [])
+                    else:
+                        try:
+                            eval_expression = run_command('cl_n', expression)
+                        except exceptions.RunException:
+                            eval_expression = []
+                    if isinstance(eval_expression, str) or (sys.version_info[0] < 3 and isinstance(eval_expression, unicode)):
+                        eval_expression = eval_expression.split()
+
+                    for i in eval_expression:
+                        kwargs[control_var] = i
+                        self._run_one_section(comm, kwargs)
                 elif comm_type.startswith('scl'):
                     if '__scls__' not in kwargs:
                         kwargs['__scls__'] = []
@@ -187,6 +208,35 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
+
+    def _parse_for(self, control_line, **kwargs):
+        """Returns name of loop control variable and expression to iterate.
+        Expression can be either a variable (will be returned as it is, e.g.
+        "${foo}") or a commandline call.
+
+        For example:
+        - given "for $i in $foo", returns ('i', '$foo')
+        - given "for ${i} in ls $foo", returns ('i', 'ls $foo')
+        """
+        for_parts = control_line.split(None, 3)
+        error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
+        if for_parts[0] != 'for':
+            pass # specify the error more?
+        elif for_parts[2] != 'in':
+            pass # specify the error more?
+        elif len(for_parts) != 4:
+            pass # specify the error more?
+        else:
+            try:
+                control_var = self._get_var_name(for_parts[1])
+                error = None
+            except exceptions.YamlSyntaxError as e:
+                pass # specify the error more?
+
+        if error:
+            raise exceptions.YamlSyntaxError(error)
+
+        return (control_var, for_parts[3])
 
     def _get_section_from_condition(self, if_section, else_section=None, **kwargs):
         """Returns section that should be used from given if/else sections by evaluating given condition.
@@ -290,7 +340,10 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     def _get_var_name(self, dolar_variable):
         name = dolar_variable.strip()
-        name = name.strip('"')[1:]
+        name = name.strip('"\'')
+        if not name.startswith('$'):
+            raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dolar_variable)
+        name = name[1:] # strip the dollar
         return name.strip('{}')
 
     def _evaluate(self, expression, **kwargs):
