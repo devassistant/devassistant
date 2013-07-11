@@ -92,15 +92,12 @@ class YamlAssistant(assistant_base.AssistantBase):
                 elif dep_type in ['rpm']: # handle known types of deps the same, just by appending to "deps" list
                     deps.append({dep_type: dep_list})
                 elif dep_type.startswith('if'):
-                    else_section = None
+                    possible_else = None
                     if len(section) > i + 1: # do we have "else" clause?
-                        next_section_dep_type, next_section_dep = list(section[i + 1].items())[0]
-                        if next_section_dep_type == 'else':
-                            else_section = next_section_dep
-                            skip_else = True
-                    to_run = self._get_section_from_condition(dep_type, dep_list, else_section, **kwargs)
-                    if to_run[1]:
-                        deps.extend(self._dependencies_section(to_run[1], **kwargs))
+                        possible_else = list(section[i + 1].items())[0]
+                    _, skip_else, to_run = self._get_section_from_condition((dep_type, dep_list), possible_else, **kwargs)
+                    if to_run:
+                        deps.extend(self._dependencies_section(to_run, **kwargs))
                 elif dep_type == 'else':
                     # else on its own means error, otherwise execute it
                     if not skip_else:
@@ -166,16 +163,13 @@ class YamlAssistant(assistant_base.AssistantBase):
                     # intentionally pass kwargs as dict, not as keywords
                     self._assign_variable(comm_type, comm, kwargs)
                 elif comm_type.startswith('if'):
-                    else_section = None
+                    possible_else = None
                     if len(section) > i + 1: # do we have "else" clause?
-                        next_section_comm_type, next_section_comm = list(section[i + 1].items())[0]
-                        if next_section_comm_type == 'else':
-                            else_section = next_section_comm
-                            skip_else = True
-                    to_run = self._get_section_from_condition(comm_type, comm, else_section, **kwargs)
-                    if to_run[1]:
+                        possible_else = list(section[i + 1].items())[0]
+                    _, skip_else, to_run = self._get_section_from_condition((comm_type, comm), possible_else, **kwargs)
+                    if to_run:
                         # run with original kwargs, so that they might be changed for code after this if
-                        self._run_one_section(to_run[1], kwargs)
+                        self._run_one_section(to_run, kwargs)
                 elif comm_type == 'else':
                     if not skip_else:
                         logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
@@ -194,24 +188,28 @@ class YamlAssistant(assistant_base.AssistantBase):
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
 
-    def _get_section_from_condition(self, condition, if_section, else_section=None, **kwargs):
+    def _get_section_from_condition(self, if_section, else_section=None, **kwargs):
         """Returns section that should be used from given if/else sections by evaluating given condition.
 
         Args:
-            condition - condition to evaluate (e.g. "if $foo")
             if_section - section with if clause
-            else_section - section with else clause, possibly None if not present
+            else_section - section that *may* be else clause (just next section after if_section,
+                           this method will check if it really is else); possibly None if not present
 
         Returns:
-            tuple (<0 or 1>, section), where
+            tuple (<0 or 1>, <True or False>, section), where
             - the first member says whether we're going to "if" section (0) or else section (1)
-            - the second member is the appropriate section to run or None if there is only "if"
+            - the second member says whether we should skip next section during further evaluation
+              (True or False - either we have else to skip, or we don't)
+            - the third member is the appropriate section to run or None if there is only "if"
               clause and condition evaluates to False
         """
-        if self._evaluate(condition[2:].strip(), **kwargs)[0]:
-            return (0, if_section)
+        # check if else section is really else
+        skip = True if else_section is not None and else_section[0] == 'else' else False
+        if self._evaluate(if_section[0][2:].strip(), **kwargs)[0]:
+            return (0, skip, if_section[1])
         else:
-            return (1, else_section)
+            return (1, skip, else_section[1]) if skip else (1, skip, None)
 
     def _get_section_from_call(self, cmd_call, section_type, **kwargs):
         """Returns a section form call.
