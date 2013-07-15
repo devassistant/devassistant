@@ -168,7 +168,7 @@ class finalWindow(object):
                 if btn.get_label() == "github":
                     self.parent.kwargs[btn.get_label()]=self.githubEntry.get_text()
                 elif btn.get_label() == "eclipse":
-                    self.parent.kwargs[btn.get_label()]=self.eclipse.get_text()
+                    self.parent.kwargs[btn.get_label()]=self.eclipseEntry.get_text()
                 else:
                     self.parent.kwargs[btn.get_label()]=None
             logger_gui.info("Name is:{0} {1}".format(btn.get_active(),btn.get_label()))
