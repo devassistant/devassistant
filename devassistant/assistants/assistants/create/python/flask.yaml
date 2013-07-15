@@ -43,9 +43,9 @@ flask:
       source: python/flask/manage.py
 
   run:
-  - $dirname: dirname "$name"
-  - $basename: basename "$name"
-  - if test -d "$name":
+  - $dirname: ~dirname "$name"~
+  - $basename: ~basename "$name"~
+  - if ~test -d "$name"~:
     - log_e: '$name already exists, cannot proceed.'
   - cl: mkdir -p "$dirname"
   - cl: cd "$dirname"
