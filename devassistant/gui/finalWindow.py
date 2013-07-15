@@ -165,8 +165,13 @@ class finalWindow(object):
         logger_gui.info("run button")
         for btn in self.button:
             if btn.get_active() == True:
-                self.parent.kwargs[btn.get_label()]=None
-            logger_gui.info("Name is:{0}{1}".format(btn.get_active(),btn.get_label()))
+                if btn.get_label() == "github":
+                    self.parent.kwargs[btn.get_label()]=self.githubEntry.get_text()
+                elif bt.get_label() == "eclipse":
+                    self.parent.kwargs[btn.get_label()]=self.eclipse.get_text()
+                else:
+                    self.parent.kwargs[btn.get_label()]=None
+            logger_gui.info("Name is:{0} {1}".format(btn.get_active(),btn.get_label()))
         logger_gui.info(self.parent.kwargs)
         self.parent.runWindow.open_window(widget, data)
         self.finalWindow.hide()
