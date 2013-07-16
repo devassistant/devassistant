@@ -3,42 +3,42 @@
 _devassistant_baseopts_c()
 {
 	echo ""
-    local opts='--github --help --vim --build --eclipse --name'
+    local opts='--deps-only --github --help --vim --build --eclipse --name'
     printf %s "$opts"
 }
 
 _devassistant_baseopts_python()
 {
 	echo ""
-    local opts='--github --help --eclipse --name --vim'
+    local opts='--deps-only --github --help --eclipse --name --vim'
     printf %s "$opts"
 }
 
 _devassistant_baseopts_java()
 {
 	echo ""
-    local opts='--github --help --eclipse --name'
+    local opts='--deps-only --github --help --eclipse --name'
     printf %s "$opts"
 }
 
 _devassistant_baseopts_perl()
 {
 	echo ""
-    local opts='--github --help --eclipse --name'
+    local opts='--deps-only --github --help --eclipse --name'
     printf %s "$opts"
 }
 
 _devassistant_baseopts_perl_dancer()
 {
 	echo ""
-    local opts='--github --cgi --help --eclipse --name --fastcgi'
+    local opts='--deps-only --github --cgi --help --eclipse --name --fastcgi'
     printf %s "$opts"
 }
 
 _devassistant_baseopts_php()
 {
 	echo ""
-    local opts='--github --help --eclipse --name --rootdb --vim'
+    local opts='--deps-only --github --help --eclipse --name --rootdb --vim'
     printf %s "$opts"
 }
 
@@ -66,7 +66,7 @@ _devassistant()
 
         c)
 			if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W '--github --help --vim --build --eclipse --name' -- "$cur" ) )
+				COMPREPLY=( $( compgen -W '--deps-only --github --help --vim --build --eclipse --name' -- "$cur" ) )
 				return 0
 			fi
 			if [[ $subcmd == -* ]] ; then
@@ -77,7 +77,7 @@ _devassistant()
 
         cpp)
 			if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W '--github --help --vim --build --eclipse --name' -- "$cur" ) )
+				COMPREPLY=( $( compgen -W '--deps-only --github --help --vim --build --eclipse --name' -- "$cur" ) )
 				return 0
 			fi
 			if [[ $subcmd == -* ]] ; then

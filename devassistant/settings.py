@@ -10,3 +10,4 @@ LOG_LEVELS_MAP = {'d': 'DEBUG', 'i': 'INFO', 'w': 'WARNING', 'e': 'ERROR', 'c': 
 SUBASSISTANT_PREFIX = 'subassistant'
 SUBASSISTANT_N_STRING = 'subassistant_{0}'
 UI_FLAG = '--ui'
+DEPS_ONLY_FLAG = '--deps-only'
