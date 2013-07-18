@@ -324,6 +324,10 @@ class ZenityDialogHelper(object):
 
         Note, that we can't pass **zenity_options (with the "**") because some option names contain
         dash, which would get interpreter as minus by Python - e.g. no-wrap=foo would be interpreted as "no minus wrap"."""
+        try:
+            ClHelper.run_command('which {zenity_wrapper}'.format(zenity_wrapper=cls.c_zenity_wrapper))
+        except exceptions.ClException:
+            cls.c_zenity_wrapper = cls.c_zenity
         cmd = '{zenity} --{input_type} {options}'.format(zenity=cls.c_zenity_wrapper,
                                                          input_type=input_type,
                                                          options=' '.join(map(lambda x: '--{k}="{v}"'.format(k=x[0], v=x[1]),
