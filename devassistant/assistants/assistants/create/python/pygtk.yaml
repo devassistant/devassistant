@@ -31,10 +31,10 @@ pygtk:
       source: python/pygtk
 
   run:
-  - $dirname: ~dirname "$name"~
-  - $basename: ~basename "$name"~
+  - $dirname: $(dirname "$name")
+  - $basename: $(basename "$name")
   - log_i: 'Creating PyGTK project $basename in $dirname ...'
-  - if ~test -d "$name"~:
+  - if $(test -d "$name"):
     - log_e: '$name already exists, cannot proceed.'
   - else:
     - cl_i: cp -r *pygtksources "$name"

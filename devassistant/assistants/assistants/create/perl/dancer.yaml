@@ -46,13 +46,13 @@ dancer:
         'store_true'
 
   run:
-  - $dirname: ~dirname "$name"~
-  - $modulename: ~basename "$name"~
+  - $dirname: $(dirname "$name")
+  - $modulename: $(basename "$name")
   # XXX: Double-collons are translated by the dancer tool into a hyphen.
-  - $basename: ~echo "$modulename" | sed s/::/-/g~
-  - $name: ~printf '%s/%s' "$dirname" "$basename"~
+  - $basename: $(echo "$modulename" | sed s/::/-/g)
+  - $name: $(printf '%s/%s' "$dirname" "$basename")
   - log_i: "Project name will be '$basename'."
-  - if ~test -d "$name"~:
+  - if $(test -d "$name"):
     - log_e: "Directory '$name' already exists, nothing to do."
   - log_i: "Creating Dancer project '$basename' in '$dirname'"
   - cl: mkdir -p "$dirname"

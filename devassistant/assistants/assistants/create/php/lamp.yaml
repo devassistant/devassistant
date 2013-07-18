@@ -46,10 +46,10 @@ lamp:
       source: php/lamp/apache_config.sh
 
   run:
-  - $dirname: ~dirname "$name"~
-  - $basename: ~basename "$name"~
-  - $homedir: echo ~
-  - if not ~ls "$homedir/public_html/$basename"~:
+  - $dirname: $(dirname "$name")
+  - $basename: $(basename "$name")
+  - $homedir: $(echo ~)
+  - if not $(ls "$homedir/public_html/$basename"):
     - log_i: 'Copying AMP source tree to project destination'
     - cl: chmod 755 $homedir
     - cl_f: pkexec *lamp_config $basename $homedir

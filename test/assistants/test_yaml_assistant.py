@@ -26,7 +26,7 @@ class TestYamlAssistant(object):
         self.ya2._files = {}
         self.ya2.role = 'creator'
         self.ya2._run = [{'if $ide':
-                            [{'if ~test -d /notachance~': [{'log_d': 'ifif'}]},
+                            [{'if $(test -d /notachance)': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
                          {'else': [{'log_d': 'else'}]}]
 
@@ -131,7 +131,7 @@ class TestYamlAssistant(object):
         assert ('DEBUG', 'ifelse') in self.tlh.msgs
 
     def test_successful_command_with_no_output_evaluates_to_true(self):
-        self.ya._run = [{'if ~true~': [{'log_i': 'success'}]}]
+        self.ya._run = [{'if $(true)': [{'log_i': 'success'}]}]
         self.ya.run()
         assert('INFO', 'success') in self.tlh.msgs
 
@@ -140,7 +140,7 @@ class TestYamlAssistant(object):
         assert ('DEBUG', 'else') in self.tlh.msgs
 
     def test_run_failed_if_doesnt_log_error(self):
-        self.ya._run = [{'if ~test -d /dontlogfailure~': [{'dont': 'runthis'}]}]
+        self.ya._run = [{'if $(test -d /dontlogfailure)': [{'dont': 'runthis'}]}]
         self.ya.run()
         assert 'ERROR' not in map(lambda x: x[0], self.tlh.msgs)
 
@@ -156,12 +156,12 @@ class TestYamlAssistant(object):
         assert ('INFO', 'spam') in self.tlh.msgs
 
     def test_assign_variable_from_successful_command(self):
-        self.ya._run = [{'$foo': '~basename foo/bar~'}, {'log_i': '$foo'}]
+        self.ya._run = [{'$foo': '$(basename foo/bar)'}, {'log_i': '$foo'}]
         self.ya.run()
         assert ('INFO', 'bar') in self.tlh.msgs
 
     def test_assign_variable_from_unsuccessful_command(self):
-        self.ya._run = [{'$foo': '~ls spam/spam/spam~'}, {'log_i': '$foo'}]
+        self.ya._run = [{'$foo': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
         self.ya.run()
         assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
 

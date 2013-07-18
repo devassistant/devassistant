@@ -40,9 +40,9 @@ lib:
       source: python/lib/README.rst
 
   run:
-  - $dirname: ~dirname "$name"~
-  - $basename: ~basename "$name"~
-  - if ~test -d "$name"~:
+  - $dirname: $(dirname "$name")
+  - $basename: $(basename "$name")
+  - if $(test -d "$name"):
     - log_e: '$name already exists, cannot proceed.'
   - log_i: 'Creating library project $basename in $dirname ...'
   - cl: mkdir -p "$dirname"

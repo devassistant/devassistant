@@ -350,7 +350,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         """Evaluates given expression - can be one of
         - $foo
         - "$foo"
-        - ~cl command~
+        - $(cl command)
 
         Returns:
             tuple (success, value), where
@@ -370,7 +370,13 @@ class YamlAssistant(assistant_base.AssistantBase):
             invert_success = True
             expr = expr[4:]
 
-        if expr.startswith('$') or expr.startswith('"$'):
+        if expr.startswith('$('): # only one expression: "$(expression)"
+            try:
+                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.template_dir, self._files, **kwargs), **kwargs)
+            except exceptions.RunException as ex:
+                success = False
+                output = ex.output
+        elif expr.startswith('$') or expr.startswith('"$'):
             var_name = self._get_var_name(expr)
             if var_name in kwargs and kwargs[var_name]:
                 success = True
@@ -379,12 +385,6 @@ class YamlAssistant(assistant_base.AssistantBase):
                 success = False
         elif expr.startswith('defined '):
             success = self._get_var_name(expr[8:]) in kwargs
-        elif expr.startswith('~'): # only one expression surrounded by tildas is allowed now
-            try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr.strip('~'), self.template_dir, self._files, **kwargs), **kwargs)
-            except exceptions.RunException as ex:
-                success = False
-                output = ex.output 
         else:
             raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
 

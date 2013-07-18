@@ -219,7 +219,7 @@ List of supported commands follows:
 ``if <expression>``, ``else``
   conditional execution. The conditions must be an `Expression`_.
 ``for <var> in <expression>``
-  (for example ``for $i in ~ls~``) - loop over iterable to which given expression
+  (for example ``for $i in $(ls)``) - loop over iterable to which given expression
   evaluates (if it is string, which almost always is, it is split on whitespaces)
 ``$foo``
   assigns result of an `Expression`_ to the given variable
@@ -274,7 +274,8 @@ Syntax:
 
 - ``$foo`` - evaluates to true **iff** ``$foo`` has value that evaluates to true
   (non-empty string, Python's True)
-- ``~commandline command~`` - (yes, that is commandline command surrounded by tildas)
+- ``$(commandline command)`` - (yes, that is a command invocation that looks like
+  running command in a subshell)
   evaluates to true **iff** the command returns 0 exit code
   (doesn't interrupt the assistant execution if command fails); assigns both stdout
   and stderr lines in the order they were printed by command
