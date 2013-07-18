@@ -23,8 +23,8 @@ c:
       - --build
       help:
         'This will create SRPM and RPM packages.'
-      nargs:
-        '?'
+      action:
+        'store_true'
     vim:
       snippet: vim
 
