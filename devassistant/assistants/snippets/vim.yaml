@@ -14,8 +14,8 @@ args:
     - --vim
     help:
       'Configure VIM editor for various programming languages'
-    nargs:
-      '?'
+    action:
+      'store_true'
 
 files:
   vim_update: &vim_update
