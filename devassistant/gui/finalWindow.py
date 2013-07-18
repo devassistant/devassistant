@@ -29,6 +29,8 @@ class finalWindow(object):
         self.browseBtn.connect("clicked", self.browse_clicked)
         self.browseBtn.set_sensitive(False)
         self.entries = {}
+        self.linkButton = self._create_link_button(text="For registration visit GitHub Homepage", uri="www.github.com")
+        self.linkButton.connect("clicked", self.open_webbrowser)
 
     def prev_window(self, widget, data=None):
         self.pathWindow.open_window(widget, data)
@@ -44,9 +46,18 @@ class finalWindow(object):
         label = Gtk.Label(text)
         return label;
     
+    def _create_link_button(self, text="None", uri="None"):
+        linkbtn = Gtk.LinkButton(uri, text)
+        return linkbtn;
+    
     def _check_box_title(self, arg, number):
         title = arg.flags[number][2:].title()
         return title
+
+    def open_webbrowser(self, widget):
+        import webbrowser
+        print widget.get_uri()
+        webbrowser.open_new(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
         print arg.flags[number]
@@ -81,6 +92,7 @@ class finalWindow(object):
             if self._check_box_title(arg, number) == 'Eclipse':
                 entry.set_text(text=os.path.expanduser("~/workspace"))
                 new_box.pack_start(self.browseBtn,False,False,0)
+                #new_box.pack_start(self.linkButton,False,False,0)
             elif self._check_box_title(arg, number) == 'Github':
                 entry.set_text(text=getpass.getuser())
             row += 1

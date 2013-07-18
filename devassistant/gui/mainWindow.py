@@ -110,39 +110,38 @@ class mainWindow(object):
         selection = self.listView.get_selection()
         subselection = self.sublistView.get_selection()
         model, path_list = selection.get_selected()
-        submodel, subpath_list = subselection.get_selected()
         if path_list != None:
+            submodel, subpath_list = subselection.get_selected()
             tool = model[path_list][0]
-            if tool in map(lambda x: x[0].fullname, self.subas):
-                for ass in self.subas:
-                    logger_gui.info("Assistant:{0}".format(ass[0].fullname))
-                    if tool == ass[0].fullname:
-                        if not ass[1]:
-                            logger_gui.info("All is OK, we can go to the next screen")
+            for ass in filter(lambda x: x[0].fullname == tool, self.subas):
+                logger_gui.info("Assistant:{0}".format(ass[0].fullname))
+                if not ass[1]:
+                    logger_gui.info("All is OK, we can go to the next screen")
+                    self.kwargs['subassistant_0']=ass[0].name
+                    if self.kwargs.has_key('sub_assistant_1'):
+                        del (self.kwargs['sub_assistnant_1'])
+                    self.pathWindow.open_window(widget, data=None)
+                    self.mainWin.hide()
+                else:
+                    logger_gui.info(subpath_list)
+                    if subpath_list == None:
+                        logger_gui.info("No subassistant have been selected")
+                        md=Gtk.MessageDialog(None,
+                                             Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                             Gtk.MessageType.WARNING,
+                                             Gtk.ButtonsType.CLOSE,
+                                             "Select one subassistant")
+                        md.run()
+                        md.destroy()
+                    else:
+                        subtool = submodel[subpath_list][0]
+                        for sub in filter(lambda x: x[0].fullname == subtool, ass[1]):
                             self.kwargs['subassistant_0']=ass[0].name
-                            if self.kwargs.has_key('sub_assistant_1') == True:
-                                del (self.kwargs['sub_assistnant_1'])
+                            if self.kwargs.has_key('subassistant_1'):
+                                del (self.kwargs['subassistant_1'])
+                            self.kwargs['subassistant_1']=sub[0].name
                             self.pathWindow.open_window(widget, data=None)
                             self.mainWin.hide()
-                        else:
-                            logger_gui.info(subpath_list)
-                            if subpath_list == None:
-                                logger_gui.info("No subassistant have been selected")
-                                md=Gtk.MessageDialog(None,
-                                                     Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                     Gtk.MessageType.WARNING,
-                                                     Gtk.ButtonsType.CLOSE,
-                                                     "Select one subassistant")
-                                md.run()
-                                md.destroy()
-                            else:
-                                subtool = submodel[subpath_list][0]
-                                for sub in ass[1]:
-                                    if subtool == sub[0].fullname:
-                                        self.kwargs['subassistant_0']=ass[0].name
-                                        self.kwargs['subassistant_1']=sub[0].name
-                                        self.pathWindow.open_window(widget, data=None)
-                                        self.mainWin.hide()
 
     def open_window(self, widget, data=None):
         logger_gui.info("Prev window")
@@ -158,18 +157,17 @@ class mainWindow(object):
                 tool = model[path_list][0]
                 #if tool in map(lambda x: x[0].fullname, self.subas):
                 #    logger_gui.info(type(self.subas))
-                for ass in sorted(self.subas, key=lambda x: x[0].fullname):
-                    if tool== ass[0].fullname:
-                        if not ass[1]:
-                            self.labelMainWindow.set_sensitive(False)
-                            self.labelMainWindow.set_text("No available subassistant.")
-                            self.sublistView.set_sensitive(False)
-                        else:
-                            for sub in sorted(ass[1], key=lambda y: y[0].fullname):
-                                self.labelMainWindow.set_sensitive(True)
-                                self.labelMainWindow.set_text("Select subassistant:")
-                                self.sublistView.set_sensitive(True)
-                                self.substore.append([sub[0].fullname])
+                for ass in sorted(filter(lambda y: y[0].fullname == tool, self.subas), key=lambda x: x[0].fullname):
+                    if not ass[1]:
+                        self.labelMainWindow.set_sensitive(False)
+                        self.labelMainWindow.set_text("No available subassistant.")
+                        self.sublistView.set_sensitive(False)
+                    else:
+                        for sub in sorted(ass[1], key=lambda y: y[0].fullname):
+                            self.labelMainWindow.set_sensitive(True)
+                            self.labelMainWindow.set_text("Select subassistant:")
+                            self.sublistView.set_sensitive(True)
+                            self.substore.append([sub[0].fullname])
             else:
                 self.labelMainWindow.set_sensitive(False)
                 self.labelMainWindow.set_text("No available subassistant.")
