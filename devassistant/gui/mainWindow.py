@@ -2,8 +2,7 @@
 import sys
 import logging
 
-from gi.repository import Gtk
-from gi.repository import Gdk
+from gi.repository import Gtk, Gdk
 from gi.repository import GLib
 
 from devassistant import assistant_base
@@ -39,7 +38,6 @@ class mainWindow(object):
         self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
         self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, DevelAssistants())
         self.mainhandlers = {
-                "on_nextMainBtn_clicked": self.next_window,
                 "on_cancelMainBtn_clicked": Gtk.main_quit,
                 "on_mainWindow_delete_event": Gtk.main_quit,
                 "on_browsePathBtn_clicked": self.pathWindow.browse_path,
@@ -54,14 +52,16 @@ class mainWindow(object):
                 "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                 "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
                 "on_runFinalBtn_clicked": self.finalWindow.run_btn,
-                "on_store_view_cursor_changed": self.store_view_cursor_changed,
                     }
         self.builder.connect_signals(self.mainhandlers)
-        self.listView = self.builder.get_object("storeView")
         self.labelMainWindow = self.builder.get_object("sublabel")
-        self.sublistView = self.builder.get_object("subStoreView")
-        self.substoreList = self.builder.get_object("substoreList")
         self.labelProjectName = self.builder.get_object("labelProjectName")
+        self.box4 = self.builder.get_object("box4")
+        self.gridLang = Gtk.Grid()
+        self.gridLang.set_column_spacing(12)
+        self.gridLang.set_row_spacing(12)
+        self.gridLang.set_row_homogeneous(True)
+        self.box4.add(self.gridLang)
         self.main, self.subas = DevelAssistants().get_subassistant_chain()
         self.store = Gtk.ListStore(str)
         self.substore = Gtk.ListStore(str)
@@ -73,102 +73,102 @@ class mainWindow(object):
         console_handler.setLevel(logging.INFO)
         logger_gui.addHandler(console_handler)
         # End used for debugging
-        k = 0
+        row = 0
+        column = 0
         for ass in sorted(self.subas, key=lambda x: x[0].fullname):
-            self.store.append([ass[0].fullname])
-            if k == 0:
-                if not ass[1]:
-                    self.labelMainWindow.hide()
-                    self.sublistView.hide()
-                else:
-                    for sub in sorted(ass[1], key=lambda y: y[0].fullname):
-                        logger_gui.info("subas:%s and %s" % (sub[0].name, sub[0].fullname))
-                        self.substore.append([sub[0].fullname])
-                        self.labelMainWindow.show()
-                        self.sublistView.show()
-                k += 1
+            if column > 2:
+                row += 1
+                column = 0
+            if not ass[1]:
+                self._add_button(ass, row, column)
+            else:
+                self._add_menu_button(ass, row, column)
+            column += 1
 
-        self.listView.set_model(self.store)
-        self.sublistView.set_model(self.substore)
 
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("List of languages", renderer, text=0)
-        self.listView.append_column(column)
-        subrenderer = Gtk.CellRendererText()
-        subcolumn = Gtk.TreeViewColumn("List of languages", subrenderer, text=0)
-        self.sublistView.append_column(subcolumn)
         self.mainWin.show_all()
         Gdk.threads_enter()
         Gtk.main()
         Gdk.threads_leave()
 
+    def _create_button(self):
+        btn = Gtk.Button()
+        return btn
+
+    def _create_label(self, name, justify, wrap):
+        label = Gtk.Label()
+        name = name.replace(',',',\n').replace('.','.\n')
+        label.set_markup(name)
+        label.set_justify(justify)
+        label.set_line_wrap(wrap)
+        return label
+
+    def _add_button(self, ass, row, column):
+        btn = self._create_button()
+        text = ass[0].description
+        if not text:
+            text = "No description"
+        label = self._create_label("<b>"+ass[0].fullname+"</b>\n\n"+text,
+                                    justify=Gtk.Justification.CENTER,
+                                    wrap=True)
+        btn.add(label)
+        btn.connect("clicked", self.btn_clicked, ass[0].name)
+        if row == 0 and column == 0:
+            self.gridLang.add(btn)
+        else:
+            self.gridLang.attach(btn, column, row, 1, 1)
+
+    def _add_menu_button(self, ass, row, column):
+        btn = self._create_button()
+        text = ass[0].description
+        if not text:
+            text = "No description"
+        label = self._create_label("<b>"+ass[0].fullname+"</b>\n\n"+text,
+                                    justify=Gtk.Justification.CENTER,
+                                    wrap=True)
+        btn.add(label)
+        menu = Gtk.Menu()
+        for ass in filter(lambda x: x[0].fullname == ass[0].fullname, self.subas):
+            for sub in sorted(ass[1], key=lambda y: y[0].fullname):
+                menu_item = Gtk.MenuItem(sub[0].fullname)
+                menu_item.show()
+                menu.append(menu_item)
+                item = []
+                item.append(ass[0].name)
+                item.append(sub[0].name)
+                menu_item.connect("activate", self.submenu_activate, item)
+        logger_gui.info(menu)
+        menu.show_all()
+        btn.connect_object("event", self.btn_press_event, menu)
+        if row == 0 and column == 0:
+            self.gridLang.add(btn)
+        else:
+            self.gridLang.attach(btn, column, row, 1, 1)
+
+    def btn_press_event(self, widget, event):
+        if event.type == Gdk.EventType.BUTTON_PRESS:
+            if event.button.button == 1:
+                widget.popup(None, None, None, None, event.button.button, event.time)
+            return True
+        return False
+
+    def submenu_activate(self, widget, item):
+        self.kwargs['subassistant_0']=item[0]
+        if self.kwargs.has_key('subassistant_1'):
+            del (self.kwargs['subassistant_1'])
+        self.kwargs['subassistant_1']=item[1]
+        self.pathWindow.open_window(widget, data=None)
+        self.mainWin.hide()
+
+    def btn_clicked(self, widget, data=None):
+        self.kwargs['subassistant_0']=data
+        if self.kwargs.has_key('sub_assistant_1'):
+            del (self.kwargs['sub_assistnant_1'])
+        self.pathWindow.open_window(widget, data=None)
+        self.mainWin.hide()
+
     def browse_path(self, window):
         self.pathWindow.browsePath()
 
-    def next_window(self, widget, data=None):
-        logger_gui.info("Next window")
-        selection = self.listView.get_selection()
-        subselection = self.sublistView.get_selection()
-        model, path_list = selection.get_selected()
-        if path_list != None:
-            submodel, subpath_list = subselection.get_selected()
-            tool = model[path_list][0]
-            for ass in filter(lambda x: x[0].fullname == tool, self.subas):
-                logger_gui.info("Assistant:{0}".format(ass[0].fullname))
-                if not ass[1]:
-                    logger_gui.info("All is OK, we can go to the next screen")
-                    self.kwargs['subassistant_0']=ass[0].name
-                    if self.kwargs.has_key('sub_assistant_1'):
-                        del (self.kwargs['sub_assistnant_1'])
-                    self.pathWindow.open_window(widget, data=None)
-                    self.mainWin.hide()
-                else:
-                    logger_gui.info(subpath_list)
-                    if subpath_list == None:
-                        logger_gui.info("No subassistant have been selected")
-                        md=Gtk.MessageDialog(None,
-                                             Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                             Gtk.MessageType.WARNING,
-                                             Gtk.ButtonsType.CLOSE,
-                                             "Select one subassistant")
-                        md.run()
-                        md.destroy()
-                    else:
-                        subtool = submodel[subpath_list][0]
-                        for sub in filter(lambda x: x[0].fullname == subtool, ass[1]):
-                            self.kwargs['subassistant_0']=ass[0].name
-                            if self.kwargs.has_key('subassistant_1'):
-                                del (self.kwargs['subassistant_1'])
-                            self.kwargs['subassistant_1']=sub[0].name
-                            self.pathWindow.open_window(widget, data=None)
-                            self.mainWin.hide()
-
     def open_window(self, widget, data=None):
-        logger_gui.info("Prev window")
         self.mainWin.show_all()
-
-    def store_view_cursor_changed(self, selection):
-        logger_gui.info("cursor changed")
-        select = selection.get_selection()
-        if select != None:
-            (model, path_list) = select.get_selected()
-            self.substore.clear()
-            if path_list != None:
-                tool = model[path_list][0]
-                #if tool in map(lambda x: x[0].fullname, self.subas):
-                #    logger_gui.info(type(self.subas))
-                for ass in sorted(filter(lambda y: y[0].fullname == tool, self.subas), key=lambda x: x[0].fullname):
-                    if not ass[1]:
-                        self.labelMainWindow.set_sensitive(False)
-                        self.labelMainWindow.set_text("No available subassistant.")
-                        self.sublistView.set_sensitive(False)
-                    else:
-                        for sub in sorted(ass[1], key=lambda y: y[0].fullname):
-                            self.labelMainWindow.set_sensitive(True)
-                            self.labelMainWindow.set_text("Select subassistant:")
-                            self.sublistView.set_sensitive(True)
-                            self.substore.append([sub[0].fullname])
-            else:
-                self.labelMainWindow.set_sensitive(False)
-                self.labelMainWindow.set_text("No available subassistant.")
-                self.sublistView.set_sensitive(False)

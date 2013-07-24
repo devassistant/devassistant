@@ -45,16 +45,46 @@ class RunLoggingHandler(logging.Handler):
         msg = record.getMessage()
         treeStore = self.treeview.get_model()
         lastRow = self.get_iter_last(treeStore)
-        #print "MSG:%s." % msg
         Gdk.threads_enter()
-        if record.levelname == "INFO":
-            # Create a new root tree element
-            treeStore.append(None, [msg])
+        if not msg:
+            # Message is empty and is not add to tree
+            pass
         else:
-            # Append a new element in tree element
-            if msg is not "":
-                treeStore.append(lastRow, [msg])
+            if record.levelname == "INFO":
+                # Create a new root tree element
+                treeStore.append(None, [msg])
+            else:
+                # Append a new element in tree element
+                if not msg.startswith("|"):
+                    treeStore.append(lastRow, [msg])
         Gdk.threads_leave()
+
+class DevAssistantThread(threading.Thread):
+    def __init__(self, target = None):
+        threading.Thread.__init__(self)
+        self._terminate = False
+        self.target = target
+        self.stop = threading.Event()
+
+    def terminate(self):
+        print "terminate is called"
+        self._terminate = True
+        self.stop.set()
+        print "terminate is finished"
+
+    def run_job(self):
+        print "Function was run"
+        self.target()
+        print "Function was finished"
+
+    def run(self):
+        print "Function was run"
+        self.target()
+        print "Function was finished"
+        while True:
+            if self._terminate:
+                print "Thread is canceled"
+                break
 
 class runWindow(object):
     def __init__(self,  parent, finalWindow, builder, assistant):
@@ -74,10 +104,12 @@ class runWindow(object):
         column = Gtk.TreeViewColumn("Log from current process", renderer, text=0)
         self.runTreeView.append_column(column)
         self.runTreeView.set_model(self.store)
+        self.thread = threading.Thread(target=self.devassistant_start)
+        #self.thread = DevAssistantThread(target=self.devassistant_start)
+        self.stop = threading.Event()
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
-        self.thread = threading.Thread(target=self.devassistant_start)
         self.runWindow.show_all()
         self.cancelBtn.set_sensitive(False)
         self.thread.start()
@@ -86,11 +118,6 @@ class runWindow(object):
     def visibility_event(self, widget, data=None):
         logger_gui.info("ListView Visibility event")
 
-    def check_thread(self):
-        while self.thread.isAlive():
-            time.sleep(1)
-        self.cancelBtn.set_label("Close")
-
     def done_thread(self):
         self.cancelBtn.set_label("Close")
         return False
@@ -98,12 +125,18 @@ class runWindow(object):
     def close_btn(self, widget, data=None):
         name = self.cancelBtn.get_label()
         if name == "Cancel":
-            print "Cancelling thread"
-            self.thread.stop()
+            for thread in enumerate():
+                if thread.isAlive():
+                    thread._Thread_stop()
+            print self.thread.isAlive()
+            if self.thread.isAlive():
+                self.stop.set()
+                #self.thread.terminate()
+                self.thread.join()
+            Gtk.main_quit()
         else:
             print "Quit dialog"
             Gtk.main_quit()
-
     def devassistant_start(self):
         logger_gui.info("Thread run")
         path = self.assistant.get_selected_subassistant_path(**self.parent.kwargs)

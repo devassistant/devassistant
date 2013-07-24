@@ -62,7 +62,7 @@ class pathWindow(object):
                 self.pathWindow.hide()
         
     def open_window(self, widget, data=None):
-        logger_gui.info(type(self.parent.kwargs))
+        logger_gui.info(self.parent.kwargs)
         try:
             path = os.path.expanduser('~')
         except Exception:

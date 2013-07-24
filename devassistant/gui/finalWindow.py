@@ -29,7 +29,7 @@ class finalWindow(object):
         self.browseBtn.connect("clicked", self.browse_clicked)
         self.browseBtn.set_sensitive(False)
         self.entries = {}
-        self.linkButton = self._create_link_button(text="For registration visit GitHub Homepage", uri="www.github.com")
+        self.linkButton = self._create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
         self.linkButton.connect("clicked", self.open_webbrowser)
 
     def prev_window(self, widget, data=None):
@@ -56,12 +56,9 @@ class finalWindow(object):
 
     def open_webbrowser(self, widget):
         import webbrowser
-        print widget.get_uri()
-        webbrowser.open_new(widget.get_uri())
+        webbrowser.open_new_tab(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
-        print arg.flags[number]
-        print arg.kwargs.get('action')
         actBtn = Gtk.CheckButton(self._check_box_title(arg, number))
         align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
         self.button.append(actBtn)
@@ -92,9 +89,9 @@ class finalWindow(object):
             if self._check_box_title(arg, number) == 'Eclipse':
                 entry.set_text(text=os.path.expanduser("~/workspace"))
                 new_box.pack_start(self.browseBtn,False,False,0)
-                #new_box.pack_start(self.linkButton,False,False,0)
             elif self._check_box_title(arg, number) == 'Github':
                 entry.set_text(text=getpass.getuser())
+                new_box.pack_start(self.linkButton,False,False,0)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
             self.grid.attach(new_box, 1, row, 1, 1) 
@@ -102,8 +99,6 @@ class finalWindow(object):
 
     def open_window(self, widget, data=None):
         logger_gui.info("open final window")
-        selection = self.parent.listView.get_selection()
-        subselection = self.parent.sublistView.get_selection()
         self.boxMain.remove(self.grid)
         self.boxMain.remove(self.title)
         for btn in self.button:
@@ -115,20 +110,16 @@ class finalWindow(object):
         self.grid.set_row_homogeneous(True)
         self.grid.set_column_spacing(12)
         self.grid.set_row_spacing(6)
-        model, path_list = selection.get_selected()
-        if path_list != None:
-            submodel, subpath_list = subselection.get_selected()
-            tool = model[path_list][0]
-            for ass in filter(lambda x: x[0].fullname == tool, self.parent.subas):
-                if not ass[1]:
+        for ass in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_0'], self.parent.subas):
+            if not ass[1]:
+                row = 0
+                for sub in filter(lambda x: x.flags[1] != '--name', ass[0].args):
+                    row = self._add_table_row(sub, 1, row) + 1
+            else:
+                for sub in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_1'], ass[1]):
                     row = 0
-                    for sub in filter(lambda x: x.flags[1] != '--name', ass[0].args):
-                        row = self._add_table_row(sub, 1, row) + 1
-                else:
-                    for sub in filter(lambda x: x[0].fullname == submodel[subpath_list][0], ass[1]):
-                        row = 0
-                        for arg in filter(lambda x: not '--name' in x.flags, sub[0].args):
-                            row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+                    for arg in filter(lambda x: not '--name' in x.flags, sub[0].args):
+                        row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
         self.boxMain.pack_start(self.grid, False, False, 6)
         self.finalWindow.show_all()
 
