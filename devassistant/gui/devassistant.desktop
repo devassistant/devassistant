@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Developer Assistant
+GenericName=Developer Assistant
+Comment=Developer Assistant
+Exec=devel-assistant-gui.py
+Icon=utilities-terminal
+Type=Application
+Terminal=false
+Categories=Application;Utility;X-Red-Hat-Base;GTK;TerminalEmulator;
+Encoding=UTF-8
+StartupWMClass=DeveloperAssistantGUI
+X-Desktop-File-Install-Version=0.21
