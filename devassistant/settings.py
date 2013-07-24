@@ -1,3 +1,4 @@
+import os
 GITHUB_SSH_CONFIG = '''
 # devassistant config for user {login}
 Host github.com-{login}
@@ -11,3 +12,4 @@ SUBASSISTANT_PREFIX = 'subassistant'
 SUBASSISTANT_N_STRING = 'subassistant_{0}'
 UI_FLAG = '--ui'
 DEPS_ONLY_FLAG = '--deps-only'
+YAML_DIRECTORIES = ['/usr/share/devassistant/assistants','/usr/local/share/devassistant/assistants',os.path.expanduser('~/.devassistant')]
