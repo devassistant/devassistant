@@ -1,3 +1,13 @@
+- Assistants have been split to different repo, but they remain as a "part"
+  of devassistant for the time being (no separate versioning, etc.)
+- A new switch that allows users to choose to prefer a specific UI (gui/tty)
+- Lot's of documentation added
+- Option to use virtualenv in Python assistants
+- Introduction simple for loops (yay!)
+- Change of expression syntax (cl calls in expressions now have to be
+  be called like "$(command -blabla)")
+- Tons of GUI facelifts (almost ready ;))
+
 0.4.0
 - Introduction of "preparer" assistants (use devassitant-prepare binary) that
   can checkout project from SCM and install it's dependencies according to
