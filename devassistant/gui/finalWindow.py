@@ -98,7 +98,7 @@ class finalWindow(object):
         return row
 
     def open_window(self, widget, data=None):
-        logger_gui.info("open final window")
+        #logger_gui.info("open final window")
         self.boxMain.remove(self.grid)
         self.boxMain.remove(self.title)
         for btn in self.button:
@@ -137,15 +137,15 @@ class finalWindow(object):
                     self.browseBtn.set_sensitive(False)
         
     def run_btn(self, widget, data=None):
-        logger_gui.info("run button")
+        #logger_gui.info("run button")
         for btn in filter(lambda x: x.get_active(), self.button):
             if btn.get_label() in self.entries:
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
                     self.parent.kwargs[btn.get_label().lower()]=self.entries[btn.get_label()].get_text()
             else:
                 self.parent.kwargs[btn.get_label().lower()]=None
-            logger_gui.info("Name is:{0} {1}".format(btn.get_active(),btn.get_label().lower()))
-        logger_gui.info(self.parent.kwargs)
+            #logger_gui.info("Name is:{0} {1}".format(btn.get_active(),btn.get_label().lower()))
+        #logger_gui.info(self.parent.kwargs)
         self.parent.runWindow.open_window(widget, data)
         self.finalWindow.hide()
         

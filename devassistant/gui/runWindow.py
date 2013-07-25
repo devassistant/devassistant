@@ -115,9 +115,6 @@ class runWindow(object):
         self.thread.start()
         self.cancelBtn.set_sensitive(True)
 
-    def visibility_event(self, widget, data=None):
-        logger_gui.info("ListView Visibility event")
-
     def done_thread(self):
         self.cancelBtn.set_label("Close")
         return False
@@ -128,17 +125,15 @@ class runWindow(object):
             for thread in enumerate():
                 if thread.isAlive():
                     thread._Thread_stop()
-            print self.thread.isAlive()
             if self.thread.isAlive():
                 self.stop.set()
                 #self.thread.terminate()
                 self.thread.join()
             Gtk.main_quit()
         else:
-            print "Quit dialog"
             Gtk.main_quit()
     def devassistant_start(self):
-        logger_gui.info("Thread run")
+        #logger_gui.info("Thread run")
         path = self.assistant.get_selected_subassistant_path(**self.parent.kwargs)
         pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:

@@ -48,7 +48,6 @@ class mainWindow(object):
                 "on_pathWindow_delete_event": Gtk.main_quit,
                 "on_finalWindow_delete_event": Gtk.main_quit,
                 "on_runWindow_delete_event": Gtk.main_quit,
-                "on_textViewLog_visibility_notify_event" : self.runWindow.visibility_event,
                 "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                 "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
                 "on_runFinalBtn_clicked": self.finalWindow.run_btn,
@@ -103,15 +102,22 @@ class mainWindow(object):
         label.set_line_wrap(wrap)
         return label
 
+    def _tooltip_queries(self, item, x, y, key_mode, tooltip, text):
+        tooltip.set_text(text)
+        return True
+        
     def _add_button(self, ass, row, column):
         btn = self._create_button()
-        text = ass[0].description
-        if not text:
-            text = "No description"
-        label = self._create_label("<b>"+ass[0].fullname+"</b>\n\n"+text,
+        #text = ass[0].description
+        #if not text:
+        #    text = "No description"
+        label = self._create_label("<b>"+ass[0].fullname+"</b>\n",
                                     justify=Gtk.Justification.CENTER,
                                     wrap=True)
         btn.add(label)
+        if ass[0].description:
+            btn.set_has_tooltip(True)
+            btn.connect("query-tooltip", self._tooltip_queries, ass[0].description)
         btn.connect("clicked", self.btn_clicked, ass[0].name)
         if row == 0 and column == 0:
             self.gridLang.add(btn)
@@ -120,25 +126,29 @@ class mainWindow(object):
 
     def _add_menu_button(self, ass, row, column):
         btn = self._create_button()
-        text = ass[0].description
-        if not text:
-            text = "No description"
-        label = self._create_label("<b>"+ass[0].fullname+"</b>\n\n"+text,
-                                    justify=Gtk.Justification.CENTER,
-                                    wrap=True)
-        btn.add(label)
         menu = Gtk.Menu()
+        text=""
         for ass in filter(lambda x: x[0].fullname == ass[0].fullname, self.subas):
             for sub in sorted(ass[1], key=lambda y: y[0].fullname):
+                text+=sub[0].fullname+"\n"
                 menu_item = Gtk.MenuItem(sub[0].fullname)
+                if sub[0].description:
+                    menu_item.set_has_tooltip(True)
+                    menu_item.connect("query-tooltip", self._tooltip_queries, sub[0].description)
                 menu_item.show()
                 menu.append(menu_item)
                 item = []
                 item.append(ass[0].name)
                 item.append(sub[0].name)
                 menu_item.connect("activate", self.submenu_activate, item)
-        logger_gui.info(menu)
         menu.show_all()
+        label = self._create_label("<b>"+ass[0].fullname+"</b>\n\n"+text,
+                                    justify=Gtk.Justification.CENTER,
+                                    wrap=True)
+        btn.add(label)
+        if ass[0].description:
+            btn.set_has_tooltip(True)
+            btn.connect("query-tooltip", self._tooltip_queries, ass[0].description)
         btn.connect_object("event", self.btn_press_event, menu)
         if row == 0 and column == 0:
             self.gridLang.add(btn)
@@ -157,7 +167,7 @@ class mainWindow(object):
         if self.kwargs.has_key('subassistant_1'):
             del (self.kwargs['subassistant_1'])
         self.kwargs['subassistant_1']=item[1]
-        self.pathWindow.open_window(widget, data=None)
+        self.pathWindow.open_window(widget, data=item)
         self.mainWin.hide()
 
     def btn_clicked(self, widget, data=None):
