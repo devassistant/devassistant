@@ -1,6 +1,6 @@
 pygtk:
-  fullname: PyGTK
-  description: 'PyGTK assistant will help you to create a basic PyGTK application with basic functionality of widgets.'
+  fullname: Python GTK
+  description: 'Python GTK assistant will help you to create a basic GTK application with basic functionality of widgets.'
 
   dependencies:
   - rpm: ['glade3', 'gtk3', 'pygtk2','pygobject2', 'pygobject3']
@@ -33,7 +33,7 @@ pygtk:
   run:
   - $dirname: $(dirname "$name")
   - $basename: $(basename "$name")
-  - log_i: 'Creating PyGTK project $basename in $dirname ...'
+  - log_i: 'Creating GTK project $basename in $dirname ...'
   - if $(test -d "$name"):
     - log_e: '$name already exists, cannot proceed.'
   - else:
@@ -47,5 +47,5 @@ pygtk:
   - call: git_init_add_commit
   - if defined $github:
     - github: create_and_push
-  - log_i: 'PyGTK project $basename in $dirname has been created.'
+  - log_i: 'GTK project $basename in $dirname has been created.'
   - log_i: 'To run the application use: ./template-gui.py'
