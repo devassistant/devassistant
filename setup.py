@@ -61,7 +61,10 @@ setup(
     license = 'GPLv2+',
     packages = ['devassistant', 'devassistant.assistants', 'devassistant.cli'],
     include_package_data = True,
-    entry_points = {'console_scripts':['devassistant=devassistant.bin:CreatorAssistant.main',
+    entry_points = {'console_scripts':['da=devassistant.bin:CreatorAssistant.main',
+                                       'da-mod=devassistant.bin:ModifierAssistant.main',
+                                       'da-prep=devassistant.bin:PreparerAssistant.main',
+                                       'devassistant=devassistant.bin:CreatorAssistant.main',
                                        'devassistant-modify=devassistant.bin:ModifierAssistant.main',
                                        'devassistant-prepare=devassistant.bin:PreparerAssistant.main']},
     # PyGithub is in fact optional, but let's keep it here
