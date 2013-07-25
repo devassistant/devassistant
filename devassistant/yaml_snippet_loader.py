@@ -6,8 +6,7 @@ from devassistant import settings
 from devassistant.assistants import snippet
 
 class YamlSnippetLoader(object):
-    snippets_dirs = [os.path.join(os.path.dirname(__file__), 'assistants', 'snippets')]
-    snippets_dirs.extend(map(lambda x: os.path.join(x, 'snippets'),settings.YAML_DIRECTORIES))
+    snippets_dirs = list(map(lambda x: os.path.join(x, 'snippets'),settings.YAML_DIRECTORIES))
     _snippets = []
 
     @classmethod

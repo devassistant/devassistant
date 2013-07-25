@@ -12,4 +12,6 @@ SUBASSISTANT_PREFIX = 'subassistant'
 SUBASSISTANT_N_STRING = 'subassistant_{0}'
 UI_FLAG = '--ui'
 DEPS_ONLY_FLAG = '--deps-only'
-YAML_DIRECTORIES = ['/usr/local/share/devassistant',os.path.expanduser('~/.devassistant')]
+YAML_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'yaml'),
+                    '/usr/local/share/devassistant',
+                    os.path.expanduser('~/.devassistant')]

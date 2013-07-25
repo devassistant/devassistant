@@ -1,4 +1,0 @@
-run:
-- cl: git init
-- cl: git add .
-- cl: git commit -m "Initial commit"

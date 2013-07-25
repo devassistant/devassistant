@@ -9,8 +9,7 @@ from devassistant import settings
 from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
-    assistants_dirs = [os.path.join(os.path.dirname(__file__), 'assistants','assistants')]
-    assistants_dirs.extend(map(lambda x: os.path.join(x, 'assistants'),settings.YAML_DIRECTORIES))
+    assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'),settings.YAML_DIRECTORIES))
     _classes = []
 
     @classmethod

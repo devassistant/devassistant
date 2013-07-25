@@ -1,8 +1,0 @@
-php:
-  fullname: PHP language
-  subassistants: [ lamp ]
-  description: This is base PHP assistant, you have to choose a specific project type.
-
-  dependencies:
-  - rpm: ['php']
-

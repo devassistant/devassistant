@@ -1,8 +1,0 @@
-ruby:
-  fullname: Ruby
-  subassistants: [rails]
-  description: This is base Ruby assistant, you have to choose a specific project type.
-
-  dependencies:
-  - rpm:
-    - /usr/bin/ruby

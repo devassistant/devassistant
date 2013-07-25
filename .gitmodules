@@ -1,0 +1,3 @@
+[submodule "devassistant/yaml"]
+	path = devassistant/yaml
+	url = git@github.com:bkabrda/devassistant-assistants-fedora.git
