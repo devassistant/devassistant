@@ -177,7 +177,7 @@ _devassistant()
     #fi
     COMPREPLY=( $( compgen -W '${cmds[@]}' -- "$cur" ) )
 } &&
-complete -F _devassistant devassistant
+complete -F _devassistant da
 
 # Local variables:
 # mode: shell-script

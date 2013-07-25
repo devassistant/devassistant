@@ -1,17 +1,18 @@
 #!/bin/bash
 
-PROG="../devassistant.py"
-MAN_PAGE="devassistant.1"
+PREFIX="da"
+PROG="../$PREFIX.py"
+MAN_PAGE="$PREFIX.1"
 MAN_PAGE_FIRST="devassistant.1.head"
 MAN_PAGE_SECOND="devassistant.1.tail"
 
-PROG_MODIFY="../devassistant-modify.py"
-MAN_PAGE_MODIFY="devassistant-modify.1"
+PROG_MODIFY="../$PREFIX-mod.py"
+MAN_PAGE_MODIFY="$PREFIX-mod.1"
 MAN_PAGE_MODIFY_FIRST="devassistant-modify.1.head"
 MAN_PAGE_MODIFY_SECOND="devassistant-modify.1.tail"
 
-PROG_PREPARE="../devassistant-prepare.py"
-MAN_PAGE_PREPARE="devassistant-prepare.1"
+PROG_PREPARE="../$PREFIX-prep.py"
+MAN_PAGE_PREPARE="$PREFIX-prep.1"
 MAN_PAGE_PREPARE_FIRST="devassistant-prepare.1.head"
 MAN_PAGE_PREPARE_SECOND="devassistant-prepare.1.tail"
 
@@ -25,9 +26,9 @@ function parse () {
         RET=`$CMD --help | head -n 2`
         RET=$(echo $RET | tr "\n" "\n")
         RES=`echo ${RET#*}`
-        RES=`echo ${RES#usage: devassistant.py}`
+        RES=`echo ${RES#usage: da.py}`
         echo "Found command line possibilities: $RES"
-        echo "\fBdevassistant \fP $RES" >> $MAN_PAGE
+        echo "\fB$PREFIX \fP $RES" >> $MAN_PAGE
         echo ".br" >> $MAN_PAGE
         return 
     fi
@@ -47,9 +48,9 @@ function parse_modify () {
         RET=`$CMD --help | head -n 2`
         RET=$(echo $RET | tr "\n" "\n")
         RES=`echo ${RET#*}`
-        RES=`echo ${RES#usage: devassistant-modify.py}`
-        echo "Found command line possibilities(devassistant-modify): $RES"
-        echo "\fBdevassistant-modify \fP $RES" >> $MAN_PAGE_MODIFY
+        RES=`echo ${RES#usage: da-mod.py}`
+        echo "Found command line possibilities($PREFIX-mod): $RES"
+        echo "\fB$PREFIX-mod \fP $RES" >> $MAN_PAGE_MODIFY
         echo ".br" >> $MAN_PAGE_MODIFY
         return 
     fi
@@ -69,9 +70,9 @@ function parse_prepare () {
         RET=`$CMD --help | head -n 2`
         RET=$(echo $RET | tr "\n" "\n")
         RES=`echo ${RET#*}`
-        RES=`echo ${RES#usage: devassistant-prepare.py}`
-        echo "Found command line possibilities(devassistant-prepare): $RES"
-        echo "\fBdevassistant-modify \fP $RES" >> $MAN_PAGE_PREPARE
+        RES=`echo ${RES#usage: da-prep.py}`
+        echo "Found command line possibilities($PREFIX-prep): $RES"
+        echo "\fB$PREFIX-prep \fP $RES" >> $MAN_PAGE_PREPARE
         echo ".br" >> $MAN_PAGE_PREPARE
         return 
     fi

@@ -15,7 +15,7 @@ from remote SCM specified by
 .B -u --url
 and install dependencies via \fBYum\fP.
 Optionally, if any environment setup is required,
-.B devassistant-prepare
+.B da-prep
 does that as well.
 Most of the assistants have common arguments (see below), but there may also be some specific options in some of the assistants.
 
@@ -37,5 +37,5 @@ Path where to checkout the repo (will be created if it does not exist).
 Url of the project git repo (uses http/https/git).
 
 .SH "SEE ALSO"
-.BR devassistant (1)
-.BR devassistant-modify (1)
+.BR da (1)
+.BR da-mod (1)

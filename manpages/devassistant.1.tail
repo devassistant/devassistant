@@ -1,5 +1,5 @@
 .SH GITHUB INTEGRATION
-Devassistant can register and push projects to GitHub. The only prerequisite is that user
+Da can register and push projects to GitHub. The only prerequisite is that user
 has an active GitHub account.
 
 .SH DESCRIPTION
@@ -18,7 +18,7 @@ The basic task of each assistant is to create a project in location specified by
 .B -n name
 (either relative or absolute path) and install its dependencies via \fBYum\fP.
 Optionally, if any environment setup is required,
-.B devassistant
+.B da
 does that as well.
 Most of the assistants have common arguments (see below), but there may also be some language specific options in some of the assistants.
 
@@ -61,5 +61,5 @@ install vim settings specific for this language (backs up your original vim sett
 .TP
 
 .SH "SEE ALSO"
-.BR devassistant-modify (1)
-.BR devassistant-prepare (1)
+.BR da-mod (1)
+.BR da-prep (1)

@@ -2,12 +2,12 @@
 .\"
 .\" This page is distributed under GPL.
 .\"
-.TH DEVASSISTANT-PREPARE 1 2013-03-12 "" "Linux User's Manual"
+.TH DA-PREP 1 2013-03-12 "" "Linux User's Manual"
 .SH NAME
-devassistant-prepare \- Developer Assistant - Preparer is a helper for all developers using (not-only) Fedora. It helps you set up environment for working with projects from remote SCM.
+da-prep \- Developer Assistant - Preparer is a helper for all developers using (not-only) Fedora. It helps you set up environment for working with projects from remote SCM.
 
 .SH SYNOPSIS
-\fBdevassistant-modify \fP custom [-h] -u URL -p PATH
+\fBda-prep \fP custom [-h] -u URL [-p PATH]
 .br
 .SH DESCRIPTION
 .B Developer assistant
@@ -26,7 +26,7 @@ from remote SCM specified by
 .B -u --url
 and install dependencies via \fBYum\fP.
 Optionally, if any environment setup is required,
-.B devassistant-prepare
+.B da-prep
 does that as well.
 Most of the assistants have common arguments (see below), but there may also be some specific options in some of the assistants.
 
@@ -48,5 +48,5 @@ Path where to checkout the repo (will be created if it does not exist).
 Url of the project git repo (uses http/https/git).
 
 .SH "SEE ALSO"
-.BR devassistant (1)
-.BR devassistant-modify (1)
+.BR da (1)
+.BR da-mod (1)

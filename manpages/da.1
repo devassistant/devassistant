@@ -2,36 +2,38 @@
 .\"
 .\" This page is distributed under GPL.
 .\"
-.TH DEVASSISTANT 1 2013-03-12 "" "Linux User's Manual"
+.TH DA 1 2013-03-12 "" "Linux User's Manual"
 .SH NAME
-devassistant \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+da \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 .SH SYNOPSIS
-\fBdevassistant \fP c [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP c [-h] [-b] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
 .br
-\fBdevassistant \fP cpp [-h] [-b [BUILD]] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP cpp [-h] [-b] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
 .br
-\fBdevassistant \fP java jsf [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
+\fBda \fP java jsf [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
 .br
-\fBdevassistant \fP java maven [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
+\fBda \fP java maven [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
 .br
-\fBdevassistant \fP perl class [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
+\fBda \fP mycpproject [-h] [-b] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
 .br
-\fBdevassistant \fP perl dancer [-h] [--cgi] [-g [GITHUB]] -n NAME [--fastcgi]
+\fBda \fP perl class [-h] [-g [GITHUB]] -n NAME [-v]
 .br
-\fBdevassistant \fP php lamp [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-r ROOTDB] [-v [VIM]]
+\fBda \fP perl dancer [-h] [--cgi] [-g [GITHUB]] -n NAME [--fastcgi]
 .br
-\fBdevassistant \fP python django [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP php lamp [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-r ROOTDB] [-v]
 .br
-\fBdevassistant \fP python flask [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP python django [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
 .br
-\fBdevassistant \fP python lib [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP python flask [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
 .br
-\fBdevassistant \fP python pygtk [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v [VIM]]
+\fBda \fP python gtk3 [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
 .br
-\fBdevassistant \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v [VIM]]
+\fBda \fP python lib [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
+.br
+\fBda \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v]
 .br
 .SH GITHUB INTEGRATION
-Devassistant can register and push projects to GitHub. The only prerequisite is that user
+Da can register and push projects to GitHub. The only prerequisite is that user
 has an active GitHub account.
 
 .SH DESCRIPTION
@@ -50,7 +52,7 @@ The basic task of each assistant is to create a project in location specified by
 .B -n name
 (either relative or absolute path) and install its dependencies via \fBYum\fP.
 Optionally, if any environment setup is required,
-.B devassistant
+.B da
 does that as well.
 Most of the assistants have common arguments (see below), but there may also be some language specific options in some of the assistants.
 
@@ -93,5 +95,5 @@ install vim settings specific for this language (backs up your original vim sett
 .TP
 
 .SH "SEE ALSO"
-.BR devassistant-modify (1)
-.BR devassistant-prepare (1)
+.BR da-mod (1)
+.BR da-prep (1)

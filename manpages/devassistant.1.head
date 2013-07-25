@@ -2,7 +2,7 @@
 .\"
 .\" This page is distributed under GPL.
 .\"
-.TH DEVASSISTANT 1 2013-03-12 "" "Linux User's Manual"
+.TH DA 1 2013-03-12 "" "Linux User's Manual"
 .SH NAME
-devassistant \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+da \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 .SH SYNOPSIS
