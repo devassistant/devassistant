@@ -50,7 +50,7 @@ Each assistant can optionally define arguments that it accepts (either
 on commandline, or from GUI in future). For example, you can run
 the leftmost path with::
 
-   $ devassistant python [python assistant arguments] django [django assistant arguments]
+   $ da python [python assistant arguments] django [django assistant arguments]
 
 If an assistant has any subassistants, one of them **must** be used. E.g.
 in the example above, you can't use just Python assistant, you have to

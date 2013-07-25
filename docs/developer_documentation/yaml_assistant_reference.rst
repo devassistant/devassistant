@@ -73,7 +73,7 @@ Yaml assistants can express their dependencies in multiple sections.
 - If there is a section named ``dependencies_foo``, then dependencies from this section are installed
   **iff** ``foo`` argument is used (either via commandline or via gui). For example::
 
-   $ devassistant python --foo
+   $ da python --foo
 
 - These rules differ for ``modifier`` assistants, see `Modifier Assistants`_
 

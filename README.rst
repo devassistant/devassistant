@@ -9,19 +9,19 @@ Devassistant is based on idea of per-{language/framework/...} "assistants" with 
 
 .. code:: sh
 
-  $ devassistant python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-  $ devassistant python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-  $ devassistant java jsf -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+  $ da python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+  $ da python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
+  $ da java jsf -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
 Devassistant also allows you to work with a previously created project, for example import it to Eclipse:
 
 .. code:: sh
-  $ devassistant-modify eclipse # run in project dir or use -p to specify path
+  $ da-mod eclipse # run in project dir or use -p to specify path
 
 Last but not least, devassistant allows you to check out a project from SCM (either previously created by devassistant with "custom" assistant or a specific project, assuming that you have the individual assistant for it):
 
 .. code:: sh
-  $ devassistant-prepare custom -u scm_url -p directory_to_save_to
+  $ da-prep custom -u scm_url -p directory_to_save_to
 
 For full documentation, see https://developer-assistant.readthedocs.org/
 
