@@ -1,5 +1,7 @@
 - Assistants have been split to different repo, but they remain as a "part"
   of devassistant for the time being (no separate versioning, etc.)
+- Fully automatic bash completion (if you use distro package or
+  copy da.bash into /etc/bash_completion/)
 - A new switch that allows users to choose to prefer a specific UI (gui/tty)
 - Lot's of documentation added
 - Option to use virtualenv in Python assistants
