@@ -1,183 +1,51 @@
 # bash completion for devassistant
 
-_devassistant_baseopts_c()
-{
-	echo ""
-    local opts='--deps-only --github --help --vim --build --eclipse --name'
-    printf %s "$opts"
+function _get_subas () {
+    # first, grep line with "blabla {as1,as2,as3} blabla"
+    # second, remove blabla around
+    # third, remove the curly braces
+    local SUBAS=$(echo $2 | grep '{.*}' | sed -e 's|.*{\(.*\)}.*|\1|' -e 's|[{}]||g')
+    # now split in places of commas
+    SUBAS=(${SUBAS//,/ })
+    echo ${SUBAS[@]}
 }
 
-_devassistant_baseopts_python()
-{
-	echo ""
-    local opts='--deps-only --github --help --eclipse --name --vim'
-    printf %s "$opts"
+function _get_opts () {
+    # first, grep only lines with "--"
+    # second, throw away lines with sth. like "[--venv] - these are from general synopsis, we don't want them
+    # third, sed out the actual options without
+    local OPTS=$(echo "$2" | grep '\--' | grep -v '\--[^ ]*\]' | sed 's|[^\(\-\)]*\(--[^ ]*\)[^-]*|\1 |g')
+    echo ${OPTS[@]}
 }
 
-_devassistant_baseopts_java()
-{
-	echo ""
-    local opts='--deps-only --github --help --eclipse --name'
-    printf %s "$opts"
-}
+_da() {
+    # current command
+    CUR_COM="${COMP_WORDS[@]}"
+    # strip "--" from the end (wouldn't read "-h")
+    CUR_COM="$(echo $CUR_COM | sed 's|--$||')"
+    # read output and returncode of the command with "-h"
+    DA_OUTPUT=$($CUR_COM -h 2>&1)
+    RETCODE=$?
 
-_devassistant_baseopts_perl()
-{
-	echo ""
-    local opts='--deps-only --github --help --eclipse --name'
-    printf %s "$opts"
-}
+    # user had "--v" but there are two arguments like "--venv" and "--vim",
+    # so Python thinks it's ambiguous definition and returns 1
+    if [ $RETCODE -eq 1 ] ; then
+        # assume that the "--v" (or so) is the last, remove it and rerun
+        DA_OUTPUT=$($(echo $CUR_COM | sed 's|[^ ]*$||') -h 2>&1)
+        RETCODE=$?
+    fi
 
-_devassistant_baseopts_perl_dancer()
-{
-	echo ""
-    local opts='--deps-only --github --cgi --help --eclipse --name --fastcgi'
-    printf %s "$opts"
-}
-
-_devassistant_baseopts_php()
-{
-	echo ""
-    local opts='--deps-only --github --help --eclipse --name --rootdb --vim'
-    printf %s "$opts"
-}
-
-_devassistant()
-{
-    COMPREPLY=()
-    local devassistant=$1 cur=$2 prev=$3 words=("${COMP_WORDS[@]}")
-    declare -F _get_comp_words_by_ref &>/dev/null && \
-        _get_comp_words_by_ref -n = cur prev words
-
-    # Commands offered as completions
-    local cmds=( c cpp java python perl php)
-
-    local i c cmd subcmd
-    for (( i=1; i < ${#words[@]}-1; i++ )) ; do
-        [[ -n $cmd ]] && subcmd=${words[i]} && break
-        # Recognize additional commands and aliases
-        for c in ${cmds[@]} ; do
-            [[ ${words[i]} == $c ]] && cmd=$c && break
-        done
-    done
-
-	#echo "devassistant: $devassistant, cur: $cur, prev: $prev, word: $words, subcmd: $subcmd, cmd:$cmd"
-    case $cmd in
-
-        c)
-			if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W '--deps-only --github --help --vim --build --eclipse --name' -- "$cur" ) )
-				return 0
-			fi
-			if [[ $subcmd == -* ]] ; then
-				COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_c )' -- "$cur" ) )
-				return 0
-			fi
-            ;;
-
-        cpp)
-			if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W '--deps-only --github --help --vim --build --eclipse --name' -- "$cur" ) )
-				return 0
-			fi
-			if [[ $subcmd == -* ]] ; then
-				COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_c )' -- "$cur" ) )
-				return 0
-			fi
-            ;;
-
-        java)
-            if [[ $prev == $cmd ]] ; then
-                COMPREPLY=( $( compgen -W 'jsf maven' -- "$cur" ) )
-                return 0
-            fi
-            case $subcmd in
-                jsf)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_java )' -- "$cur" ) )
-					return 0
-					;;
-                maven)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_java )' -- "$cur" ) )
-					return 0
-					;;
-            esac
-            return 0
-            ;;
-
-        perl)
-            if [[ $prev == $cmd ]] ; then
-                COMPREPLY=( $( compgen -W 'class dancer' -- "$cur" ) )
-                return 0
-            fi
-            case $subcmd in
-                class)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_perl )' -- "$cur" ) )
-					return 0
-					;;
-                dancer)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_perl_dancer )' -- "$cur" ) )
-					return 0
-					;;
-            esac
-            return 0
-            ;;
-
-
-        python)
-            if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W 'lib django flask pygtk' -- "$cur" ) )
-				return 0
-			fi
-            case $subcmd in
-                lib)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
-					return 0
-					;;
-                django)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
-					return 0
-					;;
-                flask)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
-					return 0
-					;;
-                pygtk)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_python )' -- "$cur" ) )
-					return 0
-					;;
-            esac
-            return 0
-            ;;
-
-        php)
-            if [[ $prev == $cmd ]] ; then
-				COMPREPLY=( $( compgen -W 'lamp' -- "$cur" ) )
-				return 0
-			fi
-            case $subcmd in
-                lamp)
-					COMPREPLY=( $( compgen -W '$( _devassistant_baseopts_php )' -- "$cur" ) )
-					return 0
-					;;
-            esac
-            return 0
-            ;;
-    esac
-
-    local split=false
-    declare -F _split_longopt &>/dev/null && _split_longopt && split=true
-
-    #_devassistant_complete_baseopts "$cur" "$prev" && return 0
-
-    $split && return 0
-
-    #if [[ $cur == -* ]] ; then
-    #    COMPREPLY=( $( compgen -W '$( _devassistant_baseopts )' -- "$cur" ) )
-    #    return 0
-    #fi
-    COMPREPLY=( $( compgen -W '${cmds[@]}' -- "$cur" ) )
+    # get list of subassistants, if any
+    SUBAS=$(_get_subas $RETCODE "$DA_OUTPUT")
+    if [ $RETCODE -eq 0 ] ; then # finished assistant/unfinished option - we can get subassistants/options from help
+        OPTS=$(_get_opts $RETCODE "$DA_OUTPUT")
+        RESULT="$SUBAS $OPTS"
+    else # not finished assistant - just advise assistant names, not options
+        RESULT="$SUBAS"
+    fi
+    COMPREPLY=( $(compgen -W "$RESULT" -- "$2") )
 } &&
-complete -F _devassistant da
+complete -F _da -o filenames da da-mod da-prep devassistant devassistant-modify devassistant-prepare
 
 # Local variables:
 # mode: shell-script
