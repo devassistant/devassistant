@@ -103,7 +103,7 @@ class pathWindow(object):
             else:
                 for sub in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_1'], ass[1]):
                     row = 0
-                    captionText+= " subassistant: <b>"+ sub[0].fullname+"</b>"
+                    captionText+= " -> <b>"+ sub[0].fullname+"</b>"
                     for arg in filter(lambda x: not '--name' in x.flags, sub[0].args):
                         row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
         self.boxPathMain.pack_start(self.grid, False, False, 12)
