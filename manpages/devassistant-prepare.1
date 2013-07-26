@@ -1,0 +1,52 @@
+.\" Copyright Petr Hracek, 2013
+.\"
+.\" This page is distributed under GPL.
+.\"
+.TH DA-PREP 1 2013-03-12 "" "Linux User's Manual"
+.SH NAME
+da-prep \- Developer Assistant - Preparer is a helper for all developers using (not-only) Fedora. It helps you set up environment for working with projects from remote SCM.
+
+.SH SYNOPSIS
+\fBda-prep \fP custom [-h] -u URL [-p PATH]
+.br
+.SH DESCRIPTION
+.B Developer assistant
+is based on idea of per-{language/framework/...} "assistants" with hierarchical structure like this:
+
+                  MainAssistant
+                  /           \\
+                 /             \\
+              Python          Ruby
+              /   \\            / \\
+             /     \\          /   \\
+          Django  Flask    Rails Sinatra
+
+The basic task of each preparer assistant is to prepare working environment for project
+from remote SCM specified by
+.B -u --url
+and install dependencies via \fBYum\fP.
+Optionally, if any environment setup is required,
+.B da-prep
+does that as well.
+Most of the assistants have common arguments (see below), but there may also be some specific options in some of the assistants.
+
+.SH LANGUAGE SUPPORT
+Currently supported preparers are:
+.IP
+Custom
+assistant can checkout and prepare a custom project created by devassistant (using .devassistant file).
+
+.SH COMMON OPTIONS
+.TP
+.B \-h --help
+print help for selected assistant
+.TP
+.B \-p --path
+Path where to checkout the repo (will be created if it does not exist).
+.TP
+.B \-u --url
+Url of the project git repo (uses http/https/git).
+
+.SH "SEE ALSO"
+.BR da (1)
+.BR da-mod (1)

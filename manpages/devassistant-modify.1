@@ -1,0 +1,54 @@
+.\" Copyright Petr Hracek, 2013
+.\"
+.\" This page is distributed under GPL.
+.\"
+.TH DEVASSISTANT-MODIFY 1 2013-03-12 "" "Linux User's Manual"
+.SH NAME
+devassistant-modify \- Developer Assistant - Modifier is a helper for all developers using (not-only) Fedora. It helps you work with existing projects.
+
+.SH SYNOPSIS
+\fBda-mod \fP eclipse [-h] [-p [PATH]] [-e ECLIPSE]
+.br
+\fBda-mod \fP vim [-h] [-p [PATH]]
+.br
+.SH DESCRIPTION
+.B Developer assistant
+is based on idea of per-{language/framework/...} "assistants" with hierarchical structure like this:
+
+                  MainAssistant
+                  /           \\
+                 /             \\
+              Python          Ruby
+              /   \\            / \\
+             /     \\          /   \\
+          Django  Flask    Rails Sinatra
+
+The basic task of each modifier assistant is to modify a project in location specified by
+.B -p path
+(defaults to current working directory if not specified) and install dependencies via \fBYum\fP.
+Optionally, if any environment setup is required,
+.B devassistant-modify
+does that as well.
+Most of the assistants have common arguments (see below), but there may also be some specific options in some of the assistants.
+
+.SH LANGUAGE SUPPORT
+Currently supported modifiers are:
+.IP
+Eclipse
+assistant can import already created project into \fBEclipse\fP.
+
+.IP
+Vim
+assistant can set up \fBVim\fP editor for several programming languages.
+
+.SH COMMON OPTIONS
+.TP
+.B \-h --help
+print help for selected assistant
+.TP
+.B \-p --path
+Specify path to your project (defaults to current working directory if not used)
+
+.SH "SEE ALSO"
+.BR devassistant (1)
+.BR devassistant-prepare (1)
