@@ -7,23 +7,24 @@ from devassistant.assistants import snippet
 
 class YamlSnippetLoader(object):
     snippets_dirs = list(map(lambda x: os.path.join(x, 'snippets'),settings.YAML_DIRECTORIES))
-    _snippets = []
+    _snippets = {}
 
     @classmethod
-    def get_all_snippets(cls):
-        # this in fact caches the snippets (if loaded already, doesn't load them again)
-        if not cls._snippets:
-            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.snippets_dirs)
+    def _find_snippet(cls, name):
+        for path, snippet in cls._snippets.items():
+            if path.endswith(name + '.yaml'): return snippet
 
-            for k, v in parsed_yamls.items():
-                cls._snippets.append(snippet.Snippet(k, v))
-
-        return cls._snippets
+        return None
 
     @classmethod
     def get_snippet_by_name(cls, name):
-        for s in cls.get_all_snippets():
-            if s.name == name:
-                return s
+        found = cls._find_snippet(name)
+        if found != None:
+            return found
+        struct_dict = yaml_loader.YamlLoader.load_yaml(cls.snippets_dirs, name)
+        if struct_dict != {}:
+            snip = snippet.Snippet(*struct_dict.popitem())
+            cls._snippets[snip.path] = snip
+            return snip
 
         raise exceptions.SnippetNotFoundException('no such snippet: {name}'.format(name=name))
