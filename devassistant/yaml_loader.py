@@ -1,5 +1,9 @@
 import os
 import yaml
+try:
+    from yaml import CLoader as Loader
+except:
+    from yaml import Loader
 
 class YamlLoader(object):
     @classmethod
@@ -44,5 +48,5 @@ class YamlLoader(object):
             for dirname, subdirs, files in os.walk(d):
                 if name_dot_yaml in files:
                     path = os.path.join(dirname, name_dot_yaml)
-                    ret[path] = yaml.load(open(path, 'r'))
+                    ret[path] = yaml.load(open(path, 'r'), Loader=Loader)
         return ret
