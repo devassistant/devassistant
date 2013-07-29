@@ -1,3 +1,4 @@
+0.5.0
 - Assistants have been split to different repo, but they remain as a "part"
   of devassistant for the time being (no separate versioning, etc.)
 - Fully automatic bash completion (if you use distro package or
@@ -8,6 +9,7 @@
 - Introduction simple for loops (yay!)
 - Change of expression syntax (cl calls in expressions now have to be
   be called like "$(command -blabla)")
+- Some optimizations of yaml loading to achieve speedup for starting.
 - Tons of GUI facelifts (almost ready ;))
 
 0.4.0
