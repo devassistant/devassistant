@@ -23,7 +23,10 @@ class YamlSnippetLoader(object):
             return found
         struct_dict = yaml_loader.YamlLoader.load_yaml(cls.snippets_dirs, name)
         if struct_dict != {}:
-            snip = snippet.Snippet(*struct_dict.popitem())
+            path, parsed_yaml = struct_dict.popitem()
+            snip = snippet.Snippet(path,
+                                   parsed_yaml,
+                                   template_dir=yaml_loader.YamlLoader._default_template_dir_for(path))
             cls._snippets[snip.path] = snip
             return snip
 

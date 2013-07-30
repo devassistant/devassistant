@@ -46,14 +46,6 @@ class YamlAssistantLoader(object):
         return get_subassistants
 
     @classmethod
-    def _default_template_dir_for(cls, source):
-        base_path = ''
-        for d in settings.DATA_DIRECTORIES:
-            base_path = os.path.commonprefix([source, d])
-            if base_path: break
-        return os.path.join(base_path, 'templates')
-
-    @classmethod
     def class_from_yaml(cls, source, y):
         class CustomYamlAssistant(yaml_assistant.YamlAssistant): pass
         # assume only one key and value
@@ -64,7 +56,7 @@ class YamlAssistantLoader(object):
         CustomYamlAssistant.fullname = attrs.get('fullname', '')
         CustomYamlAssistant.description = attrs.get('description', '')
         CustomYamlAssistant.role = attrs.get('role', 'creator')
-        CustomYamlAssistant.template_dir = attrs.get('template_dir', cls._default_template_dir_for(source))
+        CustomYamlAssistant.template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
         # cli arguments
         CustomYamlAssistant.args = []
         yaml_args = attrs.get('args', {})

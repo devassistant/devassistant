@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flexmock import flexmock
 import pytest
@@ -236,6 +237,18 @@ class TestYamlAssistant(object):
         self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
         self.ya.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
+
+    def test_snippet_uses_own_template_dir(self):
+        self.ya._run = [{'call': 'a.run'}, {'log_i': '*first'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('a').\
+                                    and_return(snippet.Snippet('mysnippet.yaml',
+                                        {'template_dir': 'foo/bar/baz/spam',
+                                         'files': {'first': {'source': 'file'}},
+                                         'run': [{'log_i': '*first'}]}))
+        self.ya.run()
+        assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
+        assert ('INFO', os.path.join(self.ya.template_dir, 'f/g')) in self.tlh.msgs
 
 class TestYamlAssistantModifier(object):
     template_dir = yaml_assistant.YamlAssistant.template_dir

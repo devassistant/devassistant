@@ -149,17 +149,20 @@ class YamlAssistant(assistant_base.AssistantBase):
                         continue
 
                     if self._is_snippet_call(comm, **kwargs):
-                        # we're calling a snippet => add files to kwargs
+                        # we're calling a snippet => add files and template_dir to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
 
                         if '__files__' not in kwargs:
                             kwargs['__files__'] = []
+                            kwargs['__template_dir__'] = []
                         kwargs['__files__'].append(snippet.get_files_section())
+                        kwargs['__template_dir__'].append(snippet.get_template_dir())
 
                     self._run_one_section(sect, copy.deepcopy(kwargs))
 
                     if self._is_snippet_call(comm, **kwargs):
                         kwargs['__files__'].pop()
+                        kwargs['__template_dir__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
                     try:
@@ -204,7 +207,8 @@ class YamlAssistant(assistant_base.AssistantBase):
                     kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    run_command(comm_type, CommandFormatter.format(comm_type, comm, self.template_dir, files, **kwargs), **kwargs)
+                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self.template_dir
+                    run_command(comm_type, CommandFormatter.format(comm_type, comm, template_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))

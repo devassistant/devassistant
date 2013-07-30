@@ -5,6 +5,8 @@ try:
 except:
     from yaml import Loader
 
+from devassistant import settings
+
 class YamlLoader(object):
     @classmethod
     def load_all_yamls(cls, directories):
@@ -50,3 +52,14 @@ class YamlLoader(object):
                     path = os.path.join(dirname, name_dot_yaml)
                     ret[path] = yaml.load(open(path, 'r'), Loader=Loader)
         return ret
+
+    @classmethod
+    def _default_template_dir_for(cls, source):
+        # both yaml_assistant_loader and yaml_snippet_loader use this, so
+        # it seems that there is no other place to put this
+        # (although it feels a little weird here)
+        base_path = ''
+        for d in settings.DATA_DIRECTORIES:
+            base_path = os.path.commonprefix([source, d])
+            if base_path: break
+        return os.path.join(base_path, 'templates')
