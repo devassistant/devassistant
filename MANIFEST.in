@@ -4,8 +4,8 @@ include README.rst
 include manpages/*.1
 # TODO: add devassistant.yaml.5 when ready
 include da.bash
-recursive-include devassistant/yaml  *.yaml
+include devassistant/zenity_wrapper.sh
+recursive-include devassistant/data  *
 recursive-include devassistant/gui *.glade *.py
-recursive-include devassistant/templates *
 recursive-include test *.yaml *.py
 recursive-exclude . __pycache__
