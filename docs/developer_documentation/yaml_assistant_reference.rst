@@ -63,6 +63,10 @@ optional):
   specification of used files, see below `Files`_
 ``run`` (and ``run_*``)
   specification of actual operations, see below `Run`_
+``template_dir``
+  directory where to take templates from. Defaults to base directory from where this assistant
+  is taken + ``templates``. E.g. if this assistant lives in ``~/.devassistant/assistants/some/path/and/more/``,
+  templates will be taken from ``~/.devassistant/templates/`` by default.
 
 Dependencies
 ------------

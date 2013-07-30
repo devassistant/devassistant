@@ -28,7 +28,7 @@ class TestYamlAssistantLoader(object):
 
     def test_class_from_yaml(self):
         y = self.load_yaml_from_fixture('c')
-        klass = self.yl.class_from_yaml(y)
+        klass = self.yl.class_from_yaml('foo', y)
 
         assert klass.name == 'c'
         assert klass.fullname == 'C Language Tool'
@@ -65,7 +65,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_snippet_for_arg')
-        klass = self.yl.class_from_yaml(y)
+        klass = self.yl.class_from_yaml('foo', y)
         assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
 
     def test_class_from_yaml_doesnt_fail_on_missing_arg(self):
@@ -73,5 +73,5 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
-        klass = self.yl.class_from_yaml(y)
+        klass = self.yl.class_from_yaml('foo', y)
         assert ('WARNING', 'Couldn\'t find argument bar in snippet common_args wanted by assistant no_arg_in_snippet.') in self.tlh.msgs

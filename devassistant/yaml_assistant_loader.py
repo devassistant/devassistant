@@ -9,7 +9,7 @@ from devassistant import settings
 from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
-    assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'),settings.YAML_DIRECTORIES))
+    assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
     _classes = []
 
     @classmethod
@@ -28,7 +28,7 @@ class YamlAssistantLoader(object):
             parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
 
             for s, y in parsed_yamls.items():
-                cls._classes.append(cls.class_from_yaml(y))
+                cls._classes.append(cls.class_from_yaml(s, y))
                 cls._classes[-1]._source_file = s
 
             for sa in cls._classes:
@@ -46,7 +46,15 @@ class YamlAssistantLoader(object):
         return get_subassistants
 
     @classmethod
-    def class_from_yaml(cls, y):
+    def _default_template_dir_for(cls, source):
+        base_path = ''
+        for d in settings.DATA_DIRECTORIES:
+            base_path = os.path.commonprefix([source, d])
+            if base_path: break
+        return os.path.join(base_path, 'templates')
+
+    @classmethod
+    def class_from_yaml(cls, source, y):
         class CustomYamlAssistant(yaml_assistant.YamlAssistant): pass
         # assume only one key and value
         name, attrs = y.popitem()
@@ -56,6 +64,7 @@ class YamlAssistantLoader(object):
         CustomYamlAssistant.fullname = attrs.get('fullname', '')
         CustomYamlAssistant.description = attrs.get('description', '')
         CustomYamlAssistant.role = attrs.get('role', 'creator')
+        CustomYamlAssistant.template_dir = attrs.get('template_dir', cls._default_template_dir_for(source))
         # cli arguments
         CustomYamlAssistant.args = []
         yaml_args = attrs.get('args', {})
