@@ -17,7 +17,7 @@ class AssistantBase(object):
     args = []
     repo = []
 
-    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
 
     # don't override these, used internally
     _dot_devassistant_path = None
