@@ -159,7 +159,7 @@ class DotDevassistantCommand(object):
                 #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                 if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                     struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
-            struct.extend(dda_content.get('dependencies', []))
+            struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), **kwargs))
         run_command('dependencies', struct, **kwargs)
 
 class GitHubAuth(object):

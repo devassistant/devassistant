@@ -223,7 +223,8 @@ List of supported commands follows:
   - ``dda_dependencies`` let's you install dependencies from ``.devassistant`` file
     (devassistant will use dependencies from original assistant and specified 
     ``dependencies`` attribute, if any - this has the same structure as ``dependencies``
-    in normal assistants, but conditions are not supported)
+    in normal assistants, and is evaluated in current assistant context, not the original
+    assistant context)
 ``if <expression>``, ``else``
   conditional execution. The conditions must be an `Expression`_.
 ``for <var> in <expression>``
