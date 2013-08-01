@@ -217,7 +217,7 @@ List of supported commands follows:
 ``log_[diwec]``
   logs given message at level specified by the last letter in ``log_X``.
   If the level is ``e`` or ``c``, the execution of the assistant is interrupted immediately.
-``dda_{c,dependencies}``
+``dda_{c,dependencies,run}``
   - ``c`` creates ``.devassistant`` file (containing some sane initial meta
     information about the project) in given directory
   - ``dda_dependencies`` let's you install dependencies from ``.devassistant`` file
@@ -225,6 +225,8 @@ List of supported commands follows:
     ``dependencies`` attribute, if any - this has the same structure as ``dependencies``
     in normal assistants, and is evaluated in current assistant context, not the original
     assistant context)
+  - ``dda_run`` will execute a series of commands from ``run`` section from
+    ``.devassistant`` (in context of current assistant)
 ``if <expression>``, ``else``
   conditional execution. The conditions must be an `Expression`_.
 ``for <var> in <expression>``
@@ -332,5 +334,5 @@ set to ``preparer``::
    custom:
      role: preparer
 
-Preparer assistants commonly utilize the ``dda_dependencies``
-command in ``run`` section.
+Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
+commands in ``run`` section.

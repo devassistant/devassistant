@@ -101,6 +101,8 @@ class DotDevassistantCommand(object):
             return cls._dot_devassistant_read(comm, **kwargs)
         elif comm_type == 'dda_dependencies':
             return cls._dot_devassistant_dependencies(comm, **kwargs)
+        elif comm_type == 'dda_run':
+            return cls._dot_devassistant_run(comm, **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
 
@@ -161,6 +163,11 @@ class DotDevassistantCommand(object):
                     struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
             struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), **kwargs))
         run_command('dependencies', struct, **kwargs)
+
+    @classmethod
+    def _dot_devassistant_run(cls, comm, **kwargs):
+        dda_content = cls._dot_devassistant_read(comm, **kwargs)
+        return kwargs['__assistant__']._run_one_section(dda_content.get('run', []), kwargs)
 
 class GitHubAuth(object):
     _user = None
