@@ -53,27 +53,6 @@ class DependenciesCommand(object):
     def run(cls, comm_type, comm, **kwargs):
         if comm_type == 'dependencies':
             struct = comm
-        elif comm_type == 'dependencies_from_dda':
-            struct = []
-            dda_content = run_command('dda_r', comm, **kwargs)
-            original_assistant_path = dda_content.get('subassistant_path', [])
-            if original_assistant_path:
-                # if we have an original path, try to get original assistant
-                original_path_as_dict = {}
-                for i, subas in enumerate(original_assistant_path):
-                    original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
-                from devassistant.bin import CreatorAssistant
-                from devassistant.assistants import yaml_assistant
-                try:
-                    path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
-                except exceptions.AssistantNotFoundException as e:
-                    path = []
-                    logger.warning(e)
-                for a in path:
-                    #TODO: maybe figure out more DRY code (similar is in path_runner, too)
-                    if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                        struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
-                struct.extend(dda_content.get('dependencies', []))
 
         cls._install_from_struct(struct)
 
@@ -120,6 +99,8 @@ class DotDevassistantCommand(object):
             return cls._dot_devassistant_create(comm, **kwargs)
         elif comm_type == 'dda_r':
             return cls._dot_devassistant_read(comm, **kwargs)
+        elif comm_type == 'dda_dependencies':
+            return cls._dot_devassistant_dependencies(comm, **kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
 
@@ -156,6 +137,30 @@ class DotDevassistantCommand(object):
 
         result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
         return result
+
+    @classmethod
+    def _dot_devassistant_dependencies(cls, comm, **kwargs):
+        struct = []
+        dda_content = cls._dot_devassistant_read(comm, **kwargs)
+        original_assistant_path = dda_content.get('subassistant_path', [])
+        if original_assistant_path:
+            # if we have an original path, try to get original assistant
+            original_path_as_dict = {}
+            for i, subas in enumerate(original_assistant_path):
+                original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
+            from devassistant.bin import CreatorAssistant
+            from devassistant.assistants import yaml_assistant
+            try:
+                path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
+            except exceptions.AssistantNotFoundException as e:
+                path = []
+                logger.warning(e)
+            for a in path:
+                #TODO: maybe figure out more DRY code (similar is in path_runner, too)
+                if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
+                    struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
+            struct.extend(dda_content.get('dependencies', []))
+        run_command('dependencies', struct, **kwargs)
 
 class GitHubAuth(object):
     _user = None

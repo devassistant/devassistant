@@ -217,9 +217,13 @@ List of supported commands follows:
 ``log_[diwec]``
   logs given message at level specified by the last letter in ``log_X``.
   If the level is ``e`` or ``c``, the execution of the assistant is interrupted immediately.
-``dda_[c]``
-  ``c`` creates ``.devassistant`` file (containing some sane initial meta
-  information about the project) in given directory
+``dda_{c,dependencies}``
+  - ``c`` creates ``.devassistant`` file (containing some sane initial meta
+    information about the project) in given directory
+  - ``dda_dependencies`` let's you install dependencies from ``.devassistant`` file
+    (devassistant will use dependencies from original assistant and specified 
+    ``dependencies`` attribute, if any - this has the same structure as ``dependencies``
+    in normal assistants, but conditions are not supported)
 ``if <expression>``, ``else``
   conditional execution. The conditions must be an `Expression`_.
 ``for <var> in <expression>``
@@ -231,12 +235,6 @@ List of supported commands follows:
 ``call``
   run another section of this assistant (e.g.``call: self.run_foo``) of a snippet
   run section (``call: snippet_name.run_foo``) at this place and then continue execution
-``dependencies_from_dda``
-  let's you specify a directory where to read ``.devassistant`` file out of which
-  dependencies are resolved and installed (devassistant will use dependencies
-  from original assistant and specified  ``dependencies`` attribute, if any - this
-  has the same structure as ``dependencies`` in normal assistants, but conditions
-  are not supported)
 ``scl``
   run a whole section in SCL environment of one or more SCLs (note: you **must**
   use the scriptlet name - usually ``enable`` - because it might vary) - for example::
@@ -333,5 +331,5 @@ set to ``preparer``::
    custom:
      role: preparer
 
-Preparer assistants commonly utilize the ``dependencies_from_dda``
+Preparer assistants commonly utilize the ``dda_dependencies``
 command in ``run`` section.
