@@ -29,6 +29,8 @@ Assistants
   therefore any software distribution can carry its own assistants
   and drop them into the directory from where Developer Assistant
   loads them - they will be loaded on next invocation.
+  Note, that there is also a possibility to write assistants in Python,
+  but this is no longer supported and will be removed in near future.
 
 Assistants
 ----------
