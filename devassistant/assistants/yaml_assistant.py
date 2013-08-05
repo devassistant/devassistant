@@ -15,6 +15,9 @@ class YamlAssistant(assistant_base.AssistantBase):
 
     _run = []
 
+    def get_subassistants(self):
+        return self._subassistants
+
     def proper_kwargs(self, **kwargs):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""

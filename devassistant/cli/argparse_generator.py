@@ -10,8 +10,8 @@ class ArgparseGenerator(object):
     subparsers_description = '''Following subassistants will help you with setting up your project.'''
 
     @classmethod
-    def generate_argument_parser(cls, chain):
-        cur_as, cur_subas = chain
+    def generate_argument_parser(cls, tree):
+        cur_as, cur_subas = tree
         parser = devassistant_argparse.ArgumentParser(description=cur_as.description, argument_default=argparse.SUPPRESS)
 
         # add any arguments of the top assistant

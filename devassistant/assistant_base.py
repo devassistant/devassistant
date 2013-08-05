@@ -24,16 +24,26 @@ class AssistantBase(object):
     # we don't use this currently, so let's keep it commented so that we don't depend on jinja for no reason
     # _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
-    def get_subassistants(self):
+    def get_subassistant_classes(self):
         return []
+
+    def get_subassistants(self):
+        if not hasattr(self, '_subassistants'):
+            self._subassistants = []
+            # we want to know, if type(self) defines 'get_subassistant_classes',
+            # we don't want to inherit it from superclass (would cause recursion)
+            if 'get_subassistant_classes' in vars(type(self)):
+                for a in self.get_subassistant_classes():
+                    self._subassistants.append(a())
+        return self._subassistants
 
     def get_subassistant_tree(self):
         if not '_tree' in dir(self):
-            subas_list = []
-            if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
-                for subas in self.get_subassistants():
-                    subas_list.append(subas().get_subassistant_tree())
-            self._tree = (self, subas_list)
+            subassistant_tree = []
+            subassistants = self.get_subassistants()
+            for subassistant in subassistants:
+                subassistant_tree.append(subassistant.get_subassistant_tree())
+            self._tree = (self, subassistant_tree)
         return self._tree
 
     def get_selected_subassistant_path(self, **kwargs):
