@@ -25,9 +25,24 @@ class AssistantBase(object):
     # _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     def get_subassistant_classes(self):
+        """Return list of classes that are subassistants of this assistant.
+
+        Override in subclasses representing assistants written in Python
+
+        Returns:
+            list of classes that are subassistants of this assistant
+        """
         return []
 
     def get_subassistants(self):
+        """Return list of instantiated subassistants.
+
+        Usually, this needs not be overriden in subclasses, you should just override
+        get_subassistant_classes
+
+        Returns:
+            list of instantiated subassistants
+        """
         if not hasattr(self, '_subassistants'):
             self._subassistants = []
             # we want to know, if type(self) defines 'get_subassistant_classes',
@@ -38,6 +53,17 @@ class AssistantBase(object):
         return self._subassistants
 
     def get_subassistant_tree(self):
+        """Returns a tree-like structure representing the assistant hierarchy going down
+        from this assistant to leaf assistants.
+
+        For example: [(<This Assistant>,
+                       [(<Subassistant 1>, [...]),
+                        (<Subassistant 2>, [...])]
+                      )]
+        Returns:
+            a tree-like structure (see above) representing assistant hierarchy going down
+            from this assistant to leaf assistants
+        """
         if not '_tree' in dir(self):
             subassistant_tree = []
             subassistants = self.get_subassistants()
@@ -49,11 +75,12 @@ class AssistantBase(object):
     def get_selected_subassistant_path(self, **kwargs):
         """Recursively searches self._tree - has format of (Assistant: [list_of_subassistants]) -
         for specific path from first to last selected subassistants.
+
         Args:
             kwargs: arguments containing names of the given assistants in form of
             subassistant_0 = 'name', subassistant_1 = 'another_name', ...
         Returns:
-            List of subassistants objects from tree sorted from first to last.
+            list of subassistants objects from tree sorted from first to last
         """
         path = [self]
         previous_subas_list = None
@@ -94,7 +121,7 @@ class AssistantBase(object):
         Errors should not be logged, only returned.
 
         Returns:
-            List of errors as strings (empty list with no errors).
+            list of errors as strings (empty list with no errors)
         """
         return []
 
