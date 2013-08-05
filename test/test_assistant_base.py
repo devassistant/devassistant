@@ -8,12 +8,12 @@ from test.fake_assistants import *
 
 class TestAssistantBase(object):
     def map_sa_to_names(self, sa_list):
-        # maps part of chain (list of two-tuples) to names of the top assistants
+        # maps part of tree (list of two-tuples) to names of the top assistants
         # so that I don't have to write it again and again
         return map(lambda x: x[0].name, sa_list)
 
     def get_sa_from_tuple_list(self, name, sa_list):
-        # returns tuple of assistant with given name from list of tuples (part of chain)
+        # returns tuple of assistant with given name from list of tuples (part of tree)
         return list(filter(lambda x: x[0].name == name, sa_list))[0]
 
     def args_dict_from_names(self, names):
@@ -22,8 +22,8 @@ class TestAssistantBase(object):
             args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
         return args_dict
 
-    def test_get_subassistant_chain_constructs_proper_structure(self):
-        ch = MainA().get_subassistant_chain()
+    def test_get_subassistant_tree_constructs_proper_structure(self):
+        ch = MainA().get_subassistant_tree()
         main, subas = ch
         assert main.name == MainA.name
         assert len(subas) == 2

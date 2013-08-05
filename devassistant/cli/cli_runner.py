@@ -19,7 +19,7 @@ class CliRunner(object):
     def run_assistant(cls, assistant):
         cls.register_console_logging_handler()
         cls.inform_of_short_bin_names(sys.argv[0])
-        ch = assistant.get_subassistant_chain()
+        ch = assistant.get_subassistant_tree()
         parsed_args = argparse_generator.ArgparseGenerator.generate_argument_parser(ch).parse_args()
         path = assistant.get_selected_subassistant_path(**vars(parsed_args))
         pr = path_runner.PathRunner(path, vars(parsed_args))

@@ -27,27 +27,27 @@ class AssistantBase(object):
     def get_subassistants(self):
         return []
 
-    def get_subassistant_chain(self):
-        if not '_chain' in dir(self):
+    def get_subassistant_tree(self):
+        if not '_tree' in dir(self):
             subas_list = []
             if 'get_subassistants' in vars(self.__class__): # only non-inherited get_subassistants
                 for subas in self.get_subassistants():
-                    subas_list.append(subas().get_subassistant_chain())
-            self._chain = (self, subas_list)
-        return self._chain
+                    subas_list.append(subas().get_subassistant_tree())
+            self._tree = (self, subas_list)
+        return self._tree
 
     def get_selected_subassistant_path(self, **kwargs):
-        """Recursively searches self._chain - has format of (Assistant: [list_of_subassistants]) -
+        """Recursively searches self._tree - has format of (Assistant: [list_of_subassistants]) -
         for specific path from first to last selected subassistants.
         Args:
             kwargs: arguments containing names of the given assistants in form of
             subassistant_0 = 'name', subassistant_1 = 'another_name', ...
         Returns:
-            List of subassistants objects from chain sorted from first to last.
+            List of subassistants objects from tree sorted from first to last.
         """
         path = [self]
         previous_subas_list = None
-        currently_searching = self.get_subassistant_chain()[1]
+        currently_searching = self.get_subassistant_tree()[1]
 
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
         while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs and \

@@ -75,13 +75,13 @@ class mainWindow(object):
         self.notebook.set_show_border(True)
         self.box4.pack_start(self.notebook, False, False, 12)
         # Devassistant creator part
-        self.main, self.subas = DevelCreatorAssistants().get_subassistant_chain()
+        self.main, self.subas = DevelCreatorAssistants().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subas, 'Creator'), Gtk.Label('Creator'))
         # Devassistant modifier part
-        self.main, self.subas = DevelModifierAssistants().get_subassistant_chain()
+        self.main, self.subas = DevelModifierAssistants().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subas, 'Modifier'), Gtk.Label('Modifier'))
         # Devassistant preparer part
-        self.main, self.subas = DevelPreparerAssistants().get_subassistant_chain()
+        self.main, self.subas = DevelPreparerAssistants().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subas, 'Preparer'), Gtk.Label('Preparer'))
 
         self.notebook.show()
