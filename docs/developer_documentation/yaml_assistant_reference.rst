@@ -42,8 +42,8 @@ attributes, for example::
      subassistants: [django, flask]
      # etc.
 
-List of allowed attributes follows (attributes marked with ``?`` are
-optional):
+List of allowed attributes follows (all of them are optional, and have some
+sort of reasonable default, it's up to your consideration which of them to use):
 
 ``fullname``
   a verbose name that will be displayed to user (``Python Assistant``)
@@ -51,6 +51,7 @@ optional):
   list of names of subassistants of this assistant (``[django, flask]``)
 ``superassistant``
   name of superassistant of this assistant; use carefully to avoid loops in {super/sub}assistants
+  (``python``)
 ``role``
   role of this assistant. ``creator`` (default) is an assistant used for creating projects from scratch,
   ``modifier`` is used for modifying existing projects, ``preparer`` is used for setting up environment
