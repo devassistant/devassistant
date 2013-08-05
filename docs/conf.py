@@ -12,10 +12,11 @@
 # serve to show the default.
 
 import sys, os
-from devassistant import version as da_version
 
 devassistant_dir = os.path.abspath(os.path.join('..', 'devassistant'))
 sys.path.append(devassistant_dir)
+
+from devassistant import version as da_version
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
