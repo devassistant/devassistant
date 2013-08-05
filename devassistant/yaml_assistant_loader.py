@@ -58,9 +58,26 @@ class YamlAssistantLoader(object):
         CustomYamlAssistant.role = attrs.get('role', 'creator')
         CustomYamlAssistant.template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
         # cli arguments
-        CustomYamlAssistant.args = []
-        yaml_args = attrs.get('args', {})
-        for arg_name, arg_params in yaml_args.items():
+        cls._args_from_struct(CustomYamlAssistant, attrs.get('args', {}))
+
+        # arguments that will be handled by YamlAssistant methods
+        CustomYamlAssistant._files = attrs.get('files', {})
+        CustomYamlAssistant._subassistants = attrs.get('subassistants', [])
+        CustomYamlAssistant._logging = attrs.get('logging', [])
+        CustomYamlAssistant._dependencies = attrs.get('dependencies', [])
+        # handle more dependencies* and run* sections
+        for k, v in attrs.items():
+            if k.startswith('run') or k.startswith('dependencies'):
+                setattr(CustomYamlAssistant, '_{0}'.format(k), v)
+        CustomYamlAssistant.pre_run = attrs.get('pre_run', [])
+        CustomYamlAssistant.post_run = attrs.get('post_run', [])
+
+        return CustomYamlAssistant
+
+    @classmethod
+    def _args_from_struct(cls, assistant_cls, struct):
+        assistant_cls.args = []
+        for arg_name, arg_params in struct.items():
             use_snippet = arg_params.pop('snippet', None)
             if use_snippet:
                 # if snippet is used, take this parameter from snippet and update
@@ -77,25 +94,11 @@ class YamlAssistantLoader(object):
                 if problem:
                     logger.warning(problem.format(snip=use_snippet,
                                                   arg=arg_name,
-                                                  a=name))
+                                                  a=assistant_cls.name))
                     continue
 
                 # this works much like snippet.args.pop(arg_name).update(arg_params),
                 # but unlike it, this actually returns the updated dict
 
             arg = argument.Argument(*arg_params.pop('flags'), **arg_params)
-            CustomYamlAssistant.args.append(arg)
-
-        # arguments that will be handled by YamlAssistant methods
-        CustomYamlAssistant._files = attrs.get('files', {})
-        CustomYamlAssistant._subassistants = attrs.get('subassistants', [])
-        CustomYamlAssistant._logging = attrs.get('logging', [])
-        CustomYamlAssistant._dependencies = attrs.get('dependencies', [])
-        # handle more dependencies* and run* sections
-        for k, v in attrs.items():
-            if k.startswith('run') or k.startswith('dependencies'):
-                setattr(CustomYamlAssistant, '_{0}'.format(k), v)
-        CustomYamlAssistant.pre_run = attrs.get('pre_run', [])
-        CustomYamlAssistant.post_run = attrs.get('post_run', [])
-
-        return CustomYamlAssistant
+            assistant_cls.args.append(arg)
