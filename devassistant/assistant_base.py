@@ -2,7 +2,6 @@ import os
 
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.command_helpers import ClHelper, PathHelper
 
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it

@@ -25,7 +25,7 @@ class CliRunner(object):
         pr = path_runner.PathRunner(path, vars(parsed_args))
         try:
             pr.run()
-        except exceptions.ExecutionException as ex:
+        except exceptions.ExecutionException:
             # error is already logged, just catch it and silently exit here
             sys.exit(1)
 

@@ -1,7 +1,6 @@
 from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 from devassistant.assistants.commands import run_command
-from devassistant.command_helpers import RPMHelper, YUMHelper
 
 class PathRunner(object):
     def __init__(self, path, parsed_args, override_sys_excepthook=True):

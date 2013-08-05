@@ -1,7 +1,6 @@
 import copy
 import logging
 import os
-import sys
 
 from devassistant import assistant_base
 from devassistant import exceptions
@@ -239,7 +238,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             try:
                 control_var = self._get_var_name(for_parts[1])
                 error = None
-            except exceptions.YamlSyntaxError as e:
+            except exceptions.YamlSyntaxError:
                 pass # specify the error more?
 
         if error:
@@ -301,7 +300,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     section = snippet.get_run_section(section_name) if snippet else None
                 else:
                     section = snippet.get_dependencies_section(section_name) if snippet else None
-            except exceptions.SnippetNotFoundException as e:
+            except exceptions.SnippetNotFoundException:
                 section = None
 
         return section

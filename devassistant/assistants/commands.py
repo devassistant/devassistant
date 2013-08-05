@@ -4,7 +4,7 @@ except ImportError:
     import imp as importlib
     def import_module(name):
         fp, pathname, description = importlib.find_module(name)
-        return imp.load_module(name, fp, pathname, description)
+        return importlib.load_module(name, fp, pathname, description)
     importlib.import_module = import_module
     del import_module
 import getpass
@@ -187,9 +187,8 @@ class GitHubAuth(object):
             try:
                 cls._token = ClHelper.run_command("git config github.token.{login}".format(
                     login=cls._github_login(**kwargs)))
-            except exceptions.ClException as e:
-                # token is not available yet
-                pass
+            except exceptions.ClException:
+                pass # token is not available yet
 
         return cls._token
 
@@ -259,8 +258,8 @@ class GitHubAuth(object):
                 cls._user.create_key("devassistant", public_key)
             # next, create ~/.ssh/config entry for the key, if system username != GH login
             cls._github_create_ssh_config_entry(**kwargs)
-        except exceptions.ClException as ep:
-            pass
+        except exceptions.ClException:
+            pass # TODO: determine and log the error
 
     @classmethod
     def _github_create_ssh_config_entry(cls, **kwargs):

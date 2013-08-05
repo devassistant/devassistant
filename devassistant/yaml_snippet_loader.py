@@ -11,8 +11,8 @@ class YamlSnippetLoader(object):
 
     @classmethod
     def _find_snippet(cls, name):
-        for path, snippet in cls._snippets.items():
-            if path.endswith(name + '.yaml'): return snippet
+        for path, snip in cls._snippets.items():
+            if path.endswith(name + '.yaml'): return snip
 
         return None
 

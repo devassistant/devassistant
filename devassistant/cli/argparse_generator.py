@@ -3,7 +3,6 @@ import argparse
 from devassistant.cli import devassistant_argparse
 from devassistant import command_helpers
 from devassistant import settings
-from devassistant import argument
 
 class ArgparseGenerator(object):
     subassistants_string = 'subassistants'
