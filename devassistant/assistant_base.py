@@ -141,9 +141,3 @@ class AssistantBase(object):
             devassistant.exceptions.RunException containing the error message
         """
         pass
-
-    def _git_create_repo(self, path, gitignore, **kwargs):
-        PathHelper.cp(gitignore, path)
-        ClHelper.run_command('git init')
-        ClHelper.run_command('git add .')
-        ClHelper.run_command('git commit -m "Initial commit."')
