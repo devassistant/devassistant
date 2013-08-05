@@ -10,15 +10,15 @@ from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
-    _assistants = []
+    # mapping of assistant names to assistant instances
+    _assistants = {}
 
     @classmethod
     def get_top_level_assistants(cls, roles=['creator', 'modifier', 'preparer']):
         assistants = cls.get_all_assistants()
         are_subassistants = set()
         for a in assistants:
-            if a._subassistant_names:
-                are_subassistants.update(a._subassistant_names)
+            are_subassistants.update(a._subassistant_names)
         top_level = filter(lambda x: x.name not in are_subassistants, assistants)
         return list(filter(lambda x: x.role in roles, top_level))
 
@@ -28,19 +28,24 @@ class YamlAssistantLoader(object):
             parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
 
             for s, y in parsed_yamls.items():
-                cls._assistants.append(cls.assistant_from_yaml(s, y))
-                cls._assistants[-1]._source_file = s
+                new_as = cls.assistant_from_yaml(s, y)
+                cls._assistants[new_as.name] = new_as
 
-            for sa in cls._assistants:
-                if hasattr(sa, '_subassistant_names'):
-                    # get subassistants of sa assistant
-                    sa._subassistants = list(filter(lambda x: x.name in sa._subassistant_names, cls._assistants))
+            # handle _superassistant_name fields
+            have_super = filter(lambda a: a._superassistant_name is not None, cls._assistants.values())
+            for assistant in have_super:
+                cls._assistants[assistant._superassistant_name]._subassistant_names.append(assistant.name)
 
-        return cls._assistants
+            for assistant in cls._assistants.values():
+                # set subassistants of assistant according to names in _subassistant_names
+                assistant._subassistants = [cls._assistants[n] for n in assistant._subassistant_names]
+
+        return list(cls._assistants.values())
 
     @classmethod
     def assistant_from_yaml(cls, source, y):
         assistant = yaml_assistant.YamlAssistant()
+        assistant._source_file = source
         # assume only one key and value
         name, attrs = y.popitem()
 
@@ -56,6 +61,7 @@ class YamlAssistantLoader(object):
         # arguments that will be handled by YamlAssistant methods
         assistant._files = attrs.get('files', {})
         assistant._subassistant_names = attrs.get('subassistants', [])
+        assistant._superassistant_name = attrs.get('superassistant', None)
         assistant._logging = attrs.get('logging', [])
         assistant._dependencies = attrs.get('dependencies', [])
         # handle more dependencies* and run* sections

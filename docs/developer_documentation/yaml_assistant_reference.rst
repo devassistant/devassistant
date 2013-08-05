@@ -49,6 +49,8 @@ optional):
   a verbose name that will be displayed to user (``Python Assistant``)
 ``subassistants``
   list of names of subassistants of this assistant (``[django, flask]``)
+``superassistant``
+  name of superassistant of this assistant; use carefully to avoid loops in {super/sub}assistants
 ``role``
   role of this assistant. ``creator`` (default) is an assistant used for creating projects from scratch,
   ``modifier`` is used for modifying existing projects, ``preparer`` is used for setting up environment

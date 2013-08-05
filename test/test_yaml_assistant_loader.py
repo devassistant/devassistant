@@ -46,14 +46,16 @@ class TestYamlAssistantLoader(object):
     def test_get_all_assistants_loads_all(self):
         # ass is a really nice variable name, isn't it?
         ass = YamlAssistantLoader.get_all_assistants()
-        assert len(ass) == 4
-        assert set(['c', 'd', 'e', 'f']) == set(map(lambda x: x.name, ass))
+        assert len(ass) == 5
+        assert set(['c', 'd', 'e', 'f', 'g']) == set(map(lambda x: x.name, ass))
 
     def test_get_all_classes_sets_get_subassistants_properly(self):
         ass = YamlAssistantLoader.get_all_assistants()
         for a in ass:
             if a.name == 'c':
                 assert set(map(lambda x: x.name, a.get_subassistants())) == set(['d', 'e'])
+            elif a.name == 'f':
+                assert set(map(lambda x: x.name, a.get_subassistants())) == set(['g'])
             else:
                 assert a.get_subassistants() == []
 
