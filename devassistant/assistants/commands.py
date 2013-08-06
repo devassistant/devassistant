@@ -18,6 +18,7 @@ from devassistant.command_helpers import ClHelper, DialogHelper, RPMHelper, YUMH
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version
+from devassistant.package_managers import DependencyInstaller
 
 class ClCommand(object):
     @classmethod
@@ -54,39 +55,9 @@ class DependenciesCommand(object):
         if comm_type == 'dependencies':
             struct = comm
 
-        cls._install_from_struct(struct)
+        di = DependencyInstaller()
+        di.install(struct)
 
-    @classmethod
-    def _install_from_struct(cls, struct):
-        # see YamlAssistant.dependencies docstring to see what the structure looks like
-        # collide rpm deps to install them in one shot, install them first
-        rpm_deps = []
-        for dep_dict in struct:
-            for dep_t, dep_l in dep_dict.items():
-                if dep_t == 'rpm':
-                    rpm_deps.extend(dep_l)
-                # TODO: handle other dep types
-
-        cls._install_rpm_dependencies(*rpm_deps)
-
-    @classmethod
-    def _install_rpm_dependencies(cls, *dep_list):
-        to_install = []
-
-        for dep in dep_list:
-            if dep.startswith('@'):
-                if not YUMHelper.is_group_installed(dep):
-                    to_install.append(dep)
-            else:
-                if not RPMHelper.is_rpm_installed(dep):
-                    to_install.append(dep)
-
-        if to_install: # only invoke YUM if we actually have something to install
-            if not YUMHelper.install(*to_install):
-                raise exceptions.RunException('Failed to install: {0}'.format(' '.join(to_install)))
-
-        for pkg in to_install:
-            RPMHelper.was_rpm_installed(pkg)
 
 class DotDevassistantCommand(object):
     @classmethod
