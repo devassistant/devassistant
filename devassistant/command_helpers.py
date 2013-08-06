@@ -15,7 +15,6 @@ class ClHelper(object):
     @classmethod
     def run_command(cls, cmd_str, log_level=logging.DEBUG, scls=[]):
         """Runs a command from string, e.g. "cp foo bar" """
-
         # format for scl execution if needed
         cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
@@ -102,7 +101,24 @@ class YUMHelper(object):
     c_yum = 'yum'
 
     @classmethod
+    def check_yum(cls):
+        """
+        check if yum is installed, return True if it is
+        I know this may sound trivial but in basic env created with virtualenv
+        as such `virtualenv ./env/`, you don't access to yum, because of
+        '--no-site-packages' being default option
+        """
+        try:
+            __import__('yum')
+        except ImportError:
+            raise exceptions.CorePackagerMissing("yum can't be found, you are "
+                "probably running developer assistant in sandbox (virtualenv)")
+        else:
+            return True
+
+    @classmethod
     def resolve(cls, *args):
+        cls.check_yum()
         logger.info('Resolving dependencies ...')
         import yum
         y = yum.YumBase()
@@ -124,18 +140,8 @@ class YUMHelper(object):
 
     @classmethod
     def install(cls, *args):
-        try:
-            to_install = cls.resolve(*args)
-        except BaseException as e:
-            logger.error('Failed to resolve dependencies: {exc}'.format(exc=e))
-            return False
-        ret = DialogHelper.ask_for_confirm_with_message(prompt='Install following packages?',
-                                                        message='\n'.join(sorted(to_install)))
-        if ret is False:
-            return False
-
         cmd = ['pkexec', cls.c_yum, '-y', 'install']
-        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), to_install)
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
             ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
@@ -147,13 +153,92 @@ class YUMHelper(object):
     def is_group_installed(cls, group):
         logger.info('Checking for presence of group {0}...'.format(group))
 
-        output = ClHelper.run_command(' '.join([cls.c_yum, 'group', 'list', '"{0}"'.format(group)]))
+        output = ClHelper.run_command(' '.join(
+            [cls.c_yum, 'group', 'list', '"{0}"'.format(group)]))
         if 'Installed Groups' in output:
             logger.info('Found %s', group)
             return True
 
         logger.info('Not found')
         return False
+
+
+class PIPHelper(object):
+    c_pip = 'pip'
+
+    @classmethod
+    def check_pip(cls):
+        """ check if pip is installed, return True if it is """
+        try:
+            # this could be done via __import__('pip'), but since we are not
+            # using pip module, we want to now if `pip` command is valid
+            ClHelper.run_command(cls.c_pip)
+        except exceptions.ClException:
+            logger.warn("{0} is not installed".format(cls.c_pip))
+            raise exceptions.PackageManagerNotInstalled()
+        else:
+            return True
+
+    @classmethod
+    def is_egg_installed(cls, dep):
+        cls.check_pip()
+        logger.info('Checking for presence of {0}...'.format(dep),
+                    extra={'event_type': 'dep_check'})
+        if not getattr(cls, '_installed', None):
+            query = ClHelper.run_command(' '.join([cls.c_pip, 'list']))
+            cls._installed = query.split('\n')
+        search = filter(lambda e: e.startswith(dep + ' '), cls._installed)
+        return len(search) > 0
+
+    @classmethod
+    def resolve(cls, dep):
+        """
+        # based on https://github.com/ricobl/pip/commit/65627d71bea4a5f8efac01b535825e803845eee2
+        from pip.locations import build_prefix, src_prefix
+        from pip.index import PackageFinder
+        from pip.req import RequirementSet, InstallRequirement
+
+        finder =  PackageFinder(find_links=[],
+                                index_urls=['https://pypi.python.org/simple/'],
+                                use_mirrors=False,
+                                mirrors=[])
+        requirement_set = RequirementSet(
+            build_dir=os.path.abspath(build_prefix),
+            src_dir=os.path.abspath(src_prefix),
+            download_dir=None,
+            download_cache=None,
+            upgrade=False,
+            as_egg=False,
+            ignore_installed=True,
+            ignore_dependencies=False,
+            force_reinstall=True,
+            use_user_site=False)
+
+        requirement_set.add_requirement(
+            InstallRequirement.from_line(dep, None))
+
+        requirement_set.prepare_files(finder, force_root_egg_info=False, bundle=False)
+
+        requirements = '\n'.join(
+            ['%s==%s' % (req.name, req.installed_version) for req in
+                requirement_set.successfully_downloaded])
+
+        print requirements
+        """
+        return dep
+
+    @classmethod
+    def install(cls, *args):
+        cls.check_pip()
+        cmd = ['pkexec', cls.c_pip, 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
+            return args
+        except exceptions.ClException:
+            return False
+
 
 class PathHelper(object):
     c_cp = 'cp'
