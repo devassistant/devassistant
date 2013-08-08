@@ -43,7 +43,7 @@ class YamlLoader(object):
             tuple (fullpath, loaded yaml structure) or None if not found
         """
         ret = None
-        name_dot_yaml = name + '.yaml'
+        name_dot_yaml = name if name.endswith('.yaml') else name + '.yaml'
         for d in directories:
             if d.startswith(os.path.expanduser('~')) and not os.path.exists(d):
                 os.makedirs(d)
