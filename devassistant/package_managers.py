@@ -24,7 +24,7 @@ def list_managers():
     # I admit that this is an absolutely insane hack but it's the simplest
     # solution and easy to maintain (no need to store list of package
     # managers somewhere)
-    return filter(identify_managers, globals().itervalues())
+    return filter(identify_managers, globals().values())
 
 
 def list_managers_shortcuts():
