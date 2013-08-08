@@ -45,7 +45,7 @@ class YamlLoader(object):
         ret = None
         name_dot_yaml = name + '.yaml'
         for d in directories:
-            if d.startswith('/home') and not os.path.exists(d):
+            if d.startswith(os.path.expanduser('~')) and not os.path.exists(d):
                 os.makedirs(d)
             for dirname, subdirs, files in os.walk(d):
                 if name_dot_yaml in files:
