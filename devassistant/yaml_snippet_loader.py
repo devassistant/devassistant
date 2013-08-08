@@ -11,8 +11,8 @@ class YamlSnippetLoader(object):
 
     @classmethod
     def _find_snippet(cls, name):
-        for path, snip in cls._snippets.items():
-            if path.endswith(name + '.yaml'): return snip
+        for snip in cls._snippets.values():
+            if snip.name == name: return snip
 
         return None
 
@@ -21,11 +21,12 @@ class YamlSnippetLoader(object):
         found = cls._find_snippet(name)
         if found != None:
             return found
-        struct_dict = yaml_loader.YamlLoader.load_yaml(cls.snippets_dirs, name)
-        if struct_dict != {}:
-            path, parsed_yaml = struct_dict.popitem()
-            snip = snippet.Snippet(path,
+        loaded = yaml_loader.YamlLoader.load_yaml(cls.snippets_dirs, name)
+        if loaded:
+            path, parsed_yaml = loaded
+            snip = snippet.Snippet(name,
                                    parsed_yaml,
+                                   path,
                                    template_dir=yaml_loader.YamlLoader._default_template_dir_for(path))
             cls._snippets[snip.path] = snip
             return snip

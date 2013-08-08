@@ -40,9 +40,9 @@ class YamlLoader(object):
             directories: list of directories to search
             name: name of the yaml file to load (".yaml" is appended by this method)
         Returns:
-            dict with one key/value: {fullpath: loaded yaml structure} (or empty if not found)
+            tuple (fullpath, loaded yaml structure) or None if not found
         """
-        ret = {}
+        ret = None
         name_dot_yaml = name + '.yaml'
         for d in directories:
             if d.startswith('/home') and not os.path.exists(d):
@@ -50,7 +50,7 @@ class YamlLoader(object):
             for dirname, subdirs, files in os.walk(d):
                 if name_dot_yaml in files:
                     path = os.path.join(dirname, name_dot_yaml)
-                    ret[path] = yaml.load(open(path, 'r'), Loader=Loader)
+                    ret = (path, yaml.load(open(path, 'r'), Loader=Loader))
         return ret
 
     @classmethod

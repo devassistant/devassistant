@@ -2,10 +2,10 @@ import copy
 import os
 
 class Snippet(object):
-    def __init__(self, path, parsed_yaml, template_dir=''):
-        self.path = path
-        self.name = os.path.splitext(os.path.basename(path))[0]
+    def __init__(self, name, parsed_yaml, path, template_dir=''):
+        self.name = name
         self.parsed_yaml = parsed_yaml
+        self.path = path
         self.template_dir = template_dir
 
     @property
