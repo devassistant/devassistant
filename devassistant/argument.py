@@ -1,5 +1,6 @@
 class Argument(object):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
+        self.name = name
         self.flags = args
         self.kwargs = kwargs
 

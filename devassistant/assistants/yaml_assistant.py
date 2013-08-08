@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 
+from devassistant import argument
 from devassistant import assistant_base
 from devassistant import exceptions
 from devassistant.assistants.command_formatter import CommandFormatter
@@ -11,9 +12,68 @@ from devassistant import yaml_snippet_loader
 from devassistant.package_managers import list_managers_shortcuts
 
 class YamlAssistant(assistant_base.AssistantBase):
-    _dependencies = {}
+    def __init__(self, name, parsed_yaml, path, template_dir):
+        self.name = name
+        self.parsed_yaml = parsed_yaml
+        self.path = path
+        self.template_dir = template_dir
 
-    _run = []
+    @property
+    def parsed_yaml(self):
+        return self._parsed_yaml
+
+    @parsed_yaml.setter
+    def parsed_yaml(self, value):
+        self._parsed_yaml = value
+
+        self.template_dir = value.get('template_dir', self.template_dir)
+        self.fullname = value.get('fullname', '')
+        self.description = value.get('description', '')
+        self.role = value.get('role', 'creator')
+        self.args = self._construct_args(value.get('args', {}))
+
+        self._files = value.get('files', {})
+        self._subassistant_names = value.get('subassistants', [])
+        self._superassistant_name = value.get('superassistant', None)
+        self._logging = value.get('logging', [])
+        # set _run and _dependencies as empty in case assistant doesn't have them at all
+        self._dependencies = value.get('dependencies', [])
+        self._run = value.get('run', [])
+        # handle more dependencies* and run* sections
+        for k, v in value.items():
+            if k.startswith('run') or k.startswith('dependencies'):
+                setattr(self, '_{0}'.format(k), v)
+        self._pre_run = value.get('pre_run', [])
+        self._post_run = value.get('post_run', [])
+
+    def _construct_args(self, struct):
+        args = []
+        for arg_name, arg_params in struct.items():
+            use_snippet = arg_params.pop('snippet', None)
+            if use_snippet:
+                # if snippet is used, take this parameter from snippet and update
+                # it with current arg_params, if any
+                try:
+                    problem = None
+                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
+                    arg_params = dict(snippet.args.pop(arg_name), **arg_params)
+                except exceptions.SnippetNotFoundException as e:
+                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + str(e)
+                except KeyError as e: # snippet doesn't have the requested argument
+                    problem = 'Couldn\'t find argument {arg} in snippet {snip} wanted by assistant {a}.'
+
+                if problem:
+                    logger.warning(problem.format(snip=use_snippet,
+                                                  arg=arg_name,
+                                                  a=self.name))
+                    continue
+
+                # this works much like snippet.args.pop(arg_name).update(arg_params),
+                # but unlike it, this actually returns the updated dict
+
+            arg = argument.Argument(arg_name, *arg_params.pop('flags'), **arg_params)
+            args.append(arg)
+        return args
 
     def get_subassistants(self):
         return self._subassistants
@@ -130,10 +190,10 @@ class YamlAssistant(assistant_base.AssistantBase):
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
 
         kwargs['__assistant__'] = self
-        if hasattr(self, '_pre_run'):
+        if self._pre_run:
             self._run_one_section(self._pre_run, kwargs)
         self._run_one_section(to_run, kwargs)
-        if hasattr(self, '_post_run'):
+        if self._post_run:
             self._run_one_section(self._post_run, kwargs)
 
     def _run_one_section(self, section, kwargs):
@@ -212,7 +272,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self._template_dir
+                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self.template_dir
                     run_command(comm_type, CommandFormatter.format(comm_type, comm, template_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
@@ -381,7 +441,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         if expr.startswith('$('): # only one expression: "$(expression)"
             try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self._template_dir, self._files, **kwargs), **kwargs)
+                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output

@@ -89,9 +89,16 @@ class DotDevassistantCommand(object):
             del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1
             # delete the dict member so that we don't write it out with other kwargs again
+
+        # we will only write original cli/gui args, other kwargs are "private" for this run
+        original_kwargs = {}
+        arg_names = map(lambda arg: arg.name, kwargs['__assistant__'].args)
+        for arg in arg_names:
+            if arg in kwargs: # only write those that were actually used on invocation
+                original_kwargs[arg] = kwargs[arg]
         to_write = {'devassistant_version': version.VERSION,
                     'subassistant_path': path,
-                    'original_kwargs': kwargs}
+                    'original_kwargs': original_kwargs}
         yaml.dump(to_write, stream=f, default_flow_style=False)
         f.close()
 

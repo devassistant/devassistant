@@ -15,7 +15,7 @@ class AssistantBase(object):
     args = []
     source_file = ''
 
-    _template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
+    template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
 
     def get_subassistant_classes(self):
         """Return list of classes that are subassistants of this assistant.

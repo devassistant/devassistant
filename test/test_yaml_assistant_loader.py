@@ -27,6 +27,8 @@ class TestYamlAssistantLoader(object):
         return yaml.load(fhandler)
 
     def test_assistant_from_yaml(self):
+        # TODO: probably move testing to yaml_assistants tests, since
+        # most of this stuff is done there now (although it's testable here)
         y = self.load_yaml_from_fixture('c')
         a = self.yl.assistant_from_yaml('foo', y)
 

@@ -288,7 +288,8 @@ class DialogHelper(object):
                 cls.user_override_helper = values
                 setattr(namespace, self.dest, values)
 
-        arg = argument.Argument(settings.UI_FLAG,
+        arg = argument.Argument(settings.UI_FLAG[2:],
+                                settings.UI_FLAG,
                                 action=UIAction,
                                 required=False,
                                 help=help)

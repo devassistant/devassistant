@@ -44,60 +44,10 @@ class YamlAssistantLoader(object):
 
     @classmethod
     def assistant_from_yaml(cls, source, y):
-        assistant = yaml_assistant.YamlAssistant()
         # assume only one key and value
         name, attrs = y.popitem()
 
-        # arguments that we need to create cli parser/gui
-        assistant.name = name
-        assistant.fullname = attrs.get('fullname', '')
-        assistant.description = attrs.get('description', '')
-        assistant.role = attrs.get('role', 'creator')
-        assistant.args = cls._args_from_struct(assistant, attrs.get('args', {}))
-        assistant.source_file = source
-
-        # arguments that are only needed at runtime
-        assistant._template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
-        assistant._files = attrs.get('files', {})
-        assistant._subassistant_names = attrs.get('subassistants', [])
-        assistant._superassistant_name = attrs.get('superassistant', None)
-        assistant._logging = attrs.get('logging', [])
-        assistant._dependencies = attrs.get('dependencies', [])
-        # handle more dependencies* and run* sections
-        for k, v in attrs.items():
-            if k.startswith('run') or k.startswith('dependencies'):
-                setattr(assistant, '_{0}'.format(k), v)
-        assistant._pre_run = attrs.get('pre_run', [])
-        assistant._post_run = attrs.get('post_run', [])
+        template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
+        assistant = yaml_assistant.YamlAssistant(name, attrs, source, template_dir)
 
         return assistant
-
-    @classmethod
-    def _args_from_struct(cls, assistant, struct):
-        args = []
-        for arg_name, arg_params in struct.items():
-            use_snippet = arg_params.pop('snippet', None)
-            if use_snippet:
-                # if snippet is used, take this parameter from snippet and update
-                # it with current arg_params, if any
-                try:
-                    problem = None
-                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
-                    arg_params = dict(snippet.args.pop(arg_name), **arg_params)
-                except exceptions.SnippetNotFoundException as e:
-                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + str(e)
-                except KeyError as e: # snippet doesn't have the requested argument
-                    problem = 'Couldn\'t find argument {arg} in snippet {snip} wanted by assistant {a}.'
-
-                if problem:
-                    logger.warning(problem.format(snip=use_snippet,
-                                                  arg=arg_name,
-                                                  a=assistant.name))
-                    continue
-
-                # this works much like snippet.args.pop(arg_name).update(arg_params),
-                # but unlike it, this actually returns the updated dict
-
-            arg = argument.Argument(*arg_params.pop('flags'), **arg_params)
-            args.append(arg)
-        return args

@@ -16,12 +16,12 @@ from test.logger import TestLoggingHandler
 
 class TestYamlAssistant(object):
     def setup_method(self, method):
-        self.ya = yaml_assistant.YamlAssistant()
+        self.ya = yaml_assistant.YamlAssistant('ya', {}, '', '')
         self.ya.role = 'creator'
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
-        self.ya2 = yaml_assistant.YamlAssistant()
+        self.ya2 = yaml_assistant.YamlAssistant('ya2', {}, '', '')
         self.ya2._files = {}
         self.ya2.role = 'creator'
         self.ya2._run = [{'if $ide':
@@ -256,11 +256,11 @@ class TestYamlAssistant(object):
                                                                'mysnippet.yaml'))
         self.ya.run()
         assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
-        assert ('INFO', os.path.join(self.ya._template_dir, 'f/g')) in self.tlh.msgs
+        assert ('INFO', os.path.join(self.ya.template_dir, 'f/g')) in self.tlh.msgs
 
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):
-        self.ya = yaml_assistant.YamlAssistant()
+        self.ya = yaml_assistant.YamlAssistant('ya', {}, '', '')
         self.ya.role = 'modifier'
         self.ya._files = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
