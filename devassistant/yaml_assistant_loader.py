@@ -45,20 +45,19 @@ class YamlAssistantLoader(object):
     @classmethod
     def assistant_from_yaml(cls, source, y):
         assistant = yaml_assistant.YamlAssistant()
-        assistant._source_file = source
         # assume only one key and value
         name, attrs = y.popitem()
 
-        # arguments that we can handle right away
+        # arguments that we need to create cli parser/gui
         assistant.name = name
         assistant.fullname = attrs.get('fullname', '')
         assistant.description = attrs.get('description', '')
         assistant.role = attrs.get('role', 'creator')
-        assistant.template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
-        # cli arguments
-        cls._args_from_struct(assistant, attrs.get('args', {}))
+        assistant.args = cls._args_from_struct(assistant, attrs.get('args', {}))
+        assistant.source_file = source
 
-        # arguments that will be handled by YamlAssistant methods
+        # arguments that are only needed at runtime
+        assistant._template_dir = attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(source))
         assistant._files = attrs.get('files', {})
         assistant._subassistant_names = attrs.get('subassistants', [])
         assistant._superassistant_name = attrs.get('superassistant', None)
@@ -68,14 +67,14 @@ class YamlAssistantLoader(object):
         for k, v in attrs.items():
             if k.startswith('run') or k.startswith('dependencies'):
                 setattr(assistant, '_{0}'.format(k), v)
-        assistant.pre_run = attrs.get('pre_run', [])
-        assistant.post_run = attrs.get('post_run', [])
+        assistant._pre_run = attrs.get('pre_run', [])
+        assistant._post_run = attrs.get('post_run', [])
 
         return assistant
 
     @classmethod
     def _args_from_struct(cls, assistant, struct):
-        assistant.args = []
+        args = []
         for arg_name, arg_params in struct.items():
             use_snippet = arg_params.pop('snippet', None)
             if use_snippet:
@@ -100,4 +99,5 @@ class YamlAssistantLoader(object):
                 # but unlike it, this actually returns the updated dict
 
             arg = argument.Argument(*arg_params.pop('flags'), **arg_params)
-            assistant.args.append(arg)
+            args.append(arg)
+        return args

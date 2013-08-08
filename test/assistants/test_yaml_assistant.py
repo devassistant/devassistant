@@ -15,8 +15,6 @@ from devassistant.yaml_snippet_loader import YamlSnippetLoader
 from test.logger import TestLoggingHandler
 
 class TestYamlAssistant(object):
-    template_dir = yaml_assistant.YamlAssistant.template_dir
-
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant()
         self.ya.role = 'creator'
@@ -248,11 +246,9 @@ class TestYamlAssistant(object):
                                          'run': [{'log_i': '*first'}]}))
         self.ya.run()
         assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
-        assert ('INFO', os.path.join(self.ya.template_dir, 'f/g')) in self.tlh.msgs
+        assert ('INFO', os.path.join(self.ya._template_dir, 'f/g')) in self.tlh.msgs
 
 class TestYamlAssistantModifier(object):
-    template_dir = yaml_assistant.YamlAssistant.template_dir
-
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant()
         self.ya.role = 'modifier'

@@ -7,21 +7,15 @@ class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
     in subclass, so that it doesn't get inherited!"""
     # Some informations about assistant
-    # These are mandatory:
+    # These should all be present:
     name = 'base'
     fullname = 'Base'
-
-    # These are optional:
     description = ''
+    role = 'creator'
     args = []
-    repo = []
+    source_file = ''
 
-    template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
-
-    # don't override these, used internally
-    _dot_devassistant_path = None
-    # we don't use this currently, so let's keep it commented so that we don't depend on jinja for no reason
-    # _jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+    _template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
 
     def get_subassistant_classes(self):
         """Return list of classes that are subassistants of this assistant.

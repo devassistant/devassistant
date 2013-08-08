@@ -27,7 +27,7 @@ def excepthook(type, value, traceback):
         pp = DAPrettyPrinter()
         # keep last file to reference it if we are still in the file, but in
         # different run section/condition
-        last_file = run_section_frames[0].f_locals['self']._source_file
+        last_file = run_section_frames[0].f_locals['self'].source_file
         print('File {0}'.format(last_file))
         print('  In {0} assistant'.format(run_section_frames[0].f_locals['self'].fullname))
 

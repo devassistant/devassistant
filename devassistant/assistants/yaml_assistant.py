@@ -130,11 +130,11 @@ class YamlAssistant(assistant_base.AssistantBase):
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
 
         kwargs['__assistant__'] = self
-        if 'pre_run' in dir(self):
-            self._run_one_section(self.pre_run, kwargs)
+        if hasattr(self, '_pre_run'):
+            self._run_one_section(self._pre_run, kwargs)
         self._run_one_section(to_run, kwargs)
-        if 'post_run' in dir(self):
-            self._run_one_section(self.post_run, kwargs)
+        if hasattr(self, '_post_run'):
+            self._run_one_section(self._post_run, kwargs)
 
     def _run_one_section(self, section, kwargs):
         skip_else = False
@@ -212,7 +212,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                     kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self.template_dir
+                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self._template_dir
                     run_command(comm_type, CommandFormatter.format(comm_type, comm, template_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
@@ -381,7 +381,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         if expr.startswith('$('): # only one expression: "$(expression)"
             try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.template_dir, self._files, **kwargs), **kwargs)
+                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self._template_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output
