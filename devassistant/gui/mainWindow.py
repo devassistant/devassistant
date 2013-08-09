@@ -6,6 +6,9 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GLib
 
 from devassistant import assistant_base
+from devassistant.bin import CreatorAssistant
+from devassistant.bin import ModifierAssistant
+from devassistant.bin import PreparerAssistant
 from devassistant import yaml_assistant_loader
 from devassistant.logger import logger
 from devassistant.logger import logger_gui
@@ -22,22 +25,6 @@ GLib.threads_init()
 Gdk.threads_init()
 
 gladefile = "./devassistant/gui/devel-assistant.glade"
-
-class DevelCreatorAssistants(assistant_base.AssistantBase):
-    def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['creator'])
-        return sa
-
-class DevelModifierAssistants(assistant_base.AssistantBase):
-    def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['modifier'])
-        return sa
-
-class DevelPreparerAssistants(assistant_base.AssistantBase):
-    def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['preparer'])
-        return sa
-
 
 class mainWindow(object):
 
@@ -72,16 +59,20 @@ class mainWindow(object):
         self.box4.set_border_width(12)
         # Creating Notebook widget.
         self.notebook = self.gui_helper.create_notebook()
+        self.notebook.set_has_tooltip(True)
         self.box4.pack_start(self.notebook, True, True, 0)
         # Devassistant creator part
-        self.main, self.subasCreator = DevelCreatorAssistants().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subasCreator, 'Creator'), Gtk.Label('Creator'))
+        self.main, self.subasCreator = CreatorAssistant().get_subassistant_tree()
+        self.notebook.append_page(self._create_notebook_page(self.subasCreator, 'Creator'),
+                                  self.gui_helper.create_label("Creator", tooltip=self.main.description))
         # Devassistant modifier part
-        self.main, self.subasModifier = DevelModifierAssistants().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subasModifier, 'Modifier'), Gtk.Label('Modifier'))
+        self.main, self.subasModifier = ModifierAssistant().get_subassistant_tree()
+        self.notebook.append_page(self._create_notebook_page(self.subasModifier, 'Modifier'),
+                                  self.gui_helper.create_label('Modifier', tooltip=self.main.description))
         # Devassistant preparer part
-        self.main, self.subasPreparer = DevelPreparerAssistants().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subasPreparer, 'Preparer'), Gtk.Label('Preparer'))
+        self.main, self.subasPreparer = PreparerAssistant().get_subassistant_tree()
+        self.notebook.append_page(self._create_notebook_page(self.subasPreparer, 'Preparer'),
+                                  self.gui_helper.create_label('Preparer', tooltip=self.main.description))
 
         self.notebook.show()
         self.kwargs = dict()
@@ -164,13 +155,13 @@ class mainWindow(object):
     def assistant_selection(self, page):
         self.data['AssistantType']=page
         if page == 0:
-            self.assistant_class = DevelCreatorAssistants()
+            self.assistant_class = CreatorAssistant()
             self.subass = self.subasCreator
         elif page == 1:
-            self.assistant_class = DevelModifierAssistants()
+            self.assistant_class = ModifierAssistant()
             self.subass = self.subasModifier
         else:
-            self.assistant_class = DevelPreparerAssistants()
+            self.assistant_class = PreparerAssistant()
             self.subass = self.subasPreparer
     
     def btn_press_event(self, widget, event):

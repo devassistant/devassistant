@@ -59,7 +59,7 @@ class gui_helper(object):
         btn = Gtk.CheckButton()
         return btn
     
-    def create_label(self, name, justify=Gtk.Justification.CENTER, wrap=True):
+    def create_label(self, name, justify=Gtk.Justification.CENTER, wrap=True, tooltip=None):
         """
         The function is used for creating lable with HTML text
         """
@@ -68,6 +68,9 @@ class gui_helper(object):
         label.set_markup(name)
         label.set_justify(justify)
         label.set_line_wrap(wrap)
+        if tooltip is not None:
+            label.set_has_tooltip(True)
+            label.connect("query-tooltip", self.parent._tooltip_queries, tooltip)
         return label
 
     def add_button(self, gridLang, ass, row, column):

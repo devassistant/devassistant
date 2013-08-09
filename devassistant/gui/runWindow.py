@@ -130,7 +130,7 @@ class runWindow(object):
             Gtk.main_quit()
     def devassistant_start(self):
         #logger_gui.info("Thread run")
-        print self.parent.kwargs
+        #print self.parent.kwargs
         path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
         pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:
