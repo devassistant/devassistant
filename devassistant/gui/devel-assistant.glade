@@ -121,8 +121,8 @@
     </child>
   </object>
   <object class="GtkWindow" id="mainWindow">
-    <property name="width_request">500</property>
-    <property name="height_request">400</property>
+    <property name="width_request">700</property>
+    <property name="height_request">600</property>
     <property name="can_focus">False</property>
     <property name="border_width">6</property>
     <property name="title" translatable="yes">Developer Assistant setup wizard</property>
@@ -142,7 +142,7 @@
           <object class="GtkVBox" id="box4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="border_width">6</property>
+            <property name="border_width">5</property>
             <property name="spacing">12</property>
             <child>
               <object class="GtkLabel" id="label2">
@@ -153,8 +153,8 @@
                 <property name="label" translatable="yes">Select development target:</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -163,7 +163,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
@@ -257,7 +257,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="box9">
+          <object class="GtkVBox" id="boxProject">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
@@ -309,10 +309,8 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkEntry" id="entryProjectName">
-                        <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">●</property>
-                        <property name="shadow_type">none</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
                         <property name="primary_icon_sensitive">True</property>
@@ -390,7 +388,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkHSeparator" id="hseparator1">
+              <object class="GtkHSeparator" id="hseparator">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>

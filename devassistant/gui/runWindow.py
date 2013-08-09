@@ -87,13 +87,12 @@ class DevAssistantThread(threading.Thread):
                 break
 
 class runWindow(object):
-    def __init__(self,  parent, finalWindow, builder, assistant):
+    def __init__(self,  parent, finalWindow, builder):
         self.parent = parent
         self.finalWindow = finalWindow
         self.runWindow = builder.get_object("runWindow")
         self.runTreeView = builder.get_object("runTreeView")
         self.cancelBtn = builder.get_object("cancelRunBtn")
-        self.assistant = assistant
         self.tlh = RunLoggingHandler(self.runTreeView)
         logger.addHandler(self.tlh)
         FORMAT = "%(levelname)s %(message)s"
@@ -122,9 +121,6 @@ class runWindow(object):
     def close_btn(self, widget, data=None):
         name = self.cancelBtn.get_label()
         if name == "Cancel":
-            for thread in enumerate():
-                if thread.isAlive():
-                    thread._Thread_stop()
             if self.thread.isAlive():
                 self.stop.set()
                 #self.thread.terminate()
@@ -134,12 +130,13 @@ class runWindow(object):
             Gtk.main_quit()
     def devassistant_start(self):
         #logger_gui.info("Thread run")
-        path = self.assistant.get_selected_subassistant_path(**self.parent.kwargs)
+        print self.parent.kwargs
+        path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
         pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:
             pr.run()
             Gdk.threads_enter()
             self.cancelBtn.set_label("Close")
             Gdk.threads_leave()
-        except exceptions.ExecutionException as ex:
+        except exceptions.ExecutionException:
             pass
