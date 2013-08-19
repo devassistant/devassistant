@@ -10,12 +10,12 @@ from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
-    # mapping of assistant names to assistant instances
+    # mapping of assistant load names (e.g. python/django) to assistant instances
     _assistants = {}
 
     @classmethod
     def get_top_level_assistants(cls, roles=['creator', 'modifier', 'preparer']):
-        assistants = cls.get_all_assistants()
+        assistants = cls.get_all_assistants(sub_paths=roles)
         are_subassistants = set()
         for a in assistants:
             are_subassistants.update(a._subassistant_names)
@@ -23,9 +23,17 @@ class YamlAssistantLoader(object):
         return list(filter(lambda x: x.role in roles, top_level))
 
     @classmethod
-    def get_all_assistants(cls):
+    def get_all_assistants(cls, sub_paths=['']):
+        """Returns all assistants located under cls.assistants_dirs.
+
+        If sub_path (a list of strings) is given, it appends each sub_path to each assistant_dir
+        and returns assistants only from these dirs."""
         if not cls._assistants:
-            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
+            dirs = []
+            for ad in cls.assistants_dirs:
+                for sp in sub_paths:
+                    dirs.append(os.path.join(ad, sp))
+            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(dirs)
 
             for s, y in parsed_yamls.items():
                 new_as = cls.assistant_from_yaml(s, y)
