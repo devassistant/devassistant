@@ -54,6 +54,11 @@ class YamlLoader(object):
         return ret
 
     @classmethod
+    def load_yaml_file(cls, path):
+        """Load a yaml file that is at given path"""
+        return yaml.load(open(path, 'r'), Loader=Loader)
+
+    @classmethod
     def _default_template_dir_for(cls, source):
         # both yaml_assistant_loader and yaml_snippet_loader use this, so
         # it seems that there is no other place to put this
