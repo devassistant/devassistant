@@ -2,7 +2,7 @@
 #
 # -*- coding: utf-8 -*-
 #
-# devel-assistant.py - this program calls mainWindow to start the GUI
+# da-gui.py - this program calls mainWindow to start the GUI
 # Copyright 2001 - 2013 Red Hat, Inc.
 # Copyright 2013 Petr Hracek <phracek@redhat.com>
 #

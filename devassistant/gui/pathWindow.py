@@ -68,7 +68,6 @@ class pathWindow(object):
                     md.destroy()
                     return
         for btn in filter(lambda x: x.get_active(), self.button):
-            print btn.get_label()
             if btn.get_label() in self.entries:
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
                     self.parent.kwargs[btn.get_label().lower()]=self.entries[btn.get_label()].get_text()

@@ -35,7 +35,7 @@ class mainWindow(object):
         self.gui_helper = gui_helper.gui_helper(self)
         self.pathWindow = pathWindow.pathWindow(self, self.mainWin, self.builder, self.gui_helper)
         self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
-        self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder)
+        self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, self.gui_helper)
         self.mainhandlers = {
                 "on_cancelMainBtn_clicked": Gtk.main_quit,
                 "on_mainWindow_delete_event": Gtk.main_quit,
@@ -64,15 +64,21 @@ class mainWindow(object):
         # Devassistant creator part
         self.main, self.subasCreator = CreatorAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasCreator, 'Creator'),
-                                  self.gui_helper.create_label("Creator", tooltip=self.main.description))
+                                  self.gui_helper.create_label(
+                                  "Creator",
+                                  tooltip=self.get_formated_description(self.main.description)))
         # Devassistant modifier part
         self.main, self.subasModifier = ModifierAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasModifier, 'Modifier'),
-                                  self.gui_helper.create_label('Modifier', tooltip=self.main.description))
+                                  self.gui_helper.create_label(
+                                  'Modifier',
+                                  tooltip=self.get_formated_description(self.main.description)))
         # Devassistant preparer part
         self.main, self.subasPreparer = PreparerAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasPreparer, 'Preparer'),
-                                  self.gui_helper.create_label('Preparer', tooltip=self.main.description))
+                                  self.gui_helper.create_label(
+                                  'Preparer',
+                                  tooltip=self.get_formated_description(self.main.description)))
 
         self.notebook.show()
         self.kwargs = dict()
@@ -96,6 +102,10 @@ class mainWindow(object):
         """
         tooltip.set_text(text)
         return True
+    
+    def get_formated_description(self, description):
+        return description.split('.')[0]+"\n"+description.split('.')[1].lstrip()
+        
     
     def _create_notebook_page(self, assistant, text=None):
         """
@@ -122,7 +132,7 @@ class mainWindow(object):
             column += 1
         if row == 0 and len(assistant)< 3:
             while column < 3:
-                btn = self.gui_helper.button_with_label("<b>Filling label</b>")
+                btn = self.gui_helper.button_with_label("")
                 btn.set_sensitive(False)
                 btn.hide()
                 gridLang.attach(btn, column, row, 1, 1)
