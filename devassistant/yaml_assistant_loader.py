@@ -15,7 +15,7 @@ class YamlAssistantLoader(object):
 
     @classmethod
     def get_top_level_assistants(cls, roles=['creator', 'modifier', 'preparer']):
-        assistants = cls.get_all_assistants(sub_paths=roles)
+        assistants = cls.get_all_assistants()
         are_subassistants = set()
         for a in assistants:
             are_subassistants.update(a._subassistant_names)
@@ -23,17 +23,9 @@ class YamlAssistantLoader(object):
         return list(filter(lambda x: x.role in roles, top_level))
 
     @classmethod
-    def get_all_assistants(cls, sub_paths=['']):
-        """Returns all assistants located under cls.assistants_dirs.
-
-        If sub_path (a list of strings) is given, it appends each sub_path to each assistant_dir
-        and returns assistants only from these dirs."""
+    def get_all_assistants(cls):
         if not cls._assistants:
-            dirs = []
-            for ad in cls.assistants_dirs:
-                for sp in sub_paths:
-                    dirs.append(os.path.join(ad, sp))
-            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(dirs)
+            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
 
             for s, y in parsed_yamls.items():
                 new_as = cls.assistant_from_yaml(s, y)
