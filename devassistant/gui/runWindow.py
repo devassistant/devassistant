@@ -87,13 +87,15 @@ class DevAssistantThread(threading.Thread):
                 break
 
 class runWindow(object):
-    def __init__(self,  parent, finalWindow, builder):
+    def __init__(self,  parent, finalWindow, builder, gui_helper):
         self.parent = parent
         self.finalWindow = finalWindow
         self.runWindow = builder.get_object("runWindow")
         self.runTreeView = builder.get_object("runTreeView")
         self.cancelBtn = builder.get_object("cancelRunBtn")
+        self.infoBox = builder.get_object("infoBox")
         self.tlh = RunLoggingHandler(self.runTreeView)
+        self.gui_helper = gui_helper
         logger.addHandler(self.tlh)
         FORMAT = "%(levelname)s %(message)s"
         self.tlh.setFormatter(logging.Formatter(FORMAT))
@@ -106,13 +108,23 @@ class runWindow(object):
         self.thread = threading.Thread(target=self.devassistant_start)
         #self.thread = DevAssistantThread(target=self.devassistant_start)
         self.stop = threading.Event()
+        self.pr = None
+        self.link = None
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
+        if self.parent.kwargs.get('github'):
+            self.link = self.gui_helper.create_link_button(
+                    "Link to project on Github",
+                    "http://www.github.com/{0}/{1}".format(self.parent.kwargs.get('github'),projectname))
+            self.link.set_border_width(6)
+            self.link.set_sensitive(False)            
+            self.infoBox.pack_start(self.link, False, False, 12)
         self.runWindow.show_all()
         self.cancelBtn.set_sensitive(False)
         self.thread.start()
         self.cancelBtn.set_sensitive(True)
+        self.link.set_sensitive(True)
 
     def done_thread(self):
         self.cancelBtn.set_label("Close")
@@ -122,7 +134,7 @@ class runWindow(object):
         name = self.cancelBtn.get_label()
         if name == "Cancel":
             if self.thread.isAlive():
-                self.stop.set()
+                self.pr.stop_assistant()
                 #self.thread.terminate()
                 self.thread.join()
             Gtk.main_quit()
@@ -132,9 +144,9 @@ class runWindow(object):
         #logger_gui.info("Thread run")
         #print self.parent.kwargs
         path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
-        pr = path_runner.PathRunner(path, self.parent.kwargs)
+        self.pr = path_runner.PathRunner(path, self.parent.kwargs)
         try:
-            pr.run()
+            self.pr.run()
             Gdk.threads_enter()
             self.cancelBtn.set_label("Close")
             Gdk.threads_leave()
