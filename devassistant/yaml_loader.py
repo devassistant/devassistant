@@ -54,7 +54,7 @@ class YamlLoader(object):
         return ret
 
     @classmethod
-    def load_yaml_file(cls, path):
+    def load_yaml_by_path(cls, path):
         """Load a yaml file that is at given path"""
         return yaml.load(open(path, 'r'), Loader=Loader)
 
