@@ -109,7 +109,7 @@ class runWindow(object):
         #self.thread = DevAssistantThread(target=self.devassistant_start)
         self.stop = threading.Event()
         self.pr = None
-        self.link = None
+        self.link = self.gui_helper.create_button()
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
@@ -133,11 +133,14 @@ class runWindow(object):
     def close_btn(self, widget, data=None):
         name = self.cancelBtn.get_label()
         if name == "Cancel":
-            if self.thread.isAlive():
-                self.pr.stop_assistant()
-                #self.thread.terminate()
-                self.thread.join()
-            Gtk.main_quit()
+            dlg = self.gui_helper.create_message_dialog("Do you want to cancel project creation?",
+                                                        buttons=Gtk.ButtonsType.YES_NO)
+            response = dlg.run()
+            if response == Gtk.ResponseType.YES:            
+                if self.thread.isAlive():
+                    self.pr.stop_assistant() 
+                Gtk.main_quit()
+            dlg.destroy()
         else:
             Gtk.main_quit()
     def devassistant_start(self):

@@ -66,19 +66,19 @@ class mainWindow(object):
         self.notebook.append_page(self._create_notebook_page(self.subasCreator, 'Creator'),
                                   self.gui_helper.create_label(
                                   "Creator",
-                                  tooltip=self.get_formated_description(self.main.description)))
+                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
         # Devassistant modifier part
         self.main, self.subasModifier = ModifierAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasModifier, 'Modifier'),
                                   self.gui_helper.create_label(
                                   'Modifier',
-                                  tooltip=self.get_formated_description(self.main.description)))
+                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
         # Devassistant preparer part
         self.main, self.subasPreparer = PreparerAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasPreparer, 'Preparer'),
                                   self.gui_helper.create_label(
                                   'Preparer',
-                                  tooltip=self.get_formated_description(self.main.description)))
+                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
 
         self.notebook.show()
         self.kwargs = dict()
@@ -102,10 +102,6 @@ class mainWindow(object):
         """
         tooltip.set_text(text)
         return True
-    
-    def get_formated_description(self, description):
-        return description.split('.')[0]+"\n"+description.split('.')[1].lstrip()
-        
     
     def _create_notebook_page(self, assistant, text=None):
         """

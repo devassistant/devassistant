@@ -86,7 +86,10 @@ class gui_helper(object):
         #print "Run button",ass[0]._run
         if ass[0].description:
             btn.set_has_tooltip(True)
-            btn.connect("query-tooltip", self.parent._tooltip_queries, ass[0].description)
+            btn.connect("query-tooltip",
+                        self.parent._tooltip_queries,
+                        self.get_formated_description(ass[0].description)
+                        )
         btn.connect("clicked", self.parent.btn_clicked, ass[0].name)
         if row == 0 and column == 0:
             gridLang.add(btn)
@@ -108,7 +111,10 @@ class gui_helper(object):
             menu_item = Gtk.MenuItem(sub[0].fullname)
             if sub[0].description:
                 menu_item.set_has_tooltip(True)
-                menu_item.connect("query-tooltip", self.parent._tooltip_queries, sub[0].description)
+                menu_item.connect("query-tooltip",
+                                  self.parent._tooltip_queries,
+                                  self.get_formated_description(sub[0].description),
+                                  )
             menu_item.show()
             menu.append(menu_item)
             item = list()
@@ -119,13 +125,25 @@ class gui_helper(object):
         btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>\n\n"+text)
         if assistant[0].description:
             btn.set_has_tooltip(True)
-            btn.connect("query-tooltip", self.parent._tooltip_queries, assistant[0].description)
+            btn.connect("query-tooltip",
+                        self.parent._tooltip_queries,
+                        self.get_formated_description(assistant[0].description),
+                        )
         btn.connect_object("event", self.parent.btn_press_event, menu)
         if row == 0 and column == 0:
             gridLang.add(btn)
         else:
             gridLang.attach(btn, column, row, 1, 1)
         return btn
+        
+    def get_formated_description(self, description):
+        import re
+        text = re.sub(r"\s+",' ',description.split('.')[0])+" "+description.split('.')[1].lstrip()
+        from textwrap import wrap
+        formatted_text = ""
+        for t in wrap(text,60):
+            formatted_text = formatted_text + t +"\n"
+        return formatted_text
     
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
         scrolledWindow = Gtk.ScrolledWindow()
@@ -148,11 +166,11 @@ class gui_helper(object):
         notebook.set_show_border(True)
         return notebook
         
-    def create_message_dialog(self, text):
+    def create_message_dialog(self, text, buttons=Gtk.ButtonsType.CLOSE):
         dialog = Gtk.MessageDialog(None,
                              Gtk.DialogFlags.DESTROY_WITH_PARENT,
                              Gtk.MessageType.WARNING,
-                             Gtk.ButtonsType.CLOSE,
+                             buttons,
                              text)
         return dialog
         
