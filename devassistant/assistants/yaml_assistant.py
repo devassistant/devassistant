@@ -459,8 +459,8 @@ class YamlAssistant(assistant_base.AssistantBase):
             raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
 
         return (success if not invert_success else not success, output)
-        
-    def stop_action(self, stop_flag):
+
+    def stop(self):
         """ This function is used for stopping devassistant from GUI
         """
-        self.stop_flag = stop_flag
+        self.stop_flag = True

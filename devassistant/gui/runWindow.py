@@ -59,33 +59,6 @@ class RunLoggingHandler(logging.Handler):
                     treeStore.append(lastRow, [msg])
         Gdk.threads_leave()
 
-class DevAssistantThread(threading.Thread):
-    def __init__(self, target = None):
-        threading.Thread.__init__(self)
-        self._terminate = False
-        self.target = target
-        self.stop = threading.Event()
-
-    def terminate(self):
-        print "terminate is called"
-        self._terminate = True
-        self.stop.set()
-        print "terminate is finished"
-
-    def run_job(self):
-        print "Function was run"
-        self.target()
-        print "Function was finished"
-
-    def run(self):
-        print "Function was run"
-        self.target()
-        print "Function was finished"
-        while True:
-            if self._terminate:
-                print "Thread is canceled"
-                break
-
 class runWindow(object):
     def __init__(self,  parent, finalWindow, builder, gui_helper):
         self.parent = parent
@@ -106,7 +79,6 @@ class runWindow(object):
         self.runTreeView.append_column(column)
         self.runTreeView.set_model(self.store)
         self.thread = threading.Thread(target=self.devassistant_start)
-        #self.thread = DevAssistantThread(target=self.devassistant_start)
         self.stop = threading.Event()
         self.pr = None
         self.link = self.gui_helper.create_button()
@@ -118,7 +90,7 @@ class runWindow(object):
                     "Link to project on Github",
                     "http://www.github.com/{0}/{1}".format(self.parent.kwargs.get('github'),projectname))
             self.link.set_border_width(6)
-            self.link.set_sensitive(False)            
+            self.link.set_sensitive(False)
             self.infoBox.pack_start(self.link, False, False, 12)
         self.runWindow.show_all()
         self.cancelBtn.set_sensitive(False)
@@ -136,9 +108,10 @@ class runWindow(object):
             dlg = self.gui_helper.create_message_dialog("Do you want to cancel project creation?",
                                                         buttons=Gtk.ButtonsType.YES_NO)
             response = dlg.run()
-            if response == Gtk.ResponseType.YES:            
+            if response == Gtk.ResponseType.YES:
                 if self.thread.isAlive():
-                    self.pr.stop_assistant() 
+                    self.pr.stop()
+                dlg.destroy()
                 Gtk.main_quit()
             dlg.destroy()
         else:
