@@ -102,7 +102,7 @@ class mainWindow(object):
         """
         tooltip.set_text(text)
         return True
-    
+
     def _create_notebook_page(self, assistant, text=None):
         """
             This function is used for create tab page for notebook.
@@ -143,7 +143,7 @@ class mainWindow(object):
         self.assistant_selection(self.notebook.get_current_page())
         self.pathWindow.open_window(widget)
         self.mainWin.hide()
-    
+
     def btn_clicked(self, widget, data=None):
         self.kwargs['subassistant_0']=data
         if self.kwargs.has_key('subassistant_1'):
@@ -157,7 +157,7 @@ class mainWindow(object):
 
     def open_window(self, widget, data=None):
         self.mainWin.show_all()
-        
+
     def assistant_selection(self, page):
         self.data['AssistantType']=page
         if page == 0:
@@ -169,10 +169,10 @@ class mainWindow(object):
         else:
             self.assistant_class = PreparerAssistant()
             self.subass = self.subasPreparer
-    
+
     def btn_press_event(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:
             if event.button.button == 1:
                 widget.popup(None, None, None, None, event.button.button, event.time)
             return True
-        return False        
+        return False

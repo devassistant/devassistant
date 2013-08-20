@@ -38,7 +38,7 @@ class pathWindow(object):
         self.labelPrjName = self.builder.get_object("labelPrjName")
         self.labelPrjDir = self.builder.get_object("labelPrjDir")
         self.hseparator = self.builder.get_object("hseparator")
-        
+
     def next_window(self, widget, data=None):
         #print self.parent.data
         if self.parent.data['AssistantType'] == 0:
@@ -86,7 +86,7 @@ class pathWindow(object):
             self.button.remove(btn)
         for btn in self.grid:
             self.grid.remove(btn)
-    
+
     def get_user_path(self):
         try:
             path = os.path.expanduser('~')
@@ -94,7 +94,7 @@ class pathWindow(object):
             path = ''
         if os.path.isdir(path):
             return path
-        
+
     def open_window(self, widget, data=None):
         text = self.get_user_path()
         self.dirName.set_text(text)
@@ -136,14 +136,14 @@ class pathWindow(object):
                 else:
                     self.browseBtn.set_sensitive(False)
         self.pathWindow.show_all()
-   
+
     def prev_window(self, widget, data=None):
         self.pathWindow.hide()
         self.parent.open_window(widget, data)
-    
+
     def get_data(self):
         return (self.dirName.get_text(), self.entryProjectName.get_text())
-        
+
     def browse_path(self, window):
         text = self.gui_helper.create_file_chooser_dialog("Choose project directory", self.pathWindow, name="Select")
         if text is not None:
@@ -168,7 +168,7 @@ class pathWindow(object):
             self.grid.attach(align, 0, row , 1, 1)
         label = self.gui_helper.create_label(arg.kwargs['help'])
         label.set_alignment(0, 0)
-        self.grid.attach(label, 1, row, 1, 1) 
+        self.grid.attach(label, 1, row, 1, 1)
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
@@ -191,7 +191,7 @@ class pathWindow(object):
             self.browseBtn.set_sensitive(False)
             self.browseBtn.connect("clicked", self.browse_clicked, entry)
             if self._check_box_title(arg, number) == 'Eclipse':
-                
+
                 entry.set_text(text=os.path.expanduser("~/workspace"))
                 alignBtn.add(self.browseBtn)
                 #new_box.pack_start(align,False,False,0)
@@ -205,7 +205,7 @@ class pathWindow(object):
             new_box.pack_start(alignBtn, False, False, 0)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
-            self.grid.attach(new_box, 1, row, 1, 1) 
+            self.grid.attach(new_box, 1, row, 1, 1)
         return row
 
     def browse_clicked(self, widget, data=None):
