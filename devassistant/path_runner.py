@@ -6,6 +6,7 @@ class PathRunner(object):
     def __init__(self, path, parsed_args, override_sys_excepthook=True):
         self.path = path
         self.parsed_args = parsed_args
+        self.stop_flag = False
         if override_sys_excepthook:
             import devassistant.excepthook
 
@@ -59,3 +60,13 @@ class PathRunner(object):
         self._run_path_dependencies()
         if not 'deps_only' in self.parsed_args:
             self._run_path_run()
+            
+    def stop_assistant(self):
+        self.stop_flag = True
+        for a in self.path:
+            if 'run' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
+                """
+                Setting stop_flag into YamlAssistant
+                """
+                a.stop_action(self.stop_flag)
+        

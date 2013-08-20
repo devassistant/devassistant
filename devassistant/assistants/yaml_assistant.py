@@ -17,6 +17,7 @@ class YamlAssistant(assistant_base.AssistantBase):
         self.parsed_yaml = parsed_yaml
         self.path = path
         self.template_dir = template_dir
+        self.stop_flag = False
 
     @property
     def parsed_yaml(self):
@@ -200,6 +201,8 @@ class YamlAssistant(assistant_base.AssistantBase):
         skip_else = False
 
         for i, command_dict in enumerate(section):
+            if self.stop_flag:
+                break
             for comm_type, comm in command_dict.items():
                 if comm_type.startswith('call'):
                     # calling workflow:
@@ -458,3 +461,8 @@ class YamlAssistant(assistant_base.AssistantBase):
             raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
 
         return (success if not invert_success else not success, output)
+        
+    def stop_action(self, stop_flag):
+        """ This function is used for stopping devassistant from GUI
+        """
+        self.stop_flag = stop_flag
