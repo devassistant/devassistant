@@ -1,6 +1,5 @@
 g:
   fullname: G Language Tool
-  superassistant: f
 
   dependencies:
   - default:

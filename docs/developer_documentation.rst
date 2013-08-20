@@ -2,11 +2,12 @@ Developer Documentation
 =======================
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 2
 
+   developer_documentation/devassistant_core
    developer_documentation/yaml_assistant_reference
    developer_documentation/common_assistant_behaviour
-   developer_documentation/devassistant_core
 
 Overall Design
 --------------
@@ -34,8 +35,8 @@ Assistants
 
 Assistants
 ----------
-Internally, each assistant is represented by a class (subclass of
-devassistant.assistant_base.AssistantBase). This class is constructed
+Internally, each assistant is represented by instance of
+devassistant.assistants.yaml_assistant.YamlAssistant). Instances are constructed
 by devassistant in runtime from parsed yaml files. Each assistant can
 have zero or more subassistants. This effectively forms a tree-like
 structure. For example::
@@ -47,6 +48,9 @@ structure. For example::
            /   \            / \
           /     \          /   \
        Django  Flask    Rails Sinatra
+
+This structure is defined by filesystem hierarchy as explained in
+:ref:`assistants_loading_mechanism`
 
 Each assistant can optionally define arguments that it accepts (either
 on commandline, or from GUI in future). For example, you can run

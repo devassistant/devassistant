@@ -1,10 +1,10 @@
 .. _common_assistant_behaviour:
 
 Common Assistant Behaviour
-==========================
+--------------------------
 
 Common Parameters of Assistants and Their Meanings
---------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``-e``
   Create Eclipse project, optional. Should create ``.project`` (or any other 
@@ -24,7 +24,7 @@ them from ``common_args.yaml`` (``-n``, ``-g``) or ``eclipse.yaml`` (``-e``) sni
        snippet: common_args
 
 Other Conventions
------------------
+^^^^^^^^^^^^^^^^^
 
 When creating snippets/Python commands, they should operate under the assumption
 that current working directory is the project directory (not one dir up or

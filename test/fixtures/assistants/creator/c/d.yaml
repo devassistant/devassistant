@@ -1,6 +1,5 @@
 d:
   fullname: D Language Tool
-  subassistants: []
 
   dependencies:
   - default:

@@ -22,7 +22,7 @@ class TestYamlAssistantLoader(object):
         self.yl._classes = []
 
     def load_yaml_from_fixture(self, fixture):
-        fixture_path = os.path.join(self.yl.assistants_dirs[0], '{0}.yaml'.format(fixture))
+        fixture_path = os.path.join(self.yl.assistants_dirs[0], 'creator', '{0}.yaml'.format(fixture))
         fhandler = open(fixture_path)
         return yaml.load(fhandler)
 
@@ -42,24 +42,22 @@ class TestYamlAssistantLoader(object):
             'clientc': {'source': 'templates/c/client.c'},
             'serverc': {'source': 'templates/c/server.c'}
         }
-        assert a._subassistant_names == ['d', 'e']
         assert a._run == [{'cl': 'ls foo/bar'}]
 
-    def test_get_all_assistants_loads_all(self):
+    def test_load_all_assistants_loads_proper_structure(self):
+        YamlAssistantLoader.load_all_assistants(roles=['creator'])
+        assert len(YamlAssistantLoader._assistants) == 1
+        assert len(YamlAssistantLoader._assistants['creator']) == 2
         # ass is a really nice variable name, isn't it?
-        ass = YamlAssistantLoader.get_all_assistants()
-        assert len(ass) == 5
-        assert set(['c', 'd', 'e', 'f', 'g']) == set(map(lambda x: x.name, ass))
-
-    def test_get_all_classes_sets_get_subassistants_properly(self):
-        ass = YamlAssistantLoader.get_all_assistants()
-        for a in ass:
-            if a.name == 'c':
-                assert set(map(lambda x: x.name, a.get_subassistants())) == set(['d', 'e'])
-            elif a.name == 'f':
-                assert set(map(lambda x: x.name, a.get_subassistants())) == set(['g'])
-            else:
-                assert a.get_subassistants() == []
+        a1 = YamlAssistantLoader._assistants['creator'][0]
+        a2 = YamlAssistantLoader._assistants['creator'][1]
+        if a1.name == 'c':
+            c, f = a1, a2
+        else:
+            c, f = a2, a1
+        assert len(c.get_subassistants()) == 2
+        assert len(f.get_subassistants()) == 1
+        #TODO: some more checks...
 
     def test_get_top_level_assistants(self):
         ass = YamlAssistantLoader.get_top_level_assistants()

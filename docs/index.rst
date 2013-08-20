@@ -12,6 +12,7 @@ Contents
 --------
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 2
 
    user_documentation

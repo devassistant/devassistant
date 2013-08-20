@@ -1,4 +1,6 @@
+import glob
 import os
+
 import yaml
 try:
     from yaml import CLoader as Loader
@@ -28,7 +30,7 @@ class YamlLoader(object):
 
         for f in yaml_files:
             with open(f, 'r') as stream:
-                loaded_yamls[f] = yaml.load(stream)
+                loaded_yamls[f] = yaml.load(stream, Loader=Loader)
 
         return loaded_yamls
 

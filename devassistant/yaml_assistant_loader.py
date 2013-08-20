@@ -10,37 +10,50 @@ from devassistant.assistants import yaml_assistant
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
-    # mapping of assistant load names (e.g. python/django) to assistant instances
+    # mapping of assistant roles to lists of top-level assistant instances
     _assistants = {}
 
     @classmethod
-    def get_top_level_assistants(cls, roles=['creator', 'modifier', 'preparer']):
-        assistants = cls.get_all_assistants()
-        are_subassistants = set()
-        for a in assistants:
-            are_subassistants.update(a._subassistant_names)
-        top_level = filter(lambda x: x.name not in are_subassistants, assistants)
-        return list(filter(lambda x: x.role in roles, top_level))
+    def get_top_level_assistants(cls, roles=settings.ASSISTANT_ROLES):
+        cls.load_all_assistants(roles=roles)
+        result = []
+        for r in roles:
+            result.extend(cls._assistants[r])
+
+        return result
 
     @classmethod
-    def get_all_assistants(cls):
-        if not cls._assistants:
-            parsed_yamls = yaml_loader.YamlLoader.load_all_yamls(cls.assistants_dirs)
+    def load_all_assistants(cls, roles):
+        to_load = set(roles) - set(cls._assistants.keys())
+        for tl in to_load:
+            dirs = [os.path.join(d, tl) for d in cls.assistants_dirs]
+            file_hierarchy = cls.get_assistants_file_hierarchy(dirs)
+            cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy)
 
-            for s, y in parsed_yamls.items():
-                new_as = cls.assistant_from_yaml(s, y)
-                cls._assistants[new_as.name] = new_as
+    @classmethod
+    def get_assistants_from_file_hierarchy(cls, file_hierarchy):
+        result = []
 
-            # handle _superassistant_name fields
-            have_super = filter(lambda a: a._superassistant_name is not None, cls._assistants.values())
-            for assistant in have_super:
-                cls._assistants[assistant._superassistant_name]._subassistant_names.append(assistant.name)
+        for name, subhierarchy in file_hierarchy.items():
+            loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(subhierarchy[0])
+            ass = cls.assistant_from_yaml(subhierarchy[0], loaded_yaml)
+            ass._subassistants = cls.get_assistants_from_file_hierarchy(subhierarchy[1])
+            result.append(ass)
 
-            for assistant in cls._assistants.values():
-                # set subassistants of assistant according to names in _subassistant_names
-                assistant._subassistants = [cls._assistants[n] for n in assistant._subassistant_names]
+        return result
 
-        return list(cls._assistants.values())
+    @classmethod
+    def get_assistants_file_hierarchy(cls, dirs):
+        result = {}
+        for d in filter(lambda d: os.path.exists(d), dirs):
+            for f in filter(lambda f: f.endswith('.yaml'), os.listdir(d)):
+                assistant_name = f[:-5]
+                if assistant_name not in result:
+                    subas_dirs = [os.path.join(dr, assistant_name) for dr in dirs]
+                    result[assistant_name] = (os.path.join(d, f),
+                                              cls.get_assistants_file_hierarchy(subas_dirs))
+
+        return result
 
     @classmethod
     def assistant_from_yaml(cls, source, y):

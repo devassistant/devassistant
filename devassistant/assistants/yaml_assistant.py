@@ -34,8 +34,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         self.args = self._construct_args(value.get('args', {}))
 
         self._files = value.get('files', {})
-        self._subassistant_names = value.get('subassistants', [])
-        self._superassistant_name = value.get('superassistant', None)
         self._logging = value.get('logging', [])
         # set _run and _dependencies as empty in case assistant doesn't have them at all
         self._dependencies = value.get('dependencies', [])

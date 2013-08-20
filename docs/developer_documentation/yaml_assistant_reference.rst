@@ -39,7 +39,6 @@ attributes, for example::
 
    python:
      fullname: Python
-     subassistants: [django, flask]
      # etc.
 
 List of allowed attributes follows (all of them are optional, and have some
@@ -47,11 +46,6 @@ sort of reasonable default, it's up to your consideration which of them to use):
 
 ``fullname``
   a verbose name that will be displayed to user (``Python Assistant``)
-``subassistants``
-  list of names of subassistants of this assistant (``[django, flask]``)
-``superassistant``
-  name of superassistant of this assistant; use carefully to avoid loops in {super/sub}assistants
-  (``python``)
 ``role``
   role of this assistant. ``creator`` (default) is an assistant used for creating projects from scratch,
   ``modifier`` is used for modifying existing projects, ``preparer`` is used for setting up environment
@@ -339,3 +333,32 @@ set to ``preparer``::
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.
+
+.. _assistants_loading_mechanism:
+
+Assistants Loading Mechanism
+----------------------------
+Devassistant loads assistants from few load paths on filesystem (traversed
+in this order):
+
+1. "system" path, which is defined by OS distribution (usually
+   ``/usr/share/devassistant/assistants``) or by Python installation
+   (sth. like ``/usr/share/pythonX.Y/devassistant/data/assistants/``)
+2. "local" path, ``/usr/local/share/devassistant/assistants``
+3. "user" path, ``~/.devassistant/assistants``
+
+When devassistant starts up, it loads assistants from all these paths. It
+assumes, that Creator assistants are located under ``creator`` subdirectories
+of the above directories, the same applies to Modifier and Preparer assistants.
+
+For example, loading process for Creator assistants looks like this:
+
+1. Load all assistants located in ``creator`` subdirectories of each load path
+   (do not descend into subdirectories). If there are multiple assistants with
+   the same name in different load paths, the first traversed path wins.
+2. For each assistant named ``foo.yaml``:
+
+   a. If ``creator/foo`` directory doesn't exist, then this assistant is "leaf"
+      and therefore can be directly used by users.
+   b. Else this assistant is not leaf and devassistant loads its subassistants
+      from the directory, recursively going from point 1).
