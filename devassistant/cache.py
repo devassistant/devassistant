@@ -77,6 +77,7 @@ class Cache(object):
         cached_ass['source'] = file_ass['source']
         cached_ass['attrs'] = {'fullname': attrs.get('fullname', ''),
                                'description': attrs.get('description', ''),
+                               'template_dir': attrs.get('template_dir', yaml_loader.YamlLoader._default_template_dir_for(file_ass['source'])),
                                'args': {}}
         for argname, argparams in attrs.get('args', {}).items():
             if 'snippet' in argparams:
