@@ -42,8 +42,6 @@ class PathRunner(object):
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
         self._logging()
-        if errors:
-            raise exceptions.ExecutionException(errors)
         self._run_path_dependencies()
         if not 'deps_only' in self.parsed_args:
             self._run_path_run()
