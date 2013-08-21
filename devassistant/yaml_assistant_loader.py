@@ -55,10 +55,10 @@ class YamlAssistantLoader(object):
         """
         result = []
 
-        for name, subhierarchy in file_hierarchy.items():
-            loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(subhierarchy[0])
-            ass = cls.assistant_from_yaml(subhierarchy[0], loaded_yaml)
-            ass._subassistants = cls.get_assistants_from_file_hierarchy(subhierarchy[1])
+        for name, attrs in file_hierarchy.items():
+            loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(attrs['source'])
+            ass = cls.assistant_from_yaml(attrs['source'], loaded_yaml)
+            ass._subassistants = cls.get_assistants_from_file_hierarchy(attrs['subhierarchy'])
             result.append(ass)
 
         return result
@@ -80,9 +80,9 @@ class YamlAssistantLoader(object):
         Returns:
             hierarchy structure that looks like this:
             {'assistant1':
-                ('/path/to/assistant1.yaml', {<hierarchy of subassistants>}),
+                {'source': '/path/to/assistant1.yaml', 'subhierarchy': {<hierarchy of subassistants>}},
              'assistant2':
-                ('/path/to/assistant2.yaml', {<another hieararchy of subassistants})
+                {'source': '/path/to/assistant2.yaml', 'subhierarchy': {<another hieararchy of subassistants}}
             }
         """
         result = {}
@@ -91,8 +91,8 @@ class YamlAssistantLoader(object):
                 assistant_name = f[:-5]
                 if assistant_name not in result:
                     subas_dirs = [os.path.join(dr, assistant_name) for dr in dirs]
-                    result[assistant_name] = (os.path.join(d, f),
-                                              cls.get_assistants_file_hierarchy(subas_dirs))
+                    result[assistant_name] = {'source': os.path.join(d, f),
+                                              'subhierarchy': cls.get_assistants_file_hierarchy(subas_dirs)}
 
         return result
 
