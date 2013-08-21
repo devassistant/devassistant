@@ -14,17 +14,6 @@ class PathRunner(object):
         if 'logging' in vars(self.path[-1].__class__) or isinstance(self.path[-1], yaml_assistant.YamlAssistant):
             self.path[-1].logging(**self.parsed_args)
 
-    def _run_path_errors(self):
-        """Gathers errors from *Assistant.errors methods
-        Returns:
-            List of found errors (empty list if everything is ok).
-        """
-        errors = []
-        for a in self.path:
-            if 'errors' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                errors.extend(a.errors(**self.parsed_args))
-        return errors
-
     def _run_path_dependencies(self):
         """Runs *Assistant.dependencies methods.
         Raises:
@@ -53,7 +42,6 @@ class PathRunner(object):
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
         self._logging()
-        errors = self._run_path_errors()
         if errors:
             raise exceptions.ExecutionException(errors)
         self._run_path_dependencies()
