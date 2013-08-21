@@ -11,8 +11,7 @@ from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
 class Cache(object):
-    def __init__(self, loader, cache_file=settings.CACHE_FILE):
-        self.loader = loader
+    def __init__(self, cache_file=settings.CACHE_FILE):
         self.cache_file = cache_file
         # TODO: try/catch creating the cache file, on failure don't use it
         # TODO: version cache?
@@ -64,27 +63,40 @@ class Cache(object):
             return True
         if set(cached_ass['subhierarchy'].keys()) != set(set(file_ass['subhierarchy'].keys())):
             return True
-        #TODO: snippet timestamps
+        for snip_name in cached_ass['snippets']:
+            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snip_name)
+            if os.path.getctime(snippet.path) > os.path.getctime(self.cache_file):
+                return True
 
         return False
 
     def _ass_refresh_attrs(self, cached_ass, file_ass):
-        loaded_ass = self.loader.assistant_from_yaml(file_ass['source'], yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source']))
+        # we need to process assistant in custom way to see unexpanded args, etc.
+        loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
+        _, attrs = loaded_ass.popitem()
         cached_ass['source'] = file_ass['source']
-        #TODO: expand snippets in args properly
-        cached_ass['attrs'] = {'fullname': loaded_ass.fullname,
-                               'description': loaded_ass.description,
-                               'args': loaded_ass.args}
+        cached_ass['attrs'] = {'fullname': attrs.get('fullname', ''),
+                               'description': attrs.get('description', ''),
+                               'args': {}}
+        for argname, argparams in attrs.get('args', {}).items():
+            if 'snippet' in argparams:
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(argparams.pop('snippet'))
+                cached_ass['attrs']['args'][argname] = snippet.get_arg_by_name(argname)
+                cached_ass['attrs']['args'][argname].update(argparams)
+                if snippet.name not in cached_ass['snippets']:
+                    cached_ass['snippets'].append(snippet.name)
+            else:
+                cached_ass['attrs']['args'][argname] = argparams
 
     def _new_ass_hierarchy(self, file_ass):
         ret_struct = {'source': '',
                       'subhierarchy': {},
                       'attrs': {},
-                      'snippets': {}}
+                      'snippets': []}
         ret_struct['source'] = file_ass['source']
-        loaded_ass = self.loader.assistant_from_yaml(ret_struct['source'], yaml_loader.YamlLoader.load_yaml_by_path(ret_struct['source']))
         self._ass_refresh_attrs(ret_struct, file_ass)
-        # TODO: set snippets this assistant depends on
+
         for name, subhierarchy in file_ass['subhierarchy'].items():
             ret_struct['subhierarchy'][name] = self._new_ass_hierarchy(subhierarchy)
+
         return ret_struct
