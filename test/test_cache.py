@@ -1,4 +1,5 @@
 import os
+import time
 
 from devassistant.cache import Cache
 from devassistant import settings
@@ -62,12 +63,47 @@ class TestCache(object):
             os.unlink(self.cf)
         self.cch = Cache()
 
-    def create_cache(self, roles=settings.ASSISTANT_ROLES, assistants='assistants'):
+    def create_or_refresh_cache(self, roles=settings.ASSISTANT_ROLES, assistants='assistants'):
         for role in roles:
             dirs =[os.path.join(d, assistants, role) for d in settings.DATA_DIRECTORIES]
             fh = YamlAssistantLoader.get_assistants_file_hierarchy(dirs)
             self.cch.refresh_role(role, fh)
 
-    def test_foo(self):
-        self.create_cache()
+    def datafile_path(self, path):
+        """Assumes that settings.DATA_DIRECTORIES[0] is test/fixtures"""
+        return os.path.join(settings.DATA_DIRECTORIES[0], path)
+
+    def touch_file(self, path):
+        os.utime(self.datafile_path(path), None)
+
+    def assert_cache_newer(self, path):
+        assert os.path.getctime(self.cch.cache_file) > os.path.getctime(self.datafile_path(path))
+
+    def test_cache_has_proper_format_on_creation(self):
+        self.create_or_refresh_cache()
         assert self.cch.cache == correct_cache
+
+    def test_cache_refreshes_if_assistant_touched(self):
+        self.create_or_refresh_cache()
+        time.sleep(0.1)
+
+        p = 'assistants/creator/c.yaml'
+        self.touch_file(p)
+        self.create_or_refresh_cache()
+        self.assert_cache_newer(p)
+
+    def test_cache_refreshes_if_snippet_touched(self):
+        self.create_or_refresh_cache()
+        time.sleep(0.1)
+
+        p = 'snippets/snippet1.yaml'
+        self.touch_file(p)
+        self.create_or_refresh_cache()
+        self.assert_cache_newer(p)
+
+    def test_cache_doesnt_refresh_if_not_needed(self):
+        self.create_or_refresh_cache()
+        created = os.path.getctime(self.cch.cache_file)
+        time.sleep(0.1)
+        self.create_or_refresh_cache()
+        assert created == os.path.getctime(self.cch.cache_file)
