@@ -32,7 +32,10 @@ class YamlAssistantLoader(object):
 
     @classmethod
     def load_all_assistants(cls, roles):
-        """Fills self._assistants with loaded YamlAssistant instances of requested roles
+        """Fills self._assistants with loaded YamlAssistant instances of requested roles.
+
+        Tries to use cache (updated/created if needed). If cache is unusable, it
+        falls back to loading all assistants.
 
         Args:
             roles: list of required assistant roles
@@ -45,7 +48,8 @@ class YamlAssistantLoader(object):
                 cch = cache.Cache()
                 cch.refresh_role(tl, file_hierarchy)
                 cls._assistants[tl] = cls.get_assistants_from_cache_hierarchy(cch.cache[tl])
-            except:
+            except BaseException as e:
+                logger.debug(e)
                 cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy)
 
     @classmethod
