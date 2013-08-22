@@ -70,7 +70,9 @@ class TestCache(object):
 
     def teardown_method(self, method):
         while self.remove_files:
-            os.unlink(self.remove_files.pop())
+            f = self.remove_files.pop()
+            if os.path.exists(f):
+                os.unlink(f)
 
     def create_or_refresh_cache(self, roles=settings.ASSISTANT_ROLES, assistants='assistants'):
         for role in roles:
@@ -133,12 +135,43 @@ class TestCache(object):
         self.create_or_refresh_cache()
         assert created == os.path.getctime(self.cch.cache_file)
 
-    def test_cache_reacts_to_new_assistants(self):
+    def test_cache_reacts_to_new_changed_removed_assistants(self):
         self.create_or_refresh_cache()
+
+        # add new assistant and test that everything is fine
         self.addme_copy('addme.yaml', 'assistants/creator/addme.yaml')
         self.addme_copy('addme_snippet.yaml', 'snippets/addme_snippet.yaml')
         self.create_or_refresh_cache()
-        addme = self.cch.cache['creator'].pop('addme')
+        addme = self.cch.cache['creator']['addme']
         assert addme['snippets'] == ['addme_snippet']
+        assert addme['source'].endswith('assistants/creator/addme.yaml')
         assert addme['attrs']['fullname'] == 'Add me and watch miracles happen'
         assert addme['attrs']['args']['some_arg']['flags'] == ['-x']
+
+        # change assistant fullname
+        time.sleep(0.1)
+        self.addme_copy('addme_change_fullname.yaml', 'assistants/creator/addme.yaml')
+        self.create_or_refresh_cache()
+        assert addme['attrs']['fullname'] == 'Fullname changed!'
+        
+        # change current snippet (will change argument flag)
+        # snippets are cached during one startup => reset snippet cache manually
+        # TODO: fix this ^^
+        time.sleep(0.1)
+        self.addme_copy('addme_snippet_changed.yaml', 'snippets/addme_snippet.yaml')
+        from devassistant import yaml_snippet_loader; yaml_snippet_loader.YamlSnippetLoader._snippets = {}
+        self.create_or_refresh_cache()
+        addme = self.cch.cache['creator']['addme']
+        assert addme['attrs']['args']['some_arg']['flags'] == ['-z']
+
+        # switch assistant to another snippet
+        time.sleep(0.1)
+        self.addme_copy('addme_change_snippet.yaml', 'assistants/creator/addme.yaml')
+        self.create_or_refresh_cache()
+        assert addme['attrs']['args']['some_arg']['flags'] == ['-s', '--some-arg']
+
+        # finally, remove assistant completely
+        time.sleep(0.1)
+        os.unlink(self.datafile_path('assistants/creator/addme.yaml'))
+        self.create_or_refresh_cache()
+        assert 'addme' not in self.cch.cache['creator']
