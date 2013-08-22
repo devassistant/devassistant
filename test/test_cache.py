@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 
 from devassistant.cache import Cache
@@ -60,11 +61,16 @@ correct_cache = \
 
 class TestCache(object):
     cf = settings.CACHE_FILE
+    remove_files = set()
 
     def setup_method(self, method):
         if os.path.exists(self.cf):
             os.unlink(self.cf)
         self.cch = Cache()
+
+    def teardown_method(self, method):
+        while self.remove_files:
+            os.unlink(self.remove_files.pop())
 
     def create_or_refresh_cache(self, roles=settings.ASSISTANT_ROLES, assistants='assistants'):
         for role in roles:
@@ -75,6 +81,10 @@ class TestCache(object):
     def datafile_path(self, path):
         """Assumes that settings.DATA_DIRECTORIES[0] is test/fixtures"""
         return os.path.join(settings.DATA_DIRECTORIES[0], path)
+
+    def addme_copy(self, which, where):
+        shutil.copyfile(self.datafile_path(which), self.datafile_path(where))
+        self.remove_files.add(self.datafile_path(where))
 
     def touch_file(self, path):
         os.utime(self.datafile_path(path), None)
@@ -122,3 +132,13 @@ class TestCache(object):
         time.sleep(0.1)
         self.create_or_refresh_cache()
         assert created == os.path.getctime(self.cch.cache_file)
+
+    def test_cache_reacts_to_new_assistants(self):
+        self.create_or_refresh_cache()
+        self.addme_copy('addme.yaml', 'assistants/creator/addme.yaml')
+        self.addme_copy('addme_snippet.yaml', 'snippets/addme_snippet.yaml')
+        self.create_or_refresh_cache()
+        addme = self.cch.cache['creator'].pop('addme')
+        assert addme['snippets'] == ['addme_snippet']
+        assert addme['attrs']['fullname'] == 'Add me and watch miracles happen'
+        assert addme['attrs']['args']['some_arg']['flags'] == ['-x']

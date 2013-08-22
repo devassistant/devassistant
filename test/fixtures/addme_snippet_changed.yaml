@@ -1,0 +1,3 @@
+args:
+  some_arg:
+    flags: [-z]
