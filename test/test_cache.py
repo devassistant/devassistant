@@ -5,14 +5,17 @@ from devassistant.cache import Cache
 from devassistant import settings
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
+# the paths in this dicts are truncated to make tests pass in any location
+# (if not truncated, they contain e.g. home dir on your machine, etc.)
+# therefore we need a special comparison method in class below
 correct_cache = \
 {'creator': {'c': {'attrs': {'args': {'foo': {'flags': ['-f', '--foo'],
                                               'help': 'Help for foo parameter.'}},
                              'description': 'C Language Tool description...',
                              'fullname': 'C Language Tool',
-                             'template_dir': '/home/bkabrda/programming/devassistant/test/fixtures/templates'},
+                             'template_dir': 'test/fixtures/templates'},
                    'snippets': [],
-                   'source': '/home/bkabrda/programming/devassistant/test/fixtures/assistants/creator/c.yaml',
+                   'source': 'test/fixtures/assistants/creator/c.yaml',
                    'subhierarchy': {'d': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'},
@@ -23,34 +26,34 @@ correct_cache = \
                                                                                     '--some-arg']}},
                                                     'description': '',
                                                     'fullname': 'D Language Tool',
-                                                    'template_dir': '/home/bkabrda/programming/devassistant/test/fixtures/templates'},
+                                                    'template_dir': 'test/fixtures/templates'},
                                           'snippets': ['snippet1'],
-                                          'source': '/home/bkabrda/programming/devassistant/test/fixtures/assistants/creator/c/d.yaml',
+                                          'source': 'test/fixtures/assistants/creator/c/d.yaml',
                                           'subhierarchy': {}},
                                     'e': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'description': '',
                                                     'fullname': 'E Language Tool',
-                                                    'template_dir': '/home/bkabrda/programming/devassistant/test/fixtures/templates'},
+                                                    'template_dir': 'test/fixtures/templates'},
                                           'snippets': [],
-                                          'source': '/home/bkabrda/programming/devassistant/test/fixtures/assistants/creator/c/e.yaml',
+                                          'source': 'test/fixtures/assistants/creator/c/e.yaml',
                                           'subhierarchy': {}}}},
              'f': {'attrs': {'args': {'name': {'flags': ['-n', '--name'],
                                                'help': 'Name of project to create'}},
                              'description': '',
                              'fullname': 'F Language Tool',
-                             'template_dir': '/home/bkabrda/programming/devassistant/test/fixtures/templates'},
+                             'template_dir': 'test/fixtures/templates'},
                    'snippets': [],
-                   'source': '/home/bkabrda/programming/devassistant/test/fixtures/assistants/creator/f.yaml',
+                   'source': 'test/fixtures/assistants/creator/f.yaml',
                    'subhierarchy': {'g': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'description': '',
                                                     'fullname': 'G Language Tool',
-                                                    'template_dir': '/home/bkabrda/programming/devassistant/test/fixtures/templates'},
+                                                    'template_dir': 'test/fixtures/templates'},
                                           'snippets': [],
-                                          'source': '/home/bkabrda/programming/devassistant/test/fixtures/assistants/creator/f/g.yaml',
+                                          'source': 'test/fixtures/assistants/creator/f/g.yaml',
                                           'subhierarchy': {}}}}},
  'modifier': {},
  'preparer': {}}
@@ -79,9 +82,21 @@ class TestCache(object):
     def assert_cache_newer(self, path):
         assert os.path.getctime(self.cch.cache_file) > os.path.getctime(self.datafile_path(path))
 
+    def assert_cache_content(self, expected, actual):
+        assert len(expected) == len(actual)
+        for k, v in actual.items():
+            assert k in expected
+            if k in ['source', 'template_dir']:
+                assert v.endswith(expected[k])
+            else:
+                if isinstance(v, dict):
+                    self.assert_cache_content(expected[k], v)
+                else:
+                    assert expected[k] == v
+
     def test_cache_has_proper_format_on_creation(self):
         self.create_or_refresh_cache()
-        assert self.cch.cache == correct_cache
+        self.assert_cache_content(correct_cache, self.cch.cache)
 
     def test_cache_refreshes_if_assistant_touched(self):
         self.create_or_refresh_cache()
