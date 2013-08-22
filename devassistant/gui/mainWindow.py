@@ -14,7 +14,6 @@ from devassistant.logger import logger
 from devassistant.logger import logger_gui
 
 from devassistant.gui import pathWindow
-from devassistant.gui import finalWindow
 from devassistant.gui import runWindow
 from devassistant.gui import gui_helper
 
@@ -34,8 +33,7 @@ class mainWindow(object):
         self.mainWin = self.builder.get_object("mainWindow")
         self.gui_helper = gui_helper.gui_helper(self)
         self.pathWindow = pathWindow.pathWindow(self, self.mainWin, self.builder, self.gui_helper)
-        self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
-        self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, self.gui_helper)
+        self.runWindow = runWindow.runWindow(self, self.builder, self.gui_helper)
         self.mainhandlers = {
                 "on_cancelMainBtn_clicked": Gtk.main_quit,
                 "on_mainWindow_delete_event": Gtk.main_quit,
@@ -45,11 +43,8 @@ class mainWindow(object):
                 "on_cancelRunBtn_clicked": self.runWindow.close_btn,
                 "on_nextPathBtn_clicked": self.pathWindow.next_window,
                 "on_pathWindow_delete_event": Gtk.main_quit,
-                "on_finalWindow_delete_event": Gtk.main_quit,
                 "on_runWindow_delete_event": Gtk.main_quit,
                 "on_prevPathBtn_clicked": self.pathWindow.prev_window,
-                "on_prevFinalBtn_clicked": self.finalWindow.prev_window,
-                "on_runFinalBtn_clicked": self.finalWindow.run_btn,
                     }
         self.builder.connect_signals(self.mainhandlers)
         self.labelMainWindow = self.builder.get_object("sublabel")

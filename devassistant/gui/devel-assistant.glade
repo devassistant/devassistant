@@ -1,125 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkWindow" id="finalWindow">
-    <property name="width_request">500</property>
-    <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Developer Assistant setup wizard</property>
-    <property name="resizable">False</property>
-    <property name="window_position">center</property>
-    <property name="default_width">500</property>
-    <property name="gravity">center</property>
-    <signal name="delete-event" handler="on_finalWindow_delete_event" swapped="no"/>
-    <child>
-      <object class="GtkVBox" id="boxMain">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="extension_events">cursor</property>
-        <property name="border_width">12</property>
-        <child>
-          <object class="GtkVBox" id="boxFinal">
-            <property name="can_focus">False</property>
-            <property name="border_width">6</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">6</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHBox" id="box15">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <object class="GtkHBox" id="box16">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="border_width">12</property>
-                <property name="spacing">12</property>
-                <property name="homogeneous">True</property>
-                <child>
-                  <object class="GtkButton" id="cancelFinalBtn">
-                    <property name="label" translatable="yes">_Cancel</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <accelerator key="c" signal="clicked" modifiers="GDK_MOD1_MASK"/>
-                    <signal name="clicked" handler="on_cancelFinalBtn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="prevFinalBtn">
-                    <property name="label" translatable="yes">_Back</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <accelerator key="b" signal="clicked" modifiers="GDK_MOD1_MASK"/>
-                    <signal name="clicked" handler="on_prevFinalBtn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="runFinalBtn">
-                    <property name="label" translatable="yes">Ru_n</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <accelerator key="n" signal="clicked" modifiers="GDK_MOD1_MASK"/>
-                    <signal name="clicked" handler="on_runFinalBtn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">6</property>
-                <property name="pack_type">end</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="width_request">700</property>
     <property name="height_request">600</property>
@@ -135,7 +16,6 @@
       <object class="GtkVBox" id="box1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="extension_events">cursor</property>
         <property name="border_width">12</property>
         <property name="spacing">12</property>
         <child>
@@ -313,8 +193,6 @@
                         <property name="invisible_char">●</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
-                        <property name="primary_icon_sensitive">True</property>
-                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -336,8 +214,6 @@
                             <property name="invisible_char">●</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
-                            <property name="primary_icon_sensitive">True</property>
-                            <property name="secondary_icon_sensitive">True</property>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -511,6 +387,18 @@
     </child>
   </object>
   <object class="GtkListStore" id="runStore"/>
+  <object class="GtkListStore" id="storeList">
+    <columns>
+      <!-- column-name assistants -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="substoreList">
+    <columns>
+      <!-- column-name Available -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="runWindow">
     <property name="width_request">500</property>
     <property name="can_focus">False</property>
@@ -538,6 +426,9 @@
                 <property name="model">runStore</property>
                 <property name="headers_clickable">False</property>
                 <property name="enable_search">False</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection1"/>
+                </child>
               </object>
             </child>
           </object>
@@ -583,17 +474,5 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="storeList">
-    <columns>
-      <!-- column-name assistants -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="substoreList">
-    <columns>
-      <!-- column-name Available -->
-      <column type="gchararray"/>
-    </columns>
   </object>
 </interface>

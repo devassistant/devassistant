@@ -60,9 +60,8 @@ class RunLoggingHandler(logging.Handler):
         Gdk.threads_leave()
 
 class runWindow(object):
-    def __init__(self,  parent, finalWindow, builder, gui_helper):
+    def __init__(self,  parent, builder, gui_helper):
         self.parent = parent
-        self.finalWindow = finalWindow
         self.runWindow = builder.get_object("runWindow")
         self.runTreeView = builder.get_object("runTreeView")
         self.cancelBtn = builder.get_object("cancelRunBtn")
