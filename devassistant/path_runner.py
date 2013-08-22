@@ -1,4 +1,3 @@
-from devassistant import exceptions
 from devassistant.assistants import yaml_assistant
 from devassistant.assistants.commands import run_command
 
