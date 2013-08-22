@@ -21,10 +21,11 @@ develop-eggs
 # Installer logs
 pip-log.txt
 
-# Unit test / coverage reports
+# Unit test / coverage
 .coverage
 .tox
 nosetests.xml
+test/fixtures/.cache.yaml
 
 # Translations
 *.mo

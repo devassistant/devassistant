@@ -14,7 +14,7 @@ import os
 import yaml
 
 from devassistant import exceptions
-from devassistant.command_helpers import ClHelper, DialogHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version

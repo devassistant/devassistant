@@ -1,4 +1,5 @@
 import copy
+import functools
 import logging
 import os
 
@@ -8,15 +9,31 @@ from devassistant import exceptions
 from devassistant.assistants.command_formatter import CommandFormatter
 from devassistant.assistants.commands import run_command
 from devassistant.logger import logger
+from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 from devassistant.package_managers import list_managers_shortcuts
 
+def needs_fully_loaded(method):
+    """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded
+    from cache, this decorator will fully load it first time a publicly callable method
+    is used.
+    """
+    @functools.wraps(method)
+    def inner(self, *args, **kwargs):
+        if not self.fully_loaded:
+            self.parsed_yaml = yaml_loader.YamlLoader.load_yaml_by_path(self.path).popitem()[1]
+            self.fully_loaded = True
+        return method(self, *args, **kwargs)
+
+    return inner
+
 class YamlAssistant(assistant_base.AssistantBase):
-    def __init__(self, name, parsed_yaml, path, template_dir):
+    def __init__(self, name, parsed_yaml, path, template_dir, fully_loaded=True):
         self.name = name
         self.parsed_yaml = parsed_yaml
         self.path = path
         self.template_dir = template_dir
+        self.fully_loaded = fully_loaded
         self.stop_flag = False
 
     @property
@@ -77,6 +94,7 @@ class YamlAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
         return self._subassistants
 
+    @needs_fully_loaded
     def proper_kwargs(self, **kwargs):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""
@@ -88,6 +106,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             kwargs = new_kwargs
         return kwargs
 
+    @needs_fully_loaded
     def logging(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)
         for l in self._logging:
@@ -108,6 +127,7 @@ class YamlAssistant(assistant_base.AssistantBase):
             else:
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
+    @needs_fully_loaded
     def dependencies(self, **kwargs):
         """Returns all dependencies of this assistant with regards to specified kwargs.
 
@@ -171,6 +191,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         return deps
 
+    @needs_fully_loaded
     def run(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)
         if self.role == 'modifier':
@@ -460,6 +481,7 @@ class YamlAssistant(assistant_base.AssistantBase):
 
         return (success if not invert_success else not success, output)
 
+    @needs_fully_loaded
     def stop(self):
         """ This function is used for stopping devassistant from GUI
         """

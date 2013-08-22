@@ -77,4 +77,4 @@ class TestYamlAssistantLoader(object):
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
         a = self.yl.assistant_from_yaml('foo', y)
-        assert ('WARNING', 'Couldn\'t find argument bar in snippet common_args wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
+        assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs

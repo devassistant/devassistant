@@ -1,5 +1,4 @@
 import copy
-import os
 
 class Snippet(object):
     def __init__(self, name, parsed_yaml, path, template_dir=''):

@@ -1,2 +1,5 @@
+args:
+  some_arg:
+    flags: [-s, --some-arg]
 run:
 - log_i: this is snippet1!

@@ -24,10 +24,11 @@ class Cache(object):
     def refresh_role(self, role, file_hierarchy):
         if not role in self.cache:
             self.cache[role] = {}
-        self._refresh_hierarchy_recursive(self.cache[role], file_hierarchy)
-        cf = open(self.cache_file, 'w')
-        yaml.dump(self.cache, cf, Dumper=Dumper)
-        cf.close()
+        was_change = self._refresh_hierarchy_recursive(self.cache[role], file_hierarchy)
+        if was_change:
+            cf = open(self.cache_file, 'w')
+            yaml.dump(self.cache, cf, Dumper=Dumper)
+            cf.close()
 
     def _refresh_hierarchy_recursive(self, cached_hierarchy, file_hierarchy):
         was_change = False
