@@ -53,7 +53,7 @@ class PackageManager(object):
 
     @classmethod
     def is_installed(cls, *args, **kwargs):
-        """ Is dependency already installed? """
+        """Is this manager installed?"""
         raise NotImplementedError()
 
     @classmethod
@@ -100,10 +100,11 @@ class RPMPackageManager(PackageManager):
 
     @classmethod
     def is_installed(cls, dep):
-        if dep.startswith('@'):
-            return YUMHelper.is_group_installed(dep)
-        else:
-            return RPMHelper.is_rpm_installed(dep)
+        try:
+            ClHelper('which yum')
+            return True
+        except exceptions.ClException:
+            return False
 
     @classmethod
     def resolve(cls, *args):
