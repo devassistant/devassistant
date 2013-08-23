@@ -54,7 +54,20 @@ class PackageManager(object):
 
     @classmethod
     def is_installed(cls, *args, **kwargs):
-        """Is this manager installed?"""
+        """Is this manager available?"""
+        raise NotImplementedError()
+
+    @classmethod
+    def works(cls, *args, **kwargs):
+        """Raises exceptions.PackageManagerNotOperational if this manager
+        can't be used (something's missing) - e.g. for rpm manager
+        is_installed() returns whether rpm is installed, but works() finds
+        out whether the manager is usable."""
+        raise NotImplementedError()
+
+    @classmethod
+    def is_pkg_installed(cls, *args, **kwargs):
+        """Is a package managed by this manager installed?"""
         raise NotImplementedError()
 
     @classmethod
@@ -155,13 +168,29 @@ class RPMPackageManager(PackageManager):
     @classmethod
     def is_installed(cls, dep):
         try:
-            ClHelper('which yum')
+            ClHelper('which rpm')
             return True
         except exceptions.ClException:
             return False
 
     @classmethod
+    def works(cls):
+        try:
+            import yum
+            return True
+        except ImportError:
+            msg = 'Package manager for "{0}" not operational: {1}'.format(dep_t, e)
+            logger.error(msg)
+            raise exceptions.PackageManagerNotOperational(msg)
+
+    @classmethod
+    def is_pkg_installed(cls, pkg):
+        return cls.is_group_installed(pkg) if pkg.startswith('@') else cls.is_pkg_installed(pkg)
+
+    @classmethod
     def resolve(cls, *args):
+        # TODO: we may need to rewrite this for e.g. suse, which
+        # is rpm based, but doesn't use yum; same for install()/is_available()/can_operate()
         logger.info('Resolving dependencies ...')
         import yum
         y = yum.YumBase()
@@ -246,7 +275,7 @@ class DependencyInstaller(object):
                 return manager
         err = "Package manager for dependency type {0} was not found".format(dep_t)
         logger.error(err)
-        raise exceptions.PackageManagerNotFound(err)
+        raise exceptions.PackageManagerUnknown(err)
 
     def _process_dependency(self, dep_t, dep_l):
         """Add depednecnies into self.dependencies, possibly also adding system packages
@@ -272,6 +301,7 @@ class DependencyInstaller(object):
         """Install missing dependencies"""
         for dep_t, dep_l in self.dependencies.items():
             pkg_mgr = self.get_package_manager(dep_t)
+            pkg_mgr.works()
             to_install = pkg_mgr.resolve(*dep_l)
             if not to_install:
                 # nothing to install, let's move on
