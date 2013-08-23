@@ -70,12 +70,11 @@ class pathWindow(object):
         for btn in filter(lambda x: x.get_active(), self.button):
             if btn.get_label() in self.entries:
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
-                    self.parent.kwargs[btn.get_label().lower()]=self.entries[btn.get_label()].get_text()
+                    self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
             else:
-                self.parent.kwargs[btn.get_label().lower()]=None
+                self.parent.kwargs[btn.get_label().lower().replace('-','_')]=None
         if self.parent.data['AssistantType'] == 0:
             self.parent.kwargs['name']=self.dirName.get_text()+"/"+self.entryProjectName.get_text()
-        #print self.parent.kwargs
         self.parent.runWindow.open_window(widget, data)
         self.pathWindow.hide()
 
@@ -107,15 +106,17 @@ class pathWindow(object):
             self.box6.pack_end(self.boxPathMain, False, False, 0)
         self.boxPathMain.pack_start(self.title, False, False, 0)
         captionText = "Project: "
+        row = 0
+        for arg in self.parent.assistant_class.args:
+            row = self._add_table_row(arg, 0, row) +1
+
         for ass in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_0'], self.parent.subass):
             captionText+=" <b>"+ass[0].fullname+"</b>"
             if not ass[1]:
-                row = 0
                 for sub in filter(lambda x: x.flags[1] != '--name', ass[0].args):
                     row = self._add_table_row(sub, 1, row) + 1
             else:
                 for sub in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_1'], ass[1]):
-                    row = 0
                     captionText+= " -> <b>"+ sub[0].fullname+"</b>"
                     for arg in filter(lambda x: not '--name' in x.flags, sub[0].args):
                         row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
