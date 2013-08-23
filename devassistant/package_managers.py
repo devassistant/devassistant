@@ -10,6 +10,7 @@ TODO:
 """
 import collections
 import platform
+import tempfile
 
 from devassistant.command_helpers import ClHelper, DialogHelper
 
@@ -85,6 +86,52 @@ class RPMPackageManager(PackageManager):
     permission_prompt = "Install following %(packages_text)s?"
     shortcut = 'rpm'
 
+    c_rpm = 'rpm'
+    c_yum = 'yum'
+
+    @classmethod
+    def rpm_q(cls, rpm_name):
+        try:
+            # if we install by e.g. virtual provide, then rpm -q foo will fail
+            # therefore we always use rpm -q --whatprovides foo
+            return ClHelper.run_command(' '.join([cls.c_rpm,
+                                                  '-q',
+                                                  '--whatprovides',
+                                                  '"' + rpm_name.strip() + '"']))
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_rpm_installed(cls, rpm_name):
+        logger.info('Checking for presence of {0}...'.format(rpm_name), extra={'event_type': 'dep_check'})
+
+        found_rpm = cls.rpm_q(rpm_name)
+        if found_rpm:
+            logger.info('Found {0}'.format(found_rpm), extra={'event_type': 'dep_found'})
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+        return found_rpm
+
+    @classmethod
+    def is_group_installed(cls, group):
+        logger.info('Checking for presence of group {0}...'.format(group))
+
+        output = ClHelper.run_command(' '.join(
+            [cls.c_yum, 'group', 'list', '"{0}"'.format(group)]))
+        if 'Installed Groups' in output:
+            logger.info('Found %s', group)
+            return True
+
+        logger.info('Not found')
+        return False
+
+    @classmethod
+    def was_rpm_installed(cls, rpm_name):
+        # TODO: handle failure
+        found_rpm = cls.rpm_q(rpm_name)
+        logger.info('Installed {0}'.format(found_rpm), extra={'event_type': 'dep_installed'})
+        return found_rpm
+
     @classmethod
     def match(cls, dep_t):
         return dep_t == cls.shortcut
@@ -96,7 +143,14 @@ class RPMPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        return YUMHelper.install(*args)
+        cmd = ['pkexec', cls.c_yum, '-y', 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
+            return args
+        except exceptions.ClException:
+            return False
 
     @classmethod
     def is_installed(cls, dep):
@@ -108,7 +162,24 @@ class RPMPackageManager(PackageManager):
 
     @classmethod
     def resolve(cls, *args):
-        return YUMHelper.resolve(*args)
+        logger.info('Resolving dependencies ...')
+        import yum
+        y = yum.YumBase()
+        y.setCacheDir(tempfile.mkdtemp())
+        for arg in args:
+            if arg.startswith('@'):
+                y.selectGroup(arg[1:])
+            else:
+                pkg = y.returnPackageByDep(arg)
+                y.install(pkg)
+        y.resolveDeps()
+        logger.debug('Installing/Updating:')
+        to_install = []
+        for pkg in y.tsInfo.getMembers():
+            to_install.append(pkg.po.ui_envra)
+            logger.debug(pkg.po.ui_envra)
+
+        return to_install
 
     def __str__(self):
         return "rpm package manager"
@@ -205,7 +276,7 @@ class DependencyInstaller(object):
             if not to_install:
                 # nothing to install, let's move on
                 continue
-            install = self._ask_to_confirm(pkg_mgr, *all_deps)
+            install = self._ask_to_confirm(pkg_mgr, *to_install)
             if install:
                 installed = pkg_mgr.install(*to_install)
                 logger.info("Successfully installed {0}".format(installed))
@@ -227,7 +298,7 @@ class DependencyInstaller(object):
             self._install_dependencies()
 
     def get_system_package_manager_shortcut(self):
-        di = platform.linux_distribution[0].lower()
+        di = platform.linux_distribution()[0].lower()
         # TODO: rpm by default, custom logic for other distros
 
         return 'rpm'
