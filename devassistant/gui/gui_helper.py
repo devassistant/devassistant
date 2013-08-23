@@ -10,7 +10,7 @@ class gui_helper(object):
         """This is general class for creating GUI
         """
         self.parent = parent
-        
+
     def create_frame(self):
         """
             This function is used for creating general Gtk.Frame
@@ -18,7 +18,7 @@ class gui_helper(object):
         frame = Gtk.Frame()
         frame.set_shadow_type(Gtk.ShadowType.IN)
         return frame
-        
+
     def button_with_label(self, description, sensitive=True):
         btn = self.create_button()
         label = self.create_label(description)
@@ -26,39 +26,39 @@ class gui_helper(object):
         align.add(label)
         btn.add(align)
         return btn
-    
+
     def checkbutton_with_label(self, description):
         actBtn = Gtk.CheckButton(description)
         align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
         #align.add(actBtn)
         actBtn.add(align)
         return align
-    
-    def create_entry(self, text=""):
+
+    def create_entry(self, text="", sensitive="False"):
         textEntry = Gtk.Entry()
-        textEntry.set_sensitive(False)
+        textEntry.set_sensitive(sensitive)
         textEntry.set_text(text)
         return textEntry
 
     def create_link_button(self, text="None", uri="None"):
         linkbtn = Gtk.LinkButton(uri, text)
         return linkbtn;
-    
-       
+
+
     def create_button(self):
         """
         This is generalized method for creating Gtk.Button
         """
         btn = Gtk.Button()
         return btn
-    
+
     def create_checkbutton(self, text=""):
         """
         This is generalized method for creating Gtk.Button
         """
         btn = Gtk.CheckButton()
         return btn
-    
+
     def create_label(self, name, justify=Gtk.Justification.CENTER, wrap=True, tooltip=None):
         """
         The function is used for creating lable with HTML text
@@ -135,7 +135,7 @@ class gui_helper(object):
         else:
             gridLang.attach(btn, column, row, 1, 1)
         return btn
-        
+
     def get_formated_description(self, description):
         import re
         text = re.sub(r"\s+",' ',description.split('.')[0])+" "+description.split('.')[1].lstrip()
@@ -144,13 +144,13 @@ class gui_helper(object):
         for t in wrap(text,60):
             formatted_text = formatted_text + t +"\n"
         return formatted_text
-    
+
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
         scrolledWindow = Gtk.ScrolledWindow()
         scrolledWindow.add(layout_manager)
-        scrolledWindow.set_policy(horizontal, vertical)        
+        scrolledWindow.set_policy(horizontal, vertical)
         return scrolledWindow
-    
+
     def create_gtk_grid(self, row_spacing=6, col_spacing=6, row_homogenous=False,col_homogenous=True):
         gridLang = Gtk.Grid()
         gridLang.set_column_spacing(row_spacing)
@@ -165,7 +165,7 @@ class gui_helper(object):
         notebook.set_tab_pos(position)
         notebook.set_show_border(True)
         return notebook
-        
+
     def create_message_dialog(self, text, buttons=Gtk.ButtonsType.CLOSE):
         dialog = Gtk.MessageDialog(None,
                              Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -173,9 +173,9 @@ class gui_helper(object):
                              buttons,
                              text)
         return dialog
-        
+
     def create_file_chooser_dialog(self, text, cls, name=Gtk.STOCK_OPEN):
-        text = None        
+        text = None
         dialog = Gtk.FileChooserDialog(
             text, cls,
             Gtk.FileChooserAction.SELECT_FOLDER,
@@ -186,11 +186,11 @@ class gui_helper(object):
             text = dialog.get_filename()
         dialog.destroy()
         return text
-    
+
     def create_checkbox(self, name):
         chk_btn = Gtk.CheckButton(name)
         return chk_btn
-    
+
     def create_alignment(self, xalign=0, yalign=0, xscale=0, yscale=0):
         align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
         return align
