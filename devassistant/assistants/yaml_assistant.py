@@ -28,12 +28,13 @@ def needs_fully_loaded(method):
     return inner
 
 class YamlAssistant(assistant_base.AssistantBase):
-    def __init__(self, name, parsed_yaml, path, template_dir, fully_loaded=True):
+    def __init__(self, name, parsed_yaml, path, template_dir, fully_loaded=True, role='creator'):
         self.name = name
         self.parsed_yaml = parsed_yaml
         self.path = path
         self.template_dir = template_dir
         self.fully_loaded = fully_loaded
+        self.role = role
         self.stop_flag = False
 
     @property
@@ -47,7 +48,6 @@ class YamlAssistant(assistant_base.AssistantBase):
         self.template_dir = value.get('template_dir', self.template_dir)
         self.fullname = value.get('fullname', '')
         self.description = value.get('description', '')
-        self.role = value.get('role', 'creator')
         self.args = self._construct_args(value.get('args', {}))
 
         self._files = value.get('files', {})

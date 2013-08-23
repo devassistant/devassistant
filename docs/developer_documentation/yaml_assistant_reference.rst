@@ -22,6 +22,58 @@ at `assistants in our Github repo`_.
   So now we have something that everyone complains about, including Pythonists,
   which seems to be consistent too ;)
 
+Assistant Roles
+---------------
+There are three types of assistants:
+
+Creator
+  creator assistants are meant to create new projects from scratch, they're
+  accessed using ``da`` binary
+Modifier
+  modifier assistants are used for modifying existing projects previously
+  created by devassistant
+Preparer
+  preparer assistants are used for setting up environment for already existing
+  projects (located e.g. at remote SCM etc.) that may or may not have been
+  creating by devassistant
+
+The role is implied by assistant location in one of the load directories,
+as mentioned in :ref:`assistants_loading_mechanism`.
+
+All the rules mentioned in this document apply to all types of assistants,
+with exception of sections :ref:`modifier_assistants_ref` and
+:ref:`preparer_assistants_ref` that talk about specifics of Modifier, resp.
+Preparer assistants.
+
+.. _assistants_loading_mechanism:
+
+Assistants Loading Mechanism
+----------------------------
+Devassistant loads assistants from few load paths on filesystem (traversed
+in this order):
+
+1. "system" path, which is defined by OS distribution (usually
+   ``/usr/share/devassistant/assistants``) or by Python installation
+   (sth. like ``/usr/share/pythonX.Y/devassistant/data/assistants/``)
+2. "local" path, ``/usr/local/share/devassistant/assistants``
+3. "user" path, ``~/.devassistant/assistants``
+
+When devassistant starts up, it loads assistants from all these paths. It
+assumes, that Creator assistants are located under ``creator`` subdirectories
+of the above directories, the same applies to Modifier and Preparer assistants.
+
+For example, loading process for Creator assistants looks like this:
+
+1. Load all assistants located in ``creator`` subdirectories of each load path
+   (do not descend into subdirectories). If there are multiple assistants with
+   the same name in different load paths, the first traversed path wins.
+2. For each assistant named ``foo.yaml``:
+
+   a. If ``creator/foo`` directory doesn't exist, then this assistant is "leaf"
+      and therefore can be directly used by users.
+   b. Else this assistant is not leaf and devassistant loads its subassistants
+      from the directory, recursively going from point 1).
+
 Assistant Name
 --------------
 
@@ -46,10 +98,6 @@ sort of reasonable default, it's up to your consideration which of them to use):
 
 ``fullname``
   a verbose name that will be displayed to user (``Python Assistant``)
-``role``
-  role of this assistant. ``creator`` (default) is an assistant used for creating projects from scratch,
-  ``modifier`` is used for modifying existing projects, ``preparer`` is used for setting up environment
-  for already existing projects (located e.g. at remote SCM etc.)
 ``description``
   a (verbose) description to show to user (``Bla bla create project bla bla``)
 ``dependencies`` (and ``dependencies_*``)
@@ -295,15 +343,15 @@ quoted in the places where they are used for bash execution. That
 includes ``cl*`` commands, conditions that use bash return values and
 variable assignment that uses bash.
 
+.. _modifier_assistants_ref:
+
 Modifier Assistants
 -------------------
 
 Modifier assistants are assistants that are supposed to work with
-already created project. They must have ``role`` attribute set to
-``modifier``::
-
-   eclipse:
-     role: modifier``
+already created project. They must be placed under ``modifier``
+subdirectory of one of the load paths, as mentioned in
+:ref:`assistants_loading_mechanism`.
 
 There are few special things about modifier assistants:
 
@@ -320,45 +368,16 @@ There are few special things about modifier assistants:
   and then just ``run``. The first found is used. If you however use cli/gui
   parameter ``spam`` and section ``run_spam`` is present, then this is run instead.
 
+.. _preparer_assistants_ref:
+
 Preparer Assistants
 -------------------
 
 Preparer assistants are assistants that are supposed to checkout
 existing projects from SCM and setting up the environment according to
-``.devassistant``. Preparer assistants must have a ``role`` attribute
-set to ``preparer``::
-
-   custom:
-     role: preparer
+``.devassistant``. They must be placed under ``preparer``
+subdirectory of one of the load paths, as mentioned in
+:ref:`assistants_loading_mechanism`.
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.
-
-.. _assistants_loading_mechanism:
-
-Assistants Loading Mechanism
-----------------------------
-Devassistant loads assistants from few load paths on filesystem (traversed
-in this order):
-
-1. "system" path, which is defined by OS distribution (usually
-   ``/usr/share/devassistant/assistants``) or by Python installation
-   (sth. like ``/usr/share/pythonX.Y/devassistant/data/assistants/``)
-2. "local" path, ``/usr/local/share/devassistant/assistants``
-3. "user" path, ``~/.devassistant/assistants``
-
-When devassistant starts up, it loads assistants from all these paths. It
-assumes, that Creator assistants are located under ``creator`` subdirectories
-of the above directories, the same applies to Modifier and Preparer assistants.
-
-For example, loading process for Creator assistants looks like this:
-
-1. Load all assistants located in ``creator`` subdirectories of each load path
-   (do not descend into subdirectories). If there are multiple assistants with
-   the same name in different load paths, the first traversed path wins.
-2. For each assistant named ``foo.yaml``:
-
-   a. If ``creator/foo`` directory doesn't exist, then this assistant is "leaf"
-      and therefore can be directly used by users.
-   b. Else this assistant is not leaf and devassistant loads its subassistants
-      from the directory, recursively going from point 1).
