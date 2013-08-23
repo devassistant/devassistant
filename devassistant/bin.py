@@ -1,8 +1,16 @@
+from devassistant import argument
 from devassistant import assistant_base
 from devassistant import cli
+from devassistant import settings
 from devassistant import yaml_assistant_loader
 
 class ExecutableAssistant(assistant_base.AssistantBase):
+    args = [argument.Argument('deps_only',
+                              settings.DEPS_ONLY_FLAG,
+                              help='Only install dependencies',
+                              required=False,
+                              action='store_true')]
+
     @classmethod
     def main(cls):
         cli.CliRunner.run_assistant(cls())

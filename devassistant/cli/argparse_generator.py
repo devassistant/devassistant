@@ -19,9 +19,6 @@ class ArgparseGenerator(object):
 
         # add the argument for UI choice
         command_helpers.DialogHelper.get_argparse_argument().add_argument_to(parser)
-        help='Devassistant will only install packages'
-        parser.add_argument(settings.DEPS_ONLY_FLAG, required=False, action='store_true', help=help)
-
 
         if cur_subas:
             # then add the subassistants as arguments
