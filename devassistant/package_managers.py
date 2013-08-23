@@ -105,7 +105,7 @@ class RPMPackageManager(PackageManager):
     @classmethod
     def install_package_manager(cls):
         # yum is missing, user has to fix it
-        raise exceptions.CorePackagerMissing("yum can't be found, you are "
+        raise exceptions.SystemPackageManagerMissing("yum can't be found, you are "
             "probably running developer assistant in sandbox (virtualenv).")
 
     @classmethod
@@ -211,14 +211,6 @@ class DependencyInstaller(object):
         )
         return False if ret is False else True
 
-    def _check_dependencies(self, dep_t, dep_l):
-        """Check which deps are installed, return those that are not"""
-        to_install = []
-        for dep in deps:
-            if not PackageManagerClass.is_installed(dep):
-                to_install.append(dep)
-        return to_install
-
     def _install_dependencies(self):
         """ Install missing dependencies """
         for dep_t, dep_l in self.dependencies.items():
@@ -227,9 +219,6 @@ class DependencyInstaller(object):
             if not to_install:
                 # nothing to install, let's move on
                 continue
-            except exceptions.SystemPackageManagerMissing as e:
-                logger.error(e.message)
-                raise
             except Exception as e:
                 logger.error('Failed to resolve dependencies: {exc}'.
                              format(exc=e))
