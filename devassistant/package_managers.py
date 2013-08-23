@@ -314,7 +314,13 @@ class DependencyInstaller(object):
         """Add depednecnies into self.dependencies, possibly also adding system packages
         that contain non-distro package managers (e.g. if someone wants to install
         dependencines with pip and pip is not present, it will get installed through
-        RPM on RPM based systems, etc."""
+        RPM on RPM based systems, etc.
+
+        Skips dependencies that are supposed to be installed by system manager that
+        is not native to this system.
+        """
+        if managers[dep_t].is_system and self.get_system_package_manager_shortcut() != dep_t:
+            return
         if not managers[dep_t].is_system and not managers[dep_t].is_installed():
             smgr_sc = self.get_system_package_manager_shortcut()
             self._process_dependency(smgr_sc, managers[dep_t].get_distro_dependencies(smgr_sc))
