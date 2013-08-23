@@ -234,7 +234,6 @@ class PIPPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cls.check_pip()
         cmd = ['pkexec', cls.c_pip, 'install']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
@@ -270,6 +269,11 @@ class PIPPackageManager(PackageManager):
             query = ClHelper.run_command(' '.join([cls.c_pip, 'list']))
             cls._installed = query.split('\n')
         search = filter(lambda e: e.startswith(dep + ' '), cls._installed)
+        if search:
+            logger.info('Found {0}'.format(search[0]), extra={'event_type': 'dep_found'})
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+
         return len(search) > 0
 
     @classmethod
