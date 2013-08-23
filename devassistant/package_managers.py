@@ -339,6 +339,8 @@ class DependencyInstaller(object):
     def _install_dependencies(self):
         """Install missing dependencies"""
         for dep_t, dep_l in self.dependencies.items():
+            if not dep_l:
+                continue
             pkg_mgr = self.get_package_manager(dep_t)
             pkg_mgr.works()
             to_resolve = []
