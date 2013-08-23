@@ -8,32 +8,26 @@ TODO:
  * figure out how to install using pip when 'venv' option is specified
  * write tests
 """
+import platform
 
-from devassistant.command_helpers import RPMHelper, YUMHelper, PIPHelper, \
-    DialogHelper
+from devassistant.command_helpers import DialogHelper
 
 from devassistant.logger import logger
 from devassistant import exceptions
 
+# list of shortcuts to managers
+managers = {}
 
-def list_managers():
-    """ return list of classes which represent package managers """
-    def identify_managers(x):
-        return x != PackageManager and isinstance(x, type) and \
-            issubclass(x, PackageManager)
-    # I admit that this is an absolutely insane hack but it's the simplest
-    # solution and easy to maintain (no need to store list of package
-    # managers somewhere)
-    return filter(identify_managers, globals().values())
-
-
-def list_managers_shortcuts():
-    """ return list of shortcuts of package managers (e.g. ['rpm'])"""
-    return map(lambda x: x.shortcut, list_managers())
-
+def register_manager(manager):
+    managers[manager.shortcut] = manager
+    return manager
 
 class PackageManager(object):
     """ Abstract class for API definition of package managers """
+
+    # Indicates whether this is a system manager. If so, dependencies of its type should be
+    # skipped on platforms where it is not the default system manager.
+    is_system = True
 
     @classmethod
     def match(cls, *args, **kwargs):
@@ -74,7 +68,22 @@ class PackageManager(object):
         """
         raise NotImplementedError()
 
+    @classmethod
+    def get_distro_dependencies(cls, smgr_sc):
+        """
+        Return dependencies needed for this non-system manager to work.
+        Args:
+            smgr_sc: shortcut of system manager to return dependencies for
+        Returns:
+            list of dependencies that are to be installed via given system dependency manager
+            in order for this manager to work
+        Raises:
+            NotImplementedError: if this manager is system manager (makes no sense to call this)
+        """
+        raise NotImplementedError()
 
+
+@register_manager
 class RPMPackageManager(PackageManager):
     """ Package manager for managing rpm packages from repositories """
     permission_prompt = "Install following %(packages_text)s?"
@@ -114,10 +123,12 @@ class RPMPackageManager(PackageManager):
         return "rpm package manager"
 
 
+@register_manager
 class PIPPackageManager(PackageManager):
     """ Package manager for managing python dependencies from PyPI """
     permission_prompt = "Install following %(packages_text)s from PyPI?"
     shortcut = 'pip'
+    is_system = False
 
     @classmethod
     def match(cls, dep_t):
@@ -151,32 +162,41 @@ class PIPPackageManager(PackageManager):
         # PIPHelper.resolve(dep)
         return dep
 
+    @classmethod
+    def get_distro_dependencies(self, smgr_sc):
+        return ['python-pip']
+
     def __str__(self):
         return "pip package manager"
 
 
 class DependencyInstaller(object):
-    """ class for installing dependencies """
+    """Class for installing dependencies """
     def __init__(self):
         # {PackageManagerClass: ['list', 'of', 'dependencies']}
         self.dependencies = {}
 
     def get_package_manager(self, dep_t):
-        """ choose proper package manager and return it """
-        for glob in list_managers():
-            if glob.match(dep_t):
-                return glob
-        logger.error(
-            "Package manager for dependency type {0} was not found".
-            format(dep_t))
-        raise exceptions.PackageManagerNotFound(
-            "Package manager for %s was not found." % dep_t)
+        """Choose proper package manager and return it."""
+        # one package manager can possibly handle multiple dep types,
+        # so we can't just do manager.shortcut == dep_t
+        for manager in managers.values():
+            if manager.match(dep_t):
+                return manager
+        err = "Package manager for dependency type {0} was not found".format(dep_t)
+        logger.error(err)
+        raise exceptions.PackageManagerNotFound(err)
 
     def _process_dependency(self, dep_t, dep_l):
-        """ Add entry into self.dependencies """
-        PackageManagerClass = self.get_package_manager(dep_t)
-        self.dependencies.setdefault(PackageManagerClass, [])
-        self.dependencies[PackageManagerClass].extend(dep_l)
+        """Add depednecnies into self.dependencies, possibly also adding system packages
+        that contain non-distro package managers (e.g. if someone wants to install
+        dependencines with pip and pip is not present, it will get installed through
+        RPM on RPM based systems, etc."""
+        if not managers[dep_t].is_system and not managers[dep_t].is_available():
+            smgr_sc = self.get_system_package_manager_shortcut()
+            self._process_dependency(smgr_sc, managers[dep_t].get_distro_dependencies(smgr_sc))
+        self.dependencies.setdefault(dep_t, [])
+        self.dependencies[dep_t].extend(dep_l)
 
     def _ask_to_confirm(self, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
@@ -236,6 +256,12 @@ class DependencyInstaller(object):
                 self._process_dependency(dep_t, dep_l)
         if self.dependencies:
             self._install_dependencies()
+
+    def get_system_package_manager_shortcut(self):
+        di = platform.linux_distribution[0].lower()
+        # TODO: rpm by default, custom logic for other distros
+
+        return 'rpm'
 
 
 def main():

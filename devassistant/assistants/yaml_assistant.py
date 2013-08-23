@@ -11,7 +11,7 @@ from devassistant.assistants.commands import run_command
 from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
-from devassistant.package_managers import list_managers_shortcuts
+from devassistant import package_managers
 
 def needs_fully_loaded(method):
     """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded
@@ -172,7 +172,7 @@ class YamlAssistant(assistant_base.AssistantBase):
                         deps.extend(self._dependencies_section(section, **kwargs))
                     else:
                         logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(dep_list.split('.')))
-                elif dep_type in list_managers_shortcuts(): # handle known types of deps the same, just by appending to "deps" list
+                elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                     deps.append({dep_type: dep_list})
                 elif dep_type.startswith('if'):
                     possible_else = None
