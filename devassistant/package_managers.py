@@ -211,40 +211,32 @@ class DependencyInstaller(object):
         )
         return False if ret is False else True
 
-    def _check_dependencies(self, PackageManagerClass, deps):
-        """ Check which deps are installed, return those who are not"""
+    def _check_dependencies(self, dep_t, dep_l):
+        """Check which deps are installed, return those that are not"""
         to_install = []
         for dep in deps:
-            try:
-                is_installed = PackageManagerClass.is_installed(dep)
-            except exceptions.PackageManagerNotInstalled:
-                # this package manager is not present on system, install it!
-                di = DependencyInstaller()
-                di.install([{'rpm': ['python-pip']}])
-                is_installed = PackageManagerClass.is_installed(dep)
-            if not is_installed:
+            if not PackageManagerClass.is_installed(dep):
                 to_install.append(dep)
         return to_install
 
     def _install_dependencies(self):
         """ Install missing dependencies """
-        for PackageManagerClass, deps in self.dependencies.iteritems():
-            to_install = self._check_dependencies(PackageManagerClass, deps)
+        for dep_t, dep_l in self.dependencies.items():
+            pkg_mgr = self.get_package_manager(dep_t)
+            to_install = pkg_mgr.resolve(*dep_l)
             if not to_install:
                 # nothing to install, let's move on
                 continue
-            try:
-                all_deps = PackageManagerClass.resolve(*to_install)
-            except exceptions.CorePackagerMissing as e:
+            except exceptions.SystemPackageManagerMissing as e:
                 logger.error(e.message)
                 raise
             except Exception as e:
                 logger.error('Failed to resolve dependencies: {exc}'.
                              format(exc=e))
                 continue
-            install = self._ask_to_confirm(PackageManagerClass, *all_deps)
+            install = self._ask_to_confirm(pkg_mgr, *all_deps)
             if install:
-                installed = PackageManagerClass.install(*to_install)
+                installed = pkg_mgr.install(*to_install)
                 logger.info("Successfully installed {0}".format(installed))
 
     def install(self, struct):

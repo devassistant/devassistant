@@ -26,22 +26,18 @@ class YamlSyntaxError(BaseException):
     pass
 
 
-class CorePackagerMissing(ExecutionException):
+class SystemPackageManagerMissing(DependencyException):
     """
     this exception should be thrown when core system packager is missing:
     yum, dpkg, rpm etc. This means that we don't how to proceed (this could
     happen in sandbox e.g. virtualenv)
     """
+    pass
 
 
-class PackageManagerNotFound(ExecutionException):
+class PackageManagerNotFound(DependencyException):
     """
     specified package manager is not defined and thus we don't know how
     to install dependencies
     """
-
-
-class PackageManagerNotInstalled(ExecutionException):
-    """
-    package manager is not present on system, install it via core manager
-    """
+    pass
