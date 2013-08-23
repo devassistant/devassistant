@@ -10,7 +10,7 @@ TODO:
 """
 import platform
 
-from devassistant.command_helpers import DialogHelper
+from devassistant.command_helpers import ClHelper, DialogHelper
 
 from devassistant.logger import logger
 from devassistant import exceptions
@@ -153,7 +153,11 @@ class PIPPackageManager(PackageManager):
 
     @classmethod
     def is_installed(cls, dep):
-        return PIPHelper.is_egg_installed(dep)
+        try:
+            ClHelper('which pip')
+            return True
+        except exceptions.ClException:
+            return False
 
     @classmethod
     def resolve(cls, *dep):
