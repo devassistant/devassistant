@@ -8,7 +8,7 @@ from devassistant import exceptions
 from devassistant import settings
 from devassistant.assistants import yaml_assistant
 from devassistant.assistants import snippet
-from devassistant.command_helpers import ClHelper, RPMHelper, YUMHelper
+from devassistant.command_helpers import ClHelper
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 # hook app testing logging
@@ -32,39 +32,26 @@ class TestYamlAssistant(object):
     # TODO: refactor to also test _dependencies_section alone
     def test_dependencies(self):
         self.ya._dependencies = [{'rpm': ['foo', '@bar', 'baz']}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, True).one_by_one()
-        flexmock(YUMHelper).should_receive('is_group_installed').and_return(False)
-        flexmock(YUMHelper).should_receive('install').with_args('foo', '@bar').and_return(True)
-        # TODO: rpmhelper is used for checking whether a group was installed - fix
-        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True, True).one_by_one()
-        self.ya.dependencies()
+        self.ya.dependencies() == self.ya._dependencies
 
     def test_dependencies_uses_non_default_section_on_param(self):
         self.ya._dependencies = [{'rpm': ['foo']}]
         self.ya._dependencies_a = [{'rpm': ['bar']}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
-        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
-        flexmock(YUMHelper).should_receive('install').with_args('bar').and_return(True)
-        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True)
-        self.ya.dependencies(a=True)
+        assert self.ya._dependencies[0] in self.ya.dependencies(a=True)
+        assert self.ya._dependencies_a[0] in self.ya.dependencies(a=True)
 
     def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
         self.ya._dependencies = [{'rpm': ['foo']}]
         self.ya._dependencies_a = [{'rpm': ['bar']}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False).one_by_one()
-        flexmock(YUMHelper).should_receive('install').with_args('foo').and_return(True)
-        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True)
-        self.ya.dependencies()
+        assert self.ya.dependencies() == self.ya._dependencies
 
     def test_dependencies_if(self):
         self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('foo').and_return(True)
-        self.ya.dependencies(x='x')
+        assert self.ya.dependencies(x='x') == [{'rpm': ['foo']}]
 
     def test_dependencies_else(self):
         self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
-        self.ya.dependencies()
+        assert self.ya.dependencies() == [{'rpm': ['bar']}]
 
     def test_run_pass(self):
         self.ya._run = [{'cl': 'true'}, {'cl': 'ls'}]
@@ -209,8 +196,7 @@ class TestYamlAssistant(object):
                                     and_return(snippet.Snippet('mysnippet',
                                                                {'dependencies_foo': [{'rpm': ['bar']}]},
                                                                'mysnippet.yaml'))
-        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
-        self.ya.dependencies()
+        assert self.ya.dependencies() == [{'rpm': ['bar']}]
 
     def test_dependencies_snippet_also_installs_default_dependencies(self):
         self.ya._dependencies = [{'call': 'mysnippet.dependencies_foo'}]
@@ -220,9 +206,8 @@ class TestYamlAssistant(object):
                                                                {'dependencies_foo': [{'rpm': ['bar']}],
                                                                'dependencies': [{'rpm': ['spam']}]},
                                                                'mysnippet.yaml'))
-        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('spam').and_return(True)
-        flexmock(RPMHelper).should_receive('is_rpm_installed').with_args('bar').and_return(True)
-        self.ya.dependencies()
+        assert {'rpm': ['bar']} in self.ya.dependencies()
+        assert {'rpm': ['spam']} in self.ya.dependencies()
 
     def test_snippet_uses_its_own_files_section(self):
         self.ya._run = [{'call': 'mysnippet'}, {'log_w': '*first'}]
@@ -271,12 +256,9 @@ class TestYamlAssistantModifier(object):
         self.ya._dependencies = [{'rpm': ['spam']}]
         self.ya._dependencies_foo = [{'rpm': ['beans']}]
         self.ya._dependencies_foo_bar_baz = [{'rpm': ['eggs']}]
-        flexmock(RPMHelper).should_receive('is_rpm_installed').and_return(False, False, False).one_by_one()
-        flexmock(YUMHelper).should_receive('install').with_args('spam').and_return(True)
-        flexmock(YUMHelper).should_receive('install').with_args('beans').and_return(True)
-        flexmock(YUMHelper).should_receive('install').with_args('eggs').and_return(True)
-        flexmock(RPMHelper).should_receive('was_rpm_installed').and_return(True, True, True).one_by_one()
-        self.ya.dependencies()
+        assert {'rpm': ['spam']} in self.ya.dependencies()
+        assert {'rpm': ['beans']} in self.ya.dependencies()
+        assert {'rpm': ['eggs']} in self.ya.dependencies()
 
     def test_run_chooses_proper_method(self):
         flexmock(self.ya).should_receive('proper_kwargs').and_return(self.dda)
