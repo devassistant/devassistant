@@ -192,7 +192,7 @@ class DependencyInstaller(object):
         that contain non-distro package managers (e.g. if someone wants to install
         dependencines with pip and pip is not present, it will get installed through
         RPM on RPM based systems, etc."""
-        if not managers[dep_t].is_system and not managers[dep_t].is_available():
+        if not managers[dep_t].is_system and not managers[dep_t].is_installed():
             smgr_sc = self.get_system_package_manager_shortcut()
             self._process_dependency(smgr_sc, managers[dep_t].get_distro_dependencies(smgr_sc))
         self.dependencies.setdefault(dep_t, [])
