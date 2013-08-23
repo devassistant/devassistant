@@ -8,6 +8,7 @@ TODO:
  * figure out how to install using pip when 'venv' option is specified
  * write tests
 """
+import collections
 import platform
 
 from devassistant.command_helpers import ClHelper, DialogHelper
@@ -177,8 +178,10 @@ class PIPPackageManager(PackageManager):
 class DependencyInstaller(object):
     """Class for installing dependencies """
     def __init__(self):
-        # {PackageManagerClass: ['list', 'of', 'dependencies']}
-        self.dependencies = {}
+        # {package_manager_shorcut: ['list', 'of', 'dependencies']}
+        # we're using ordered dict to preserve the order that is used in
+        # assistants; we also want system dependencies to always go first
+        self.dependencies = collections.OrderedDict()
 
     def get_package_manager(self, dep_t):
         """Choose proper package manager and return it."""
@@ -212,7 +215,7 @@ class DependencyInstaller(object):
         return False if ret is False else True
 
     def _install_dependencies(self):
-        """ Install missing dependencies """
+        """Install missing dependencies"""
         for dep_t, dep_l in self.dependencies.items():
             pkg_mgr = self.get_package_manager(dep_t)
             to_install = pkg_mgr.resolve(*dep_l)
@@ -236,6 +239,8 @@ class DependencyInstaller(object):
         not present on system (it uses package managers specified by `struct`
         structure)
         """
+        # the system dependencies should always go first
+        self.dependencies.setdefault(self.get_system_package_manager_shortcut(), [])
         for dep_dict in struct:
             for dep_t, dep_l in dep_dict.items():
                 self._process_dependency(dep_t, dep_l)
