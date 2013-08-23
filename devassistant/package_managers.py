@@ -234,7 +234,7 @@ class PIPPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cmd = ['pkexec', cls.c_pip, 'install']
+        cmd = [cls.c_pip, 'install', '--user']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
