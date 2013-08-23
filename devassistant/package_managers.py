@@ -344,8 +344,16 @@ class DependencyInstaller(object):
                 # nothing to install, let's move on
                 continue
             confirm = self._ask_to_confirm(pkg_mgr, *to_install)
-            if confirm:
-                installed = pkg_mgr.install(*to_install)
+            if not confirm:
+                msg = 'List of packages denied by user, exiting.'
+                logger.error(msg)
+                raise exceptions.DependencyException(msg)
+            installed = pkg_mgr.install(*to_install)
+            if not installed:
+                msg = 'Failed to install dependencies, exiting.'
+                logger.error(msg)
+                raise exceptions.DependencyException(msg)
+            else:
                 logger.info("Successfully installed {0}".format(', '.join(installed)))
 
     def install(self, struct):
