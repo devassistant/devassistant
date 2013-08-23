@@ -133,10 +133,10 @@ class RPMPackageManager(PackageManager):
         output = ClHelper.run_command(' '.join(
             [cls.c_yum, 'group', 'list', '"{0}"'.format(group)]))
         if 'Installed Groups' in output:
-            logger.info('Found %s', group)
-            return True
-
-        logger.info('Not found')
+            logger.info('Found {0}'.format(group), extra={'event_type': 'dep_found'})
+            return group
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
         return False
 
     @classmethod
