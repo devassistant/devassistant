@@ -9,6 +9,7 @@ TODO:
  * write tests
 """
 import collections
+import logging
 import platform
 import tempfile
 
@@ -185,7 +186,7 @@ class RPMPackageManager(PackageManager):
 
     @classmethod
     def is_pkg_installed(cls, pkg):
-        return cls.is_group_installed(pkg) if pkg.startswith('@') else cls.is_pkg_installed(pkg)
+        return cls.is_group_installed(pkg) if pkg.startswith('@') else cls.is_rpm_installed(pkg)
 
     @classmethod
     def resolve(cls, *args):
@@ -195,12 +196,11 @@ class RPMPackageManager(PackageManager):
         import yum
         y = yum.YumBase()
         y.setCacheDir(tempfile.mkdtemp())
-        for arg in args:
-            if arg.startswith('@'):
-                y.selectGroup(arg[1:])
+        for pkg in args:
+            if pkg.startswith('@'):
+                y.selectGroup(pkg[1:])
             else:
-                pkg = y.returnPackageByDep(arg)
-                y.install(pkg)
+                y.install(y.returnPackageByDep(pkg))
         y.resolveDeps()
         logger.debug('Installing/Updating:')
         to_install = []
@@ -302,14 +302,18 @@ class DependencyInstaller(object):
         for dep_t, dep_l in self.dependencies.items():
             pkg_mgr = self.get_package_manager(dep_t)
             pkg_mgr.works()
-            to_install = pkg_mgr.resolve(*dep_l)
+            to_resolve = []
+            for dep in dep_l:
+                if not pkg_mgr.is_pkg_installed(dep):
+                    to_resolve.append(dep)
+            to_install = pkg_mgr.resolve(*to_resolve)
             if not to_install:
                 # nothing to install, let's move on
                 continue
-            install = self._ask_to_confirm(pkg_mgr, *to_install)
-            if install:
+            confirm = self._ask_to_confirm(pkg_mgr, *to_install)
+            if confirm:
                 installed = pkg_mgr.install(*to_install)
-                logger.info("Successfully installed {0}".format(installed))
+                logger.info("Successfully installed {0}".format(', '.join(installed)))
 
     def install(self, struct):
         """
