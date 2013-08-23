@@ -221,6 +221,8 @@ class PIPPackageManager(PackageManager):
     shortcut = 'pip'
     is_system = False
 
+    c_pip = 'pip'
+
     @classmethod
     def match(cls, dep_t):
         return dep_t == cls.shortcut
@@ -231,17 +233,44 @@ class PIPPackageManager(PackageManager):
         return cls.permission_prompt % {'packages_text': packages_text}
 
     @classmethod
-    def install(cls, *dep):
-        """ Install dependency """
-        return PIPHelper.install(*dep)
+    def install(cls, *args):
+        cls.check_pip()
+        cmd = ['pkexec', cls.c_pip, 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
+            return args
+        except exceptions.ClException:
+            return False
 
     @classmethod
-    def is_installed(cls, dep):
+    def is_installed(cls):
         try:
-            ClHelper('which pip')
+            ClHelper.run_command('which pip')
             return True
         except exceptions.ClException:
             return False
+
+    @classmethod
+    def works(cls):
+        try:
+            ClHelper.run_command('pip')
+            return True
+        except exceptions.ClException as e:
+            msg = 'Package manager for "{0}" not operational: {1}'.format(dep_t, e)
+            logger.error(msg)
+            raise exceptions.PackageManagerNotOperational(msg)
+
+    @classmethod
+    def is_pkg_installed(cls, dep):
+        logger.info('Checking for presence of {0}...'.format(dep),
+                    extra={'event_type': 'dep_check'})
+        if not getattr(cls, '_installed', None):
+            query = ClHelper.run_command(' '.join([cls.c_pip, 'list']))
+            cls._installed = query.split('\n')
+        search = filter(lambda e: e.startswith(dep + ' '), cls._installed)
+        return len(search) > 0
 
     @classmethod
     def resolve(cls, *dep):
