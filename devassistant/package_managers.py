@@ -204,10 +204,6 @@ class DependencyInstaller(object):
             if not to_install:
                 # nothing to install, let's move on
                 continue
-            except Exception as e:
-                logger.error('Failed to resolve dependencies: {exc}'.
-                             format(exc=e))
-                continue
             install = self._ask_to_confirm(pkg_mgr, *all_deps)
             if install:
                 installed = pkg_mgr.install(*to_install)
