@@ -52,11 +52,6 @@ class PackageManager(object):
         raise NotImplementedError()
 
     @classmethod
-    def install_package_manager(cls, *args, **kwargs):
-        """ Install actual package manager """
-        raise NotImplementedError()
-
-    @classmethod
     def is_installed(cls, *args, **kwargs):
         """ Is dependency already installed? """
         raise NotImplementedError()
@@ -104,12 +99,6 @@ class RPMPackageManager(PackageManager):
         return YUMHelper.install(*args)
 
     @classmethod
-    def install_package_manager(cls):
-        # yum is missing, user has to fix it
-        raise exceptions.SystemPackageManagerMissing("yum can't be found, you are "
-            "probably running developer assistant in sandbox (virtualenv).")
-
-    @classmethod
     def is_installed(cls, dep):
         if dep.startswith('@'):
             return YUMHelper.is_group_installed(dep)
@@ -144,13 +133,6 @@ class PIPPackageManager(PackageManager):
     def install(cls, *dep):
         """ Install dependency """
         return PIPHelper.install(*dep)
-
-    @classmethod
-    def install_package_manager(cls):
-        # pip is missing, install it
-        logger.warn("pip is missing")
-        di = DependencyInstaller()
-        di.install([{'rpm': ['python-pip']}])
 
     @classmethod
     def is_installed(cls, dep):
