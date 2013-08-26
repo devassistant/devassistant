@@ -22,14 +22,14 @@ class gui_helper(object):
     def button_with_label(self, description, sensitive=True):
         btn = self.create_button()
         label = self.create_label(description)
-        align = Gtk.Alignment(xalign=0.5, yalign=0, xscale=1, yscale=0)
+        align = self.create_alignment(xalign=0.5, xscale=1)
         align.add(label)
         btn.add(align)
         return btn
 
     def checkbutton_with_label(self, description):
         actBtn = Gtk.CheckButton(description)
-        align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
+        align = self.create_alignment()
         #align.add(actBtn)
         actBtn.add(align)
         return align
@@ -192,6 +192,7 @@ class gui_helper(object):
         return chk_btn
 
     def create_alignment(self, xalign=0, yalign=0, xscale=0, yscale=0):
-        align = Gtk.Alignment(xalign=0, yalign=0, xscale=0, yscale=0)
+        align = Gtk.Alignment()
+        align.set(xalign, yalign, xscale, yscale)
         return align
 

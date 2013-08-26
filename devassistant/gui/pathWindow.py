@@ -167,8 +167,11 @@ class pathWindow(object):
             self.grid.add(align)
         else:
             self.grid.attach(align, 0, row , 1, 1)
-        label = self.gui_helper.create_label(arg.kwargs['help'])
+        print arg.kwargs['help']
+        label = self.gui_helper.create_label(arg.kwargs['help'],justify=Gtk.Justification.LEFT)
         label.set_alignment(0, 0)
+        #align_label = self.gui_helper.create_alignment()
+        #align_label.add(label)
         self.grid.attach(label, 1, row, 1, 1)
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
