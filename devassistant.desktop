@@ -1,0 +1,8 @@
+[Desktop Entry]
+Exec=da-gui
+Name=Developer Assistant
+GenericName=Developer Assistant Tool
+Terminal=false
+Type=Application
+Categories=Development;
+X-Desktop-File-Install-Version=0.21
