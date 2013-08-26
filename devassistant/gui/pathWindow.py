@@ -28,7 +28,7 @@ class pathWindow(object):
         self.boxProject = builder.get_object("boxProject")
         self.box6 = builder.get_object("box6")
         self.button = []
-        self.grid = self.gui_helper.create_gtk_grid(row_spacing=6,col_homogenous=False, row_homogenous=True)
+        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,col_homogenous=False, row_homogenous=True)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0,0)
         self.entries = {}
@@ -160,6 +160,7 @@ class pathWindow(object):
 
     def _add_table_row(self, arg, number, row):
         actBtn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
+        actBtn.set_alignment(0, 0)
         align = self.gui_helper.create_alignment()
         align.add(actBtn)
         self.button.append(actBtn)
@@ -167,11 +168,8 @@ class pathWindow(object):
             self.grid.add(align)
         else:
             self.grid.attach(align, 0, row , 1, 1)
-        print arg.kwargs['help']
         label = self.gui_helper.create_label(arg.kwargs['help'],justify=Gtk.Justification.LEFT)
-        label.set_alignment(0, 0)
-        #align_label = self.gui_helper.create_alignment()
-        #align_label.add(label)
+        label.set_alignment(0, 0.1)
         self.grid.attach(label, 1, row, 1, 1)
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")

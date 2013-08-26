@@ -155,7 +155,7 @@ class gui_helper(object):
         gridLang = Gtk.Grid()
         gridLang.set_column_spacing(row_spacing)
         gridLang.set_row_spacing(col_spacing)
-        gridLang.set_border_width(6)
+        gridLang.set_border_width(12)
         gridLang.set_row_homogeneous(row_homogenous)
         gridLang.set_column_homogeneous(col_homogenous)
         return gridLang
@@ -187,8 +187,9 @@ class gui_helper(object):
         dialog.destroy()
         return text
 
-    def create_checkbox(self, name):
+    def create_checkbox(self, name, margin=10):
         chk_btn = Gtk.CheckButton(name)
+        chk_btn.set_margin_right(margin)
         return chk_btn
 
     def create_alignment(self, xalign=0, yalign=0, xscale=0, yscale=0):
