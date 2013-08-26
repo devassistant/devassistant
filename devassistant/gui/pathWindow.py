@@ -109,7 +109,6 @@ class pathWindow(object):
         row = 0
         for arg in self.parent.assistant_class.args:
             row = self._add_table_row(arg, 0, row) +1
-
         for ass in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_0'], self.parent.subass):
             captionText+=" <b>"+ass[0].fullname+"</b>"
             if not ass[1]:
@@ -159,6 +158,7 @@ class pathWindow(object):
         webbrowser.open_new_tab(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
+        print self._check_box_title(arg,number)
         actBtn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
         actBtn.set_alignment(0, 0)
         align = self.gui_helper.create_alignment()
@@ -174,6 +174,7 @@ class pathWindow(object):
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
+        print arg.gui_hints
         if arg.kwargs.get('action') != 'store_true':
             new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
             new_box.set_homogeneous(False)
@@ -192,18 +193,11 @@ class pathWindow(object):
             self.browseBtn = self.gui_helper.button_with_label("Browse")
             self.browseBtn.set_sensitive(False)
             self.browseBtn.connect("clicked", self.browse_clicked, entry)
-            if self._check_box_title(arg, number) == 'Eclipse':
-
-                entry.set_text(text=os.path.expanduser("~/workspace"))
+            entry.set_text(arg.get_gui_hint('default'))
+            if arg.get_gui_hint('type') == 'path':
                 alignBtn.add(self.browseBtn)
-                #new_box.pack_start(align,False,False,0)
-            elif self._check_box_title(arg, number) == 'Github':
-                entry.set_text(text=getpass.getuser())
-                #new_box.pack_start(self.linkButton,False,False,0)
+            elif arg.get_gui_hint('type') == 'str':
                 alignBtn.add(self.linkButton)
-            elif self._check_box_title(arg, number) == 'Path':
-                entry.set_text(self.get_user_path())
-                alignBtn.add(self.browseBtn)
             new_box.pack_start(alignBtn, False, False, 0)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
@@ -211,6 +205,6 @@ class pathWindow(object):
         return row
 
     def browse_clicked(self, widget, data=None):
-        text = self.gui_helper.create_file_chooser_dialog("Please Eclipse workspace directory", self.pathWindow)
+        text = self.gui_helper.create_file_chooser_dialog("Please select directory", self.pathWindow)
         if text is not None:
             data.set_text(text)
