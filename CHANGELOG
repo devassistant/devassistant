@@ -1,3 +1,12 @@
+- Lots of GUI work done, GUI is finally official.
+- Introduced assistant cache, which stores the necessary information about
+  all assistants, so that they don't have to be loaded everytime on startup.
+- Assistant role is no longer specified by "role" attribute, it is rather
+  implied by FS location (creator/modifier/preparer directories).
+- Preparer assistants can now run a "run" section specified in
+  .devassistant file.
+- Large rewrites of inner APIs (dependencies, yaml assistant representation).
+
 0.5.0
 - Assistants have been split to different repo, but they remain as a "part"
   of devassistant for the time being (no separate versioning, etc.)
