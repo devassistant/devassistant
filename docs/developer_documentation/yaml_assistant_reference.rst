@@ -210,6 +210,35 @@ Available argument attributes:
   should be common to all or most of the assistants.
   See :ref:`common_assistant_behaviour`
 
+Gui Hints
+~~~~~~~~~
+
+GUI needs to work with arguments dynamically, choose proper widgets and offer
+sensible default values to user. These are not always automatically
+retrieveable from arguments that suffice for commandline. For example, GUI
+cannot meaningfully prefill argument that says it "defaults to current working
+directory". Also, it cannot tell whether to choose a widget for path (with the
+"Browse ..." button) or just a plain text field.
+
+Because of that, each argument can have ``gui_hints`` attribute.
+This can specify that this argument is of certain type (path/str/bool) and
+has a certain default. If not specified in ``gui_hints``, the default is
+taken from the argument itself, if not even there, a sensible "empty" default
+value is used (home directory/empty string/false). For example::
+
+   args:
+     path:
+       flags:
+       - [-p, --path]
+       gui_hints:
+         type: path
+         default: $(pwd)/foo
+
+If you want your assistant to work properly with GUI, it is good to use
+``gui_hints`` (currently, it only makes sense to use it for ``path``
+attributes, as ``str`` and ``bool`` get proper widgets and default values
+automatically).
+
 Files
 -----
 
