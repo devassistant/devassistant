@@ -6,10 +6,6 @@ Created on Wed Apr  3 13:16:47 2013
 """
 
 import os
-import getpass
-import mainWindow
-import runWindow
-from devassistant.cli import argparse_generator
 from devassistant.logger import logger
 from devassistant.logger import logger_gui
 from devassistant.gui import gui_helper
@@ -27,11 +23,12 @@ class pathWindow(object):
         self.boxPathMain = builder.get_object("boxPathMain")
         self.boxProject = builder.get_object("boxProject")
         self.box6 = builder.get_object("box6")
-        self.button = []
+        self.button = list()
         self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,col_homogenous=False, row_homogenous=True)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0,0)
-        self.entries = {}
+        self.entries = dict()
+        self.browseBtns= dict()
         self.linkButton = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
         self.linkButton.connect("clicked", self.open_webbrowser)
         self.labelCaption = self.builder.get_object("labelCaption")
@@ -128,13 +125,10 @@ class pathWindow(object):
         for entry in filter( lambda x: x == widget.get_label(), self.entries):
             if active:
                 self.entries[widget.get_label()].set_sensitive(True)
+                self.browseBtns[widget.get_label()].set_sensitive(True)
             else:
                 self.entries[widget.get_label()].set_sensitive(False)
-            if widget.get_label() == "Eclipse" or widget.get_label() == "Path":
-                if active:
-                    self.browseBtn.set_sensitive(True)
-                else:
-                    self.browseBtn.set_sensitive(False)
+                self.browseBtns[widget.get_label()].set_sensitive(False)
         self.pathWindow.show_all()
 
     def prev_window(self, widget, data=None):
@@ -192,10 +186,13 @@ class pathWindow(object):
             self.browseBtn.set_sensitive(False)
             self.browseBtn.connect("clicked", self.browse_clicked, entry)
             entry.set_text(arg.get_gui_hint('default'))
+            entry.set_sensitive(False)
             if arg.get_gui_hint('type') == 'path':
                 alignBtn.add(self.browseBtn)
+                self.browseBtns[self._check_box_title(arg,number)]=self.browseBtn
             elif arg.get_gui_hint('type') == 'str':
                 alignBtn.add(self.linkButton)
+                self.browseBtns[self._check_box_title(arg,number)]=self.linkButton
             new_box.pack_start(alignBtn, False, False, 0)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
