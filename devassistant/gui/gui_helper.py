@@ -19,12 +19,17 @@ class gui_helper(object):
         frame.set_shadow_type(Gtk.ShadowType.IN)
         return frame
 
-    def button_with_label(self, description, sensitive=True):
+    def button_with_label(self, description, assistants=None, sensitive=True):
         btn = self.create_button()
         label = self.create_label(description)
-        align = self.create_alignment(xalign=0.5, xscale=1)
-        align.add(label)
-        btn.add(align)
+        hbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=0)
+        hbox.set_homogeneous(False)
+        hbox.pack_start(label, False, False, 6)
+        if assistants != None:
+            labelass = self.create_label(assistants, justify=Gtk.Justification.LEFT)
+            labelass.set_alignment(0,0)
+            hbox.pack_start(labelass,False, False, 6)
+        btn.add(hbox)
         return btn
 
     def checkbutton_with_label(self, description):
@@ -65,7 +70,7 @@ class gui_helper(object):
         The function is used for creating lable with HTML text
         """
         label = Gtk.Label()
-        name = name.replace(',','\n').replace('.','\n')
+        name = name.replace('|','\n')
         label.set_markup(name)
         label.set_justify(justify)
         label.set_line_wrap(wrap)
@@ -107,8 +112,12 @@ class gui_helper(object):
         #print "gui_helper add_menu_button"
         menu = Gtk.Menu()
         text=""
+        cnt=0
         for sub in sorted(assistant[1], key=lambda y: y[0].fullname):
-            text+="- "+sub[0].fullname+","
+            if cnt != 0:
+                text+="|"
+            cnt+=1
+            text+="- "+sub[0].fullname
             menu_item = Gtk.MenuItem(sub[0].fullname)
             if sub[0].description:
                 menu_item.set_has_tooltip(True)
@@ -123,7 +132,7 @@ class gui_helper(object):
             item.append(sub[0].name)
             menu_item.connect("activate", self.parent.submenu_activate, item)
         menu.show_all()
-        btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>\n\n"+text)
+        btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>",text)
         if assistant[0].description:
             btn.set_has_tooltip(True)
             btn.connect("query-tooltip",
