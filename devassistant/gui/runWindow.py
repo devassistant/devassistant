@@ -67,6 +67,7 @@ class runWindow(object):
         self.runTreeView = builder.get_object("runTreeView")
         self.cancelBtn = builder.get_object("cancelRunBtn")
         self.infoBox = builder.get_object("infoBox")
+        self.scrolledWindow = builder.get_object("scrolledWindow")
         self.tlh = RunLoggingHandler(self.runTreeView)
         self.gui_helper = gui_helper
         logger.addHandler(self.tlh)
@@ -92,6 +93,7 @@ class runWindow(object):
             self.link.set_border_width(6)
             self.link.set_sensitive(False)
             self.infoBox.pack_start(self.link, False, False, 12)
+        self.runTreeView.connect('size-allocate', self.treeview_changed)
         self.runWindow.show_all()
         self.cancelBtn.set_sensitive(False)
         self.thread.start()
@@ -115,6 +117,11 @@ class runWindow(object):
             dlg.destroy()
         else:
             Gtk.main_quit()
+
+    def treeview_changed(self, widget, event, data=None):
+        adj = self.scrolledWindow.get_vadjustment()
+        adj.set_value( adj.get_upper() - adj.get_page_size())
+
     def devassistant_start(self):
         #logger_gui.info("Thread run")
         #print self.parent.kwargs

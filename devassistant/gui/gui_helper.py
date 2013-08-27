@@ -207,3 +207,9 @@ class gui_helper(object):
         align.set(xalign, yalign, xscale, yscale)
         return align
 
+    def create_textview(self, wrap=Gtk.WrapMode.WORD_CHAR, justify=Gtk.Justification.LEFT, visible=True):
+        textView = Gtk.TextView()
+        textView.set_wrap_mode(wrap)
+        textView.set_cursor_visible(visible)
+        textView.set_justification(justify)
+        return textView
