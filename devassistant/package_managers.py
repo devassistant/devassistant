@@ -50,7 +50,11 @@ class PackageManager(object):
 
     @classmethod
     def install(cls, *args, **kwargs):
-        """ Install dependency """
+        """Install dependency.
+
+        Note: if you want your dependency installation to be uninterruptible, pass
+        ignore_sigint=True to ClHelper.run_command.
+        """
         raise NotImplementedError()
 
     @classmethod
@@ -161,7 +165,7 @@ class RPMPackageManager(PackageManager):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
             return args
         except exceptions.ClException:
             return False
@@ -238,7 +242,7 @@ class PIPPackageManager(PackageManager):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO)
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
             return args
         except exceptions.ClException:
             return False
@@ -292,6 +296,9 @@ class PIPPackageManager(PackageManager):
 
 
 class DependencyInstaller(object):
+    # True if devassistant is installing dependencies and we can't interrupt the process
+    install_lock = False
+
     """Class for installing dependencies """
     def __init__(self):
         # {package_manager_shorcut: ['list', 'of', 'dependencies']}
@@ -356,7 +363,11 @@ class DependencyInstaller(object):
                 msg = 'List of packages denied by user, exiting.'
                 logger.error(msg)
                 raise exceptions.DependencyException(msg)
+
+            type(self).install_lock = True
             installed = pkg_mgr.install(*to_install)
+            type(self).install_lock = False
+
             if not installed:
                 msg = 'Failed to install dependencies, exiting.'
                 logger.error(msg)

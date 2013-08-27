@@ -2,6 +2,7 @@ import argparse
 import getpass
 import logging
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -13,7 +14,7 @@ from devassistant import settings
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, log_level=logging.DEBUG, scls=[]):
+    def run_command(cls, cmd_str, log_level=logging.DEBUG, scls=[], ignore_sigint=False):
         """Runs a command from string, e.g. "cp foo bar" """
         # format for scl execution if needed
         cmd_str = cls.format_for_scls(cmd_str, scls)
@@ -32,11 +33,13 @@ class ClHelper(object):
         stdin_pipe = None
         stdout_pipe = subprocess.PIPE
         stderr_pipe = subprocess.STDOUT
+        preexec_fn = cls.ignore_sigint if ignore_sigint else None
         proc = subprocess.Popen(cmd_str,
                                 stdin=stdin_pipe,
                                 stdout=stdout_pipe,
                                 stderr=stderr_pipe,
-                                shell=True)
+                                shell=True,
+                                preexec_fn=preexec_fn)
         stdout = []
         while proc.poll() == None:
             output = proc.stdout.readline().strip().decode('utf8')
@@ -62,6 +65,10 @@ class ClHelper(object):
             cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.format(cmd_str=cmd_str,
                                                                                    scls=' '.join(scls))
         return cmd_str
+
+    @classmethod
+    def ignore_sigint(cls):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 class PathHelper(object):
     c_cp = 'cp'
