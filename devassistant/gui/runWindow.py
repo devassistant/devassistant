@@ -20,6 +20,7 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
+from devassistant.package_managers import DependencyInstaller
 import gobject
 
 class RunLoggingHandler(logging.Handler):
@@ -110,8 +111,7 @@ class runWindow(object):
             if response == Gtk.ResponseType.YES:
                 if self.thread.isAlive():
                     self.pr.stop()
-                dlg.destroy()
-                Gtk.main_quit()
+                self.cancelBtn.set_label("Close")
             dlg.destroy()
         else:
             Gtk.main_quit()

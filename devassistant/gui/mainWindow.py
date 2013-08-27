@@ -43,7 +43,7 @@ class mainWindow(object):
                 "on_cancelRunBtn_clicked": self.runWindow.close_btn,
                 "on_nextPathBtn_clicked": self.pathWindow.next_window,
                 "on_pathWindow_delete_event": Gtk.main_quit,
-                "on_runWindow_delete_event": Gtk.main_quit,
+                "on_runWindow_delete_event": self.runWindow.close_btn,
                 "on_prevPathBtn_clicked": self.pathWindow.prev_window,
                     }
         self.builder.connect_signals(self.mainhandlers)
