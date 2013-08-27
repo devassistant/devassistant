@@ -45,11 +45,12 @@ class gui_helper(object):
         return linkbtn;
 
 
-    def create_button(self):
+    def create_button(self, style=Gtk.ReliefStyle.NORMAL):
         """
         This is generalized method for creating Gtk.Button
         """
         btn = Gtk.Button()
+        btn.set_relief(style)
         return btn
 
     def create_checkbutton(self, text=""):
@@ -107,7 +108,7 @@ class gui_helper(object):
         menu = Gtk.Menu()
         text=""
         for sub in sorted(assistant[1], key=lambda y: y[0].fullname):
-            text+=sub[0].fullname+","
+            text+="- "+sub[0].fullname+","
             menu_item = Gtk.MenuItem(sub[0].fullname)
             if sub[0].description:
                 menu_item.set_has_tooltip(True)

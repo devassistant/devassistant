@@ -123,7 +123,7 @@ class mainWindow(object):
             column += 1
         if row == 0 and len(assistant)< 3:
             while column < 3:
-                btn = self.gui_helper.button_with_label("")
+                btn = self.gui_helper.create_button(style=Gtk.ReliefStyle.NONE)
                 btn.set_sensitive(False)
                 btn.hide()
                 gridLang.attach(btn, column, row, 1, 1)

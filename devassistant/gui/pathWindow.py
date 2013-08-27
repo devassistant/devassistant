@@ -158,7 +158,6 @@ class pathWindow(object):
         webbrowser.open_new_tab(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
-        print self._check_box_title(arg,number)
         actBtn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
         actBtn.set_alignment(0, 0)
         align = self.gui_helper.create_alignment()
@@ -174,7 +173,6 @@ class pathWindow(object):
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
-        print arg.gui_hints
         if arg.kwargs.get('action') != 'store_true':
             new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
             new_box.set_homogeneous(False)
