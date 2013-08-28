@@ -62,6 +62,10 @@ class YamlAssistant(assistant_base.AssistantBase):
         self._pre_run = value.get('pre_run', [])
         self._post_run = value.get('post_run', [])
 
+    @needs_fully_loaded
+    def assert_fully_loaded(self):
+        return True
+
     def _construct_args(self, struct):
         args = []
         for arg_name, arg_params in struct.items():
