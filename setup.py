@@ -64,6 +64,7 @@ setup(
     entry_points = {'console_scripts':['da=devassistant.bin:CreatorAssistant.main',
                                        'da-mod=devassistant.bin:ModifierAssistant.main',
                                        'da-prep=devassistant.bin:PreparerAssistant.main',
+                                       'da-gui=devassistant.gui:run_gui',
                                        'devassistant=devassistant.bin:CreatorAssistant.main',
                                        'devassistant-modify=devassistant.bin:ModifierAssistant.main',
                                        'devassistant-prepare=devassistant.bin:PreparerAssistant.main']},

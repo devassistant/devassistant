@@ -21,17 +21,6 @@
 #
 # Authors:
 # Petr Hracek <phracek@redhat.com>
+from devassistant.gui import run_gui
 
-import logging
-import sys
-from devassistant.gui import mainWindow
-
-
-try:
-    from gi.repository import Gtk
-except RuntimeError, e:
-    print _("devel-assistant requires a currently running X server.")
-    print "%s: %r" % (e.__class__.__name__, str(e))
-    sys.exit(1)
-
-mainWindow.mainWindow()
+run_gui()
