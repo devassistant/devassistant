@@ -150,10 +150,7 @@ class gui_helper(object):
         import re
         text = re.sub(r"\s+",' ',description.split('.')[0])+" "+description.split('.')[1].lstrip()
         from textwrap import wrap
-        formatted_text = ""
-        for t in wrap(text,60):
-            formatted_text = formatted_text + t +"\n"
-        return formatted_text
+        return '\n'.join(wrap(text, 60))
 
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
         scrolledWindow = Gtk.ScrolledWindow()
