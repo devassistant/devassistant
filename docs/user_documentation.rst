@@ -5,10 +5,28 @@ User Documentation
 
 .. include:: brief-intro.txt
 
-.. _Creating New Projects:
+.. _cli_interface:
+
+So What is an Assistant?
+------------------------
+
+In short, assistant is a recipe for creating/modifying a project or setting up
+environment in a certain way. Devassistant is in fact just a core that "runs"
+assistants according to certain rules.
+
+Each assistant specifies a way how to achieve a single task, e.g. create a new
+project in framework X of language Y.
+
+If you want to know more about how this all works, consult
+:ref:`yaml_assistant_reference`.
+
+Using Commandline Interface
+---------------------------
+
+.. _creating_projects_cli:
 
 Creating New Projects
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Developer Assistant can help you create your projects with one line in terminal.
 For example::
@@ -34,10 +52,10 @@ This line will do the following:
   system username differs from your Github username, you must specify Github username
   as an argument to ``-g``.
 
-.. _Modifying Existing Projects:
+.. _modifying_projects_cli:
 
 Modifying Existing Projects
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Developer Assistant allows you to work with previously created projects. You can do
 this by using ``devassistant-modify``::
@@ -52,13 +70,14 @@ Eclipse and other dependencies implied by the project language). Optionally,
 you can pass ``-p path/to/project`` if your current working directory is not
 the project directory.
 
-.. _Preparing Development Environment for Existing Projects:
+.. _preparing_environment_cli:
 
-Preparing Development Environment for Existing Projects
--------------------------------------------------------
+Preparing Environment
+~~~~~~~~~~~~~~~~~~~~~
 
-Developer Assistant can set up environment and install dependencies for already
-existing project located in a remote SCM (e.g. Github). For custom projects created
+Developer Assistant can set up environment and install dependencies for
+executing aribtrary tasks or development of already existing project located
+in a remote SCM (e.g. Github). For custom projects created
 by devassistant, you can use the ``custom`` assistant::
 
    $ da-prep custom -u scm_url
@@ -75,6 +94,26 @@ able to do something like::
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...
 
+Using GUI
+---------
+
+Developer Assistant GUI provides the functionality of
+:ref:`Commandline Interface <cli_interface>` through a Gtk based wizard.
+
+As opposed to CLI, which consists of three binaries, GUI includes all the
+assistant types (creating, modifying, preparing), each type having its own
+page.
+
+The GUI workflow is dead simple:
+
+- Chooses the assistant that you want to use, click it and possibly choose
+  a proper subassistant (e.g. ``django`` for ``python``).
+- GUI displays a window where you can modify some settings and choose from
+  various assistant-specific options.
+- Click "Run" button and then just watch getting the stuff done. If your input
+  is needed (such as confirming dependencies to install), devassistant will
+  ask you, so don't go get your coffee just yet.
+- After all is done, get your coffee and enjoy.
 
 Currently Supported Assistants
 ------------------------------
@@ -85,7 +124,7 @@ distributions, depending on available packages etc.*
 Currently supported assistants with their specialties (if any):
 
 Creating
-^^^^^^^^
+~~~~~~~~
 
 - C - a simple C project, allows you to create SRPM and build RPM by specifying ``-b``
 - C++
@@ -108,7 +147,7 @@ Creating
   - Rails - Initial Ruby on Rails project
 
 Modifying
-^^^^^^^^^
+~~~~~~~~~
 
 - Eclipse - add an existing project into Eclipse (doesn't work for some languages/frameworks)
 - Vim - install some interesting Vim extensions and make some changes in ``.vimrc`` (these
@@ -116,7 +155,7 @@ Modifying
   ``let devassistant=1`` after invoking Vim)
 
 Preparing
-^^^^^^^^^
+~~~~~~~~~
 
 - Custom - checkout a custom previously created project from SCM (git only so far) and
   install needed dependencies
