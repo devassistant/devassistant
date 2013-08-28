@@ -97,16 +97,16 @@ that others do. But this is still somewhere in the future...
 Using GUI
 ---------
 
-Developer Assistant GUI provides the functionality of
-:ref:`Commandline Interface <cli_interface>` through a Gtk based wizard.
+Developer Assistant GUI provides the full functionality of
+:ref:`Commandline Interface <cli_interface>` through a Gtk based application.
 
-As opposed to CLI, which consists of three binaries, GUI includes all the
-assistant types (creating, modifying, preparing), each type having its own
-page.
+As opposed to CLI, which consists of three binaries, GUI provides all
+assistant types (creating, modifying, preparing) in one, each type having
+its own page.
 
 The GUI workflow is dead simple:
 
-- Chooses the assistant that you want to use, click it and possibly choose
+- Choose the assistant that you want to use, click it and possibly choose
   a proper subassistant (e.g. ``django`` for ``python``).
 - GUI displays a window where you can modify some settings and choose from
   various assistant-specific options.
