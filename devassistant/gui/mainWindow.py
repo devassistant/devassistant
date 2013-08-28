@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import sys
 import logging
 
@@ -23,7 +24,7 @@ import gobject
 GLib.threads_init()
 Gdk.threads_init()
 
-gladefile = "./devassistant/gui/devel-assistant.glade"
+gladefile = os.path.join(os.path.dirname(__file__), 'devel-assistant.glade')
 
 class mainWindow(object):
 
