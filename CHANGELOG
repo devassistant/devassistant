@@ -1,3 +1,6 @@
+0.6.1
+- Quick bugfix release to enable GUI properly and fix some minor bugs.
+
 0.6.0
 - Lots of GUI work done, GUI is finally official.
 - Introduced assistant cache, which stores the necessary information about
