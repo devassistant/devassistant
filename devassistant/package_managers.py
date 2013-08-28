@@ -354,10 +354,10 @@ class DependencyInstaller(object):
             for dep in dep_l:
                 if not pkg_mgr.is_pkg_installed(dep):
                     to_resolve.append(dep)
-            to_install = pkg_mgr.resolve(*to_resolve)
-            if not to_install:
+            if not to_resolve:
                 # nothing to install, let's move on
                 continue
+            to_install = pkg_mgr.resolve(*to_resolve)
             confirm = self._ask_to_confirm(pkg_mgr, *to_install)
             if not confirm:
                 msg = 'List of packages denied by user, exiting.'
