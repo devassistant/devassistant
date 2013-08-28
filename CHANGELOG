@@ -1,3 +1,4 @@
+0.6.0
 - Lots of GUI work done, GUI is finally official.
 - Introduced assistant cache, which stores the necessary information about
   all assistants, so that they don't have to be loaded everytime on startup.
@@ -5,6 +6,7 @@
   implied by FS location (creator/modifier/preparer directories).
 - Preparer assistants can now run a "run" section specified in
   .devassistant file.
+- Dependency installation is now uninterruptible, not to break rpmdb or such.
 - Large rewrites of inner APIs (dependencies, yaml assistant representation).
 
 0.5.0
