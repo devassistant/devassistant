@@ -22,8 +22,7 @@ class CreatorAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer Assistant will help you with creating projects in many different languages.\
-                   See subassistants for list of currently available assistants.'
+    description = 'Kickstart new projects easily with devassistant.'
 
 class ModifierAssistant(ExecutableAssistant):
     def get_subassistants(self):
@@ -32,8 +31,7 @@ class ModifierAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer Assistant - Modify will help you work with existing projects.\
-                   See subassistants for list of currently available assistants.'
+    description = 'Modify existing projects with devassistant.'
 
 class PreparerAssistant(ExecutableAssistant):
     def get_subassistants(self):
@@ -42,6 +40,4 @@ class PreparerAssistant(ExecutableAssistant):
 
     name = 'main'
     verbose_name = 'Main'
-    description = 'Developer Assistant - Prepare will help you setup your environment for \
-                   working with upstream projects.\
-                   See subassistants for list of currently available assistants.'
+    description = 'Prepare environment for upstream projects or various tasks with devassistant.'

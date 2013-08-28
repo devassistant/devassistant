@@ -402,11 +402,11 @@ There are few special things about modifier assistants:
 Preparer Assistants
 -------------------
 
-Preparer assistants are assistants that are supposed to checkout
-existing projects from SCM and setting up the environment according to
-``.devassistant``. They must be placed under ``preparer``
-subdirectory of one of the load paths, as mentioned in
-:ref:`assistants_loading_mechanism`.
+Preparer assistants are assistants that are supposed to set up environment for
+executing arbitrary tasks or prepare environment and checkout existing upstream
+projects (possibly using their ``.devassistant`` file, if they have it).
+Preparers must be placed under ``preparer`` subdirectory of one of the load
+paths, as mentioned in :ref:`assistants_loading_mechanism`.
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.

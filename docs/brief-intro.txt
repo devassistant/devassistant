@@ -16,6 +16,6 @@ Devassistant also allows you to work with a previously created project, for exam
 
    $ da-mod eclipse # run in project dir or use -p to specify path
 
-Last but not least, devassistant allows you to check out a project from SCM (either previously created by devassistant with "custom" assistant or a specific project, assuming that you have the individual assistant for it)::
+Last but not least, devassistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by devassistant or using specific assistant for specific projects):
 
    $ da-prep custom custom -u scm_url
