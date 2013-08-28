@@ -21,7 +21,6 @@ from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
 from devassistant.package_managers import DependencyInstaller
-import gobject
 
 class RunLoggingHandler(logging.Handler):
     def __init__(self, treeview):

@@ -19,7 +19,6 @@ from devassistant.gui import runWindow
 from devassistant.gui import gui_helper
 
 import threading, thread
-import gobject
 
 GLib.threads_init()
 Gdk.threads_init()
