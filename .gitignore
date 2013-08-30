@@ -34,6 +34,7 @@ test/fixtures/.cache.yaml
 .mr.developer.cfg
 .project
 .pydevproject
+.spyderproject
 
 # Documentation
 docs/_build
