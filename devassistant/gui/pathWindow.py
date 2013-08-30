@@ -185,6 +185,7 @@ class pathWindow(object):
             self.browseBtn = self.gui_helper.button_with_label("Browse")
             self.browseBtn.set_sensitive(False)
             self.browseBtn.connect("clicked", self.browse_clicked, entry)
+            self.linkButton.set_sensitive(False)
             entry.set_text(arg.get_gui_hint('default'))
             entry.set_sensitive(False)
             if arg.get_gui_hint('type') == 'path':
