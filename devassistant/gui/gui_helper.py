@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-import sys
-import logging
+import os
+import re
 
-from gi.repository import Gtk, Gdk
-from gi.repository import GLib
+from gi.repository import Gtk
+from textwrap import wrap
 
 class gui_helper(object):
     def __init__(self, parent):
@@ -24,11 +24,28 @@ class gui_helper(object):
         label = self.create_label(description)
         hbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=0)
         hbox.set_homogeneous(False)
-        hbox.pack_start(label, False, False, 6)
+        hbox.pack_start(label, False, False, 0)
         if assistants != None:
             labelass = self.create_label(assistants, justify=Gtk.Justification.LEFT)
             labelass.set_alignment(0,0)
-            hbox.pack_start(labelass,False, False, 6)
+            hbox.pack_start(labelass,False, False, 12)
+        btn.add(hbox)
+        return btn
+
+    def create_image(self, image_name=None):
+        image = Gtk.Image()
+        image.set_from_file(image_name)
+        return image
+
+    def button_with_image(self, description, image=None, sensitive=True):
+        btn = self.create_button()
+        btn.set_sensitive(sensitive)
+        hbox=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=0)
+        hbox.set_homogeneous(False)
+        img = self.create_image(image_name=os.path.join(os.path.dirname(__file__),"icons",image))
+        hbox.pack_start(img, False, False, 12)
+        label = self.create_label(description)
+        hbox.pack_start(label, False, False, 0)
         btn.add(hbox)
         return btn
 
@@ -87,9 +104,15 @@ class gui_helper(object):
         Button is add to the Gtk.Grid
         """
         #print "gui_helper add_button"
-        btn = self.button_with_label("<b>"+ass[0].fullname+"</b>")
+        image_name = None
+        for arg in ass[0].args:
+            if arg.get_gui_hint('icon') is not None:
+                image_name = arg.get_gui_hint('icon')
+        if image_name is None:
+            btn = self.button_with_label("<b>"+ass[0].fullname+"</b>")
+        else:
+            btn = self.button_with_image("<b>"+ass[0].fullname+"</b>",image=image_name)
         #print "Dependencies button",ass[0]._dependencies
-        #print "Run button",ass[0]._run
         if ass[0].description:
             btn.set_has_tooltip(True)
             btn.connect("query-tooltip",
@@ -132,13 +155,25 @@ class gui_helper(object):
             item.append(sub[0].name)
             menu_item.connect("activate", self.parent.submenu_activate, item)
         menu.show_all()
-        btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>",text)
+        text = text.replace('|','\n')
+        image_name = None
+        for arg in assistant[0].args:
+            if arg.get_gui_hint('icon') is not None:
+                image_name = arg.get_gui_hint('icon')
+        if image_name is None:
+            btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>")
+        else:
+            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=image_name)
+        btn.set_has_tooltip(True)
         if assistant[0].description:
-            btn.set_has_tooltip(True)
-            btn.connect("query-tooltip",
-                        self.parent._tooltip_queries,
-                        self.get_formated_description(assistant[0].description),
-                        )
+            description = self.get_formated_description(assistant[0].description)+"\n\n"
+        else:
+            description = ""
+        description += text
+        btn.connect("query-tooltip",
+                    self.parent._tooltip_queries,
+                    description
+                    )
         btn.connect_object("event", self.parent.btn_press_event, menu)
         if row == 0 and column == 0:
             gridLang.add(btn)
@@ -147,9 +182,7 @@ class gui_helper(object):
         return btn
 
     def get_formated_description(self, description):
-        import re
         text = re.sub(r"\s+",' ',description.split('.')[0])+" "+description.split('.')[1].lstrip()
-        from textwrap import wrap
         return '\n'.join(wrap(text, 60))
 
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
@@ -204,9 +237,25 @@ class gui_helper(object):
         align.set(xalign, yalign, xscale, yscale)
         return align
 
-    def create_textview(self, wrap=Gtk.WrapMode.WORD_CHAR, justify=Gtk.Justification.LEFT, visible=True):
+    def create_textview(self, wrap=Gtk.WrapMode.WORD_CHAR, justify=Gtk.Justification.LEFT, visible=True, editable=True):
         textView = Gtk.TextView()
         textView.set_wrap_mode(wrap)
-        textView.set_cursor_visible(visible)
+        textView.set_editable(editable)
+        if not editable:
+            textView.set_cursor_visible(False)
+        else:
+            textView.set_cursor_visible(visible)
         textView.set_justification(justify)
         return textView
+
+    def create_tree_view(self, model=None, mode=Gtk.SelectionMode.SINGLE):
+        tree_view = Gtk.TreeView()
+        if model != None:
+            tree_view.set_model(model)
+        #tree_view.set_mode(mode)
+        return tree_view
+
+    def create_cell_renderer(self, tree_view, title="title", assign=0):
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn(title, renderer, text=assign)
+        tree_view.append_column(column)
