@@ -42,7 +42,7 @@ class gui_helper(object):
         btn.set_sensitive(sensitive)
         hbox=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=0)
         hbox.set_homogeneous(False)
-        img = self.create_image(image_name=os.path.join(os.path.dirname(__file__),"icons",image))
+        img = self.create_image(image_name=image)
         hbox.pack_start(img, False, False, 12)
         label = self.create_label(description)
         hbox.pack_start(label, False, False, 0)
@@ -104,14 +104,11 @@ class gui_helper(object):
         Button is add to the Gtk.Grid
         """
         #print "gui_helper add_button"
-        image_name = None
-        for arg in ass[0].args:
-            if arg.get_gui_hint('icon') is not None:
-                image_name = arg.get_gui_hint('icon')
+        image_name = ass[0].icon_path
         if image_name is None:
             btn = self.button_with_label("<b>"+ass[0].fullname+"</b>")
         else:
-            btn = self.button_with_image("<b>"+ass[0].fullname+"</b>",image=image_name)
+            btn = self.button_with_image("<b>"+ass[0].fullname+"</b>",image=ass[0].icon_path)
         #print "Dependencies button",ass[0]._dependencies
         if ass[0].description:
             btn.set_has_tooltip(True)
@@ -134,7 +131,7 @@ class gui_helper(object):
         """
         #print "gui_helper add_menu_button"
         menu = Gtk.Menu()
-        text=""
+        text="Avalaible subassistants:\n"
         cnt=0
         for sub in sorted(assistant[1], key=lambda y: y[0].fullname):
             if cnt != 0:
@@ -156,14 +153,11 @@ class gui_helper(object):
             menu_item.connect("activate", self.parent.submenu_activate, item)
         menu.show_all()
         text = text.replace('|','\n')
-        image_name = None
-        for arg in assistant[0].args:
-            if arg.get_gui_hint('icon') is not None:
-                image_name = arg.get_gui_hint('icon')
+        image_name = assistant[0].icon_path
         if image_name is None:
             btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>")
         else:
-            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=image_name)
+            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=assistant[0].icon_path)
         btn.set_has_tooltip(True)
         if assistant[0].description:
             description = self.get_formated_description(assistant[0].description)+"\n\n"
