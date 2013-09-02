@@ -76,9 +76,16 @@ class Cache(object):
         loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
         _, attrs = loaded_ass.popitem()
         cached_ass['source'] = file_ass['source']
-        cached_ass['attrs'] = {'fullname': attrs.get('fullname', ''),
-                               'description': attrs.get('description', ''),
-                               'args': {}}
+        cached_ass['attrs'] = {}
+        # only cache these attributes if they're actually found in assistant
+        # we do this to specify the default values for them just in one place
+        # which is currently YamlAssistant.parsed_yaml property setter
+        for a in ['fullname', 'description', 'icon_path']:
+            if a in attrs:
+                cached_ass['attrs'][a] = attrs.get(a)
+        # args have different processing, we can't just take them from assistant
+        if 'args' in attrs:
+            cached_ass['attrs']['args'] = {}
         for argname, argparams in attrs.get('args', {}).items():
             if 'snippet' in argparams:
                 snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(argparams.pop('snippet'))
