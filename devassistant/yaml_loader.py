@@ -6,8 +6,6 @@ try:
 except:
     from yaml import Loader
 
-from devassistant import settings
-
 class YamlLoader(object):
     @classmethod
     def load_all_yamls(cls, directories):
