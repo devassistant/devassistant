@@ -7,6 +7,7 @@ except ImportError:
     from yaml import Dumper
 
 from devassistant import settings
+from devassistant import version
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
@@ -14,12 +15,20 @@ class Cache(object):
     def __init__(self, cache_file=settings.CACHE_FILE):
         self.cache_file = cache_file
         # TODO: try/catch creating the cache file, on failure don't use it
-        # TODO: version cache?
-        if not os.path.exists(cache_file):
+        reset_cache = False
+        if os.path.exists(self.cache_file):
+            self.cache = yaml_loader.YamlLoader.load_yaml_by_path(cache_file) or {}
+            if self.cache.get('version', '0.0.0') != version.VERSION:
+                reset_cache = True
+        else:
             if not os.path.exists(os.path.dirname(cache_file)):
                 os.makedirs(os.path.dirname(cache_file))
-            open(cache_file, 'w').close()
-        self.cache = yaml_loader.YamlLoader.load_yaml_by_path(cache_file) or {}
+            reset_cache = True
+
+        if reset_cache:
+            f = open(cache_file, 'w')
+            self.cache = {'version': version.VERSION}
+            f.close()
 
     def refresh_role(self, role, file_hierarchy):
         if not role in self.cache:

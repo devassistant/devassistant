@@ -2,8 +2,11 @@ import os
 import shutil
 import time
 
+import yaml
+
 from devassistant.cache import Cache
 from devassistant import settings
+from devassistant.version import VERSION
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 # the paths in this dicts are truncated to make tests pass in any location
@@ -49,7 +52,8 @@ correct_cache = \
                                           'source': 'test/fixtures/assistants/creator/f/g.yaml',
                                           'subhierarchy': {}}}}},
  'modifier': {},
- 'preparer': {}}
+ 'preparer': {},
+ 'version': VERSION}
 
 class TestCache(object):
     cf = settings.CACHE_FILE
@@ -71,6 +75,11 @@ class TestCache(object):
             dirs =[os.path.join(d, assistants, role) for d in settings.DATA_DIRECTORIES]
             fh = YamlAssistantLoader.get_assistants_file_hierarchy(dirs)
             self.cch.refresh_role(role, fh)
+
+    def create_fake_cache(self, struct):
+        f = open(self.cch.cache_file, 'w')
+        yaml.dump(struct, stream=f)
+        f.close()
 
     def datafile_path(self, path):
         """Assumes that settings.DATA_DIRECTORIES[0] is test/fixtures"""
@@ -167,3 +176,17 @@ class TestCache(object):
         os.unlink(self.datafile_path('assistants/creator/addme.yaml'))
         self.create_or_refresh_cache()
         assert 'addme' not in self.cch.cache['creator']
+
+    def test_cache_deletes_if_different_version(self):
+        self.create_fake_cache({'version': '0.0.0'})
+        prev_time = os.path.getctime(self.cch.cache_file)
+        time.sleep(0.1)
+        Cache()
+        assert prev_time < os.path.getctime(self.cch.cache_file)
+
+    def test_cache_stays_if_same_version(self):
+        self.create_fake_cache({'version': VERSION})
+        prev_time = os.path.getctime(self.cch.cache_file)
+        time.sleep(0.1)
+        Cache()
+        assert prev_time == os.path.getctime(self.cch.cache_file)
