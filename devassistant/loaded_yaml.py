@@ -7,10 +7,9 @@ class LoadedYaml(object):
     def load_path(self):
         lp = ''
         for d in settings.DATA_DIRECTORIES:
-            lp = os.path.commonprefix([self.path, d])
-            if lp and lp != '/': break
+            if d == os.path.commonprefix([self.path, d]): break
 
-        return lp
+        return d
 
     @property
     def default_template_dir(self):
