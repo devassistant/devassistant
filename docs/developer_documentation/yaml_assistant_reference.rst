@@ -112,6 +112,12 @@ sort of reasonable default, it's up to your consideration which of them to use):
   directory where to take templates from. Defaults to base directory from where this assistant
   is taken + ``templates``. E.g. if this assistant lives in ``~/.devassistant/assistants/some/path/and/more/``,
   templates will be taken from ``~/.devassistant/templates/`` by default.
+``icon_path``
+  absolute or relative path to icon of this assistant (will be used by GUI).
+  If not present, a default path will be used - this is derived from absolute
+  assistant path by replacing ``assistants`` by ``icons`` and ``.yaml`` by
+  ``.svg`` - e.g. for ``~/.devassistant/assistants/creator/foo/bar.yaml``,
+  the default icon path is ``~/.devassistant/icons/creator/foo/bar.svg``
 
 Dependencies
 ------------
