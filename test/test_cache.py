@@ -43,6 +43,7 @@ correct_cache = \
                    'subhierarchy': {'g': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
+                                                    'icon_path': '/foo/bar',
                                                     'fullname': 'G Language Tool'},
                                           'snippets': [],
                                           'source': 'test/fixtures/assistants/creator/f/g.yaml',

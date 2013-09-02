@@ -1,5 +1,6 @@
 g:
   fullname: G Language Tool
+  icon_path: '/foo/bar'
 
   dependencies:
   - default:

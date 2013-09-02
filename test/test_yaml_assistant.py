@@ -243,6 +243,10 @@ class TestYamlAssistant(object):
         assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
         assert ('INFO', os.path.join(self.ya.template_dir, 'f/g')) in self.tlh.msgs
 
+    def test_default_icon_path(self):
+        self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/creator/bar/baz.yaml')
+        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/creator/bar/baz.svg')
+
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '')

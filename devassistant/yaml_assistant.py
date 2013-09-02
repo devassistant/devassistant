@@ -45,11 +45,14 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def parsed_yaml(self, value):
         self._parsed_yaml = value
 
-        self.template_dir = value.get('template_dir', self.default_template_dir)
+        # attributes needed for CLI/GUI - cached
         self.fullname = value.get('fullname', '')
         self.description = value.get('description', '')
         self.args = self._construct_args(value.get('args', {}))
+        self.icon_path = value.get('icon_path', self.default_icon_path)
 
+        # attributes not needed for CLI/GUI - not cached
+        self.template_dir = value.get('template_dir', self.default_template_dir)
         self._files = value.get('files', {})
         self._logging = value.get('logging', [])
         # set _run and _dependencies as empty in case assistant doesn't have them at all
@@ -65,6 +68,22 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     @needs_fully_loaded
     def assert_fully_loaded(self):
         return True
+
+    @property
+    def default_icon_path(self):
+        """Returns default path to icon of this assistant.
+
+        Assuming self.path == "/foo/assistants/creator/python/django.yaml"
+        1) Take the path of this assistant and strip it of load path
+           (=> "creator/python/django.yaml")
+        2) Substitute its extension for ".svg"
+           (=> "creator/python/django.svg")
+        3) Prepend self.load_path + 'icons'
+           (=> "/foo/icons/creator/python/django.scg")
+        """
+        stripped = self.path.replace(os.path.join(self.load_path, 'assistants'), '').strip(os.sep)
+        new_ext = os.path.splitext(stripped)[0] + '.svg'
+        return os.path.join(self.load_path, 'icons', new_ext)
 
     def _construct_args(self, struct):
         args = []
