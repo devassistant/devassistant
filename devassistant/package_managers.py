@@ -294,6 +294,83 @@ class PIPPackageManager(PackageManager):
     def __str__(self):
         return "pip package manager"
 
+@register_manager
+class NPMPackageManager(PackageManager):
+    """ Package manager for managing python dependencies from NPM """
+    permission_prompt = "Install following %(packages_text)s from NPM?"
+    shortcut = 'npm'
+    is_system = False
+
+    c_npm = 'npm'
+
+    @classmethod
+    def match(cls, dep_t):
+        return dep_t == cls.shortcut
+
+    @classmethod
+    def get_perm_prompt(cls, plural=False):
+        packages_text = 'packages' if plural else 'package'
+        return cls.permission_prompt % {'packages_text': packages_text}
+
+    @classmethod
+    def install(cls, *args):
+        cmd = [cls.c_npm, 'install', '--user']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_installed(cls):
+        try:
+            ClHelper.run_command('which npm')
+            return True
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def works(cls):
+        try:
+            ClHelper.run_command('npm')
+            return True
+        except exceptions.ClException as e:
+            msg = 'Package manager for "{0}" not operational: {1}'.format(dep_t, e)
+            logger.error(msg)
+            raise exceptions.PackageManagerNotOperational(msg)
+
+    @classmethod
+    def is_pkg_installed(cls, dep):
+        logger.info('Checking for presence of {0}...'.format(dep),
+                    extra={'event_type': 'dep_check'})
+        if not getattr(cls, '_installed', None):
+            query = ClHelper.run_command(' '.join([cls.c_npm, 'list']))
+            cls._installed = query.split('\n')
+        search = filter(lambda e: e.startswith(dep + ' '), cls._installed)
+        if search:
+            logger.info('Found {0}'.format(search[0]), extra={'event_type': 'dep_found'})
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+
+        return len(search) > 0
+
+    @classmethod
+    def resolve(cls, *dep):
+        # depresolver for PyPI is infeasable to do -- there are no structured
+        # metadata for python packages; so just return this dependency
+        # PIPHelper.resolve(dep)
+        return dep
+
+    @classmethod
+    def get_distro_dependencies(self, smgr_sc):
+        #return ['python-pip']
+        raise NotImplementedError()
+
+    def __str__(self):
+        return "npm package manager"
+
 
 class DependencyInstaller(object):
     # True if devassistant is installing dependencies and we can't interrupt the process
