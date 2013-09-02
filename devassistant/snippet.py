@@ -1,11 +1,12 @@
 import copy
 
-class Snippet(object):
-    def __init__(self, name, parsed_yaml, path, template_dir=''):
+from devassistant import loaded_yaml
+
+class Snippet(loaded_yaml.LoadedYaml):
+    def __init__(self, name, parsed_yaml, path):
         self.name = name
         self.parsed_yaml = parsed_yaml
         self.path = path
-        self.template_dir = template_dir
 
     @property
     def args(self):
@@ -18,7 +19,7 @@ class Snippet(object):
         return copy.deepcopy(self.parsed_yaml.get(section_name, None))
 
     def get_template_dir(self):
-        return self.parsed_yaml.get('template_dir', self.template_dir)
+        return self.parsed_yaml.get('template_dir', self.default_template_dir)
 
     def get_dependencies_section(self, section_name='dependencies'):
         if not section_name in self.parsed_yaml:

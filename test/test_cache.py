@@ -13,8 +13,7 @@ correct_cache = \
 {'creator': {'c': {'attrs': {'args': {'foo': {'flags': ['-f', '--foo'],
                                               'help': 'Help for foo parameter.'}},
                              'description': 'C Language Tool description...',
-                             'fullname': 'C Language Tool',
-                             'template_dir': 'test/fixtures/templates'},
+                             'fullname': 'C Language Tool'},
                    'snippets': [],
                    'source': 'test/fixtures/assistants/creator/c.yaml',
                    'subhierarchy': {'d': {'attrs': {'args': {'name': {'flags': ['-n',
@@ -26,8 +25,7 @@ correct_cache = \
                                                              'some_arg': {'flags': ['-s',
                                                                                     '--some-arg']}},
                                                     'description': '',
-                                                    'fullname': 'D Language Tool',
-                                                    'template_dir': 'test/fixtures/templates'},
+                                                    'fullname': 'D Language Tool'},
                                           'snippets': ['snippet1'],
                                           'source': 'test/fixtures/assistants/creator/c/d.yaml',
                                           'subhierarchy': {}},
@@ -35,24 +33,21 @@ correct_cache = \
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'description': '',
-                                                    'fullname': 'E Language Tool',
-                                                    'template_dir': 'test/fixtures/templates'},
+                                                    'fullname': 'E Language Tool'},
                                           'snippets': [],
                                           'source': 'test/fixtures/assistants/creator/c/e.yaml',
                                           'subhierarchy': {}}}},
              'f': {'attrs': {'args': {'name': {'flags': ['-n', '--name'],
                                                'help': 'Name of project to create'}},
                              'description': '',
-                             'fullname': 'F Language Tool',
-                             'template_dir': 'test/fixtures/templates'},
+                             'fullname': 'F Language Tool'},
                    'snippets': [],
                    'source': 'test/fixtures/assistants/creator/f.yaml',
                    'subhierarchy': {'g': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'description': '',
-                                                    'fullname': 'G Language Tool',
-                                                    'template_dir': 'test/fixtures/templates'},
+                                                    'fullname': 'G Language Tool'},
                                           'snippets': [],
                                           'source': 'test/fixtures/assistants/creator/f/g.yaml',
                                           'subhierarchy': {}}}}},
@@ -98,7 +93,7 @@ class TestCache(object):
         assert len(expected) == len(actual)
         for k, v in actual.items():
             assert k in expected
-            if k in ['source', 'template_dir']:
+            if k == 'source':
                 assert v.endswith(expected[k])
             else:
                 if isinstance(v, dict):

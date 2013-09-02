@@ -26,8 +26,7 @@ class YamlSnippetLoader(object):
             path, parsed_yaml = loaded
             snip = snippet.Snippet(name,
                                    parsed_yaml,
-                                   path,
-                                   template_dir=yaml_loader.YamlLoader._default_template_dir_for(path))
+                                   path)
             cls._snippets[snip.path] = snip
             return snip
 

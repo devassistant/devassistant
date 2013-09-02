@@ -58,14 +58,3 @@ class YamlLoader(object):
     def load_yaml_by_path(cls, path):
         """Load a yaml file that is at given path"""
         return yaml.load(open(path, 'r'), Loader=Loader)
-
-    @classmethod
-    def _default_template_dir_for(cls, source):
-        # both yaml_assistant_loader and yaml_snippet_loader use this, so
-        # it seems that there is no other place to put this
-        # (although it feels a little weird here)
-        base_path = ''
-        for d in settings.DATA_DIRECTORIES:
-            base_path = os.path.commonprefix([source, d])
-            if base_path: break
-        return os.path.join(base_path, 'templates')

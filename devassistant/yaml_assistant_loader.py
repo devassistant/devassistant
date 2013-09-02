@@ -150,13 +150,9 @@ class YamlAssistantLoader(object):
         """
         # assume only one key and value
         name, attrs = y.popitem()
-
-        template_dir = attrs.get('template_dir',
-                                 yaml_loader.YamlLoader._default_template_dir_for(source))
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,
                                                  source,
-                                                 template_dir,
                                                  fully_loaded=fully_loaded,
                                                  role=role)
 

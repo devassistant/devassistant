@@ -9,6 +9,7 @@ from devassistant import exceptions
 from devassistant.command_formatter import CommandFormatter
 from devassistant.commands import run_command
 from devassistant.logger import logger
+from devassistant import loaded_yaml
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 from devassistant import package_managers
@@ -27,15 +28,14 @@ def needs_fully_loaded(method):
 
     return inner
 
-class YamlAssistant(assistant_base.AssistantBase):
-    def __init__(self, name, parsed_yaml, path, template_dir, fully_loaded=True, role='creator'):
+class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
+    def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='creator'):
         self.name = name
-        self.parsed_yaml = parsed_yaml
         self.path = path
-        self.template_dir = template_dir
         self.fully_loaded = fully_loaded
         self.role = role
         self.stop_flag = False
+        self.parsed_yaml = parsed_yaml
 
     @property
     def parsed_yaml(self):
@@ -45,7 +45,7 @@ class YamlAssistant(assistant_base.AssistantBase):
     def parsed_yaml(self, value):
         self._parsed_yaml = value
 
-        self.template_dir = value.get('template_dir', self.template_dir)
+        self.template_dir = value.get('template_dir', self.default_template_dir)
         self.fullname = value.get('fullname', '')
         self.description = value.get('description', '')
         self.args = self._construct_args(value.get('args', {}))
