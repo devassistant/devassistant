@@ -1,3 +1,7 @@
+- All modules of devassistant.assistants package have been moved to
+  the top-level devassistant package (the subpackage only made sense
+  out of historical reasons).
+
 0.6.1
 - Quick bugfix release to enable GUI properly and fix some minor bugs.
 

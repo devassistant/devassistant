@@ -4,7 +4,7 @@ from devassistant import cache
 from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import settings
-from devassistant.assistants import yaml_assistant
+from devassistant import yaml_assistant
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))

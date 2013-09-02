@@ -1,6 +1,6 @@
 import pytest
 
-from devassistant.assistants.command_formatter import CommandFormatter
+from devassistant.command_formatter import CommandFormatter
 
 class TestCommandFormatter(object):
     template_dir = '/a/b/c'

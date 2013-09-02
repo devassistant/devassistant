@@ -3,7 +3,7 @@ import os
 from devassistant import exceptions
 from devassistant import yaml_loader
 from devassistant import settings
-from devassistant.assistants import snippet
+from devassistant import snippet
 
 class YamlSnippetLoader(object):
     snippets_dirs = list(map(lambda x: os.path.join(x, 'snippets'), settings.DATA_DIRECTORIES))

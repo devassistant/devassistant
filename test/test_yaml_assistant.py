@@ -6,8 +6,8 @@ import pytest
 
 from devassistant import exceptions
 from devassistant import settings
-from devassistant.assistants import yaml_assistant
-from devassistant.assistants import snippet
+from devassistant import yaml_assistant
+from devassistant import snippet
 from devassistant.command_helpers import ClHelper
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 

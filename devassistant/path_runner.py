@@ -1,5 +1,5 @@
-from devassistant.assistants import yaml_assistant
-from devassistant.assistants.commands import run_command
+from devassistant import yaml_assistant
+from devassistant.commands import run_command
 
 class PathRunner(object):
     def __init__(self, path, parsed_args, override_sys_excepthook=True):

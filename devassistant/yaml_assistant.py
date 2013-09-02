@@ -6,8 +6,8 @@ import os
 from devassistant import argument
 from devassistant import assistant_base
 from devassistant import exceptions
-from devassistant.assistants.command_formatter import CommandFormatter
-from devassistant.assistants.commands import run_command
+from devassistant.command_formatter import CommandFormatter
+from devassistant.commands import run_command
 from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
