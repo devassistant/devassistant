@@ -88,6 +88,9 @@ class creatorWindow(object):
                 self.gui_helper.add_menu_button(gridLang, ass, row, column)
             column += 1
         # empty assistant
+        if column > 2:
+            row+=1
+            column = 0
         btn=self.gui_helper.button_with_label("<b>New assistant</b>")
         btn.connect("clicked", self.btn_clicked, "new_assistant")
         if row == 0 and column == 0:
