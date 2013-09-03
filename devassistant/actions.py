@@ -12,13 +12,10 @@ class Action(object):
     def run(self, **kwargs):
         raise NotImplementedError()
 
-    def __eq__(self, other):
-        return self.name.__eq__(other.name)
-
 @register_action
 class HelpAction(Action):
     name = 'help'
-    description = 'Prints out detailed help'
+    description = 'Print detailed help'
 
     @classmethod
     def run(cls, **kwargs):
@@ -38,3 +35,13 @@ Or you can run a custom action:"""]
         for action_name, action in sorted(actions.items()):
             text.append('{name} - {desc}'.format(name=action_name, desc=action.description))
         return '\n'.join(text)
+
+@register_action
+class VersionAction(Action):
+    name = 'version'
+    description = 'Print version'
+
+    @classmethod
+    def run(cls, **kwargs):
+        from devassistant.version import VERSION
+        print('DevAssistant {version}'.format(version=VERSION))
