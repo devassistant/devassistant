@@ -314,7 +314,7 @@ class NPMPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cmd = [cls.c_npm, 'install', '--user']
+        cmd = [cls.c_npm, 'install']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
@@ -365,8 +365,7 @@ class NPMPackageManager(PackageManager):
 
     @classmethod
     def get_distro_dependencies(self, smgr_sc):
-        #return ['python-pip']
-        raise NotImplementedError()
+        return ['npm']
 
     def __str__(self):
         return "npm package manager"
