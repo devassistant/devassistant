@@ -75,6 +75,16 @@ class gui_helper(object):
         btn.set_relief(style)
         return btn
 
+    def create_menu_item(self, text):
+        menu_item = Gtk.MenuItem(text)
+        return menu_item
+
+    def create_imagemenu_item(self, text, image_name):
+        menu_item = Gtk.ImageMenuItem(text)
+        img = self.create_image(image_name)
+        menu_item.set_image(img)
+        return menu_item
+
     def create_checkbutton(self, text=""):
         """
         This is generalized method for creating Gtk.Button
@@ -105,7 +115,7 @@ class gui_helper(object):
         """
         #print "gui_helper add_button"
         image_name = ass[0].icon_path
-        if image_name is None:
+        if not os.path.exists(image_name):
             btn = self.button_with_label("<b>"+ass[0].fullname+"</b>")
         else:
             btn = self.button_with_image("<b>"+ass[0].fullname+"</b>",image=ass[0].icon_path)
@@ -138,7 +148,10 @@ class gui_helper(object):
                 text+="|"
             cnt+=1
             text+="- "+sub[0].fullname
-            menu_item = Gtk.MenuItem(sub[0].fullname)
+            if not os.path.exists(sub[0].icon_path):
+                menu_item = self.create_menu_item(sub[0].fullname)
+            else:
+                menu_item = self.create_imagemenu_item(sub[0].fullname,sub[0].icon_path)
             if sub[0].description:
                 menu_item.set_has_tooltip(True)
                 menu_item.connect("query-tooltip",
@@ -154,10 +167,10 @@ class gui_helper(object):
         menu.show_all()
         text = text.replace('|','\n')
         image_name = assistant[0].icon_path
-        if image_name is None:
+        if not os.path.exists(image_name):
             btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>")
         else:
-            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=assistant[0].icon_path)
+            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=image_name)
         btn.set_has_tooltip(True)
         if assistant[0].description:
             description = self.get_formated_description(assistant[0].description)+"\n\n"
@@ -246,10 +259,10 @@ class gui_helper(object):
         tree_view = Gtk.TreeView()
         if model != None:
             tree_view.set_model(model)
-        #tree_view.set_mode(mode)
         return tree_view
 
-    def create_cell_renderer(self, tree_view, title="title", assign=0):
+    def create_cell_renderer(self, tree_view, title="title", assign=0, editable=False):
         renderer = Gtk.CellRendererText()
+        renderer.set_property('editable', editable)
         column = Gtk.TreeViewColumn(title, renderer, text=assign)
         tree_view.append_column(column)
