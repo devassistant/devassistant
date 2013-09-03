@@ -27,6 +27,7 @@ class yamlWindow(object):
         self.list_view = None
         self.yaml_data = None
         self.full_assistant = None
+        self.run_view = None
 
         # general tab
         self._create_general()
@@ -85,7 +86,7 @@ class yamlWindow(object):
 
         self.list_store = Gtk.ListStore(str)
         self.list_view = self.gui_helper.create_tree_view(self.list_store)
-        self.gui_helper.create_cell_renderer(self.list_view, title="rpm dependencies",assign=0)
+        self.gui_helper.create_cell_renderer(self.list_view, title="rpm dependencies",assign=0, editable=True)
         scrolled_dependecies = self.gui_helper.create_scrolled_window(self.list_view)
         scrolled_dependecies.set_border_width(12)
 
@@ -99,13 +100,13 @@ class yamlWindow(object):
     def _create_run_section(self):
         box_run_section = Gtk.Box(spacing=12,orientation=Gtk.Orientation.VERTICAL)
         box_run_section.set_border_width(12)
-        label_run = self.gui_helper.create_label("Specify run section")
+        label_run = self.gui_helper.create_label("Specify run section. Each row is one row in YAML file and begin with dash (-). ")
         label_run.set_alignment(0,0)
         box_run_section.pack_start(label_run, False, False, 6)
         separator = Gtk.Separator()
         box_run_section.pack_start(separator, False, False, 6)
-        self.text_view = self.gui_helper.create_textview()
-        scrolled_run_section = self.gui_helper.create_scrolled_window(self.text_view)
+        self.run_view = self.gui_helper.create_textview()
+        scrolled_run_section = self.gui_helper.create_scrolled_window(self.run_view)
         scrolled_run_section.set_border_width(12)
         box_run_section.pack_start(scrolled_run_section, True, True, 6)
         self.notebook.append_page(box_run_section,
@@ -118,7 +119,6 @@ class yamlWindow(object):
         for ass in filter(lambda x: x[0].name == self.kwargs['subassistant_0'], self.parent.subas):
             if not ass[1]:
                 ass[0].assert_fully_loaded()
-                print ass[0]
                 self.full_assistant = ass[0]
                 text_buffer.set_text(self.get_yaml_data(ass[0].parsed_yaml))
                 label = ass[0].fullname + " assistant"
@@ -126,7 +126,6 @@ class yamlWindow(object):
             if self.kwargs.has_key('subassistant_1'):
                 for ass2 in filter(lambda x: x[0].name == self.kwargs['subassistant_1'], ass[1]):
                     ass2[0].assert_fully_loaded()
-                    print ass2[0].parsed_yaml
                     self.full_assistant = ass2[0]
                     text_buffer.set_text(self.get_yaml_data(ass2[0].parsed_yaml))
                     label = ass2[0].fullname + " assistant"
@@ -172,8 +171,16 @@ class yamlWindow(object):
         texts=dict()
         texts['description']=self.assistant_full.get_text()
         texts['fullname']=self.assistant_desc.get_text()
+        if not self.assistant_entry.get_text():
+            dlg = self.gui_helper.create_message_dialog("You have to write assistant name")
+            dlg.run()
+            dlg.destroy()
+            return
+        buf = self.run_view.get_buffer()
+        start = buf.get_start_iter()
+        end = buf.get_end_iter()
+        run_list = buf.get_text(start, end, False).split('\n')
+        texts['run']=run_list
         yaml_dict[self.assistant_entry.get_text()]=texts
-        #yaml_dict['fullname']=self.assistant_full.get_text()
-        #yaml_dict['description']=self.assistant_desc.get_text()
         with open("mytest.yaml","w") as file:
             file.write(yaml.dump(yaml_dict, default_flow_style=False))
