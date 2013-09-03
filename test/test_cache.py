@@ -17,7 +17,8 @@ correct_cache = \
                                               'help': 'Help for foo parameter.'}},
                              'description': 'C Language Tool description...',
                              'fullname': 'C Language Tool'},
-                   'snippets': [],
+                   'snippets': {},
+                   'ctime': 'dontcheck',
                    'source': 'test/fixtures/assistants/creator/c.yaml',
                    'subhierarchy': {'d': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
@@ -28,27 +29,31 @@ correct_cache = \
                                                              'some_arg': {'flags': ['-s',
                                                                                     '--some-arg']}},
                                                     'fullname': 'D Language Tool'},
-                                          'snippets': ['snippet1'],
+                                          'snippets': {'snippet1': 'dontcheck'},
+                                          'ctime': 'dontcheck',
                                           'source': 'test/fixtures/assistants/creator/c/d.yaml',
                                           'subhierarchy': {}},
                                     'e': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'fullname': 'E Language Tool'},
-                                          'snippets': [],
+                                          'snippets': {},
+                                          'ctime': 'dontcheck',
                                           'source': 'test/fixtures/assistants/creator/c/e.yaml',
                                           'subhierarchy': {}}}},
              'f': {'attrs': {'args': {'name': {'flags': ['-n', '--name'],
                                                'help': 'Name of project to create'}},
                              'fullname': 'F Language Tool'},
-                   'snippets': [],
+                   'snippets': {},
+                   'ctime': 'dontcheck',
                    'source': 'test/fixtures/assistants/creator/f.yaml',
                    'subhierarchy': {'g': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
                                                     'icon_path': '/foo/bar',
                                                     'fullname': 'G Language Tool'},
-                                          'snippets': [],
+                                          'snippets': {},
+                                          'ctime': 'dontcheck',
                                           'source': 'test/fixtures/assistants/creator/f/g.yaml',
                                           'subhierarchy': {}}}}},
  'modifier': {},
@@ -101,6 +106,8 @@ class TestCache(object):
             assert k in expected
             if k == 'source':
                 assert v.endswith(expected[k])
+            elif expected[k] == 'dontcheck':
+                pass
             else:
                 if isinstance(v, dict):
                     self.assert_cache_content(expected[k], v)
@@ -124,6 +131,7 @@ class TestCache(object):
         self.create_or_refresh_cache()
         time.sleep(0.1)
 
+        self.cch.snip_ctimes = {}
         p = 'snippets/snippet1.yaml'
         self.touch_file(p)
         self.create_or_refresh_cache()
@@ -144,7 +152,8 @@ class TestCache(object):
         self.addme_copy('addme_snippet.yaml', 'snippets/addme_snippet.yaml')
         self.create_or_refresh_cache()
         addme = self.cch.cache['creator']['addme']
-        assert addme['snippets'] == ['addme_snippet']
+        assert 'addme_snippet' in addme['snippets']
+        assert len(addme['snippets']) == 1
         assert addme['source'].endswith('assistants/creator/addme.yaml')
         assert addme['attrs']['fullname'] == 'Add me and watch miracles happen'
         assert addme['attrs']['args']['some_arg']['flags'] == ['-x']
@@ -161,6 +170,7 @@ class TestCache(object):
         time.sleep(0.1)
         self.addme_copy('addme_snippet_changed.yaml', 'snippets/addme_snippet.yaml')
         from devassistant import yaml_snippet_loader; yaml_snippet_loader.YamlSnippetLoader._snippets = {}
+        self.cch.snip_ctimes = {}
         self.create_or_refresh_cache()
         addme = self.cch.cache['creator']['addme']
         assert addme['attrs']['args']['some_arg']['flags'] == ['-z']

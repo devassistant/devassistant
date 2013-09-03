@@ -14,6 +14,9 @@ from devassistant import yaml_snippet_loader
 class Cache(object):
     def __init__(self, cache_file=settings.CACHE_FILE):
         self.cache_file = cache_file
+        # snippets are shared across many assistants, so we remember their ctimes
+        # here, because doing it again for each assistant would be very costly
+        self.snip_ctimes = {}
         # TODO: try/catch creating the cache file, on failure don't use it
         reset_cache = False
         if os.path.exists(self.cache_file):
@@ -69,13 +72,12 @@ class Cache(object):
     def _ass_needs_refresh(self, cached_ass, file_ass):
         if cached_ass['source'] != file_ass['source']:
             return True
-        if os.path.getctime(file_ass['source']) > os.path.getctime(self.cache_file):
+        if os.path.getctime(file_ass['source']) > cached_ass.get('ctime', 0.0):
             return True
         if set(cached_ass['subhierarchy'].keys()) != set(set(file_ass['subhierarchy'].keys())):
             return True
-        for snip_name in cached_ass['snippets']:
-            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snip_name)
-            if os.path.getctime(snippet.path) > os.path.getctime(self.cache_file):
+        for snip_name, snip_ctime in cached_ass['snippets'].items():
+            if self._get_snippet_ctime(snip_name) > snip_ctime:
                 return True
 
         return False
@@ -85,6 +87,7 @@ class Cache(object):
         loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
         _, attrs = loaded_ass.popitem()
         cached_ass['source'] = file_ass['source']
+        cached_ass['ctime'] = os.path.getctime(file_ass['source'])
         cached_ass['attrs'] = {}
         # only cache these attributes if they're actually found in assistant
         # we do this to specify the default values for them just in one place
@@ -100,8 +103,7 @@ class Cache(object):
                 snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(argparams.pop('snippet'))
                 cached_ass['attrs']['args'][argname] = snippet.get_arg_by_name(argname)
                 cached_ass['attrs']['args'][argname].update(argparams)
-                if snippet.name not in cached_ass['snippets']:
-                    cached_ass['snippets'].append(snippet.name)
+                cached_ass['snippets'][snippet.name] = self._get_snippet_ctime(snippet.name)
             else:
                 cached_ass['attrs']['args'][argname] = argparams
 
@@ -109,7 +111,7 @@ class Cache(object):
         ret_struct = {'source': '',
                       'subhierarchy': {},
                       'attrs': {},
-                      'snippets': []}
+                      'snippets': {}}
         ret_struct['source'] = file_ass['source']
         self._ass_refresh_attrs(ret_struct, file_ass)
 
@@ -117,3 +119,9 @@ class Cache(object):
             ret_struct['subhierarchy'][name] = self._new_ass_hierarchy(subhierarchy)
 
         return ret_struct
+
+    def _get_snippet_ctime(self, snip_name):
+        if snip_name not in self.snip_ctimes:
+            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snip_name)
+            self.snip_ctimes[snip_name] = os.path.getctime(snippet.path)
+        return self.snip_ctimes[snip_name]
