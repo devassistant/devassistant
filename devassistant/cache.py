@@ -61,7 +61,13 @@ class Cache(object):
             del cached_hierarchy[ass]
 
         for ass in to_check:
-            if self._ass_needs_refresh(cached_hierarchy[ass], file_hierarchy[ass]):
+            needs_refresh = False
+            try:
+                needs_refresh = self._ass_needs_refresh(cached_hierarchy[ass], file_hierarchy[ass])
+            except:
+                needs_refresh = True
+
+            if needs_refresh:
                 self._ass_refresh_attrs(cached_hierarchy[ass], file_hierarchy[ass])
                 was_change = True
             was_change |= self._refresh_hierarchy_recursive(cached_hierarchy[ass]['subhierarchy'], file_hierarchy[ass]['subhierarchy'])
@@ -89,6 +95,7 @@ class Cache(object):
         cached_ass['source'] = file_ass['source']
         cached_ass['ctime'] = os.path.getctime(file_ass['source'])
         cached_ass['attrs'] = {}
+        cached_ass['snippets'] = {}
         # only cache these attributes if they're actually found in assistant
         # we do this to specify the default values for them just in one place
         # which is currently YamlAssistant.parsed_yaml property setter
