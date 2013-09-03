@@ -9,7 +9,7 @@ class ArgparseGenerator(object):
     subparsers_desc = '''Following subassistants will help you with setting up your project.'''
 
     @classmethod
-    def generate_argument_parser(cls, tree, actions=[]):
+    def generate_argument_parser(cls, tree, actions={}):
         cur_as, cur_subas = tree
         parser = devassistant_argparse.ArgumentParser(argument_default=argparse.SUPPRESS,
                                                       usage=argparse.SUPPRESS,

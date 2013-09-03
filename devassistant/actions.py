@@ -22,7 +22,7 @@ class HelpAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        print cls.get_help()
+        print(cls.get_help())
 
     @classmethod
     def get_help(cls):
