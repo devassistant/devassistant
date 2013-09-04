@@ -1,4 +1,4 @@
-Devassistant Core
+DevAssistant Core
 =================
 
 Just Python... TBD

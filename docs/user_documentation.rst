@@ -11,7 +11,7 @@ So What is an Assistant?
 ------------------------
 
 In short, assistant is a recipe for creating/modifying a project or setting up
-environment in a certain way. Devassistant is in fact just a core that "runs"
+environment in a certain way. DevAssistant is in fact just a core that "runs"
 assistants according to certain rules.
 
 Each assistant specifies a way how to achieve a single task, e.g. create a new
@@ -28,10 +28,10 @@ Using Commandline Interface
 Creating New Projects
 ~~~~~~~~~~~~~~~~~~~~~
 
-Developer Assistant can help you create your projects with one line in terminal.
-For example::
+DevAssistant can help you create (that's the ``crt`` in the below command) your
+projects with one line in terminal. For example::
 
-   $ da python django -n foo -e -g
+   $ da crt python django -n foo -e -g
 
 ``da`` is short form of ``devassistant``. You can use any of them, but ``da`` is preferred.
 
@@ -41,12 +41,12 @@ This line will do the following:
 - Create a Django project named ``foo`` in current working directory.
 - Make any necessary adjustments so that you can run the project and start developing
   right away.
-- The ``-e`` switch will make devassistant register the newly created projects into
+- The ``-e`` switch will make DevAssistant register the newly created projects into
   Eclipse (tries ``~/workspace`` by default, if you have any other, you need to specify
   it as an argument to ``-e``). This will also cause installation of Eclipse and PyDev,
   unless already installed.
-- The ``-g`` switch will make devassistant register the project on Github and push
-  sources there. Devassistant will ask you for your Github password the first time
+- The ``-g`` switch will make DevAssistant register the project on Github and push
+  sources there. DevAssistant will ask you for your Github password the first time
   you're doing this and then it will create Github API token and new SSH keys, so
   on any further invocation, this will be fully automatic. Note, that if your
   system username differs from your Github username, you must specify Github username
@@ -58,12 +58,9 @@ Modifying Existing Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Developer Assistant allows you to work with previously created projects. You can do
-this by using ``devassistant-modify``::
+this by using ``da mod``, as opposed to ``da crt`` for creating::
 
-   $ da-mod eclipse
-
-``da-mod`` is short form of ``devassistant-modify``. You can use any of them, but
-``da-mod`` is preferred.
+   $ da mod eclipse
 
 This will import previously created project into Eclipse (and possibly install
 Eclipse and other dependencies implied by the project language). Optionally,
@@ -78,18 +75,15 @@ Preparing Environment
 Developer Assistant can set up environment and install dependencies for
 executing aribtrary tasks or development of already existing project located
 in a remote SCM (e.g. Github). For custom projects created
-by devassistant, you can use the ``custom`` assistant::
+by DevAssistant, you can use the ``custom`` assistant::
 
-   $ da-prep custom -u scm_url
-
-``da-prep`` is short form of ``devassistant-prepare``. You can use any of them, but
-``da-prep`` is preferred.
+   $ da prep custom -u scm_url
 
 The plan is to also include assistants for well known and largely developed projects
 (that, of course, don't contain ``.devassistant`` file). So in future you should be
 able to do something like::
 
-   $ da-prep openstack
+   $ da prep openstack
 
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...
@@ -111,7 +105,7 @@ The GUI workflow is dead simple:
 - GUI displays a window where you can modify some settings and choose from
   various assistant-specific options.
 - Click "Run" button and then just watch getting the stuff done. If your input
-  is needed (such as confirming dependencies to install), devassistant will
+  is needed (such as confirming dependencies to install), DevAssistant will
   ask you, so don't go get your coffee just yet.
 - After all is done, get your coffee and enjoy.
 
@@ -137,7 +131,7 @@ Creating
 - PHP
   - LAMP - Apache/MySQL/PHP project
 - Python - all Python assistants allow you to use ``--venv`` switch, which will make
-  devassistant create a project inside a Python virtualenv and install dependencies
+  DevAssistant create a project inside a Python virtualenv and install dependencies
   there, rather then installing them system-wide from RPM
   - Django - Initial Django project, set up to be runnable right away
   - Flask - A minimal Flask project with a simple view and script for managing the application

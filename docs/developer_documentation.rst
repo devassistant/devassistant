@@ -37,7 +37,7 @@ Assistants
 ----------
 Internally, each assistant is represented by instance of
 devassistant.assistants.yaml_assistant.YamlAssistant). Instances are constructed
-by devassistant in runtime from parsed yaml files. Each assistant can
+by DevAssistant in runtime from parsed yaml files. Each assistant can
 have zero or more subassistants. This effectively forms a tree-like
 structure. For example::
 

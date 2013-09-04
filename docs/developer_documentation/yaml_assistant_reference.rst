@@ -14,7 +14,7 @@ use a special DSL defined on this page. For real examples, have a look
 at `assistants in our Github repo`_.
 
 *Why the hell another DSL?*
-  When we started creating devassistant and we were asking people who
+  When we started creating DevAssistant and we were asking people who
   work in various languages whether they'd consider contributing assistants
   for those languages, we hit the "I'm not touching Python" barrier. Since
   we wanted to keep the assistants consistent (centralized logging, sharing
@@ -31,11 +31,11 @@ Creator
   accessed using ``da`` binary
 Modifier
   modifier assistants are used for modifying existing projects previously
-  created by devassistant
+  created by DevAssistant
 Preparer
   preparer assistants are used for setting up environment for already existing
   projects (located e.g. at remote SCM etc.) that may or may not have been
-  creating by devassistant
+  creating by DevAssistant
 
 The role is implied by assistant location in one of the load directories,
 as mentioned in :ref:`assistants_loading_mechanism`.
@@ -49,7 +49,7 @@ Preparer assistants.
 
 Assistants Loading Mechanism
 ----------------------------
-Devassistant loads assistants from few load paths on filesystem (traversed
+DevAssistant loads assistants from few load paths on filesystem (traversed
 in this order):
 
 1. "system" path, which is defined by OS distribution (usually
@@ -58,7 +58,7 @@ in this order):
 2. "local" path, ``/usr/local/share/devassistant/assistants``
 3. "user" path, ``~/.devassistant/assistants``
 
-When devassistant starts up, it loads assistants from all these paths. It
+When DevAssistant starts up, it loads assistants from all these paths. It
 assumes, that Creator assistants are located under ``creator`` subdirectories
 of the above directories, the same applies to Modifier and Preparer assistants.
 
@@ -71,7 +71,7 @@ For example, loading process for Creator assistants looks like this:
 
    a. If ``creator/foo`` directory doesn't exist, then this assistant is "leaf"
       and therefore can be directly used by users.
-   b. Else this assistant is not leaf and devassistant loads its subassistants
+   b. Else this assistant is not leaf and DevAssistant loads its subassistants
       from the directory, recursively going from point 1).
 
 Assistant Name
@@ -249,7 +249,7 @@ Files
 -----
 
 This section serves as a list of aliases of files stored in one of the
-template dirs of devassistant. E.g. if the devassistant's template dir
+template dirs of DevAssistant. E.g. if the DevAssistant's template dir
 contains file ``foo/bar``, then you can use::
 
    files:
@@ -258,12 +258,12 @@ contains file ``foo/bar``, then you can use::
 
 This will allow you to reference the ``foo/bar`` file in ``run`` section as
 ``*bar`` without having to know where exactly it is located in your
-installation of devassistant.
+installation of DevAssistant.
 
 Run
 ---
 
-Run sections are the essence of devassistant. They are responsible for
+Run sections are the essence of DevAssistant. They are responsible for
 preforming all the tasks and actions to set up the environment and
 the project itself. By default, section named ``run`` is invoked
 (this is a bit different for ``modifier`` assistants `Modifier Assistants`_).
@@ -280,7 +280,7 @@ invocations of commandline. Each command is a mapping
 messages of level ``INFO`` and higher are logged. As you can see below,
 there is a separate ``log_*`` command type for logging, but some other
 command types can also log various messages. Log messages with levels
-``ERROR`` and ``CRITICAL`` terminate execution of devassistant imediatelly.
+``ERROR`` and ``CRITICAL`` terminate execution of DevAssistant imediatelly.
 
 Run sections allow you to use variables with certain rules and
 limitations. See below.
@@ -301,7 +301,7 @@ List of supported commands follows:
   - ``c`` creates ``.devassistant`` file (containing some sane initial meta
     information about the project) in given directory
   - ``dda_dependencies`` let's you install dependencies from ``.devassistant`` file
-    (devassistant will use dependencies from original assistant and specified 
+    (DevAssistant will use dependencies from original assistant and specified 
     ``dependencies`` attribute, if any - this has the same structure as ``dependencies``
     in normal assistants, and is evaluated in current assistant context, not the original
     assistant context)

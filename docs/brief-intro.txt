@@ -1,21 +1,21 @@
-The devassistant project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
- 
-Devassistant provides three binaries with three different purposes:
+DevAssistant is developer's best friend (right after coffee).
 
-- ``da`` - create new project from scratch
-- ``da-mod`` - take local project and do something with it (e.g. import it to Eclipse)
-- ``da-prep`` - prepare development environment for a project from remote source control and checkout the source
+DevAssistant can help you with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc. There are three main types of functionality provided:
 
-Devassistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can run::
+- ``da crt`` - create new project from scratch
+- ``da mod`` - take local project and do something with it (e.g. import it to Eclipse)
+- ``da prep`` - prepare development environment for an upstream project or a custom task
+
+DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can run::
 
    $ da python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
    $ da python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
    $ da java jsf -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
-Devassistant also allows you to work with a previously created project, for example import it to Eclipse::
+DevAssistant also allows you to work with a previously created project, for example import it to Eclipse::
 
-   $ da-mod eclipse # run in project dir or use -p to specify path
+   $ da mod eclipse # run in project dir or use -p to specify path
 
-Last but not least, devassistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by devassistant or using specific assistant for specific projects):
+Last but not least, DevAssistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by DevAssistant or using specific assistant for specific projects)::
 
-   $ da-prep custom custom -u scm_url
+   $ da prep custom custom -u scm_url
