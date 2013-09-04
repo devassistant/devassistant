@@ -22,14 +22,16 @@ class gui_helper(object):
     def button_with_label(self, description, assistants=None, sensitive=True):
         btn = self.create_button()
         label = self.create_label(description)
-        hbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=0)
-        hbox.set_homogeneous(False)
-        hbox.pack_start(label, False, False, 0)
         if assistants != None:
+            hbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=0)
+            hbox.set_homogeneous(False)
+            hbox.pack_start(label, False, False, 0)
             labelass = self.create_label(assistants, justify=Gtk.Justification.LEFT)
             labelass.set_alignment(0,0)
             hbox.pack_start(labelass,False, False, 12)
-        btn.add(hbox)
+            btn.add(hbox)
+        else:
+            btn.add(label)
         return btn
 
     def create_image(self, image_name=None):
@@ -261,8 +263,20 @@ class gui_helper(object):
             tree_view.set_model(model)
         return tree_view
 
-    def create_cell_renderer(self, tree_view, title="title", assign=0, editable=False):
+    def create_cell_renderer_text(self, tree_view, title="title", assign=0, editable=False):
         renderer = Gtk.CellRendererText()
         renderer.set_property('editable', editable)
         column = Gtk.TreeViewColumn(title, renderer, text=assign)
+        tree_view.append_column(column)
+
+    def create_cell_renderer_combo(self, tree_view, title="title", assign=0, editable=False, model=None, function=None):
+        renderer_combo = Gtk.CellRendererCombo()
+        renderer_combo.set_property('editable', editable)
+        if model:
+            renderer_combo.set_property('model', model)
+        if function:
+            renderer_combo.connect("edited", function)
+        renderer_combo.set_property("text-column", 1)
+        renderer_combo.set_property("has-entry",False)
+        column = Gtk.TreeViewColumn(title, renderer_combo, text=assign)
         tree_view.append_column(column)
