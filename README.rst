@@ -14,27 +14,27 @@ Start developing with ease!
 
 Devassistant project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 
-Devassistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can run:
+Devassistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can create projects like this:
 
 .. code:: sh
 
-  $ da python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-  $ da python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-  $ da java jsf -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+  $ da crt python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+  $ da crt python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
+  $ da crt ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
 Devassistant also allows you to work with a previously created project, for example import it to Eclipse:
 
 .. code:: sh
 
-  $ da-mod eclipse # run in project dir or use -p to specify path
+  $ da mod eclipse # run in project dir or use -p to specify path
 
 Last but not least, devassistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by devassistant or using specific assistant for specific projects):
 
 .. code:: sh
 
-  $ da-prep custom -u scm_url -p directory_to_save_to
+  $ da prep custom -u scm_url -p directory_to_save_to
 
-For full documentation, see https://developer-assistant.readthedocs.org/
+For full documentation, see https://doc.devassistant.org/
 
 Devassistant works on Python 2.6, 2.7 and >= 3.3.
 
