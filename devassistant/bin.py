@@ -17,7 +17,7 @@ class CreatorAssistant(ExecutableAssistant):
 
     name = 'crt'
     verbose_name = 'Create'
-    description = 'Kickstart new projects easily with devassistant.'
+    description = 'Kickstart new projects easily with DevAssistant.'
 
 class ModifierAssistant(ExecutableAssistant):
     def get_subassistants(self):
@@ -26,7 +26,7 @@ class ModifierAssistant(ExecutableAssistant):
 
     name = 'mod'
     verbose_name = 'Modify'
-    description = 'Modify existing projects with devassistant.'
+    description = 'Modify existing projects with DevAssistant.'
 
 class PreparerAssistant(ExecutableAssistant):
     def get_subassistants(self):
@@ -35,7 +35,7 @@ class PreparerAssistant(ExecutableAssistant):
 
     name = 'prep'
     verbose_name = 'Prepare'
-    description = 'Prepare environment for upstream projects or various tasks with devassistant.'
+    description = 'Prepare environment for upstream projects or various tasks with DevAssistant.'
 
 class TopAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):

@@ -7,7 +7,7 @@ def signal_handler(signal, frame):
     if package_managers.DependencyInstaller.install_lock:
         print('Can\'t interrupt dependency installation!')
     else:
-        print('Devassistant received SIGINT, exiting...')
+        print('DevAssistant received SIGINT, exiting...')
         sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)

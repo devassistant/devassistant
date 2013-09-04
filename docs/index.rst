@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Developer Assistant's documentation!
-===============================================
+Welcome to DevAssistant documentation!
+======================================
 
-Developer Assistant - start developing with ease.
+DevAssistant - start developing with ease.
 
 Contents
 --------
@@ -25,6 +25,6 @@ Overview
 
 .. include:: brief-intro.txt
 
-Devassistant works on Python 2.6, 2.7 and >= 3.3.
+DevAssistant works on Python 2.6, 2.7 and >= 3.3.
 
 This whole project is licensed under GPLv2+.
