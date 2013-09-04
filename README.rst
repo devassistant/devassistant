@@ -34,7 +34,7 @@ Last but not least, devassistant allows you to prepare environment for executing
 
   $ da prep custom -u scm_url -p directory_to_save_to
 
-For full documentation, see https://doc.devassistant.org/
+For full documentation, see http://doc.devassistant.org/
 
 Devassistant works on Python 2.6, 2.7 and >= 3.3.
 
