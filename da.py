@@ -1,4 +1,4 @@
 #!/usr/bin/env python
-from devassistant.bin import CreatorAssistant
+from devassistant.cli.cli_runner import CliRunner
 
-CreatorAssistant.main()
+CliRunner.run()

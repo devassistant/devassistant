@@ -1,6 +1,5 @@
 from devassistant import argument
 from devassistant import assistant_base
-from devassistant import cli
 from devassistant import settings
 from devassistant import yaml_assistant_loader
 
@@ -11,17 +10,13 @@ class ExecutableAssistant(assistant_base.AssistantBase):
                               required=False,
                               action='store_true')]
 
-    @classmethod
-    def main(cls):
-        cli.CliRunner.run_assistant(cls())
-
 class CreatorAssistant(ExecutableAssistant):
     def get_subassistants(self):
         sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['creator'])
         return sa
 
-    name = 'main'
-    verbose_name = 'Main'
+    name = 'crt'
+    verbose_name = 'Create'
     description = 'Kickstart new projects easily with devassistant.'
 
 class ModifierAssistant(ExecutableAssistant):
@@ -29,8 +24,8 @@ class ModifierAssistant(ExecutableAssistant):
         sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['modifier'])
         return sa
 
-    name = 'main'
-    verbose_name = 'Main'
+    name = 'mod'
+    verbose_name = 'Modify'
     description = 'Modify existing projects with devassistant.'
 
 class PreparerAssistant(ExecutableAssistant):
@@ -38,6 +33,10 @@ class PreparerAssistant(ExecutableAssistant):
         sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['preparer'])
         return sa
 
-    name = 'main'
-    verbose_name = 'Main'
+    name = 'prep'
+    verbose_name = 'Prepare'
     description = 'Prepare environment for upstream projects or various tasks with devassistant.'
+
+class TopAssistant(assistant_base.AssistantBase):
+    def get_subassistants(self):
+        return [CreatorAssistant(), ModifierAssistant(), PreparerAssistant()]

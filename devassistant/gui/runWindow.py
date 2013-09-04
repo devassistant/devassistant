@@ -125,9 +125,9 @@ class runWindow(object):
         #logger_gui.info("Thread run")
         #print self.parent.kwargs
         path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
-        self.pr = path_runner.PathRunner(path, self.parent.kwargs)
+        self.pr = path_runner.PathRunner(path)
         try:
-            self.pr.run()
+            self.pr.run(**self.parent.kwargs)
             Gdk.threads_enter()
             self.cancelBtn.set_label("Close")
             Gdk.threads_leave()
