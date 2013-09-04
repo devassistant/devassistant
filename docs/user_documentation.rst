@@ -88,6 +88,17 @@ able to do something like::
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...
 
+Custom Actions
+~~~~~~~~~~~~~~
+There are also some custom actions besides ``crt``, ``mod`` and ``prep``. For
+the time being, these are not of high importance, but in future, these will
+bring more functionality, such as making coffee for you.
+
+``help``
+  Displays help, what else?
+``version``
+  Displays current DevAssistant version.
+
 Using GUI
 ---------
 
