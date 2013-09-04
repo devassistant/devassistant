@@ -57,7 +57,7 @@ This line will do the following:
 Modifying Existing Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Developer Assistant allows you to work with previously created projects. You can do
+DevAssistant allows you to work with previously created projects. You can do
 this by using ``da mod``, as opposed to ``da crt`` for creating::
 
    $ da mod eclipse
@@ -72,7 +72,7 @@ the project directory.
 Preparing Environment
 ~~~~~~~~~~~~~~~~~~~~~
 
-Developer Assistant can set up environment and install dependencies for
+DevAssistant can set up environment and install dependencies for
 executing aribtrary tasks or development of already existing project located
 in a remote SCM (e.g. Github). For custom projects created
 by DevAssistant, you can use the ``custom`` assistant::
@@ -91,7 +91,7 @@ that others do. But this is still somewhere in the future...
 Using GUI
 ---------
 
-Developer Assistant GUI provides the full functionality of
+DevAssistant GUI provides the full functionality of
 :ref:`Commandline Interface <cli_interface>` through a Gtk based application.
 
 As opposed to CLI, which consists of three binaries, GUI provides all

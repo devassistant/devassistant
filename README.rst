@@ -1,4 +1,4 @@
-Developer Assistant
+DevAssistant
 ===================
 
 .. image:: https://badge.fury.io/py/devassistant.png

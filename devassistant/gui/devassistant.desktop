@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=Developer Assistant
-GenericName=Developer Assistant
-Comment=Developer Assistant
+Name=DevAssistant
+GenericName=DevAssistant
+Comment=DevAssistant
 Exec=devel-assistant-gui.py
 Icon=utilities-terminal
 Type=Application

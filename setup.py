@@ -52,7 +52,7 @@ description = ''.join(open('README.rst').readlines())
 setup(
     name = 'devassistant',
     version = VERSION,
-    description = 'Developer assistant helps you kickstart your projects with ease.',
+    description = 'DevAssistant helps you kickstart your projects with ease.',
     long_description = description,
     keywords = 'develop,kickstart,easy,quick',
     author = 'Bohuslav "Slavek" Kabrda',

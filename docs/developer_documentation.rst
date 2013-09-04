@@ -12,14 +12,14 @@ Developer Documentation
 Overall Design
 --------------
 
-Developer Assistant consists of several parts:
+DevAssistant consists of several parts:
 
 Core
-  Core of Developer Assistant is written in Python. It is responsible for
+  Core of DevAssistant is written in Python. It is responsible for
   interpreting Yaml Assistants and it provides an API that can be used
   by any consumer for the interpretation.
 CL Interface
-  CL interface allows users to interact with Developer Assistant
+  CL interface allows users to interact with DevAssistant
   on commandline; it consumes the Core API.
 GUI
   (work in progress) GUI allows users to interact with Developer
@@ -28,7 +28,7 @@ Assistants
   Assistants are Yaml files with special syntax and semantics (defined
   in :ref:`yaml_assistant_reference`). They are indepent of the Core,
   therefore any software distribution can carry its own assistants
-  and drop them into the directory from where Developer Assistant
+  and drop them into the directory from where DevAssistant
   loads them - they will be loaded on next invocation.
   Note, that there is also a possibility to write assistants in Python,
   but this is no longer supported and will be removed in near future.

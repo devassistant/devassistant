@@ -1,7 +1,7 @@
 [Desktop Entry]
 Exec=da-gui
-Name=Developer Assistant
-GenericName=Developer Assistant Tool
+Name=DevAssistant
+GenericName=DevAssistant
 Terminal=false
 Type=Application
 Categories=Development;
