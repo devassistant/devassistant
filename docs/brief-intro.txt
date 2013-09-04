@@ -8,9 +8,9 @@ DevAssistant can help you with creating and setting up basic projects in various
 
 DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can run::
 
-   $ da python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-   $ da python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-   $ da java jsf -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+   $ da crt python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+   $ da crt python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
+   $ da crt ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
 DevAssistant also allows you to work with a previously created project, for example import it to Eclipse::
 
