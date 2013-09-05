@@ -10,6 +10,15 @@ class ArgparseGenerator(object):
 
     @classmethod
     def generate_argument_parser(cls, tree, actions={}):
+        """Generates argument parser for given assistant tree and actions.
+
+        Args:
+            tree: assistant tree as returned by
+                  devassistant.assistant_base.AssistantBase.get_subassistant_tree
+            actions: dict mapping action names to devassistant.actions.Action subclasses
+        Returns:
+            instance of devassistant_argparse.ArgumentParser (subclass of argparse.ArgumentParser)
+        """
         cur_as, cur_subas = tree
         parser = devassistant_argparse.ArgumentParser(argument_default=argparse.SUPPRESS,
                                                       usage=argparse.SUPPRESS,
@@ -37,6 +46,14 @@ class ArgparseGenerator(object):
 
     @classmethod
     def add_subassistants_to(cls, parser, assistant_tuple, level):
+        """Adds assistant from given part of assistant tree and all its subassistants to
+        a given argument parser.
+
+        Args:
+            parser: instance of devassistant_argparse.ArgumentParser
+            assistant_tuple: part of assistant tree (see generate_argument_parser doc)
+            level: level of subassistants that given assistant is at
+        """
         p = parser.add_parser(assistant_tuple[0].name,
                               description=assistant_tuple[0].description,
                               argument_default=argparse.SUPPRESS)
@@ -52,6 +69,12 @@ class ArgparseGenerator(object):
 
     @classmethod
     def add_action_to(cls, parser, action):
+        """Adds given action to given parser
+
+        Args:
+            parser: instance of devassistant_argparse.ArgumentParser
+            action: devassistant.actions.Action subclass
+        """
         p = parser.add_parser(action.name,
                               description=action.description,
                               argument_default=argparse.SUPPRESS)
