@@ -24,6 +24,7 @@ pip-log.txt
 # Unit test / coverage
 .coverage
 .tox
+htmlcov
 nosetests.xml
 test/fixtures/.cache.yaml
 
