@@ -20,6 +20,13 @@ from devassistant import settings
 from devassistant import version
 from devassistant.package_managers import DependencyInstaller
 
+commands = []
+
+def register_command(command):
+    commands.append(command)
+    return command
+
+@register_command
 class ClCommand(object):
     @classmethod
     def matches(cls, comm_type):
@@ -45,6 +52,7 @@ class ClCommand(object):
 
         return result.strip() if hasattr(result, 'strip') else result
 
+@register_command
 class DependenciesCommand(object):
     @classmethod
     def matches(cls, comm_type):
@@ -58,7 +66,7 @@ class DependenciesCommand(object):
         di = DependencyInstaller()
         di.install(struct)
 
-
+@register_command
 class DotDevassistantCommand(object):
     @classmethod
     def matches(cls, comm_type):
@@ -279,6 +287,7 @@ class GitHubAuth(object):
 
         return inner
 
+@register_command
 class GitHubCommand(object):
     _user = None
     try:
@@ -372,7 +381,7 @@ class GitHubCommand(object):
         cls._github_push(**kwargs)
         logger.info('GitHub repository was created and source code pushed.')
 
-
+@register_command
 class LogCommand(object):
     @classmethod
     def matches(cls, comm_type):
@@ -386,12 +395,6 @@ class LogCommand(object):
                 raise exceptions.RunException(comm)
         else:
             logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, comm))
-
-commands = [ClCommand,
-            DependenciesCommand,
-            DotDevassistantCommand,
-            GitHubCommand,
-            LogCommand]
 
 def run_command(comm_type, comm, **kwargs):
     for c in commands:
