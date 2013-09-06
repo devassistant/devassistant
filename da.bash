@@ -18,10 +18,21 @@ function _get_opts () {
     echo ${OPTS[@]}
 }
 
+function _get_actions() {
+    # only take lines under ACTIONS_HEADER
+    local ACTION_LINES=$(echo "$1" | sed '/'"$2"'/,$!d' | sed '1d')
+    local ACTIONS=()
+    while read -r LINE; do
+        # for each line select first word and then cut the initial ascii format code
+        ACTIONS+=($(echo "$LINE" | cut -d " " -f1 | cut -c 5-))
+    done <<< "$ACTION_LINES"
+    echo ${ACTIONS[@]}
+}
+
 _da() {
     # current command
     CUR_COM="${COMP_WORDS[@]}"
-    # strip "--" from the end (wouldn't read "-h")
+    # strip "--" from the end (the bellow command needs to append "-h")
     CUR_COM="$(echo $CUR_COM | sed 's|--$||')"
     # read output and returncode of the command with "-h"
     DA_OUTPUT=$($CUR_COM -h 2>&1)
@@ -43,10 +54,18 @@ _da() {
     else # not finished assistant - just advise assistant names, not options
         RESULT="$SUBAS"
     fi
+
+    # on top level, we have assistant types {crt,mod,prep} and actions as a list
+    ACTIONS_HEADER='Or you can run a custom action:'
+    echo "$DA_OUTPUT" | grep "$ACTIONS_HEADER" > /dev/null
+    if [ $? -eq 0 ] ; then
+      ACTIONS=$(_get_actions "$DA_OUTPUT" "$ACTIONS_HEADER")
+      RESULT="$RESULT $ACTIONS"
+    fi
+
     COMPREPLY=( $(compgen -W "$RESULT" -- "$2") )
 } &&
-complete -F _da -o filenames da da-mod da-prep devassistant devassistant-modify devassistant-prepare
-
+complete -F _da -o filenames da
 # Local variables:
 # mode: shell-script
 # sh-basic-offset: 4
