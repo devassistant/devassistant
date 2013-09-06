@@ -59,7 +59,7 @@ setup(
     author_email = 'bkabrda@redhat.com',
     url = 'https://github.com/bkabrda/devassistant',
     license = 'GPLv2+',
-    packages = ['devassistant', 'devassistant.assistants', 'devassistant.cli'],
+    packages = ['devassistant', 'devassistant.cli', 'devassistant.gui'],
     include_package_data = True,
     entry_points = {'console_scripts':['da=devassistant.cli.cli_runner:CliRunner.run',
                                        'da-gui=devassistant.gui:run_gui',
