@@ -32,25 +32,24 @@ class YamlLoader(object):
         return loaded_yamls
 
     @classmethod
-    def load_yaml(cls, directories, name):
-        """Load a yaml file with specified name if found in given directories
+    def load_yaml_by_relpath(cls, directories, rel_path):
+        """Load a yaml file with path that is relative to one of given directories.
 
         Args:
             directories: list of directories to search
-            name: name of the yaml file to load (".yaml" is appended by this method)
+            name: relative path of the yaml file to load
         Returns:
             tuple (fullpath, loaded yaml structure) or None if not found
         """
         ret = None
-        name_dot_yaml = name if name.endswith('.yaml') else name + '.yaml'
         for d in directories:
             if d.startswith(os.path.expanduser('~')) and not os.path.exists(d):
                 os.makedirs(d)
-            for dirname, subdirs, files in os.walk(d):
-                if name_dot_yaml in files:
-                    path = os.path.join(dirname, name_dot_yaml)
-                    ret = (path, yaml.load(open(path, 'r'), Loader=Loader))
-        return ret
+            possible_path = os.path.join(d, rel_path)
+            if os.path.exists(possible_path):
+                return (possible_path, cls.load_yaml_by_path(possible_path))
+
+        return None
 
     @classmethod
     def load_yaml_by_path(cls, path):

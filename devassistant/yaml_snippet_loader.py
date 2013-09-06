@@ -21,7 +21,7 @@ class YamlSnippetLoader(object):
         found = cls._find_snippet(name)
         if found != None:
             return found
-        loaded = yaml_loader.YamlLoader.load_yaml(cls.snippets_dirs, name)
+        loaded = yaml_loader.YamlLoader.load_yaml_by_relpath(cls.snippets_dirs, name + '.yaml')
         if loaded:
             path, parsed_yaml = loaded
             snip = snippet.Snippet(name,
