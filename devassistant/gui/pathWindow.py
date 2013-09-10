@@ -69,7 +69,7 @@ class pathWindow(object):
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
                     self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
             else:
-                self.parent.kwargs[btn.get_label().lower().replace('-','_')]=None
+                self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
         if self.parent.data['AssistantType'] == 0:
             self.parent.kwargs['name']=self.dirName.get_text()+"/"+self.entryProjectName.get_text()
         self.parent.runWindow.open_window(widget, data)
