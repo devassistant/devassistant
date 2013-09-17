@@ -393,11 +393,16 @@ There are few special things about modifier assistants:
 - They read the whole .devassistant file and make its contents available
   as any other variables (notably ``$subassistant_path``).
 - They use dependency sections according to the normal rules + they use *all*
-  the sections that are named according to current ``$subassistant_path``,
+  the sections that are named according to loaded ``$subassistant_path``,
   e.g. if ``$subassistant_path`` is ``[foo, bar]``, dependency sections
   ``dependencies``, ``dependencies_foo`` and ``dependencies_foo_bar`` will
   be used as well as any sections that would get installed according to
-  specified parameters.
+  specified parameters. The rationale behind this is, that if you have e.g.
+  ``eclipse`` modifier that should work for both ``python django`` and
+  ``python flask`` projects, chance is that they have some common dependencies,
+  e.g. ``eclipse-pydev``. So you can just place these common dependencies in
+  ``dependencies_python`` and you're done (you can possibly place special
+  per-framework dependencies into e.g. ``dependencies_python_django``).
 - By default, they don't use ``run`` section. Assuming that ``$subassistant_path``
   is ``[foo, bar]``, they first try to find ``run_foo_bar``, then ``run_foo``
   and then just ``run``. The first found is used. If you however use cli/gui
