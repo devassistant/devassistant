@@ -4,73 +4,53 @@
 .\"
 .TH DA 1 2013-03-12 "" "Linux User's Manual"
 .SH NAME
-da \- Developer Assistant is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+devassistant \- setup development environment and create basic projects in various
+languages
+Please note that \fBda\fP binary is the recommended way of running DevAssistant
+(even though it works completely same).
+
 .SH SYNOPSIS
-\fBda \fP c [-h] [-b] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
-.br
-\fBda \fP cpp [-h] [-b] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
-.br
-\fBda \fP java jsf [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
-.br
-\fBda \fP java maven [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME
-.br
-\fBda \fP perl class [-h] [-g [GITHUB]] -n NAME [-v]
-.br
-\fBda \fP perl dancer [-h] [--cgi] [-g [GITHUB]] -n NAME [--fastcgi]
-.br
-\fBda \fP php lamp [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-r ROOTDB] [-v]
-.br
-\fBda \fP python django [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
-.br
-\fBda \fP python flask [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
-.br
-\fBda \fP python gtk3 [-h] [-g [GITHUB]] [-e [ECLIPSE]] -n NAME [-v]
-.br
-\fBda \fP python lib [-h] [-v] [--venv] [-e [ECLIPSE]] -n NAME [-g [GITHUB]]
-.br
-\fBda \fP ruby rails [-h] [-g [GITHUB]] -n NAME [-v]
-.br
-.SH GITHUB INTEGRATION
-Da can register and push projects to GitHub. The only prerequisite is that user
-has an active GitHub account.
+\fBdevassistant [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
+\fBdevassistant [ ACTION ] [ OPTIONS ]
 
-.SH DESCRIPTION
-.B Developer assistant
-is based on idea of per-{language/framework/...} "assistants" with hierarchical structure like this:
+.SH DESCRIPTION - ASSISTANT_TYPE
+DevAssistant can help you with various tasks during development. The tasks
+are carried out by so called "assistants" - there are three types of assistants:
 
-                  MainAssistant
-                  /           \\
-                 /             \\
-              Python          Ruby
-              /   \\            / \\
-             /     \\          /   \\
-          Django  Flask    Rails Sinatra
+\fBcrt\fP - create new projects, install dependencies and setup environment
+.br
+\fBmod\fP - modify previously created projects (e.g. import them to Eclipse)
+.br
+\fBprep\fP - prepare development environment for an upstream project or for
+a custom development task
 
-The basic task of each assistant is to create a project in location specified by
-.B -n name
-(either relative or absolute path) and install its dependencies via \fBYum\fP.
-Optionally, if any environment setup is required,
-.B da
-does that as well.
-Most of the assistants have common arguments (see below), but there may also be some language specific options in some of the assistants.
+Each assistant type can have many associated assistants (e.g. python, ruby)
+and each assistant can have many associated subassistants (e.g. django, flask).
+You can display these (and also other options) by running e.g.
+\fBdevassistant crt -h\fP and \fBdevassistant crt python -h\fP. Once you select
+the desired assistant (and its subassistants), just run it, e.g.
+\fBdevassistant crt python django -n newproject\fP.
 
-.SH LANGUAGE SUPPORT
-Currently supported languages are:
-.IP
-C/C++ language
-.IP
-Python language (Django, Flask , PyGTK (GTK3) and a custom Python library project)
-.IP
-Java language (JSF and a custom Maven project)
-.IP
-Perl language (Basic class and dancer framework)
-.IP
-PHP language (LAMP project)
+The list of assistants and their functionality may vary depending on type
+of your installation - just run help to see currently available assistants.
+
+.SH DESCRIPTION - ACTION
+DevAssistant is designed to also provide custom functionality through so-called
+actions. Currently, these contain:
+
+\fBhelp\fP - display verbose help.
+.br
+\fBversion\fP - display devassistant version.
+
+Again, to show options, just use \fB-h\fP with the action, e.g.
+\fBdevassistant version -h\fP.
 
 .SH COMMON OPTIONS
+There are some commonly used options shared among many assistants. Their usual
+meaning is explained below:
 .TP
 .B \-h --help
-print help for selected assistant
+print help for selected assistant.
 .TP
 .B \-n --name
 name of the project (relative or absolute path).
@@ -78,12 +58,13 @@ name of the project (relative or absolute path).
 .B \-e --eclipse
 import project into
 .I eclipse 
-environment. Uses ~/workspace workspace by default, which can be overriden by specifying another path.
+environment. Uses ~/workspace workspace by default, can be overriden by
+specifying another path.
 .TP
 .B \-g --github <username>
-create a GitHub repo and push the initial sources there. Uses current username, which can be overriden by specifying a different GitHub username. The GitHub projectname is taken from
-.B name
-parameter.
+create a GitHub repo and push the initial sources there. Uses current system
+username as GH username, unless specified otherwise.The GitHub projectname is
+taken from \fBname\fP parameter.
 .TP
 .B \-b --build
 generate a SPEC file, SRPM and mock-build RPM.
@@ -93,5 +74,5 @@ install vim settings specific for this language (backs up your original vim sett
 .TP
 
 .SH "SEE ALSO"
-.BR da-mod (1)
-.BR da-prep (1)
+.BR da (1)
+.BR da-gui (1)

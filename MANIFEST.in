@@ -1,7 +1,6 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-# include everything under manpages, so that everyone can regenerate
 include manpages/*
 include da.bash
 include devassistant/zenity_wrapper.sh

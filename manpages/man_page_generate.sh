@@ -1,3 +1,6 @@
+# historically, this was used for generating manpage during development
+# but the manpages started to contain to much assistants and stuff,
+# so this is currently not used
 #!/usr/bin/bash
 
 PROGS=(da da-mod da-prep)

@@ -1,9 +1,0 @@
-.\" Copyright Petr Hracek, 2013
-.\"
-.\" This page is distributed under GPL.
-.\"
-.TH DEVASSISTANT-MODIFY 1 2013-03-12 "" "Linux User's Manual"
-.SH NAME
-devassistant-modify \- Developer Assistant - Modifier is a helper for all developers using (not-only) Fedora. It helps you work with existing projects.
-
-.SH SYNOPSIS
