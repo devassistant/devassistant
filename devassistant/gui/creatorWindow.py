@@ -76,7 +76,7 @@ class creatorWindow(object):
         scrolledWindow = self.gui_helper.create_scrolled_window(gridLang)
         row = 0
         column = 0
-        for ass in sorted(assistant, key=lambda x: x[0].fullname):
+        for ass in sorted(assistant, key=lambda x: x[0].fullname.lower()):
             if column > 2:
                 row += 1
                 column = 0

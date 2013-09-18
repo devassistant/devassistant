@@ -46,7 +46,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         self._parsed_yaml = value
 
         # attributes needed for CLI/GUI - cached
-        self.fullname = value.get('fullname', '')
+        self.fullname = value.get('fullname', self.name)
         self.description = value.get('description', '')
         self.args = self._construct_args(value.get('args', {}))
         self.icon_path = value.get('icon_path', self.default_icon_path)

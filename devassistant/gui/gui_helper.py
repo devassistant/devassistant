@@ -145,7 +145,7 @@ class gui_helper(object):
         menu = Gtk.Menu()
         text="Avalaible subassistants:\n"
         cnt=0
-        for sub in sorted(assistant[1], key=lambda y: y[0].fullname):
+        for sub in sorted(assistant[1], key=lambda y: y[0].fullname.lower()):
             if cnt != 0:
                 text+="|"
             cnt+=1
