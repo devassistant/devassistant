@@ -1,11 +1,18 @@
 include CHANGELOG
 include LICENSE
 include README.rst
+
 include manpages/*
 include da.bash
+
 include devassistant/zenity_wrapper.sh
 include devassistant/gui/devassistant.desktop
+
 recursive-include devassistant/data  *
-recursive-include devassistant/gui *.glade *.py
+recursive-include devassistant/gui *.glade
+
 recursive-include test *.yaml *.py
 recursive-exclude . __pycache__
+
+recursive-include docs *
+recursive-exclude docs/_build *
