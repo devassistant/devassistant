@@ -1,13 +1,12 @@
-import argparse
+from __future__ import print_function
+
 import getpass
 import logging
 import os
 import signal
 import subprocess
 import sys
-import tempfile
 
-from devassistant import argument
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import settings
@@ -102,29 +101,8 @@ class DialogHelper(object):
     Zenity, possibly other registered).
     """
     helpers = {}
-    # this will be assigned if user overrides UI backend from commandline
-    user_override_helper = None
-
-    @classmethod
-    def get_argparse_argument(cls):
-        """Return argument for argparse, that contains the list of UI choices and has
-        a proper action (which will set a proper attribute of DialogHelper).
-        """
-        help='Force a specific backend for UI dialogs: [{names}]'.format(names=', '.join(cls.helpers.keys()))
-        class UIAction(argparse.Action):
-            klass = cls
-
-            def __call__(self, parser, namespace, values, option_string=None):
-                cls.user_override_helper = values
-                setattr(namespace, self.dest, values)
-
-        arg = argument.Argument(settings.UI_FLAG[2:],
-                                settings.UI_FLAG,
-                                action=UIAction,
-                                required=False,
-                                help=help)
-
-        return arg
+    # can be set to something different from the respective UI frontend
+    use_helper = 'cli'
 
     @classmethod
     def register_helper(cls, helper):
@@ -134,18 +112,7 @@ class DialogHelper(object):
 
     @classmethod
     def get_appropriate_helper(cls):
-        if cls.user_override_helper:
-            return cls.helpers['user_override_helper']
-
-        available = []
-        for h in filter(lambda x: x.is_graphical() == ('DISPLAY' in os.environ), cls.helpers.values()):
-            if h.is_available():
-                available.append(h)
-
-        # return always the same (the values traversing from dict above is not deterministic)
-        # we may want to assign some sort of priority to be able to actively influence which
-        # helper will be chosen
-        return sorted(available)[0]
+        return cls.helpers[cls.use_helper]
 
     @classmethod
     def ask_for_password(cls, prompt='Provide your password:', **options):
@@ -161,9 +128,25 @@ class DialogHelper(object):
         """Returns True if user agrees, False otherwise"""
         return cls.get_appropriate_helper().ask_for_confirm_with_message(prompt, message)
 
+    @classmethod
+    def ask_for_package_list_confirm(cls,
+                                     prompt='Do you want to install packages?',
+                                     package_list=[],
+                                     **options):
+        return cls.get_appropriate_helper().ask_for_package_list_confirm(prompt,
+                                                                         package_list,
+                                                                         **options)
+
 @DialogHelper.register_helper
-class TTYDialogHelper(object):
-    shortname = 'tty'
+class CliDialogHelper(object):
+    shortname = 'cli'
+    yes_list = ['y', 'yes']
+    yesno_list = yes_list + ['n', 'no']
+
+    if sys.version_info[0] < 3:
+        inp = raw_input
+    else:
+        inp = input
 
     @classmethod
     def is_available(cls):
@@ -181,26 +164,83 @@ class TTYDialogHelper(object):
     def ask_for_confirm_with_message(cls, prompt, message, **options):
         print(prompt + '\n')
         print(message)
-        if int(sys.version[0]) < 3:
-            input = raw_input
         prompt += ' [y/n]'
         while True:
             print(prompt)
-            choice = input().lower()
-            if choice not in ['y', 'yes', 'n', 'no']:
-                print('You have to write y/yes/n/no (can be in capitals)')
+            choice = cls.inp().lower()
+            if choice not in cls.yesno_list:
+                print('You have to choose one of y/n.')
             else:
-                return choice in ['y', 'yes']
+                return choice in cls.yes_list
+
+    @classmethod
+    def ask_for_package_list_confirm(cls, prompt, package_list, **options):
+        prompt += ' [y(es)/n(o)/s(how)]: '
+        while True:
+            print(prompt, end='')
+            choice = cls.inp().lower()
+            if choice not in cls.yesno_list + ['s', 'show']:
+                print('You have to choose one of y/n/s.')
+            else:
+                if choice in cls.yesno_list:
+                    return choice in cls.yes_list
+                else:
+                    print('\n'.join(sorted(package_list)))
 
 @DialogHelper.register_helper
-class ZenityDialogHelper(object):
-    c_zenity_wrapper = 'zenity_wrapper.sh'
-    c_zenity = 'zenity'
-    shortname = c_zenity
+class GtkDialogHelper(object):
+    shortname = 'gtk'
+    Gtk = None
+    Gdk = None
+    top_window = None
+
+    @classmethod
+    def get_gtk(cls):
+        if not cls.Gtk:
+            try:
+                from gi.repository import Gtk
+                cls.Gtk = Gtk
+            except ImportError:
+                pass
+        return cls.Gtk
+
+    @classmethod
+    def get_gdk(cls):
+        if not cls.Gdk:
+            try:
+                from gi.repository import Gdk
+                cls.Gdk = Gdk
+            except ImportError:
+                pass
+        return cls.Gdk
+
+    @classmethod
+    def _get_button(cls, label):
+        return cls.get_gtk().Button(label=label)
+
+    @classmethod
+    def _get_pwd_entry(cls):
+        entry = cls.get_gtk().Entry()
+        entry.set_visibility(False)
+        return entry
+
+    @classmethod
+    def _ok_close(cls, win):
+        def ok_close(widget):
+            win.ok = True
+            win.hide()
+        return ok_close
+
+    @classmethod
+    def _cancel_close(cls, win):
+        def cancel_close(widget):
+            win.ok = False
+            win.hide()
+        return cancel_close
 
     @classmethod
     def is_available(cls):
-        return True if ClHelper.run_command('which {zenity}'.format(zenity=cls.c_zenity)) else False
+        return cls.get_gtk() != None
 
     @classmethod
     def is_graphical(cls):
@@ -208,48 +248,71 @@ class ZenityDialogHelper(object):
 
     @classmethod
     def ask_for_password(cls, prompt, **options):
-        return cls._ask_for_custom_input('entry',
-                                         {'title': options.get('title', prompt),
-                                          'text': prompt,
-                                          'hide-text': ''})
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog(title=prompt)
+        win.ok = False
+        box = win.get_content_area()
+
+        grid = Gtk.Grid()
+        grid.set_column_spacing(10)
+        grid.set_row_spacing(10)
+        box.add(grid)
+        box.set_margin_left(10)
+        box.set_margin_right(10)
+
+        ok = cls._get_button('Ok')
+        ok.connect('clicked', cls._ok_close(win))
+        cancel = cls._get_button('Cancel')
+        cancel.connect('clicked', cls._cancel_close(win))
+        pwd = cls._get_pwd_entry()
+
+        grid.attach(pwd, 0, 0, 2, 1)
+        grid.attach(cancel, 0, 1, 1, 1)
+        grid.attach(ok, 1, 1, 1, 1)
+
+        win.show_all()
+        win.run()
+        Gdk.threads_leave()
+        return False if not win.ok else pwd.get_text()
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
-        # Zenity sucks for package list displaying, as it appends newline for every line with a dash
-        # in question dialog. Therefore we write package names to temp file and use --text-info.
-        # see https://bugzilla.gnome.org/show_bug.cgi?id=702752
-        h, fname = tempfile.mkstemp()
-        f = open(fname, 'w')
-        f.write(message)
-        f.close()
-
-        lines_num = len(message.splitlines())
-        height = 120 + lines_num * 30
-        # zenity will limit the window to monitor height, so we don't need to check maximum
-        output = cls._ask_for_custom_input('text-info',
-                                           {'title': prompt,
-                                            'filename': fname,
-                                            'width': 500,
-                                            'height': height})
-        os.remove(fname)
-        return output
+        raise NotImplementedError()
 
     @classmethod
-    def _ask_for_custom_input(cls, input_type, zenity_options):
-        """This is internal helper method, do not use this from outside, rather write your own ask_* method.
+    def ask_for_package_list_confirm(cls, prompt, package_list, **options):
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog('Dependencies Installation')
+        win.set_default_size(200, 50)
+        win.ok = False
+        box = win.get_content_area()
 
-        Note, that we can't pass **zenity_options (with the "**") because some option names contain
-        dash, which would get interpreter as minus by Python - e.g. no-wrap=foo would be interpreted as "no minus wrap"."""
-        zenity_wrapper = os.path.join(os.path.dirname(__file__), cls.c_zenity_wrapper)
-        if os.path.isfile(zenity_wrapper) and os.access(zenity_wrapper,os.X_OK):
-            cls.c_zenity_wrapper = zenity_wrapper
-        else:
-            cls.c_zenity_wrapper = cls.c_zenity
-        cmd = '{zenity} --{input_type} {options}'.format(zenity=cls.c_zenity_wrapper,
-                                                         input_type=input_type,
-                                                         options=' '.join(map(lambda x: '--{k}="{v}"'.format(k=x[0], v=x[1]),
-                                                                              zenity_options.items())))
-        try:
-            return ClHelper.run_command(cmd)
-        except exceptions.ClException:
-            return False
+        grid = Gtk.Grid()
+        print(dir(grid))
+        grid.set_halign(Gtk.Align.CENTER)
+        #grid.set_size_request(300, 50)
+        grid.set_column_spacing(10)
+        grid.set_row_spacing(10)
+        box.remove(box.get_children()[0])
+        box.pack_end(grid, True, True, 0)
+        box.set_margin_left(10)
+        box.set_margin_right(10)
+
+        label = Gtk.Label(prompt)
+        ok = cls._get_button('Ok')
+        ok.connect('clicked', cls._ok_close(win))
+        cancel = cls._get_button('Cancel')
+        cancel.connect('clicked', cls._cancel_close(win))
+
+        grid.attach(label, 0, 0, 2, 1)
+        grid.attach(cancel, 0, 1, 1, 1)
+        grid.attach(ok, 1, 1, 1, 1)
+
+        win.show_all()
+        win.run()
+        Gdk.threads_leave()
+        return win.ok

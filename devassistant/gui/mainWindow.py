@@ -10,6 +10,7 @@ from devassistant.bin import CreatorAssistant
 from devassistant.bin import ModifierAssistant
 from devassistant.bin import PreparerAssistant
 from devassistant.logger import logger_gui
+from devassistant import command_helpers
 
 from devassistant.gui import pathWindow
 from devassistant.gui import runWindow
@@ -23,6 +24,7 @@ gladefile = os.path.join(os.path.dirname(__file__), 'devel-assistant.glade')
 class mainWindow(object):
 
     def __init__(self):
+        command_helpers.DialogHelper.use_helper = 'gtk'
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
         self.mainWin = self.builder.get_object("mainWindow")

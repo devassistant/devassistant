@@ -40,13 +40,15 @@ class PackageManager(object):
         raise NotImplementedError()
 
     @classmethod
-    def get_perm_prompt(cls, *args, **kwargs):
+    def get_perm_prompt(cls, package_list):
         """
-        Return text for prompt (do you want to install...), there should be
-        argument `plural` indicating that only one package is being
-        installed -- usable for text formatting
+        Return text for prompt (do you want to install...), to install given packages.
         """
-        raise NotImplementedError()
+        if cls == PackageManager:
+            raise NotImplementedError()
+        ln = len(package_list)
+        plural = 's' if ln > 1 else ''
+        return cls.permission_prompt.format(num=ln, plural=plural)
 
     @classmethod
     def install(cls, *args, **kwargs):
@@ -101,7 +103,7 @@ class PackageManager(object):
 @register_manager
 class RPMPackageManager(PackageManager):
     """ Package manager for managing rpm packages from repositories """
-    permission_prompt = "Install following %(packages_text)s?"
+    permission_prompt = "Installing {num} RPM package{plural}. Is this ok?"
     shortcut = 'rpm'
 
     c_rpm = 'rpm'
@@ -153,11 +155,6 @@ class RPMPackageManager(PackageManager):
     @classmethod
     def match(cls, dep_t):
         return dep_t == cls.shortcut
-
-    @classmethod
-    def get_perm_prompt(cls, plural=False):
-        packages_text = 'packages' if plural else 'package'
-        return cls.permission_prompt % {'packages_text': packages_text}
 
     @classmethod
     def install(cls, *args):
@@ -221,7 +218,7 @@ class RPMPackageManager(PackageManager):
 @register_manager
 class PIPPackageManager(PackageManager):
     """ Package manager for managing python dependencies from PyPI """
-    permission_prompt = "Install following %(packages_text)s from PyPI?"
+    permission_prompt = "Installing {num} package{plural} from PyPI. Is this ok?"
     shortcut = 'pip'
     is_system = False
 
@@ -230,11 +227,6 @@ class PIPPackageManager(PackageManager):
     @classmethod
     def match(cls, dep_t):
         return dep_t == cls.shortcut
-
-    @classmethod
-    def get_perm_prompt(cls, plural=False):
-        packages_text = 'packages' if plural else 'package'
-        return cls.permission_prompt % {'packages_text': packages_text}
 
     @classmethod
     def install(cls, *args):
@@ -297,7 +289,7 @@ class PIPPackageManager(PackageManager):
 @register_manager
 class NPMPackageManager(PackageManager):
     """ Package manager for managing python dependencies from NPM """
-    permission_prompt = "Install following %(packages_text)s from NPM?"
+    permission_prompt = "Installing {num} package{plural} from NPM. Is this ok?"
     shortcut = 'npm'
     is_system = False
 
@@ -306,11 +298,6 @@ class NPMPackageManager(PackageManager):
     @classmethod
     def match(cls, dep_t):
         return dep_t == cls.shortcut
-
-    @classmethod
-    def get_perm_prompt(cls, plural=False):
-        packages_text = 'packages' if plural else 'package'
-        return cls.permission_prompt % {'packages_text': packages_text}
 
     @classmethod
     def install(cls, *args):
@@ -413,9 +400,9 @@ class DependencyInstaller(object):
     def _ask_to_confirm(self, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
         message = '\n'.join(sorted(to_install))
-        ret = DialogHelper.ask_for_confirm_with_message(
-            prompt=pac_man.get_perm_prompt(len(to_install) > 1),
-            message=message,
+        ret = DialogHelper.ask_for_package_list_confirm(
+            prompt=pac_man.get_perm_prompt(to_install),
+            package_list=to_install,
         )
         return False if ret is False else True
 
