@@ -292,7 +292,6 @@ class GtkDialogHelper(object):
         box = win.get_content_area()
 
         grid = Gtk.Grid()
-        print(dir(grid))
         grid.set_halign(Gtk.Align.CENTER)
         #grid.set_size_request(300, 50)
         grid.set_column_spacing(10)
