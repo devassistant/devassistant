@@ -14,7 +14,7 @@ class CliRunner(object):
     @classmethod
     def register_console_logging_handler(cls, lgr):
         """Registers console logging handler to given logger."""
-        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler = logger.DevassistantClHandler(sys.stdout)
         console_handler.setFormatter(logger.DevassistantClFormatter())
         console_handler.setLevel(logging.INFO)
         lgr.addHandler(console_handler)

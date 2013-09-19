@@ -162,7 +162,7 @@ class RPMPackageManager(PackageManager):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
             return args
         except exceptions.ClException:
             return False
@@ -234,7 +234,7 @@ class PIPPackageManager(PackageManager):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
             return args
         except exceptions.ClException:
             return False
@@ -305,7 +305,7 @@ class NPMPackageManager(PackageManager):
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), log_level=logging.INFO, ignore_sigint=True)
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
             return args
         except exceptions.ClException:
             return False
@@ -428,6 +428,7 @@ class DependencyInstaller(object):
                 raise exceptions.DependencyException(msg)
 
             type(self).install_lock = True
+            logger.info('Installing dependencies, sit back and relax ...')
             installed = pkg_mgr.install(*to_install)
             type(self).install_lock = False
 
@@ -436,7 +437,7 @@ class DependencyInstaller(object):
                 logger.error(msg)
                 raise exceptions.DependencyException(msg)
             else:
-                logger.info("Successfully installed {0}".format(', '.join(installed)))
+                logger.info('Successfully installed dependencies!')
 
     def install(self, struct):
         """

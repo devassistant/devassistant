@@ -7,6 +7,14 @@ logger.setLevel(logging.DEBUG)
 logger_gui = logging.getLogger('devassistant-gui')
 logger_gui.setLevel(logging.DEBUG)
 
+class DevassistantClHandler(logging.StreamHandler):
+    def emit(self, record):
+        event_type = getattr(record, 'event_type', '')
+        if event_type.startswith('dep_'):
+            pass
+        else:
+            super(DevassistantClHandler, self).emit(record)
+
 class DevassistantClFormatter(logging.Formatter):
     def format(self, record):
         event_type = getattr(record, 'event_type', '')
