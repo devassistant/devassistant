@@ -27,6 +27,7 @@ class RunLoggingHandler(logging.Handler):
         logging.Handler.__init__(self)
         self.treeview = treeview
 
+
     def utf8conv(self,x):
         try:
             return unicode(x,'utf8')
@@ -40,7 +41,15 @@ class RunLoggingHandler(logging.Handler):
             last = itr
             itr = model.iter_next(itr)
         return last
-
+    def _add_row(self, record, treeStore, lastRow):
+        if record.levelname == "INFO":
+            # Create a new root tree element
+            treeStore.append(None, [record.getMessage()])
+        else:
+            # Append a new element in tree element
+            if not record.getMessage().startswith("|"):
+                treeStore.append(lastRow, [record.getMessage()])
+        
     def emit(self, record):
         msg = record.getMessage()
         treeStore = self.treeview.get_model()
@@ -50,13 +59,12 @@ class RunLoggingHandler(logging.Handler):
             # Message is empty and is not add to tree
             pass
         else:
-            if record.levelname == "INFO":
-                # Create a new root tree element
-                treeStore.append(None, [msg])
+            
+            if getattr(record,'event_type',''):
+                if not record.event_type.startswith("dep_"):
+                    self._add_row(record, treeStore, lastRow)
             else:
-                # Append a new element in tree element
-                if not msg.startswith("|"):
-                    treeStore.append(lastRow, [msg])
+                self._add_row(record, treeStore, lastRow)
         Gdk.threads_leave()
 
 class runWindow(object):
@@ -123,7 +131,6 @@ class runWindow(object):
 
     def devassistant_start(self):
         #logger_gui.info("Thread run")
-        #print self.parent.kwargs
         path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
         self.pr = path_runner.PathRunner(path)
         try:
