@@ -90,9 +90,11 @@ class runWindow(object):
         self.stop = threading.Event()
         self.pr = None
         self.link = self.gui_helper.create_button()
+        self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
+        self.infoBox.pack_start(self.info_label, False, False, 12)
         if self.parent.kwargs.get('github'):
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
@@ -136,6 +138,7 @@ class runWindow(object):
         try:
             self.pr.run(**self.parent.kwargs)
             Gdk.threads_enter()
+            self.info_label.set_label('<span color="#008000">Done</span>')
             self.cancelBtn.set_label("Close")
             Gdk.threads_leave()
         except exceptions.ExecutionException:
