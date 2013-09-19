@@ -276,7 +276,7 @@ class gui_helper(object):
             renderer_combo.set_property('model', model)
         if function:
             renderer_combo.connect("edited", function)
-        renderer_combo.set_property("text-column", 1)
+        renderer_combo.set_property("text-column", 0)
         renderer_combo.set_property("has-entry",False)
         column = Gtk.TreeViewColumn(title, renderer_combo, text=assign)
         tree_view.append_column(column)

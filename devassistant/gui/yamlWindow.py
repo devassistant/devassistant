@@ -5,13 +5,8 @@ Created on Wed Apr  3 13:16:47 2013
 @author: Petr Hracek
 """
 
-import os
 import yaml
-from devassistant.cli import argparse_generator
-from devassistant.logger import logger
-from devassistant.logger import logger_gui
 from gi.repository import Gtk
-from devassistant.bin import CreatorAssistant
 
 class yamlWindow(object):
     def __init__(self, parent, mainWin, builder):
@@ -28,6 +23,7 @@ class yamlWindow(object):
         self.yaml_data = None
         self.full_assistant = None
         self.run_view = None
+        self.list_selection = None
 
         # general tab
         self._create_general()
@@ -79,21 +75,38 @@ class yamlWindow(object):
         hbox1 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.HORIZONTAL)
         hbox2 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.HORIZONTAL)
         align1 = self.gui_helper.create_alignment()
-        assistant_depend = self.gui_helper.create_label("Specify rpm dependencies:", wrap=False)
+        assistant_depend = self.gui_helper.create_label("Specify package dependencies:", wrap=False)
         align1.add(assistant_depend)
 
         hbox1.pack_start(align1,False, False, 10)
 
-        self.list_store = Gtk.ListStore(str)
+        self.list_store = Gtk.ListStore(str, str)
+        pkg_manager = Gtk.ListStore(str)
+        pkg_manager.append(["rpm"])
+        pkg_manager.append(["pip"])
+        pkg_manager.append(["npm"])
         self.list_view = self.gui_helper.create_tree_view(self.list_store)
-        self.gui_helper.create_cell_renderer(self.list_view, title="rpm dependencies",assign=0, editable=True)
+        self.gui_helper.create_cell_renderer_combo(self.list_view, title="Package manager",assign=0, editable=True, model=pkg_manager, function=self._select_pkg_manager)
+        self.gui_helper.create_cell_renderer_text(self.list_view, title="Package dependencies",assign=1, editable=True)
+        self.list_selection = self.list_view.get_selection()
+        self.list_selection.set_mode(Gtk.SelectionMode.SINGLE)
+        self.list_selection.connect("changed", self._list_changed)
         scrolled_dependecies = self.gui_helper.create_scrolled_window(self.list_view)
         scrolled_dependecies.set_border_width(12)
 
+        hbox3 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
+        btn_add = self.gui_helper.button_with_label("Add")
+        btn_add.connect("clicked", self._add_dependency_row)
+        btn_remove = self.gui_helper.button_with_label("Remove")
+        btn_remove.connect("clicked", self._delete_dependency_row)
         hbox2.pack_start(scrolled_dependecies,True, True, 6)
+        hbox3.pack_start(btn_add, False, True, 6)
+        hbox3.pack_start(btn_remove, False, True, 6)
+        hbox2.pack_start(hbox3,False, False, 6)
 
         box_general.pack_start(hbox1, False, False, 6)
         box_general.pack_start(hbox2, True, True, 6)
+
         #box_general.pack_start(align1, False, False, 6)
         #box_general.pack_start(scrolled_dependecies, True, True, 6)
 
@@ -120,21 +133,21 @@ class yamlWindow(object):
             if not ass[1]:
                 ass[0].assert_fully_loaded()
                 self.full_assistant = ass[0]
-                text_buffer.set_text(self.get_yaml_data(ass[0].parsed_yaml))
+                text_buffer.set_text(self._get_yaml_data(ass[0].parsed_yaml))
                 label = ass[0].fullname + " assistant"
                 break
             if self.kwargs.has_key('subassistant_1'):
                 for ass2 in filter(lambda x: x[0].name == self.kwargs['subassistant_1'], ass[1]):
                     ass2[0].assert_fully_loaded()
                     self.full_assistant = ass2[0]
-                    text_buffer.set_text(self.get_yaml_data(ass2[0].parsed_yaml))
+                    text_buffer.set_text(self._get_yaml_data(ass2[0].parsed_yaml))
                     label = ass2[0].fullname + " assistant"
         scrolled_example = self.gui_helper.create_scrolled_window(self.text_view)
         scrolled_example.set_border_width(12)
         self.notebook.append_page(scrolled_example,
                                   Gtk.Label(label))
 
-    def get_yaml_data(self, yaml_data, style=False):
+    def _get_yaml_data(self, yaml_data, style=False):
         self.yaml_data= yaml.dump(yaml_data, default_flow_style=style)
         return self.yaml_data
 
@@ -143,7 +156,7 @@ class yamlWindow(object):
         if self.parent.kwargs['subassistant_0'] != "new_assistant":
             if self.notebook.get_n_pages() == 3:
                 self._create_example_section()
-                self.fill_data()
+                self._fill_data()
         else:
             self.notebook.remove_page(-1)
         self.yamlWindow.show_all()
@@ -152,17 +165,25 @@ class yamlWindow(object):
         self.yamlWindow.hide()
         self.parent.open_window(widget, data)
 
-    def get_data(self):
+    def _get_data(self):
         return (self.dirName.get_text(), self.entryProjectName.get_text())
 
-    def fill_data(self):
+    def _fill_data(self):
         #rpm dependencies
         if self.full_assistant._dependencies[0].has_key('rpm'):
-            map(lambda x: self.list_store.append([x]), self.full_assistant._dependencies[0].get('rpm'))
+            #for d in self.full_assistant._dependencies[0].get('rpm'):
+            #    self.list_store.append(['rpm', d])
+            map(lambda x: self.list_store.append(['rpm',x]), self.full_assistant._dependencies[0].get('rpm'))
         else:
-            for dep in self.full_assistant._dependencies:
-                for d in dep.items():
-                    self.list_store.append(d[1][0].get('rpm'))
+            for depend in self.full_assistant._dependencies:
+                if depend.has_key('rpm'):
+                    map(lambda x: self.list_store.append(['rpm', x]),depend.items())
+                else:
+                    for dep in depend.items():
+                        for d in dep:
+                            if not isinstance(d,basestring):
+                                if d[0].has_key('rpm'):
+                                    map(lambda x: self.list_store.append(['rpm', x]), d[0].get('rpm'))
         self.assistant_desc.set_text(self.full_assistant.description)
         self.assistant_full.set_text(self.full_assistant.fullname)
 
@@ -184,3 +205,18 @@ class yamlWindow(object):
         yaml_dict[self.assistant_entry.get_text()]=texts
         with open("mytest.yaml","w") as file:
             file.write(yaml.dump(yaml_dict, default_flow_style=False))
+
+    def _add_dependency_row(self, widget, data=None):
+        self.list_store.append()
+
+    def _delete_dependency_row(self, widget, data=None):
+        print "Delete row"
+
+    def _select_pkg_manager(self,widget,path,text):
+        self.list_store[path][0] = text
+
+    def _list_changed(self, selection):
+        print "list change"
+        model, listiter = selection.get_selected()
+        if listiter != None:
+            print "Selected", model[listiter][1]
