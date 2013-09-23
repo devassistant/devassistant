@@ -61,11 +61,12 @@ class RunLoggingHandler(logging.Handler):
             # Message is empty and is not add to tree
             pass
         else:
-            if getattr(record,'event_type',''):
-                if not record.event_type.startswith("dep_"):
+            if record.levelname != 'DEBUG':
+                if getattr(record,'event_type',''):
+                    if not record.event_type.startswith("dep_"):
+                        self._add_row(record, treeStore, lastRow)
+                else:
                     self._add_row(record, treeStore, lastRow)
-            else:
-                self._add_row(record, treeStore, lastRow)
         Gdk.threads_leave()
 
 class runWindow(object):
