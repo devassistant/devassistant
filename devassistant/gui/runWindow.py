@@ -23,9 +23,10 @@ from devassistant import exceptions
 from devassistant.package_managers import DependencyInstaller
 
 class RunLoggingHandler(logging.Handler):
-    def __init__(self, treeview):
+    def __init__(self, parent, treeview):
         logging.Handler.__init__(self)
         self.treeview = treeview
+        self.parent = parent
 
 
     def utf8conv(self,x):
@@ -41,6 +42,7 @@ class RunLoggingHandler(logging.Handler):
             last = itr
             itr = model.iter_next(itr)
         return last
+        
     def _add_row(self, record, treeStore, lastRow):
         if record.levelname == "INFO":
             # Create a new root tree element
@@ -59,7 +61,6 @@ class RunLoggingHandler(logging.Handler):
             # Message is empty and is not add to tree
             pass
         else:
-            
             if getattr(record,'event_type',''):
                 if not record.event_type.startswith("dep_"):
                     self._add_row(record, treeStore, lastRow)
@@ -75,7 +76,7 @@ class runWindow(object):
         self.cancelBtn = builder.get_object("cancelRunBtn")
         self.infoBox = builder.get_object("infoBox")
         self.scrolledWindow = builder.get_object("scrolledWindow")
-        self.tlh = RunLoggingHandler(self.runTreeView)
+        self.tlh = RunLoggingHandler(self, self.runTreeView)
         self.gui_helper = gui_helper
         logger.addHandler(self.tlh)
         FORMAT = "%(levelname)s %(message)s"
@@ -121,9 +122,14 @@ class runWindow(object):
             response = dlg.run()
             if response == Gtk.ResponseType.YES:
                 if self.thread.isAlive():
+                    self.info_label.set_label('<span color="#FFA500">Canceling...</span>')
                     self.pr.stop()
+                    self.info_label.set_label('<span color="#FF0000">Failed</span>')
+                else:
+                    self.info_label.set_label('<span color="#008000">Done</span>')
                 self.cancelBtn.set_label("Close")
             dlg.destroy()
+            
         else:
             Gtk.main_quit()
 
@@ -142,4 +148,6 @@ class runWindow(object):
             self.cancelBtn.set_label("Close")
             Gdk.threads_leave()
         except exceptions.ExecutionException:
+            self.cancelBtn.set_label("Close")
+            self.info_label.set_label('<span color="#FF0000">Failed</span>')
             pass
