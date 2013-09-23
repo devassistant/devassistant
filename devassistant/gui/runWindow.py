@@ -93,6 +93,7 @@ class runWindow(object):
         self.pr = None
         self.link = self.gui_helper.create_button()
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
+        self.project_canceled = False
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.pathWindow.get_data()
@@ -123,9 +124,10 @@ class runWindow(object):
             response = dlg.run()
             if response == Gtk.ResponseType.YES:
                 if self.thread.isAlive():
-                    self.info_label.set_label('<span color="#FFA500">Canceling...</span>')
+                    self.info_label.set_label('<span color="#FFA500">Cancelling...</span>')
+                    self.cancelBtn.set_sensitive(False)
                     self.pr.stop()
-                    self.info_label.set_label('<span color="#FF0000">Failed</span>')
+                    self.project_canceled = True
                 else:
                     self.info_label.set_label('<span color="#008000">Done</span>')
                 self.cancelBtn.set_label("Close")
@@ -145,10 +147,14 @@ class runWindow(object):
         try:
             self.pr.run(**self.parent.kwargs)
             Gdk.threads_enter()
-            self.info_label.set_label('<span color="#008000">Done</span>')
-            self.cancelBtn.set_label("Close")
+            if not self.project_canceled:
+                self.info_label.set_label('<span color="#008000">Done</span>')
+                self.cancelBtn.set_label("Close")
+            else:
+                self.cancelBtn.set_sensitive(True)
+                self.info_label.set_label('<span color="#FF0000">Failed</span>')
             Gdk.threads_leave()
-        except exceptions.ExecutionException:
+        except exceptions.ExecutionException as ee:
             self.cancelBtn.set_label("Close")
-            self.info_label.set_label('<span color="#FF0000">Failed</span>')
+            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
             pass
