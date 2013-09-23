@@ -47,7 +47,10 @@ class ClCommand(object):
             result = ClHelper.run_command(comm, log_level, scls=scls)
         except exceptions.ClException as e:
             if log_error:
-                logger.error(str(e))
+                try:
+                    logger.error(unicode(e))
+                except:
+                    logger.error(e)
             raise e
 
         return result.strip() if hasattr(result, 'strip') else result
