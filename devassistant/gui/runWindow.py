@@ -154,6 +154,9 @@ class runWindow(object):
                 self.cancelBtn.set_sensitive(True)
                 self.info_label.set_label('<span color="#FF0000">Failed</span>')
             Gdk.threads_leave()
+        except exceptions.ClException as cl:
+            self.cancelBtn.set_label("Close")
+            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
         except exceptions.ExecutionException as ee:
             self.cancelBtn.set_label("Close")
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))

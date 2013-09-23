@@ -67,6 +67,13 @@ class pathWindow(object):
         for btn in filter(lambda x: x.get_active(), self.button):
             if btn.get_label() in self.entries:
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
+                    if not self.entries[btn.get_label()].get_text():
+                        md = self.gui_helper.create_message_dialog(
+                            "Entry {0} is empty".format(btn.get_label())
+                            )
+                        md.run()
+                        md.destroy()
+                        return
                     self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
             else:
                 self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
@@ -167,6 +174,7 @@ class pathWindow(object):
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
+        print arg.kwargs
         if arg.kwargs.get('action') != 'store_true':
             new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
             new_box.set_homogeneous(False)
@@ -183,11 +191,19 @@ class pathWindow(object):
                 and some fields needs to have interaction from user like selecting directory
             '''
             self.browseBtn = self.gui_helper.button_with_label("Browse")
-            self.browseBtn.set_sensitive(False)
             self.browseBtn.connect("clicked", self.browse_clicked, entry)
-            self.linkButton.set_sensitive(False)
             entry.set_text(arg.get_gui_hint('default'))
-            entry.set_sensitive(False)
+            if arg.kwargs.has_key('required'):
+                self.browseBtn.set_sensitive(True)
+                self.linkButton.set_sensitive(True)
+                entry.set_sensitive(True)
+                actBtn.set_active(True)
+                actBtn.set_sensitive(False)
+            else:
+                self.browseBtn.set_sensitive(False)
+                self.linkButton.set_sensitive(False)
+                entry.set_sensitive(False)
+                actBtn.set_active(False)                
             if arg.get_gui_hint('type') == 'path':
                 alignBtn.add(self.browseBtn)
                 self.browseBtns[self._check_box_title(arg,number)]=self.browseBtn
