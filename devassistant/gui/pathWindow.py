@@ -174,7 +174,6 @@ class pathWindow(object):
         actBtn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
-        print arg.kwargs
         if arg.kwargs.get('action') != 'store_true':
             new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=6)
             new_box.set_homogeneous(False)
