@@ -193,7 +193,7 @@ class RPMPackageManager(PackageManager):
     def resolve(cls, *args):
         # TODO: we may need to rewrite this for e.g. suse, which
         # is rpm based, but doesn't use yum; same for install()/is_available()/can_operate()
-        logger.info('Resolving dependencies ...')
+        logger.info('Resolving RPM dependencies ...')
         import yum
         y = yum.YumBase()
         y.setCacheDir(tempfile.mkdtemp())
@@ -277,6 +277,7 @@ class PIPPackageManager(PackageManager):
         # depresolver for PyPI is infeasable to do -- there are no structured
         # metadata for python packages; so just return this dependency
         # PIPHelper.resolve(dep)
+        logger.info('Resolving PyPI dependencies...')
         return dep
 
     @classmethod
@@ -345,9 +346,7 @@ class NPMPackageManager(PackageManager):
 
     @classmethod
     def resolve(cls, *dep):
-        # depresolver for PyPI is infeasable to do -- there are no structured
-        # metadata for python packages; so just return this dependency
-        # PIPHelper.resolve(dep)
+        logger.info('Resolving NPM dependencies...')
         return dep
 
     @classmethod
