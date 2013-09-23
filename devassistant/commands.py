@@ -47,7 +47,7 @@ class ClCommand(object):
             result = ClHelper.run_command(comm, log_level, scls=scls)
         except exceptions.ClException as e:
             if log_error:
-                logger.error(e)
+                logger.error(str(e))
             raise e
 
         return result.strip() if hasattr(result, 'strip') else result
@@ -142,7 +142,7 @@ class DotDevassistantCommand(object):
                 path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
             except exceptions.AssistantNotFoundException as e:
                 path = []
-                logger.warning(e)
+                logger.warning(str(e))
             for a in path:
                 #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                 if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
