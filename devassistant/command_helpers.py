@@ -193,6 +193,9 @@ class GtkDialogHelper(object):
     Gtk = None
     Gdk = None
     top_window = None
+    show = True
+    scrollwin = None
+    info_btn = None
 
     @classmethod
     def get_gtk(cls):
@@ -237,6 +240,20 @@ class GtkDialogHelper(object):
             win.ok = False
             win.hide()
         return cancel_close
+        
+    @classmethod
+    def _info_installed_packages(cls, win):
+        def info_installed_packages(widget):
+            if not cls.show:
+                cls.scrollwin.hide()
+                cls.show = True
+                cls.info_btn.set_label("Show info")
+            else:
+                cls.scrollwin.show_all()
+                cls.show = False
+                cls.info_btn.set_label("Hide info")
+        return info_installed_packages
+        
 
     @classmethod
     def is_available(cls):
@@ -287,17 +304,17 @@ class GtkDialogHelper(object):
         Gdk = cls.get_gdk()
         Gdk.threads_enter()
         win = Gtk.Dialog('Dependencies Installation')
-        win.set_default_size(200, 50)
+        win.set_default_size(200, 250)
         win.ok = False
         box = win.get_content_area()
 
         grid = Gtk.Grid()
         grid.set_halign(Gtk.Align.CENTER)
         #grid.set_size_request(300, 50)
+        grid.set_column_homogeneous(True)
         grid.set_column_spacing(10)
         grid.set_row_spacing(10)
         box.remove(box.get_children()[0])
-        box.pack_end(grid, True, True, 0)
         box.set_margin_left(10)
         box.set_margin_right(10)
 
@@ -306,12 +323,34 @@ class GtkDialogHelper(object):
         ok.connect('clicked', cls._ok_close(win))
         cancel = cls._get_button('Cancel')
         cancel.connect('clicked', cls._cancel_close(win))
+        cls.info_btn = cls._get_button('Show info')
+        cls.info_btn.connect('clicked', cls._info_installed_packages(win))
+        liststore = Gtk.ListStore(str)
+        for pkg in package_list:
+            liststore.append([pkg])
+        listview = Gtk.TreeView(liststore)
+        cell_renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("", cell_renderer, text=0)
+        listview.set_headers_visible(False)
+        listview.append_column(column)
+        cls.scrollwin = Gtk.ScrolledWindow()
+        cls.scrollwin.add(listview)
+        cls.scrollwin.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
+        cls.scrollwin.set_sensitive(True)
+        cls.scrollwin.set_hexpand(True)
+        cls.scrollwin.set_vexpand(True)
 
-        grid.attach(label, 0, 0, 2, 1)
+        grid.attach(label, 0, 0, 3, 1)
         grid.attach(cancel, 0, 1, 1, 1)
         grid.attach(ok, 1, 1, 1, 1)
+        grid.attach(cls.info_btn, 2, 1, 1, 1)
+        grid.attach(cls.scrollwin, 0, 2, 3, 1)
 
+        box.pack_start(grid, True, True, 10)
         win.show_all()
+        # This needs to be after show_all
+        # Otherwise ScrollWindow is shown always
+        cls.scrollwin.hide()
         win.run()
         Gdk.threads_leave()
         return win.ok
