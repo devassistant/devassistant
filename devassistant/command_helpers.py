@@ -247,11 +247,11 @@ class GtkDialogHelper(object):
             if not cls.show:
                 cls.scrollwin.hide()
                 cls.show = True
-                cls.info_btn.set_label("Show info")
+                cls.info_btn.set_label("Show packages")
             else:
                 cls.scrollwin.show_all()
                 cls.show = False
-                cls.info_btn.set_label("Hide info")
+                cls.info_btn.set_label("Hide packages")
         return info_installed_packages
         
 
@@ -323,10 +323,10 @@ class GtkDialogHelper(object):
         ok.connect('clicked', cls._ok_close(win))
         cancel = cls._get_button('Cancel')
         cancel.connect('clicked', cls._cancel_close(win))
-        cls.info_btn = cls._get_button('Show info')
+        cls.info_btn = cls._get_button('Show packages')
         cls.info_btn.connect('clicked', cls._info_installed_packages(win))
         liststore = Gtk.ListStore(str)
-        for pkg in package_list:
+        for pkg in sorted(package_list):
             liststore.append([pkg])
         listview = Gtk.TreeView(liststore)
         cell_renderer = Gtk.CellRendererText()
