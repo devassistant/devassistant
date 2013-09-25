@@ -54,10 +54,15 @@ This structure is defined by filesystem hierarchy as explained in
 :ref:`assistants_loading_mechanism`
 
 Each assistant can optionally define arguments that it accepts (either
-on commandline, or from GUI in future). For example, you can run
+on commandline, or from GUI). For example, you can run
 the leftmost path with::
 
    $ da crt python [python assistant arguments] django [django assistant arguments]
+
+The ``crt`` in the above example means, that we're running an assistant that
+creates a project.
+
+.. include:: assistant-roles.txt
 
 If an assistant has any subassistants, one of them **must** be used. E.g.
 in the example above, you can't use just Python assistant, you have to

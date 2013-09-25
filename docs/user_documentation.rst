@@ -23,19 +23,9 @@ If you want to know more about how this all works, consult
 Assistant Roles
 ~~~~~~~~~~~~~~~
 
-There are three assistant roles:
+.. include:: assistant-roles.txt
 
-creator
-  creates new projects
-modifier
-  modifies existing projects
-preparer
-  prepares environment for development of upstream project or custom task
-
-The main purpose of having roles is separating different types of tasks.
-It would be confusing to have e.g. ``python django`` assistant (that
-creates new project) side-by-side with ``eclipse`` assistant (that registers
-existing project into Eclipse). You can learn about how to invoke the
+You can learn about how to invoke the
 respective roles below in :ref:`creating_projects_cli`,
 :ref:`modifying_projects_cli` and :ref:`preparing_environment_cli`.
 
