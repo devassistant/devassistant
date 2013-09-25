@@ -8,8 +8,14 @@ da \- setup development environment and create basic projects in various
 languages
 
 .SH SYNOPSIS
-\fBda [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
-\fBda [ ACTION ] [ OPTIONS ]
+\fBda [--debug] [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
+\fBda [--debug] [ ACTION ] [ OPTIONS ]
+
+.SH DESCRIPTION
+\fBda\fP is the main binary of DevAssistant. It is responsible for dispatching
+commandline calls to assistants or actions. It accepts an optional
+\fB--debug\fP flag, which makes DevAssistant log lots of debugging information,
+including all called CLI commands and their output.
 
 .SH DESCRIPTION - ASSISTANT_TYPE
 DevAssistant can help you with various tasks during development. The tasks

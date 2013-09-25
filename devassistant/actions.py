@@ -41,7 +41,7 @@ class HelpAction(Action):
         # we will justify the action names (and assistant types) to the same width
         just = max(len('crt'), len('mod'), len('prep'), *map(lambda x: len(x), actions)) + 2
         text = ['You can either run assistants with:']
-        text.append(cls.format_text('da {crt,mod,prep} [ASSISTANT [ARGUMENTS]] ...',
+        text.append(cls.format_text('da [--debug] {crt,mod,prep} [ASSISTANT [ARGUMENTS]] ...',
                                     'bold',
                                     format_type))
         text.append('')
@@ -60,6 +60,11 @@ class HelpAction(Action):
                                             format_type))
         text.append('')
         text.append('Or you can run a custom action:')
+        text.append(cls.format_text('da [--debug] [ACTION] [ARGUMENTS]',
+                                    'bold',
+                                    format_type))
+        text.append('')
+        text.append('Available actions:')
         for action_name, action in sorted(actions.items()):
             text.append(cls.format_action_line(action_name,
                                                action.description,

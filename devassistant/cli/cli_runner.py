@@ -11,13 +11,20 @@ from devassistant import path_runner
 from devassistant import settings
 
 class CliRunner(object):
+    cur_handler = None
+
     @classmethod
-    def register_console_logging_handler(cls, lgr):
+    def register_console_logging_handler(cls, lgr, level=logging.INFO):
         """Registers console logging handler to given logger."""
         console_handler = logger.DevassistantClHandler(sys.stdout)
         console_handler.setFormatter(logger.DevassistantClFormatter())
-        console_handler.setLevel(logging.INFO)
+        console_handler.setLevel(level)
+        cls.cur_handler = console_handler
         lgr.addHandler(console_handler)
+
+    @classmethod
+    def change_logging_level(cls, level):
+        cls.cur_handler.setLevel(level)
 
     @classmethod
     def run(cls):
@@ -35,6 +42,8 @@ class CliRunner(object):
         argparser = argparse_generator.ArgparseGenerator.\
                         generate_argument_parser(tree, actions=actions)
         parsed_args = argparser.parse_args()
+        if parsed_args.da_debug:
+            cls.change_logging_level(logging.DEBUG)
         first_subparser = vars(parsed_args)[settings.SUBASSISTANT_N_STRING.format(0)]
         if first_subparser in actions:
             to_run = actions[first_subparser]

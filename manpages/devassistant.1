@@ -10,8 +10,14 @@ Please note that \fBda\fP binary is the recommended way of running DevAssistant
 (even though it works completely same).
 
 .SH SYNOPSIS
-\fBdevassistant [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
-\fBdevassistant [ ACTION ] [ OPTIONS ]
+\fBdevassistant [--debug] [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
+\fBdevassistant [--debug] [ ACTION ] [ OPTIONS ]
+
+.SH DESCRIPTION
+\fBdevassistant\fP is the main binary of DevAssistant. It is responsible for
+dispatching commandline calls to assistants or actions. It accepts an optional
+\fB--debug\fP flag, which makes DevAssistant log lots of debugging information,
+including all called CLI commands and their output.
 
 .SH DESCRIPTION - ASSISTANT_TYPE
 DevAssistant can help you with various tasks during development. The tasks

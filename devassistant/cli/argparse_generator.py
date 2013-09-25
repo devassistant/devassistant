@@ -23,6 +23,13 @@ class ArgparseGenerator(object):
                                                       usage=argparse.SUPPRESS,
                                                       add_help=False)
 
+        # add --debug to the top parser (GUI does this completely differently)
+        parser.add_argument('--debug',
+                            help='Show debug output (may be a verbose a lot!).',
+                            action='store_true',
+                            dest='da_debug',
+                            default=False)
+
         # add any arguments of the top assistant
         for arg in cur_as.args:
             arg.add_argument_to(parser)
