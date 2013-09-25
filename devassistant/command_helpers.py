@@ -51,6 +51,8 @@ class ClHelper(object):
             logger.log(log_level, output_rest, extra={'event_type': 'cmd_out'})
             stdout += '\n' + output_rest
 
+        logger.log(log_level, proc.returncode, extra={'event_type': 'cmd_retcode'})
+
         if proc.returncode == 0:
             return stdout.strip()
         else:
