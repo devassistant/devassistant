@@ -124,7 +124,7 @@ class DotDevassistantCommand(object):
         except IOError as e:
             msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
             logger.error(msg)
-            raise exceptions.RunException(e)
+            raise exceptions.RunException(msg)
 
         result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
         return result
