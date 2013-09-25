@@ -198,7 +198,7 @@ class PathWindow(object):
                 self.browse_btn.set_sensitive(False)
                 self.link_button.set_sensitive(False)
                 entry.set_sensitive(False)
-                act_btn.set_active(False)                
+                act_btn.set_active(False)
             if arg.get_gui_hint('type') == 'path':
                 align_btn.add(self.browse_btn)
                 self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
