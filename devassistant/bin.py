@@ -16,7 +16,7 @@ class CreatorAssistant(ExecutableAssistant):
         return sa
 
     name = 'crt'
-    verbose_name = 'Create'
+    fullname = 'Create Projects'
     description = 'Kickstart new projects easily with DevAssistant.'
 
 class ModifierAssistant(ExecutableAssistant):
@@ -25,7 +25,7 @@ class ModifierAssistant(ExecutableAssistant):
         return sa
 
     name = 'mod'
-    verbose_name = 'Modify'
+    fullname = 'Modify Projects'
     description = 'Modify existing projects with DevAssistant.'
 
 class PreparerAssistant(ExecutableAssistant):
@@ -34,7 +34,7 @@ class PreparerAssistant(ExecutableAssistant):
         return sa
 
     name = 'prep'
-    verbose_name = 'Prepare'
+    fullname = 'Prepare Environment'
     description = 'Prepare environment for upstream projects or various tasks with DevAssistant.'
 
 class TopAssistant(assistant_base.AssistantBase):

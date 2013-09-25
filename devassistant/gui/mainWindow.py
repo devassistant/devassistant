@@ -57,19 +57,22 @@ class mainWindow(object):
         self.main, self.subasCreator = CreatorAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasCreator, 'Creator'),
                                   self.gui_helper.create_label(
-                                  "Creator",
+                                  CreatorAssistant.fullname,
+                                  wrap=False,
                                   tooltip=self.gui_helper.get_formated_description(self.main.description)))
         # Devassistant modifier part
         self.main, self.subasModifier = ModifierAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasModifier, 'Modifier'),
                                   self.gui_helper.create_label(
-                                  'Modifier',
+                                  ModifierAssistant.fullname,
+                                  wrap=False,
                                   tooltip=self.gui_helper.get_formated_description(self.main.description)))
         # Devassistant preparer part
         self.main, self.subasPreparer = PreparerAssistant().get_subassistant_tree()
         self.notebook.append_page(self._create_notebook_page(self.subasPreparer, 'Preparer'),
                                   self.gui_helper.create_label(
-                                  'Preparer',
+                                  PreparerAssistant.fullname,
+                                  wrap=False,
                                   tooltip=self.gui_helper.get_formated_description(self.main.description)))
 
         self.notebook.show()
