@@ -8,11 +8,11 @@ Created on Wed Apr  3 13:16:47 2013
 import yaml
 from gi.repository import Gtk
 
-class yamlWindow(object):
-    def __init__(self, parent, mainWin, builder):
+class YamlWindow(object):
+    def __init__(self, parent, main_win, builder):
         self.parent = parent
-        self.mainWin = mainWin
-        self.yamlWindow = builder.get_object("yamlWindow")
+        self.main_win = main_win
+        self.yaml_window = builder.get_object("yamlWindow")
         self.box6 = builder.get_object("box6")
         self.gui_helper = self.parent.gui_helper
         self.notebook = self.gui_helper.create_notebook()
@@ -34,13 +34,13 @@ class yamlWindow(object):
         self.box6.pack_start(self.notebook, True, True, 12)
 
     def _create_general(self):
-        box_general = Gtk.Box(spacing=12,orientation=Gtk.Orientation.HORIZONTAL)
+        box_general = self.gui_helper.create_box(spacing=12)
         scrolled_general = self.gui_helper.create_scrolled_window(box_general)
         scrolled_general.set_border_width(12)
         self.notebook.append_page(scrolled_general,
                                   Gtk.Label("General"))
-        hbox1 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
-        hbox2 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
+        hbox1 = self.gui_helper.create_box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
+        hbox2 = self.gui_helper.create_box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
         align1 = self.gui_helper.create_alignment()
         align2 = self.gui_helper.create_alignment()
         align3 = self.gui_helper.create_alignment()
@@ -67,13 +67,12 @@ class yamlWindow(object):
         box_general.pack_start(hbox2, False, False, 6)
 
     def _create_dependencies(self):
-        box_general = Gtk.Box(spacing=12,orientation=Gtk.Orientation.VERTICAL)
-        box_general.set_homogeneous(False)
+        box_general = self.gui_helper.create_box(spacing=12,orientation=Gtk.Orientation.VERTICAL)
         box_general.set_border_width(12)
         self.notebook.append_page(box_general,
                                   Gtk.Label("Dependencies"))
-        hbox1 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.HORIZONTAL)
-        hbox2 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.HORIZONTAL)
+        hbox1 = self.gui_helper.create_box(spacing=6)
+        hbox2 = self.gui_helper.create_box(spacing=6)
         align1 = self.gui_helper.create_alignment()
         assistant_depend = self.gui_helper.create_label("Specify package dependencies:", wrap=False)
         align1.add(assistant_depend)
@@ -94,7 +93,7 @@ class yamlWindow(object):
         scrolled_dependecies = self.gui_helper.create_scrolled_window(self.list_view)
         scrolled_dependecies.set_border_width(12)
 
-        hbox3 = Gtk.Box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
+        hbox3 = self.gui_helper.create_box(spacing=6,orientation=Gtk.Orientation.VERTICAL)
         btn_add = self.gui_helper.button_with_label("Add")
         btn_add.connect("clicked", self._add_dependency_row)
         btn_remove = self.gui_helper.button_with_label("Remove")
@@ -111,7 +110,7 @@ class yamlWindow(object):
         #box_general.pack_start(scrolled_dependecies, True, True, 6)
 
     def _create_run_section(self):
-        box_run_section = Gtk.Box(spacing=12,orientation=Gtk.Orientation.VERTICAL)
+        box_run_section = self.gui_helper.create_box(spacing=12,orientation=Gtk.Orientation.VERTICAL)
         box_run_section.set_border_width(12)
         label_run = self.gui_helper.create_label("Specify run section. Each row is one row in YAML file and begin with dash (-). ")
         label_run.set_alignment(0,0)
@@ -159,14 +158,14 @@ class yamlWindow(object):
                 self._fill_data()
         else:
             self.notebook.remove_page(-1)
-        self.yamlWindow.show_all()
+        self.yaml_window.show_all()
 
     def prev_window(self, widget, data=None):
-        self.yamlWindow.hide()
+        self.yaml_window.hide()
         self.parent.open_window(widget, data)
 
     def _get_data(self):
-        return (self.dirName.get_text(), self.entryProjectName.get_text())
+        return (self.dir_name.get_text(), self.entry_project_name.get_text())
 
     def _fill_data(self):
         #rpm dependencies

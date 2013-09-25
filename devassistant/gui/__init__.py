@@ -1,7 +1,7 @@
 import sys
 
-from devassistant.gui import mainWindow
-from devassistant.gui import creatorWindow
+from devassistant.gui import main_window
+from devassistant.gui import creator_window
 
 def run_gui():
     try:
@@ -11,7 +11,7 @@ def run_gui():
         print "%s: %r" % (e.__class__.__name__, str(e))
         sys.exit(1)
 
-    mainWindow.mainWindow()
+    main_window.MainWindow()
 
 def run_yaml_gui():
     try:
@@ -21,4 +21,4 @@ def run_yaml_gui():
         print "%s: %r" % (e.__class__.__name__, str(e))
         sys.exit(1)
 
-    creatorWindow.creatorWindow()
+    creator_window.CreatorWindow()

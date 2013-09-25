@@ -5,7 +5,7 @@ import re
 from gi.repository import Gtk
 from textwrap import wrap
 
-class gui_helper(object):
+class GuiHelper(object):
     def __init__(self, parent):
         """This is general class for creating GUI
         """
@@ -18,13 +18,16 @@ class gui_helper(object):
         frame = Gtk.Frame()
         frame.set_shadow_type(Gtk.ShadowType.IN)
         return frame
+    def create_box(self, orientation=Gtk.Orientation.HORIZONTAL, spacing=0):
+        hbox=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=0)
+        hbox.set_homogeneous(False)
+        return hbox
 
     def button_with_label(self, description, assistants=None, sensitive=True):
         btn = self.create_button()
         label = self.create_label(description)
         if assistants != None:
-            hbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=0)
-            hbox.set_homogeneous(False)
+            hbox=self.create_box(orientation=Gtk.Orientation.VERTICAL)
             hbox.pack_start(label, False, False, 0)
             labelass = self.create_label(assistants, justify=Gtk.Justification.LEFT)
             labelass.set_alignment(0,0)
@@ -42,8 +45,7 @@ class gui_helper(object):
     def button_with_image(self, description, image=None, sensitive=True):
         btn = self.create_button()
         btn.set_sensitive(sensitive)
-        hbox=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=0)
-        hbox.set_homogeneous(False)
+        hbox=self.create_box()
         img = self.create_image(image_name=image)
         hbox.pack_start(img, False, False, 12)
         label = self.create_label(description)
@@ -57,6 +59,18 @@ class gui_helper(object):
         #align.add(actBtn)
         actBtn.add(align)
         return align
+        
+    def create_checkbutton(self, text=""):
+        """
+        This is generalized method for creating Gtk.CheckButton
+        """
+        btn = Gtk.CheckButton()
+        return btn
+
+    def create_checkbox(self, name, margin=10):
+        chk_btn = Gtk.CheckButton(name)
+        chk_btn.set_margin_right(margin)
+        return chk_btn
 
     def create_entry(self, text="", sensitive="False"):
         textEntry = Gtk.Entry()
@@ -87,13 +101,6 @@ class gui_helper(object):
         menu_item.set_image(img)
         return menu_item
 
-    def create_checkbutton(self, text=""):
-        """
-        This is generalized method for creating Gtk.Button
-        """
-        btn = Gtk.CheckButton()
-        return btn
-
     def create_label(self, name, justify=Gtk.Justification.CENTER, wrap=True, tooltip=None):
         """
         The function is used for creating lable with HTML text
@@ -108,7 +115,7 @@ class gui_helper(object):
             label.connect("query-tooltip", self.parent._tooltip_queries, tooltip)
         return label
 
-    def add_button(self, gridLang, ass, row, column):
+    def add_button(self, grid_lang, ass, row, column):
         """
         The function is used for creating button with all features
         like signal on tooltip and signal on clicked
@@ -130,12 +137,12 @@ class gui_helper(object):
                         )
         btn.connect("clicked", self.parent.btn_clicked, ass[0].name)
         if row == 0 and column == 0:
-            gridLang.add(btn)
+            grid_lang.add(btn)
         else:
-            gridLang.attach(btn, column, row, 1, 1)
+            grid_lang.attach(btn, column, row, 1, 1)
         return btn
 
-    def add_menu_button(self, gridLang, assistant, row, column):
+    def add_menu_button(self, grid_lang, assistant, row, column):
         """
         The function is used for creating button with menu and submenu.
         Also signal on tooltip and signal on clicked are specified
@@ -185,9 +192,9 @@ class gui_helper(object):
                     )
         btn.connect_object("event", self.parent.btn_press_event, menu)
         if row == 0 and column == 0:
-            gridLang.add(btn)
+            grid_lang.add(btn)
         else:
-            gridLang.attach(btn, column, row, 1, 1)
+            grid_lang.attach(btn, column, row, 1, 1)
         return btn
 
     def get_formated_description(self, description):
@@ -195,19 +202,19 @@ class gui_helper(object):
         return '\n'.join(wrap(text, 60))
 
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
-        scrolledWindow = Gtk.ScrolledWindow()
-        scrolledWindow.add(layout_manager)
-        scrolledWindow.set_policy(horizontal, vertical)
-        return scrolledWindow
+        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window.add(layout_manager)
+        scrolled_window.set_policy(horizontal, vertical)
+        return scrolled_window
 
     def create_gtk_grid(self, row_spacing=6, col_spacing=6, row_homogenous=False,col_homogenous=True):
-        gridLang = Gtk.Grid()
-        gridLang.set_column_spacing(row_spacing)
-        gridLang.set_row_spacing(col_spacing)
-        gridLang.set_border_width(12)
-        gridLang.set_row_homogeneous(row_homogenous)
-        gridLang.set_column_homogeneous(col_homogenous)
-        return gridLang
+        grid_lang = Gtk.Grid()
+        grid_lang.set_column_spacing(row_spacing)
+        grid_lang.set_row_spacing(col_spacing)
+        grid_lang.set_border_width(12)
+        grid_lang.set_row_homogeneous(row_homogenous)
+        grid_lang.set_column_homogeneous(col_homogenous)
+        return grid_lang
 
     def create_notebook(self, position=Gtk.PositionType.TOP):
         notebook = Gtk.Notebook()
@@ -236,26 +243,21 @@ class gui_helper(object):
         dialog.destroy()
         return text
 
-    def create_checkbox(self, name, margin=10):
-        chk_btn = Gtk.CheckButton(name)
-        chk_btn.set_margin_right(margin)
-        return chk_btn
-
     def create_alignment(self, xalign=0, yalign=0, xscale=0, yscale=0):
         align = Gtk.Alignment()
         align.set(xalign, yalign, xscale, yscale)
         return align
 
     def create_textview(self, wrap=Gtk.WrapMode.WORD_CHAR, justify=Gtk.Justification.LEFT, visible=True, editable=True):
-        textView = Gtk.TextView()
-        textView.set_wrap_mode(wrap)
-        textView.set_editable(editable)
+        text_view = Gtk.TextView()
+        text_view.set_wrap_mode(wrap)
+        text_view.set_editable(editable)
         if not editable:
-            textView.set_cursor_visible(False)
+            text_view.set_cursor_visible(False)
         else:
-            textView.set_cursor_visible(visible)
-        textView.set_justification(justify)
-        return textView
+            text_view.set_cursor_visible(visible)
+        text_view.set_justification(justify)
+        return text_view
 
     def create_tree_view(self, model=None, mode=Gtk.SelectionMode.SINGLE):
         tree_view = Gtk.TreeView()

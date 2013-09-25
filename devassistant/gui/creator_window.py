@@ -10,7 +10,7 @@ from devassistant.bin import CreatorAssistant
 from devassistant import yaml_assistant_loader
 from devassistant.logger import logger_gui
 from devassistant.gui import gui_helper
-from devassistant.gui import yamlWindow
+from devassistant.gui import yaml_window
 
 import threading, thread
 import gobject
@@ -20,14 +20,14 @@ Gdk.threads_init()
 
 gladefile = "./devassistant/gui/devel-yaml.glade"
 
-class creatorWindow(object):
+class CreatorWindow(object):
 
     def __init__(self):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
-        self.mainWin = self.builder.get_object("mainWindow")
+        self.main_win = self.builder.get_object("mainWindow")
         self.gui_helper = gui_helper.gui_helper(self)
-        self.yamlWindow = yamlWindow.yamlWindow(self, self.mainWin, self.builder)
+        self.yaml_window = yaml_window.YamlWindow(self, self.main_win, self.builder)
         #self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
         #self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, DevelCreatorAssistants())
         self.mainhandlers = {
@@ -35,20 +35,20 @@ class creatorWindow(object):
                 "on_mainWindow_delete_event": Gtk.main_quit,
                 "on_cancelYamlBtn_clicked": Gtk.main_quit,
                 "on_yamlWindow_delete_event": Gtk.main_quit,
-                "on_prevYamlBtn_clicked": self.yamlWindow.prev_window,
-                "on_createYamlBtn_clicked": self.yamlWindow.run_btn,
+                "on_prevYamlBtn_clicked": self.yaml_window.prev_window,
+                "on_createYamlBtn_clicked": self.yaml_window.run_btn,
                     }
         self.builder.connect_signals(self.mainhandlers)
-        self.labelMainWindow = self.builder.get_object("sublabel")
-        self.labelProjectName = self.builder.get_object("labelProjectName")
+        self.label_main_window = self.builder.get_object("sublabel")
+        self.label_project_name = self.builder.get_object("labelProjectName")
         self.box4 = self.builder.get_object("box4")
         self.box4.set_spacing(12)
         self.box4.set_border_width(12)
         # Creating Notebook widget.
         # Devassistant creator part
         self.main, self.subas = CreatorAssistant().get_subassistant_tree()
-        scrolledWindow = self._create_notebook_page(self.subas, 'Creator')
-        self.box4.pack_start(scrolledWindow, True, True, 0)
+        scrolled_window = self._create_notebook_page(self.subas, 'Creator')
+        self.box4.pack_start(scrolled_window, True, True, 0)
 
         self.kwargs = {}
         # Used for debugging
@@ -59,7 +59,7 @@ class creatorWindow(object):
         logger_gui.addHandler(console_handler)
         # End used for debugging
 
-        self.mainWin.show_all()
+        self.main_win.show_all()
         Gdk.threads_enter()
         Gtk.main()
         Gdk.threads_leave()
@@ -72,8 +72,8 @@ class creatorWindow(object):
                 text - used for label of tab page
         """
         #frame = self._create_frame()
-        gridLang = self.gui_helper.create_gtk_grid()
-        scrolledWindow = self.gui_helper.create_scrolled_window(gridLang)
+        grid_lang = self.gui_helper.create_gtk_grid()
+        scrolled_window = self.gui_helper.create_scrolled_window(grid_lang)
         row = 0
         column = 0
         for ass in sorted(assistant, key=lambda x: x[0].fullname.lower()):
@@ -82,10 +82,10 @@ class creatorWindow(object):
                 column = 0
             if not ass[1]:
                 # If assistant has not any subassistant then create only button
-                self.gui_helper.add_button(gridLang, ass, row, column)
+                self.gui_helper.add_button(grid_lang, ass, row, column)
             else:
                 # If assistant has more subassistants then create button with menu
-                self.gui_helper.add_menu_button(gridLang, ass, row, column)
+                self.gui_helper.add_menu_button(grid_lang, ass, row, column)
             column += 1
         # empty assistant
         if column > 2:
@@ -94,11 +94,11 @@ class creatorWindow(object):
         btn=self.gui_helper.button_with_label("<b>New assistant</b>")
         btn.connect("clicked", self.btn_clicked, "new_assistant")
         if row == 0 and column == 0:
-            gridLang.add(btn)
+            grid_lang.add(btn)
         else:
-            gridLang.attach(btn, column, row, 1, 1)
+            grid_lang.attach(btn, column, row, 1, 1)
 
-        return scrolledWindow
+        return scrolled_window
 
     def _tooltip_queries(self, item, x, y, key_mode, tooltip, text):
         """
@@ -115,18 +115,18 @@ class creatorWindow(object):
         self.kwargs['eclipse']=None
         self.kwargs['vim']=None
         self.kwargs['github']=None
-        self.yamlWindow.open_window(widget, self.kwargs)
-        self.mainWin.hide()
+        self.yaml_window.open_window(widget, self.kwargs)
+        self.main_win.hide()
 
     def btn_clicked(self, widget, data=None):
         self.kwargs['subassistant_0']=data
         if self.kwargs.has_key('subassistant_1'):
             del (self.kwargs['subassistant_1'])
-        self.yamlWindow.open_window(widget, self.kwargs)
-        self.mainWin.hide()
+        self.yaml_window.open_window(widget, self.kwargs)
+        self.main_win.hide()
 
     def open_window(self, widget, data=None):
-        self.mainWin.show_all()
+        self.main_win.show_all()
 
     def btn_press_event(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:
