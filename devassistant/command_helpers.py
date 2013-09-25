@@ -47,9 +47,16 @@ class ClHelper(object):
         stdout = '\n'.join(stdout)
         # there may be some remains not read after exiting the previous loop
         output_rest = proc.stdout.read().strip().decode('utf8')
-        if output_rest:
-            logger.log(log_level, output_rest, extra={'event_type': 'cmd_out'})
-            stdout += '\n' + output_rest
+        # we want to log lines separately, not as one big chunk
+        output_rest_lines = output_rest.splitlines()
+        for i, l in enumerate(output_rest.splitlines()):
+            logger.log(log_level, l, extra={'event_type': 'cmd_out'})
+            # if rest of the output doesn't end with \n, we don't add \n after last line
+            if i == len(output_rest_lines) - 1 and not output_rest.endswith('\n'):
+                stdout += l
+            # else we add it everytime
+            else:
+                stdout += l + '\n'
 
         logger.log(log_level, proc.returncode, extra={'event_type': 'cmd_retcode'})
 
