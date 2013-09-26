@@ -201,7 +201,12 @@ class RPMPackageManager(PackageManager):
             if pkg.startswith('@'):
                 y.selectGroup(pkg[1:])
             else:
-                y.install(y.returnPackageByDep(pkg))
+                try:
+                    y.install(y.returnPackageByDep(pkg))
+                except yum.Errors.YumBaseError:
+                    msg = 'Package not found: {pkg}'.format(pkg=pkg)
+                    logger.error(msg)
+                    raise exceptions.DependencyException(msg)
         y.resolveDeps()
         logger.debug('Installing/Updating:')
         to_install = []
