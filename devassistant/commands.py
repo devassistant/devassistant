@@ -140,7 +140,7 @@ class DotDevassistantCommand(object):
             for i, subas in enumerate(original_assistant_path):
                 original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
             from devassistant.bin import CreatorAssistant
-            from devassistant.assistants import yaml_assistant
+            from devassistant import yaml_assistant
             try:
                 path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
             except exceptions.AssistantNotFoundException as e:
