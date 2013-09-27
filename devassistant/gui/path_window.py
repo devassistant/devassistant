@@ -27,8 +27,6 @@ class PathWindow(object):
         self.title.set_alignment(0,0)
         self.entries = dict()
         self.browse_btns= dict()
-        self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
-        self.link_button.connect("clicked", self.open_webbrowser)
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
@@ -82,7 +80,7 @@ class PathWindow(object):
         self.parent.run_window.open_window(widget, data)
         self.path_window.hide()
 
-    def remove_widget_items(self):
+    def _remove_widget_items(self):
         #self.box_path_main.remove(self.grid)
         #self.box_path_main.remove(self.title)
         for btn in self.button:
@@ -101,7 +99,7 @@ class PathWindow(object):
     def open_window(self, widget, data=None):
         text = self.get_user_path()
         self.dir_name.set_text(text)
-        self.remove_widget_items()
+        self._remove_widget_items()
         if self.parent.data['AssistantType'] != 0:
             self.box6.remove(self.box_project)
         else:
@@ -192,6 +190,8 @@ class PathWindow(object):
             '''
             self.browse_btn = self.gui_helper.button_with_label("Browse")
             self.browse_btn.connect("clicked", self.browse_clicked, entry)
+            self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
+            self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
             if arg.kwargs.has_key('required'):
                 self.browse_btn.set_sensitive(True)
