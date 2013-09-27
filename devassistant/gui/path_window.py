@@ -7,6 +7,7 @@ Created on Wed Apr  3 13:16:47 2013
 
 import os
 from gi.repository import Gtk
+from devassistant.bin import CreatorAssistant
 
 class PathWindow(object):
     def __init__(self, parent, main_window, builder, gui_helper):
@@ -62,6 +63,8 @@ class PathWindow(object):
                     md.destroy()
                     return
         for btn in filter(lambda x: x.get_active(), self.button):
+            if btn.get_label() is None:
+                continue
             if btn.get_label() in self.entries:
                 for entry in filter(lambda x: x == btn.get_label(), self.entries):
                     if not self.entries[btn.get_label()].get_text():
@@ -108,13 +111,15 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.title, False, False, 0)
         caption_text = "Project: "
         row = 0
-        for arg in self.parent.assistant_class.args:
-            row = self._add_table_row(arg, 0, row) +1
+        # This cycle will show also options from parent assistant
+        if isinstance(self.parent.assistant_class, CreatorAssistant):
+            for arg in self.parent.assistant_class.args:
+                row = self._add_table_row(arg, 0, row) +1
         for ass in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_0'], self.parent.subass):
             caption_text+=" <b>"+ass[0].fullname+"</b>"
             if not ass[1]:
-                for sub in filter(lambda x: x.flags[1] != '--name', ass[0].args):
-                    row = self._add_table_row(sub, 1, row) + 1
+                for sub in filter(lambda x: not '--name' in x.flags, ass[0].args):
+                    row = self._add_table_row(sub, len(sub.flags) - 1, row) + 1
             else:
                 for sub in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_1'], ass[1]):
                     caption_text+= " -> <b>"+ sub[0].fullname+"</b>"
@@ -176,7 +181,7 @@ class PathWindow(object):
             entry = self.gui_helper.create_entry(text="")
             align = self.gui_helper.create_alignment()
             align.add(entry)
-            new_box.pack_start(align,False,False,0)
+            new_box.pack_start(align,False,False,6)
             align_btn = self.gui_helper.create_alignment()
             ''' If a button is needed please add there and in function
                 _check_box_toggled
@@ -203,9 +208,10 @@ class PathWindow(object):
                 align_btn.add(self.browse_btn)
                 self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
             elif arg.get_gui_hint('type') == 'str':
-                align_btn.add(self.link_button)
-                self.browse_btns[self._check_box_title(arg,number)]=self.link_button
-            new_box.pack_start(align_btn, False, False, 0)
+                if isinstance(self.parent.assistant_class,CreatorAssistant):
+                    align_btn.add(self.link_button)
+                    self.browse_btns[self._check_box_title(arg,number)]=self.link_button
+            new_box.pack_start(align_btn, False, False, 6)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
             self.grid.attach(new_box, 1, row, 1, 1)
