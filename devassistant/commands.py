@@ -101,6 +101,7 @@ class DotDevassistantCommand(object):
             del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1
 
+        # we always use creator assistants for creating, so we don't store the "crt"
         if path and path[0] in settings.ASSISTANT_ROLES_SHORT:
             path = path[1:]
 
@@ -142,10 +143,10 @@ class DotDevassistantCommand(object):
             original_path_as_dict = {}
             for i, subas in enumerate(original_assistant_path):
                 original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
-            from devassistant.bin import TopAssistant
+            from devassistant.bin import CreatorAssistant
             from devassistant import yaml_assistant
             try:
-                path = TopAssistant().get_selected_subassistant_path(**original_path_as_dict)
+                path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
             except exceptions.AssistantNotFoundException as e:
                 path = []
                 logger.warning(str(e))
