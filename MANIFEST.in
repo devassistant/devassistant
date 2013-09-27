@@ -9,6 +9,7 @@ include devassistant/zenity_wrapper.sh
 include devassistant/gui/devassistant.desktop
 
 recursive-include devassistant/data  *
+exclude devassistant/data/assistants/modifier/c.yaml
 recursive-include devassistant/gui *.glade
 
 recursive-include test *.yaml *.py
