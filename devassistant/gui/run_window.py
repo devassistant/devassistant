@@ -195,4 +195,16 @@ class RunWindow(object):
                             add_row(record, self.store, last_row)
                     else:
                         add_row(record, self.store, last_row)
-
+    def clipboard_btn_clicked(self, widget, data=None):
+        _clipboard_text=list()
+        for record in self.debug_logs['logs']:
+            if self.debugging:
+                _clipboard_text.append(record.getMessage())
+            else:
+                if record.levelname != 'DEBUG':
+                    if getattr(record,'event_type',''):
+                        if not record.event_type.startswith("dep_"):
+                            _clipboard_text.append(record.getMessage())
+                    else:
+                        _clipboard_text.append(record.getMessage())
+        self.gui_helper.create_clipboard(_clipboard_text)

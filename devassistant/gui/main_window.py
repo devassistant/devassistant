@@ -43,6 +43,7 @@ class MainWindow(object):
                 "on_runWindow_delete_event": self.run_window.close_btn,
                 "on_prevPathBtn_clicked": self.path_window.prev_window,
                 "on_debugBtn_clicked": self.run_window.debug_btn_clicked,
+                "on_clipboardBtn_clicked": self.run_window.clipboard_btn_clicked
                     }
         self.builder.connect_signals(self.mainhandlers)
         self.label_main_window = self.builder.get_object("sublabel")
