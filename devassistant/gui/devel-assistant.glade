@@ -95,6 +95,7 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
+                    <property name="yalign">0.54000002145767212</property>
                     <accelerator key="c" signal="clicked" modifiers="GDK_MOD1_MASK"/>
                     <signal name="clicked" handler="on_cancelMainBtn_clicked" swapped="no"/>
                   </object>
@@ -474,12 +475,13 @@
                     <property name="spacing">12</property>
                     <property name="homogeneous">True</property>
                     <child>
-                      <object class="GtkButton" id="cancelRunBtn">
-                        <property name="label" translatable="yes">Cancel</property>
+                      <object class="GtkButton" id="backBtn">
+                        <property name="label" translatable="yes">_Back</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_cancelRunBtn_clicked" swapped="no"/>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="on_backBtn_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -488,12 +490,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="debugBtn">
-                        <property name="label" translatable="yes">Debug logs</property>
+                      <object class="GtkButton" id="cancelRunBtn">
+                        <property name="label" translatable="yes">_Cancel</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_debugBtn_clicked" swapped="no"/>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="on_cancelRunBtn_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -502,17 +505,33 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="clipboardBtn">
-                        <property name="label" translatable="yes">Copy to clipboard</property>
+                      <object class="GtkButton" id="debugBtn">
+                        <property name="label" translatable="yes">_Debug logs</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_clipboardBtn_clicked" swapped="no"/>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="on_debugBtn_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="clipboardBtn">
+                        <property name="label" translatable="yes">C_opy to clipboard</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="on_clipboardBtn_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
