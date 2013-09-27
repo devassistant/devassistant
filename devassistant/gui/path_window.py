@@ -193,7 +193,7 @@ class PathWindow(object):
             self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
             self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
-            if arg.kwargs.has_key('required'):
+            if arg.kwargs.has_key('required') or arg.kwargs.has_key('default'):
                 self.browse_btn.set_sensitive(True)
                 self.link_button.set_sensitive(True)
                 entry.set_sensitive(True)
