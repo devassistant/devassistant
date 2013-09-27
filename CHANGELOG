@@ -1,6 +1,13 @@
+0.7.0
+- CLI facelift, introduce custom actions.
+- GUI refactoring and UX improvements.
 - All modules of devassistant.assistants package have been moved to
   the top-level devassistant package (the subpackage only made sense
   out of historical reasons).
+- Tons of bugfixes.
+- Don't log dependency checks by default, add --debug flag for that.
+- Yaml Assistant changes: "defined" now also returns the value of
+  variable itself, if this variable is defined.
 
 0.6.1
 - Quick bugfix release to enable GUI properly and fix some minor bugs.

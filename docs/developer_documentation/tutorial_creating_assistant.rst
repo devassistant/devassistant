@@ -12,4 +12,4 @@ Creating a Simple Creator
 
 The title says it all. In this section, we will create a "Creator" assistant,
 that means an assistant that will take care of kickstarting a new project.
-Since I like Python, we will
+TODO
