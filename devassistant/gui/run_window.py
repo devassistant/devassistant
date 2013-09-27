@@ -17,6 +17,23 @@ from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
 
+def get_iter_last(model):
+    itr = model.get_iter_first()
+    last = None
+    while itr:
+        last = itr
+        itr = model.iter_next(itr)
+    return last
+
+def add_row(record, tree_store, last_row):
+    if record.levelname == "INFO":
+        # Create a new root tree element
+        tree_store.append(None, [record.getMessage()])
+    else:
+        # Append a new element in tree element
+        if not record.getMessage().startswith("|"):
+            tree_store.append(last_row, [record.getMessage()])
+
 class RunLoggingHandler(logging.Handler):
     def __init__(self, parent, treeview):
         logging.Handler.__init__(self)
@@ -30,38 +47,23 @@ class RunLoggingHandler(logging.Handler):
         except:
             return x
 
-    def get_iter_last(self, model):
-        itr = model.get_iter_first()
-        last = None
-        while itr:
-            last = itr
-            itr = model.iter_next(itr)
-        return last
-        
-    def _add_row(self, record, tree_store, last_row):
-        if record.levelname == "INFO":
-            # Create a new root tree element
-            tree_store.append(None, [record.getMessage()])
-        else:
-            # Append a new element in tree element
-            if not record.getMessage().startswith("|"):
-                tree_store.append(last_row, [record.getMessage()])
-        
+
     def emit(self, record):
         msg = record.getMessage()
         tree_store = self.treeview.get_model()
-        last_row = self.get_iter_last(tree_store)
+        last_row = get_iter_last(tree_store)
         Gdk.threads_enter()
         if not msg:
             # Message is empty and is not add to tree
             pass
         else:
+            self.parent.debug_logs['logs'].append(record)
             if record.levelname != 'DEBUG':
                 if getattr(record,'event_type',''):
                     if not record.event_type.startswith("dep_"):
-                        self._add_row(record, tree_store, last_row)
+                        add_row(record, tree_store, last_row)
                 else:
-                    self._add_row(record, tree_store, last_row)
+                    add_row(record, tree_store, last_row)
         Gdk.threads_leave()
 
 class RunWindow(object):
@@ -70,6 +72,7 @@ class RunWindow(object):
         self.run_window = builder.get_object("runWindow")
         self.run_tree_view = builder.get_object("runTreeView")
         self.cancel_btn = builder.get_object("cancelRunBtn")
+        self.debug_btn = builder.get_object("debugBtn")
         self.info_box = builder.get_object("infoBox")
         self.scrolled_window = builder.get_object("scrolledWindow")
         self.tlh = RunLoggingHandler(self, self.run_tree_view)
@@ -89,6 +92,9 @@ class RunWindow(object):
         self.link = self.gui_helper.create_button()
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
         self.project_canceled = False
+        self.debugging = False
+        self.debug_logs = dict()
+        self.debug_logs['logs'] = list()
 
     def open_window(self, widget, data=None):
         dirname, projectname = self.parent.path_window.get_data()
@@ -103,6 +109,7 @@ class RunWindow(object):
         self.run_tree_view.connect('size-allocate', self.treeview_changed)
         self.run_window.show_all()
         self.cancel_btn.set_sensitive(False)
+        self.debug_btn.set_sensitive(False)
         self.thread.start()
         self.cancel_btn.set_sensitive(True)
         self.link.set_sensitive(True)
@@ -127,7 +134,7 @@ class RunWindow(object):
                     self.info_label.set_label('<span color="#008000">Done</span>')
                 self.cancel_btn.set_label("Close")
             dlg.destroy()
-            
+
         else:
             Gtk.main_quit()
 
@@ -148,13 +155,44 @@ class RunWindow(object):
             else:
                 self.cancel_btn.set_sensitive(True)
                 self.info_label.set_label('<span color="#FF0000">Failed</span>')
+            self.debug_btn.set_sensitive(True)
             Gdk.threads_leave()
         except exceptions.ClException as cl:
+            self.debug_btn.set_sensitive(True)
             self.cancel_btn.set_label("Close")
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
         except exceptions.ExecutionException as ee:
+            self.debug_btn.set_sensitive(True)
             self.cancel_btn.set_label("Close")
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
         except IOError as ie:
+            self.debug_btn.set_sensitive(True)
             self.cancel_btn.set_label("Close")
-            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))            
+            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
+
+    def debug_btn_clicked(self, widget, data=None):
+        self.store.clear()
+        if not self.debugging:
+            self.debugging = True
+            self.debug_btn.set_label('Info logs')
+        else:
+            self.debugging = False
+            self.debug_btn.set_label('Debug logs')
+        for record in self.debug_logs['logs']:
+            last_row = get_iter_last(self.store)
+            if self.debugging:
+                if record.levelname == "INFO":
+                    # Create a new root tree element
+                    self.store.append(None, [record.getMessage()])
+                else:
+                    # Append a new element in tree element
+                    if not record.getMessage().startswith("|"):
+                        self.store.append(last_row, [record.getMessage()])
+            else:
+                if record.levelname != 'DEBUG':
+                    if getattr(record,'event_type',''):
+                        if not record.event_type.startswith("dep_"):
+                            add_row(record, self.store, last_row)
+                    else:
+                        add_row(record, self.store, last_row)
+
