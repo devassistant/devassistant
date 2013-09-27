@@ -97,9 +97,12 @@ class DotDevassistantCommand(object):
         i = 0
         while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
             path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
+            # delete the dict member so that we don't write it out with other kwargs again
             del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1
-            # delete the dict member so that we don't write it out with other kwargs again
+
+        if path and path[0] in settings.ASSISTANT_ROLES_SHORT:
+            path = path[1:]
 
         # we will only write original cli/gui args, other kwargs are "private" for this run
         original_kwargs = {}

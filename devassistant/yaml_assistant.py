@@ -220,9 +220,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         if self.role == 'modifier':
             # try to get a section to run from the most specialized one to the least specialized one
             # e.g. first run_python_django, then run_python and then just run
-            for i in range(len(kwargs['subassistant_path']), -1, -1):
-                # start taking path from second item to omit "crt"
-                path = '_'.join(kwargs['subassistant_path'][1:i])
+            sa_path = kwargs['subassistant_path']
+            for i in range(len(sa_path), -1, -1):
+                path = '_'.join(sa_path[:i])
                 if path:
                     path = '_' + path
                 to_run = self._get_section_to_run(section='run{path}'.format(path=path),
