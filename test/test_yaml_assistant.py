@@ -130,38 +130,6 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert 'ERROR' not in map(lambda x: x[0], self.tlh.msgs)
 
-    def test_assign_variable_from_nonexisting_variable(self):
-        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', '') in self.tlh.msgs
-
-    def test_assign_variable_from_nonexisting_variable(self):
-        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
-        bar = 'spam'
-        self.ya.run(bar=bar)
-        assert ('INFO', 'spam') in self.tlh.msgs
-
-    def test_assign_variable_from_successful_command(self):
-        self.ya._run = [{'$foo': '$(basename foo/bar)'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', 'bar') in self.tlh.msgs
-
-    def test_assign_variable_from_unsuccessful_command(self):
-        self.ya._run = [{'$foo': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
-
-    def test_assign_variable_in_condition_modifies_outer_scope(self):
-        self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
-        self.ya.run(foo='foo', spam='spam')
-        assert('INFO', 'spam') in self.tlh.msgs
-
-    def test_assign_variable_in_snippet_or_run_doesnt_modify_outer_scope(self):
-        self.ya._run = [{'call': 'self.run_blah'}, {'log_i': '$foo'}]
-        self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
-        self.ya.run(foo='foo', spam='spam')
-        assert('INFO', 'yes, I ran') in self.tlh.msgs
-        assert('INFO', 'foo') in self.tlh.msgs
 
     def test_run_snippet_missing(self):
         self.ya._run = [{'call': 'foo.bar'}]
@@ -223,6 +191,18 @@ class TestYamlAssistant(object):
         # make sure that after the snippet ends, we use the old files section
         assert filter(lambda x: x[0] == 'WARNING' and x[1].endswith('f/g'), self.tlh.msgs)
 
+    def test_assign_in_condition_modifies_outer_scope(self):
+        self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
+        self.ya.run(foo='foo', spam='spam')
+        assert('INFO', 'spam') in self.tlh.msgs
+
+    def test_assign_in_snippet_or_run_doesnt_modify_outer_scope(self):
+        self.ya._run = [{'call': 'self.run_blah'}, {'log_i': '$foo'}]
+        self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
+        self.ya.run(foo='foo', spam='spam')
+        assert('INFO', 'yes, I ran') in self.tlh.msgs
+        assert('INFO', 'foo') in self.tlh.msgs
+
     def test_scl_passes_scls_list_to_command_invocation(self):
         # please don't use $__scls__ in actual assistants :)
         self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
@@ -246,6 +226,105 @@ class TestYamlAssistant(object):
     def test_default_icon_path(self):
         self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/creator/bar/baz.yaml')
         assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/creator/bar/baz.svg')
+
+
+class TestExpressions(TestYamlAssistant):
+    def test_assign_existing_nonempty_variable(self):
+        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+        self.ya.run(bar='bar')
+        assert ('INFO', 'bar') in self.tlh.msgs
+
+        # both logical result and result
+        self.ya._run = [{'$success, $val': '$foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run(foo='foo')
+        assert ('INFO', 'True') in self.tlh.msgs
+        assert ('INFO', 'foo') in self.tlh.msgs
+
+    def test_assign_existing_empty_variable(self):
+        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+        self.ya.run(bar='')
+        assert ('INFO', '') in self.tlh.msgs
+
+        # both logical result and result
+        self.ya._run = [{'$success, $val': '$foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run(foo='')
+        assert ('INFO', 'False') in self.tlh.msgs
+        assert ('INFO', '') in self.tlh.msgs
+
+    def test_assign_nonexisting_variable(self):
+        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', '') in self.tlh.msgs
+
+        # both logical result and result
+        self.ya._run = [{'$success, $val': '$foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run()
+        assert ('INFO', 'False') in self.tlh.msgs
+        assert ('INFO', '') in self.tlh.msgs
+
+    def test_assign_defined_empty_variable(self):
+        self.ya._run = [{'$success, $val': 'defined $foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run(foo='')
+        assert ('INFO', 'True') in self.tlh.msgs
+        assert ('INFO', '') in self.tlh.msgs
+
+    def test_assign_defined_variable(self):
+        self.ya._run = [{'$success, $val': 'defined $foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run(foo='foo')
+        assert ('INFO', 'True') in self.tlh.msgs
+        assert ('INFO', 'foo') in self.tlh.msgs
+
+    def test_assign_defined_nonexistent_variable(self):
+        self.ya._run = [{'$success, $val': 'defined $foo'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'}]
+        self.ya.run()
+        assert ('INFO', 'False') in self.tlh.msgs
+        assert ('INFO', '') in self.tlh.msgs
+
+    def test_assign_successful_command(self):
+        self.ya._run = [{'$foo': '$(basename foo/bar)'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', 'bar') in self.tlh.msgs
+
+        # both logical result and result
+        self.ya._run = [{'$success, $val': '$(basename foo/bar)'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'},
+                        {'if $success': [{'log_i': 'success!'}]}]
+        self.ya.run()
+        assert ('INFO', 'True') in self.tlh.msgs
+        assert ('INFO', 'bar') in self.tlh.msgs
+        assert ('INFO', 'success!') in self.tlh.msgs
+
+    def test_assign_unsuccessful_command(self):
+        self.ya._run = [{'$foo': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
+        self.ya.run()
+        assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
+
+        # both logical result and result
+        self.ya._run = [{'$success, $val': '$(ls spam/spam/spam)'},
+                        {'log_i': '$success'},
+                        {'log_i': '$val'},
+                        {'if $success': [{'log_i': 'oh no, spam found'}]},
+                        {'else': [{'log_i': 'good, no spam'}]}]
+        self.ya.run()
+        assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
+        assert ('INFO', 'False') in self.tlh.msgs
+        assert ('INFO', 'good, no spam') in self.tlh.msgs
+
+    # TODO: test loops
+
 
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):

@@ -324,13 +324,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
 
     def _parse_for(self, control_line, **kwargs):
-        """Returns name of loop control variable and expression to iterate.
-        Expression can be either a variable (will be returned as it is, e.g.
-        "${foo}") or a commandline call.
+        """Returns name of loop control variable and expression to iterate on.
 
         For example:
         - given "for $i in $foo", returns ('i', '$foo')
-        - given "for ${i} in ls $foo", returns ('i', 'ls $foo')
+        - given "for ${i} in $(ls $foo)", returns ('i', 'ls $foo')
         """
         for_parts = control_line.split(None, 3)
         error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
@@ -436,21 +434,29 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return to_run
 
     def _assign_variable(self, variable, comm, kwargs):
-        """Assigns value of another variable or result of command to given variable.
-        The result is then put into kwargs (overwriting original value, if already there).
+        """Assigns *result* of expression to variable. If there are two variables separated by
+        comma, the first gets assigned *logical result* and the second the *result*.
+        The variable is then put into kwargs (overwriting original value, if already there).
         Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
 
-        Cl commands store both stdout and stderr (as a single string) as the variable value.
-
-        Even if comm evaluates to something that is false, output is still stored and
+        Even if comm has *logical result* == False, output is still stored and
         this method doesn't fail.
 
         Args:
-            variable: variable to assign to
+            variable: variable (or two variables separated by ",") to assign to
             comm: either another variable or command to run
         """
-        var_name = self._get_var_name(variable)
-        kwargs[var_name] = self._evaluate(comm, **kwargs)[1]
+        comma_count = variable.count(',')
+        if comma_count > 1:
+            raise exceptions.YamlSyntaxError('Max two variables allowed on left side.')
+
+        res1, res2 = self._evaluate(comm, **kwargs)
+        if comma_count == 1:
+            var1, var2 = map(lambda v: self._get_var_name(v), variable.split(','))
+            kwargs[var1] = res1
+        else:
+            var2 = self._get_var_name(variable)
+        kwargs[var2] = res2
 
     def _get_var_name(self, dolar_variable):
         name = dolar_variable.strip()
@@ -461,15 +467,40 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return name.strip('{}')
 
     def _evaluate(self, expression, **kwargs):
-        """Evaluates given expression - can be one of
-        - $foo
-        - "$foo"
-        - $(cl command)
+        """Evaluates given expression.
+
+        Syntax and semantics:
+
+        - ``$foo``
+
+            - if ``$foo`` is defined:
+
+                - *logical result*: ``True`` **iff** value is not empty and it is not
+                  ``False``
+                - *result*: value of ``$foo``
+              - otherwise:
+
+                  - *logical result*: ``False``
+                  - *result*: empty string
+        - ``$(commandline command)``
+
+            - if ``commandline command`` has return value 0:
+
+                - *logical result*: ``True``
+
+            - otherwise:
+
+                - *logical result*: ``False``
+
+            - regardless of *logical result*, *result* always contains both stdout
+              and stderr lines in the order they were printed by ``commandline command``
+        - ``not`` - negates the *logical result* of an expression, while leaving
+          *result* intact, can only be used once (no, you can't use ``not not not $foo``, sorry)
+        - ``defined $foo`` - works exactly as ``$foo``, but has *logical result*
+          ``True`` even if the value is empty or ``False``
 
         Returns:
-            tuple (success, value), where
-            - success means whether variable was found or cl command returned zero
-            - value is the evaluated value :)
+            tuple (logical result, result) - see above for explanation
 
         Raises:
             exceptions.YamlSyntaxError if expression is malformed
@@ -498,7 +529,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             else:
                 success = False
         elif expr.startswith('defined '):
-            success = self._get_var_name(expr[8:]) in kwargs
+            varname = self._get_var_name(expr[8:])
+            success = varname in kwargs
+            output = kwargs.get(varname, '')
         else:
             raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
 

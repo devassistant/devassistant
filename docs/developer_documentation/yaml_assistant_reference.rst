@@ -308,13 +308,16 @@ List of supported commands follows:
   - ``dda_run`` will execute a series of commands from ``run`` section from
     ``.devassistant`` (in context of current assistant)
 ``if <expression>``, ``else``
-  conditional execution. The conditions must be an `Expression`_.
+  conditional execution. The condition must be an `Expression`_.
 ``for <var> in <expression>``
-  (for example ``for $i in $(ls)``) - loop over iterable to which given expression
-  evaluates (if it is string, which almost always is, it is split on whitespaces)
+  (for example ``for $i in $(ls)``) - loop over *result* of given expression
+  (if it is string, which almost always is, it is split on whitespaces)
 ``$foo``
-  assigns result of an `Expression`_ to the given variable
+  assigns *result* of an `Expression`_ to the given variable
   (doesn't interrupt the assistant execution if command fails)
+``$success, $foo``
+  assigns *logical result* (``True``/``False``) of evaluating an `Expression`_ to
+  ``$success`` and result to ``$foo`` (same as above)
 ``call``
   run another section of this assistant (e.g.``call: self.run_foo``) of a snippet
   run section (``call: snippet_name.run_foo``) at this place and then continue execution
@@ -352,23 +355,45 @@ section, it can see all the arguments that are defined.
 Expressions
 ~~~~~~~~~~~
 
-Expressions are expressions, really. They are used in assignments, conditions and
-as loop "iterables".
+Expressions are expressions, really. They are used in assignments, conditions
+and as loop "iterables". Every expression has a *logical result* (meaning
+success - ``True`` or failure - ``False``) and *result* (meaning output).
+*Logical result* is used in conditions and variable assignments, *result*
+is used in variable assignments and loops.
+Note: when assigned to a variable, the *logical result* of an expression can
+be used in conditions as expected; the *result* is either ``True``/``False``.
 
-Syntax:
+Syntax and semantics:
 
-- ``$foo`` - evaluates to true **iff** ``$foo`` has value that evaluates to true
-  (non-empty string, Python's True)
-- ``$(commandline command)`` - (yes, that is a command invocation that looks like
+- ``$foo``
+
+  - if ``$foo`` is defined:
+
+    - *logical result*: ``True`` **iff** value is not empty and it is not
+      ``False``
+    - *result*: value of ``$foo``
+  - otherwise:
+
+    - *logical result*: ``False``
+    - *result*: empty string
+- ``$(commandline command)`` (yes, that is a command invocation that looks like
   running command in a subshell)
-  evaluates to true **iff** the command returns 0 exit code
-  (doesn't interrupt the assistant execution if command fails); assigns both stdout
-  and stderr lines in the order they were printed by command
-- ``not`` - negates the condition, can only be used once (no, you can't use
+
+  - if ``commandline command`` has return value 0:
+
+    - *logical result*: ``True``
+
+  - otherwise:
+
+    - *logical result*: ``False``
+
+  - regardless of *logical result*, *result* always contains both stdout
+    and stderr lines in the order they were printed by ``commandline command``
+- ``not`` - negates the *logical result* of an expression, while leaving
+  *result* intact, can only be used once (no, you can't use
   ``not not not $foo``, sorry)
-- ``defined $foo`` - returns true **iff** ``foo`` variable is defined (meaning that
-  it was set previously or `--foo` argument was used, even though its value may
-  have been false or empty string)
+- ``defined $foo`` - works exactly as ``$foo``, but has *logical result*
+  ``True`` even if the value is empty or ``False``
 
 Quoting
 ~~~~~~~
