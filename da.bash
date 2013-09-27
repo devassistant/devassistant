@@ -56,7 +56,7 @@ _da() {
     fi
 
     # on top level, we have assistant types {crt,mod,prep} and actions as a list
-    ACTIONS_HEADER='Or you can run a custom action:'
+    ACTIONS_HEADER='Available actions:'
     echo "$DA_OUTPUT" | grep "$ACTIONS_HEADER" > /dev/null
     if [ $? -eq 0 ] ; then
       ACTIONS=$(_get_actions "$DA_OUTPUT" "$ACTIONS_HEADER")
