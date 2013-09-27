@@ -2,7 +2,7 @@
 import os
 import re
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 from textwrap import wrap
 
 class GuiHelper(object):
@@ -59,7 +59,7 @@ class GuiHelper(object):
         #align.add(actBtn)
         actBtn.add(align)
         return align
-        
+
     def create_checkbutton(self, text=""):
         """
         This is generalized method for creating Gtk.CheckButton
@@ -282,3 +282,9 @@ class GuiHelper(object):
         renderer_combo.set_property("has-entry",False)
         column = Gtk.TreeViewColumn(title, renderer_combo, text=assign)
         tree_view.append_column(column)
+
+    def create_clipboard(self, text, selection=Gdk.SELECTION_CLIPBOARD):
+        clipboard = Gtk.Clipboard.get(selection)
+        clipboard.set_text('\n'.join(text), -1)
+        clipboard.store()
+        return clipboard
