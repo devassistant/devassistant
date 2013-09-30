@@ -109,7 +109,7 @@ class CreatorWindow(object):
 
     def submenu_activate(self, widget, item):
         self.kwargs['subassistant_0']=item[0]
-        if self.kwargs.has_key('subassistant_1'):
+        if 'subassistant_1' in self.kwargs:
             del (self.kwargs['subassistant_1'])
         self.kwargs['subassistant_1']=item[1]
         self.kwargs['eclipse']=None
@@ -120,7 +120,7 @@ class CreatorWindow(object):
 
     def btn_clicked(self, widget, data=None):
         self.kwargs['subassistant_0']=data
-        if self.kwargs.has_key('subassistant_1'):
+        if 'subassistant_1' in self.kwargs:
             del (self.kwargs['subassistant_1'])
         self.yaml_window.open_window(widget, self.kwargs)
         self.main_win.hide()

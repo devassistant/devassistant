@@ -135,7 +135,7 @@ class YamlWindow(object):
                 text_buffer.set_text(self._get_yaml_data(ass[0].parsed_yaml))
                 label = ass[0].fullname + " assistant"
                 break
-            if self.kwargs.has_key('subassistant_1'):
+            if 'subassistant_1' in self.kwargs:
                 for ass2 in filter(lambda x: x[0].name == self.kwargs['subassistant_1'], ass[1]):
                     ass2[0].assert_fully_loaded()
                     self.full_assistant = ass2[0]
@@ -169,19 +169,19 @@ class YamlWindow(object):
 
     def _fill_data(self):
         #rpm dependencies
-        if self.full_assistant._dependencies[0].has_key('rpm'):
+        if 'rpm' in self.full_assistant._dependencies[0]:
             #for d in self.full_assistant._dependencies[0].get('rpm'):
             #    self.list_store.append(['rpm', d])
             map(lambda x: self.list_store.append(['rpm',x]), self.full_assistant._dependencies[0].get('rpm'))
         else:
             for depend in self.full_assistant._dependencies:
-                if depend.has_key('rpm'):
+                if 'rpm' in depend:
                     map(lambda x: self.list_store.append(['rpm', x]),depend.items())
                 else:
                     for dep in depend.items():
                         for d in dep:
                             if not isinstance(d,basestring):
-                                if d[0].has_key('rpm'):
+                                if 'rpm' in d[0]:
                                     map(lambda x: self.list_store.append(['rpm', x]), d[0].get('rpm'))
         self.assistant_desc.set_text(self.full_assistant.description)
         self.assistant_full.set_text(self.full_assistant.fullname)

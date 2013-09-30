@@ -121,7 +121,7 @@ class MainWindow(object):
     def submenu_activate(self, widget, item):
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
         self.kwargs['subassistant_1']=item[0]
-        if self.kwargs.has_key('subassistant_2'):
+        if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
         self.kwargs['subassistant_2']=item[1]
         self.path_window.open_window(widget)
@@ -134,7 +134,7 @@ class MainWindow(object):
     def btn_clicked(self, widget, data=None):
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
         self.kwargs['subassistant_1']=data
-        if self.kwargs.has_key('subassistant_2'):
+        if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
         self.path_window.open_window(widget)
         self.main_win.hide()

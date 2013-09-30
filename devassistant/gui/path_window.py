@@ -87,7 +87,7 @@ class PathWindow(object):
                 else:
                     self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
             else:
-                if self.button[btn].kwargs.has_key('default'):
+                if 'default' in self.button[btn].kwargs:
                     self.parent.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
 
         if self.parent.get_current_main_assistant().name == 'crt':
@@ -121,12 +121,11 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.title, False, False, 0)
         caption_text = "Project: "
         row = 0
-        selected = filter(lambda x: x.startswith('subassistant_'), self.parent.kwargs)
         # get selectected assistants, but without TopAssistant itself
         path = self.parent.top_assistant.get_selected_subassistant_path(**self.parent.kwargs)[1:]
         caption_parts = []
 
-        for i, a in enumerate(path):
+        for a in path:
             caption_parts.append("<b>"+a.fullname+"</b>")
             for arg in filter(lambda x: not '--name' in x.flags, a.args):
                 row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
@@ -169,7 +168,7 @@ class PathWindow(object):
     def _add_table_row(self, arg, number, row):
         align = self.gui_helper.create_alignment()
         star_flag = False
-        if arg.kwargs.has_key('required') and arg.kwargs['required']:
+        if arg.kwargs.get('required'):
             # If argument is required then red star instead of checkbox
             #star_label = self.gui_helper.create_label('<span color="#FF0000">* {0}</span>'.format(self._check_box_title(arg, number)))
             star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.format(self._check_box_title(arg, number)))
@@ -214,7 +213,7 @@ class PathWindow(object):
             self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
             self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
-            if arg.kwargs.has_key('required') and arg.kwargs['required']:
+            if arg.kwargs.get('required'):
                 self.browse_btn.set_sensitive(True)
                 self.link_button.set_sensitive(True)
                 entry.set_sensitive(True)
