@@ -6,9 +6,7 @@ import logging
 from gi.repository import Gtk, Gdk
 from gi.repository import GLib
 
-from devassistant.bin import CreatorAssistant
-from devassistant.bin import ModifierAssistant
-from devassistant.bin import PreparerAssistant
+from devassistant.bin import TopAssistant
 from devassistant.logger import logger_gui
 from devassistant import command_helpers
 
@@ -57,27 +55,14 @@ class MainWindow(object):
         self.notebook.set_has_tooltip(True)
         self.box4.pack_start(self.notebook, True, True, 0)
         # Devassistant creator part
-        self.main, self.subas_creator = CreatorAssistant().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subas_creator, 'Creator'),
-                                  self.gui_helper.create_label(
-                                  CreatorAssistant.fullname,
-                                  wrap=False,
-                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
-        # Devassistant modifier part
-        self.main, self.subas_modifier = ModifierAssistant().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subas_modifier, 'Modifier'),
-                                  self.gui_helper.create_label(
-                                  ModifierAssistant.fullname,
-                                  wrap=False,
-                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
-        # Devassistant preparer part
-        self.main, self.subas_preparer = PreparerAssistant().get_subassistant_tree()
-        self.notebook.append_page(self._create_notebook_page(self.subas_preparer, 'Preparer'),
-                                  self.gui_helper.create_label(
-                                  PreparerAssistant.fullname,
-                                  wrap=False,
-                                  tooltip=self.gui_helper.get_formated_description(self.main.description)))
-
+        self.top_assistant = TopAssistant()
+        for subas in self.top_assistant.get_subassistants():
+            self.notebook.append_page(self._create_notebook_page(subas),
+                                      self.gui_helper.create_label(
+                                          subas.fullname,
+                                          wrap=False,
+                                          tooltip=self.gui_helper.get_formated_description(
+                                              subas.description)))
         self.notebook.show()
         self.kwargs = dict()
         self.data = dict()
@@ -101,19 +86,19 @@ class MainWindow(object):
         tooltip.set_text(text)
         return True
 
-    def _create_notebook_page(self, assistant, text=None):
+    def _create_notebook_page(self, assistant):
         """
             This function is used for create tab page for notebook.
             Input arguments are:
                 assistant - used for collecting all info about assistants and subassistants
-                text - used for label of tab page
         """
         #frame = self._create_frame()
         grid_lang = self.gui_helper.create_gtk_grid()
         scrolled_window = self.gui_helper.create_scrolled_window(grid_lang)
         row = 0
         column = 0
-        for ass in sorted(assistant, key=lambda x: x[0].fullname.lower()):
+        scrolled_window.main_assistant, subas = assistant.get_subassistant_tree()
+        for ass in sorted(subas, key=lambda x: x[0].fullname.lower()):
             if column > 2:
                 row += 1
                 column = 0
@@ -124,7 +109,7 @@ class MainWindow(object):
                 # If assistant has more subassistants then create button with menu
                 self.gui_helper.add_menu_button(grid_lang, ass, row, column)
             column += 1
-        if row == 0 and len(assistant)< 3:
+        if row == 0 and len(subas)< 3:
             while column < 3:
                 btn = self.gui_helper.create_button(style=Gtk.ReliefStyle.NONE)
                 btn.set_sensitive(False)
@@ -134,19 +119,23 @@ class MainWindow(object):
         return scrolled_window
 
     def submenu_activate(self, widget, item):
-        self.kwargs['subassistant_0']=item[0]
-        if self.kwargs.has_key('subassistant_1'):
-            del (self.kwargs['subassistant_1'])
-        self.kwargs['subassistant_1']=item[1]
-        self.assistant_selection(self.notebook.get_current_page())
+        self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
+        self.kwargs['subassistant_1']=item[0]
+        if self.kwargs.has_key('subassistant_2'):
+            del (self.kwargs['subassistant_2'])
+        self.kwargs['subassistant_2']=item[1]
         self.path_window.open_window(widget)
         self.main_win.hide()
 
+    def get_current_main_assistant(self):
+        current_page = self.notebook.get_nth_page(self.notebook.get_current_page())
+        return current_page.main_assistant
+
     def btn_clicked(self, widget, data=None):
-        self.kwargs['subassistant_0']=data
-        if self.kwargs.has_key('subassistant_1'):
-            del (self.kwargs['subassistant_1'])
-        self.assistant_selection(self.notebook.get_current_page())
+        self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
+        self.kwargs['subassistant_1']=data
+        if self.kwargs.has_key('subassistant_2'):
+            del (self.kwargs['subassistant_2'])
         self.path_window.open_window(widget)
         self.main_win.hide()
 
@@ -155,18 +144,6 @@ class MainWindow(object):
 
     def open_window(self, widget, data=None):
         self.main_win.show_all()
-
-    def assistant_selection(self, page):
-        self.data['AssistantType']=page
-        if page == 0:
-            self.assistant_class = CreatorAssistant()
-            self.subass = self.subas_creator
-        elif page == 1:
-            self.assistant_class = ModifierAssistant()
-            self.subass = self.subas_modifier
-        else:
-            self.assistant_class = PreparerAssistant()
-            self.subass = self.subas_preparer
 
     def btn_press_event(self, widget, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:

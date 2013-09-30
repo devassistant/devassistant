@@ -34,7 +34,7 @@ class PathWindow(object):
 
     def next_window(self, widget, data=None):
         #print self.parent.data
-        if self.parent.data['AssistantType'] == 0:
+        if self.parent.get_current_main_assistant().name == 'crt':
             if self.dir_name.get_text() == "":
                 md=self.gui_helper.create_message_dialog("Specify directory for project")
                 md.run()
@@ -75,7 +75,7 @@ class PathWindow(object):
                     self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
             else:
                 self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
-        if self.parent.data['AssistantType'] == 0:
+        if self.parent.get_current_main_assistant().name == 'crt':
             self.parent.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
         self.parent.run_window.open_window(widget, data)
         self.path_window.hide()
@@ -100,7 +100,7 @@ class PathWindow(object):
         text = self.get_user_path()
         self.dir_name.set_text(text)
         self._remove_widget_items()
-        if self.parent.data['AssistantType'] != 0:
+        if self.parent.get_current_main_assistant().name != 'crt':
             self.box6.remove(self.box_project)
         else:
             self.box6.remove(self.box_path_main)
@@ -109,20 +109,16 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.title, False, False, 0)
         caption_text = "Project: "
         row = 0
-        # This cycle will show also options from parent assistant
-        if isinstance(self.parent.assistant_class, CreatorAssistant):
-            for arg in self.parent.assistant_class.args:
-                row = self._add_table_row(arg, 0, row) +1
-        for ass in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_0'], self.parent.subass):
-            caption_text+=" <b>"+ass[0].fullname+"</b>"
-            if not ass[1]:
-                for sub in filter(lambda x: not '--name' in x.flags, ass[0].args):
-                    row = self._add_table_row(sub, len(sub.flags) - 1, row) + 1
-            else:
-                for sub in filter(lambda x: x[0].name == self.parent.kwargs['subassistant_1'], ass[1]):
-                    caption_text+= " -> <b>"+ sub[0].fullname+"</b>"
-                    for arg in filter(lambda x: not '--name' in x.flags, sub[0].args):
-                        row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+        selected = filter(lambda x: x.startswith('subassistant_'), self.parent.kwargs)
+        # get selectected assistants, but without TopAssistant itself
+        path = self.parent.top_assistant.get_selected_subassistant_path(**self.parent.kwargs)[1:]
+        caption_parts = []
+
+        for i, a in enumerate(path):
+            caption_parts.append("<b>"+a.fullname+"</b>")
+            for arg in filter(lambda x: not '--name' in x.flags, a.args):
+                row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+        caption_text += ' -> '.join(caption_parts)
         self.box_path_main.pack_start(self.grid, False, False, 0)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
@@ -208,7 +204,7 @@ class PathWindow(object):
                 align_btn.add(self.browse_btn)
                 self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
             elif arg.get_gui_hint('type') == 'str':
-                if isinstance(self.parent.assistant_class,CreatorAssistant):
+                if isinstance(self.parent.get_current_main_assistant(), CreatorAssistant):
                     align_btn.add(self.link_button)
                     self.browse_btns[self._check_box_title(arg,number)]=self.link_button
             new_box.pack_start(align_btn, False, False, 6)

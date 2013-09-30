@@ -147,7 +147,7 @@ class RunWindow(object):
 
     def devassistant_start(self):
         #logger_gui.info("Thread run")
-        path = self.parent.assistant_class.get_selected_subassistant_path(**self.parent.kwargs)
+        path = self.parent.top_assistant.get_selected_subassistant_path(**self.parent.kwargs)
         self.pr = path_runner.PathRunner(path)
         try:
             self.pr.run(**self.parent.kwargs)

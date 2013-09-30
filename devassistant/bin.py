@@ -16,7 +16,7 @@ class CreatorAssistant(ExecutableAssistant):
         return sa
 
     name = 'crt'
-    fullname = 'Create Projects'
+    fullname = 'Create Project'
     description = 'Kickstart new projects easily with DevAssistant.'
 
 class ModifierAssistant(ExecutableAssistant):
@@ -25,7 +25,7 @@ class ModifierAssistant(ExecutableAssistant):
         return sa
 
     name = 'mod'
-    fullname = 'Modify Projects'
+    fullname = 'Modify Project'
     description = 'Modify existing projects with DevAssistant.'
 
 class PreparerAssistant(ExecutableAssistant):
@@ -38,5 +38,9 @@ class PreparerAssistant(ExecutableAssistant):
     description = 'Prepare environment for upstream projects or various tasks with DevAssistant.'
 
 class TopAssistant(assistant_base.AssistantBase):
+    _assistants = []
     def get_subassistants(self):
-        return [CreatorAssistant(), ModifierAssistant(), PreparerAssistant()]
+        # cache assistants to always return the same instances
+        if not self._assistants:
+            self._assistants = [CreatorAssistant(), ModifierAssistant(), PreparerAssistant()]
+        return self._assistants
