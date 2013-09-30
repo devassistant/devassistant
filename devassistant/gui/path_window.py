@@ -21,7 +21,7 @@ class PathWindow(object):
         self.box_path_main = builder.get_object("boxPathMain")
         self.box_project = builder.get_object("boxProject")
         self.box6 = builder.get_object("box6")
-        self.button = list()
+        self.button = dict()
         self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,col_homogenous=False, row_homogenous=True)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0,0)
@@ -60,31 +60,43 @@ class PathWindow(object):
                     md.run()
                     md.destroy()
                     return
-        for btn in filter(lambda x: x.get_active(), self.button):
-            if btn.get_label() is None:
-                continue
-            if btn.get_label() in self.entries:
-                for entry in filter(lambda x: x == btn.get_label(), self.entries):
-                    if not self.entries[btn.get_label()].get_text():
-                        md = self.gui_helper.create_message_dialog(
-                            "Entry {0} is empty".format(btn.get_label())
-                            )
-                        md.run()
-                        md.destroy()
-                        return
-                    self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
+        for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
+            if not self.entries[label.get_label()].get_text():
+                md = self.gui_helper.create_message_dialog(
+                    "Entry {0} is empty".format(label.get_label())
+                    )
+                md.run()
+                md.destroy()
+                return
+            self.parent.kwargs[label.get_label()]=self.entries[label.get_label()].get_text()
+
+        for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
+            if btn.get_active():
+                if btn.get_label() is None:
+                    continue
+                if btn.get_label() in self.entries:
+                    for entry in filter(lambda x: x == btn.get_label(), self.entries):
+                        if not self.entries[btn.get_label()].get_text():
+                            md = self.gui_helper.create_message_dialog(
+                                "Entry {0} is empty".format(btn.get_label())
+                                )
+                            md.run()
+                            md.destroy()
+                            return
+                        self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
+                else:
+                    self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
             else:
-                self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
+                if self.button[btn].kwargs.has_key('default'):
+                    self.parent.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
+
         if self.parent.get_current_main_assistant().name == 'crt':
             self.parent.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
         self.parent.run_window.open_window(widget, data)
         self.path_window.hide()
 
     def _remove_widget_items(self):
-        #self.box_path_main.remove(self.grid)
-        #self.box_path_main.remove(self.title)
-        for btn in self.button:
-            self.button.remove(btn)
+        self.button=dict()
         for btn in self.grid:
             self.grid.remove(btn)
 
@@ -155,11 +167,25 @@ class PathWindow(object):
         webbrowser.open_new_tab(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
-        act_btn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
-        act_btn.set_alignment(0, 0)
         align = self.gui_helper.create_alignment()
-        align.add(act_btn)
-        self.button.append(act_btn)
+        star_flag = False
+        if arg.kwargs.has_key('required') and arg.kwargs['required']:
+            # If argument is required then red star instead of checkbox
+            #star_label = self.gui_helper.create_label('<span color="#FF0000">* {0}</span>'.format(self._check_box_title(arg, number)))
+            star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.format(self._check_box_title(arg, number)))
+            label = self.gui_helper.create_label(self._check_box_title(arg, number))
+            box = self.gui_helper.create_box()
+            box.pack_start(star_label, False, False, 6)
+            box.pack_start(label, False, False, 6)
+            align.add(box)
+            self.button[label]=arg
+            star_flag = True
+        else:
+            act_btn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
+            act_btn.set_alignment(0, 0)
+            self.button[act_btn] = arg
+            act_btn.connect("clicked", self._check_box_toggled)
+            align.add(act_btn)
         if row == 0:
             self.grid.add(align)
         else:
@@ -167,7 +193,6 @@ class PathWindow(object):
         label = self.gui_helper.create_label(arg.kwargs['help'],justify=Gtk.Justification.LEFT)
         label.set_alignment(0, 0.1)
         self.grid.attach(label, 1, row, 1, 1)
-        act_btn.connect("clicked", self._check_box_toggled)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
         if arg.kwargs.get('action') != 'store_true':
@@ -189,12 +214,13 @@ class PathWindow(object):
             self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
             self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
-            if arg.kwargs.has_key('required') or arg.kwargs.has_key('default'):
+            if arg.kwargs.has_key('required') and arg.kwargs['required']:
                 self.browse_btn.set_sensitive(True)
                 self.link_button.set_sensitive(True)
                 entry.set_sensitive(True)
-                act_btn.set_active(True)
-                act_btn.set_sensitive(False)
+                if not star_flag:
+                    act_btn.set_active(True)
+                    act_btn.set_sensitive(False)
             else:
                 self.browse_btn.set_sensitive(False)
                 self.link_button.set_sensitive(False)
