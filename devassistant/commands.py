@@ -198,7 +198,8 @@ class GitHubAuth(object):
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
                 # login with username/password
-                password = DialogHelper.ask_for_password(title='Github Password')
+                password = DialogHelper.ask_for_password(
+                        prompt='Github Password for {username}:'.format(username=login))
                 gh = cls._gh_module.Github(login_or_token=login, password=password)
                 cls._user = gh.get_user()
                 try:
@@ -362,7 +363,14 @@ class GitHubCommand(object):
             logger.error(msg)
             raise exceptions.RunException(msg)
         else:
-            new_repo = cls._user.create_repo(reponame)
+            try:
+                new_repo = cls._user.create_repo(reponame)
+            except cls._gh_module.GithubException:
+                msg = 'Failed to create GitHub repo. This sometime happens when you delete '
+                msg += 'a repo and then you want to create the same one immediately. Wait '
+                msg += 'for few minutes and then try again.'
+                logger.error(msg)
+                raise exceptions.RunException(msg)
             logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
     @classmethod
