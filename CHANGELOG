@@ -8,6 +8,8 @@
 - Don't log dependency checks by default, add --debug flag for that.
 - Yaml Assistant changes: "defined" now also returns the value of
   variable itself, if this variable is defined.
+- Structure of load dirs was changed to keep everything organized
+  and consistent. Consult the documentation to see load dirs structure.
 
 0.6.1
 - Quick bugfix release to enable GUI properly and fix some minor bugs.

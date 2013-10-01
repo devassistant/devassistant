@@ -37,43 +37,13 @@ Preparer
   projects (located e.g. at remote SCM etc.) that may or may not have been
   creating by DevAssistant
 
-The role is implied by assistant location in one of the load directories,
+The role is implied by assistant location in one of the load path directories,
 as mentioned in :ref:`assistants_loading_mechanism`.
 
 All the rules mentioned in this document apply to all types of assistants,
 with exception of sections :ref:`modifier_assistants_ref` and
 :ref:`preparer_assistants_ref` that talk about specifics of Modifier, resp.
 Preparer assistants.
-
-.. _assistants_loading_mechanism:
-
-Assistants Loading Mechanism
-----------------------------
-DevAssistant loads assistants from few load paths on filesystem (traversed
-in this order):
-
-1. "system" path, which is defined by OS distribution (usually
-   ``/usr/share/devassistant/assistants``) or by Python installation
-   (sth. like ``/usr/share/pythonX.Y/devassistant/data/assistants/``)
-2. "local" path, ``/usr/local/share/devassistant/assistants``
-3. "user" path, ``~/.devassistant/assistants``
-
-When DevAssistant starts up, it loads assistants from all these paths. It
-assumes, that Creator assistants are located under ``crt`` subdirectories
-of the above directories, the same applies to Modifier (``mod``) and
-Preparer (``prep``) assistants.
-
-For example, loading process for Creator assistants looks like this:
-
-1. Load all assistants located in ``crt`` subdirectories of each load path
-   (do not descend into subdirectories). If there are multiple assistants with
-   the same name in different load paths, the first traversed path wins.
-2. For each assistant named ``foo.yaml``:
-
-   a. If ``crt/foo`` directory doesn't exist, then this assistant is "leaf"
-      and therefore can be directly used by users.
-   b. Else this assistant is not leaf and DevAssistant loads its subassistants
-      from the directory, recursively going from point 1).
 
 Assistant Name
 --------------
