@@ -198,8 +198,7 @@ class GuiHelper(object):
         return btn
 
     def get_formated_description(self, description):
-        text = re.sub(r"\s+",' ',description.split('.')[0])+" "+description.split('.')[1].lstrip()
-        return '\n'.join(wrap(text, 60))
+        return '\n'.join(wrap(description, 60))
 
     def create_scrolled_window(self, layout_manager, horizontal=Gtk.PolicyType.NEVER, vertical=Gtk.PolicyType.ALWAYS):
         scrolled_window = Gtk.ScrolledWindow()
