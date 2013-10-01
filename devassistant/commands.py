@@ -101,8 +101,7 @@ class DotDevassistantCommand(object):
             del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1
 
-        # we always use creator assistants for creating, so we don't store the "crt"
-        if path and path[0] in settings.ASSISTANT_ROLES_SHORT:
+        if path and path[0] in settings.ASSISTANT_ROLES:
             path = path[1:]
 
         # we will only write original cli/gui args, other kwargs are "private" for this run

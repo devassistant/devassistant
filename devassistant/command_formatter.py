@@ -4,7 +4,7 @@ import string
 
 class CommandFormatter(object):
     @classmethod
-    def format(cls, comm_type, comm, template_dir, files, **kwargs):
+    def format(cls, comm_type, comm, files_dir, files, **kwargs):
         if comm_type.startswith('dependencies'): # don't process dependencies
             return comm
 
@@ -24,11 +24,11 @@ class CommandFormatter(object):
         for c in parts_list:
             if isinstance(c, dict):
                 # TODO: raise a proper error if c['source'] is not present
-                new_comm.append(os.path.join(template_dir, c['source']))
+                new_comm.append(os.path.join(files_dir, c['source']))
             elif c.startswith('*'):
                 c_file = c[1:].strip('{}')
                 if c_file in files:
-                    new_comm.append(os.path.join(template_dir, files[c_file]['source']))
+                    new_comm.append(os.path.join(files_dir, files[c_file]['source']))
                 else:
                     new_comm.append(c)
             else:

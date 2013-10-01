@@ -52,7 +52,7 @@ class YamlAssistantLoader(object):
                                                                              role=tl)
 
     @classmethod
-    def get_assistants_from_cache_hierarchy(cls, cache_hierarchy, role='creator'):
+    def get_assistants_from_cache_hierarchy(cls, cache_hierarchy, role='crt'):
         """Accepts cache_hierarch as described in devassistant.cache and returns
         instances of YamlAssistant (only with cached attributes) for loaded files
 
@@ -79,7 +79,7 @@ class YamlAssistantLoader(object):
         return result
 
     @classmethod
-    def get_assistants_from_file_hierarchy(cls, file_hierarchy, role='creator'):
+    def get_assistants_from_file_hierarchy(cls, file_hierarchy, role='crt'):
         """Accepts file_hierarch as returned by cls.get_assistant_file_hierarchy and returns
         instances of YamlAssistant for loaded files
 
@@ -138,7 +138,7 @@ class YamlAssistantLoader(object):
         return result
 
     @classmethod
-    def assistant_from_yaml(cls, source, y, fully_loaded=True, role='creator'):
+    def assistant_from_yaml(cls, source, y, fully_loaded=True, role='crt'):
         """Constructs instance of YamlAssistant loaded from given structure y, loaded
         from source file source.
 

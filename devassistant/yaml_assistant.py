@@ -29,7 +29,7 @@ def needs_fully_loaded(method):
     return inner
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
-    def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='creator'):
+    def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='crt'):
         self.name = name
         self.path = path
         self.fully_loaded = fully_loaded
@@ -52,7 +52,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         self.icon_path = value.get('icon_path', self.default_icon_path)
 
         # attributes not needed for CLI/GUI - not cached
-        self.template_dir = value.get('template_dir', self.default_template_dir)
+        self.files_dir = value.get('files_dir', self.default_files_dir)
         self._files = value.get('files', {})
         self._logging = value.get('logging', [])
         # set _run and _dependencies as empty in case assistant doesn't have them at all
@@ -73,13 +73,13 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def default_icon_path(self):
         """Returns default path to icon of this assistant.
 
-        Assuming self.path == "/foo/assistants/creator/python/django.yaml"
+        Assuming self.path == "/foo/assistants/crt/python/django.yaml"
         1) Take the path of this assistant and strip it of load path
-           (=> "creator/python/django.yaml")
+           (=> "crt/python/django.yaml")
         2) Substitute its extension for ".svg"
-           (=> "creator/python/django.svg")
+           (=> "crt/python/django.svg")
         3) Prepend self.load_path + 'icons'
-           (=> "/foo/icons/creator/python/django.scg")
+           (=> "/foo/icons/crt/python/django.scg")
         """
         stripped = self.path.replace(os.path.join(self.load_path, 'assistants'), '').strip(os.sep)
         new_ext = os.path.splitext(stripped)[0] + '.svg'
@@ -121,7 +121,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def proper_kwargs(self, **kwargs):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""
-        if self.role == 'modifier':
+        if self.role == 'mod':
             # don't rewrite old values
             # first get the new ones and then update them with the old
             new_kwargs = run_command('dda_r', kwargs.get('path', '.'), **kwargs)
@@ -162,7 +162,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         kwargs = self.proper_kwargs(**kwargs)
         sections = [getattr(self, '_dependencies', [])]
-        if self.role == 'modifier':
+        if self.role == 'mod':
             # if subassistant_path is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
             for i in range(1, len(kwargs['subassistant_path']) + 1):
@@ -217,7 +217,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     @needs_fully_loaded
     def run(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)
-        if self.role == 'modifier':
+        if self.role == 'mod':
             # try to get a section to run from the most specialized one to the least specialized one
             # e.g. first run_python_django, then run_python and then just run
             sa_path = kwargs['subassistant_path']
@@ -260,20 +260,20 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                         continue
 
                     if self._is_snippet_call(comm, **kwargs):
-                        # we're calling a snippet => add files and template_dir to kwargs
+                        # we're calling a snippet => add files and files_dir to kwargs
                         snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
 
                         if '__files__' not in kwargs:
                             kwargs['__files__'] = []
-                            kwargs['__template_dir__'] = []
+                            kwargs['__files_dir__'] = []
                         kwargs['__files__'].append(snippet.get_files_section())
-                        kwargs['__template_dir__'].append(snippet.get_template_dir())
+                        kwargs['__files_dir__'].append(snippet.get_files_dir())
 
                     self._run_one_section(sect, copy.deepcopy(kwargs))
 
                     if self._is_snippet_call(comm, **kwargs):
                         kwargs['__files__'].pop()
-                        kwargs['__template_dir__'].pop()
+                        kwargs['__files_dir__'].pop()
                 elif comm_type.startswith('$'):
                     # intentionally pass kwargs as dict, not as keywords
                     try:
@@ -318,8 +318,8 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     kwargs['__scls__'].pop()
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    template_dir = kwargs['__template_dir__'][-1] if kwargs.get('__template_dir__', None) else self.template_dir
-                    run_command(comm_type, CommandFormatter.format(comm_type, comm, template_dir, files, **kwargs), **kwargs)
+                    files_dir = kwargs['__files_dir__'][-1] if kwargs.get('__files_dir__', None) else self.files_dir
+                    run_command(comm_type, CommandFormatter.format(comm_type, comm, files_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
@@ -518,7 +518,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         if expr.startswith('$('): # only one expression: "$(expression)"
             try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.template_dir, self._files, **kwargs), **kwargs)
+                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.files_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output

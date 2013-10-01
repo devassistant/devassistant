@@ -17,13 +17,13 @@ from test.logger import TestLoggingHandler
 class TestYamlAssistant(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '')
-        self.ya.role = 'creator'
+        self.ya.role = 'crt'
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
         self.ya2 = yaml_assistant.YamlAssistant('ya2', {}, '')
         self.ya2._files = {}
-        self.ya2.role = 'creator'
+        self.ya2.role = 'crt'
         self.ya2._run = [{'if $ide':
                             [{'if $(test -d /notachance)': [{'log_d': 'ifif'}]},
                              {'else': [{'log_d': 'ifelse'}]}]},
@@ -209,23 +209,23 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
 
-    def test_snippet_uses_own_template_dir(self):
+    def test_snippet_uses_own_files_dir(self):
         self.ya._run = [{'call': 'a.run'}, {'log_i': '*first'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('a').\
                                     and_return(snippet.Snippet('mysnippet',
-                                                               {'template_dir': 'foo/bar/baz/spam',
+                                                               {'files_dir': 'foo/bar/baz/spam',
                                                                 'files':
                                                                     {'first': {'source': 'file'}},
                                                                 'run': [{'log_i': '*first'}]},
                                                                'mysnippet.yaml'))
         self.ya.run()
         assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
-        assert ('INFO', os.path.join(self.ya.template_dir, 'f/g')) in self.tlh.msgs
+        assert ('INFO', os.path.join(self.ya.files_dir, 'f/g')) in self.tlh.msgs
 
     def test_default_icon_path(self):
-        self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/creator/bar/baz.yaml')
-        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/creator/bar/baz.svg')
+        self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/bar/baz.yaml')
+        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/crt/bar/baz.svg')
 
 
 class TestExpressions(TestYamlAssistant):
@@ -329,7 +329,7 @@ class TestExpressions(TestYamlAssistant):
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '')
-        self.ya.role = 'modifier'
+        self.ya.role = 'mod'
         self.ya._files = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
         self.dda = {'subassistant_path': ['foo', 'bar', 'baz']}

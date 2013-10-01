@@ -17,7 +17,7 @@ class Cache(object):
     it has following structure:
 
     # type of assistants
-    {'creator':
+    {'crt':
         # a single cached assistant
         {'c':
             # attributes of this assistant needed to compose cli/gui
@@ -33,11 +33,11 @@ class Cache(object):
             # last seen ctime of this assistant
             'ctime': 111111111111,
             # source file of this assistant
-            'source': '/foo/bar/assistants/creator/c.yaml',
+            'source': '/foo/bar/assistants/crt/c.yaml',
             # hierarchy of subassistants of this assistant
             'subhierarchy': {'d': {...}},
-     'modifier': {...},
-     'preparer': {...},
+     'mod': {...},
+     'prep': {...},
      # version of devassistant that cache has been created with
      'version': VERSION}
     """

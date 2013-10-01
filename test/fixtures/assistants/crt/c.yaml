@@ -16,9 +16,9 @@ c:
 
   files:
     clientc: &clientc
-      source: templates/c/client.c
+      source: crt/c/client.c
     serverc: &serverc
-      source: templates/c/server.c
+      source: crt/c/server.c
 
   run:
   - cl: ls foo/bar

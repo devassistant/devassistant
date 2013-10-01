@@ -11,11 +11,11 @@ class AssistantBase(object):
     name = 'base'
     fullname = 'Base'
     description = ''
-    role = 'creator'
+    role = 'crt'
     args = []
     source_file = ''
 
-    template_dir = os.path.join(os.path.dirname(__file__), 'data', 'templates')
+    files_dir = os.path.join(os.path.dirname(__file__), 'data', 'files')
 
     def get_subassistant_classes(self):
         """Return list of classes that are subassistants of this assistant.

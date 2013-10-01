@@ -13,13 +13,13 @@ from devassistant.yaml_assistant_loader import YamlAssistantLoader
 # (if not truncated, they contain e.g. home dir on your machine, etc.)
 # therefore we need a special comparison method in class below
 correct_cache = \
-{'creator': {'c': {'attrs': {'args': {'foo': {'flags': ['-f', '--foo'],
+{'crt': {'c': {'attrs': {'args': {'foo': {'flags': ['-f', '--foo'],
                                               'help': 'Help for foo parameter.'}},
                              'description': 'C Language Tool description...',
                              'fullname': 'C Language Tool'},
                    'snippets': {},
                    'ctime': 'dontcheck',
-                   'source': 'test/fixtures/assistants/creator/c.yaml',
+                   'source': 'test/fixtures/assistants/crt/c.yaml',
                    'subhierarchy': {'d': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'},
@@ -31,7 +31,7 @@ correct_cache = \
                                                     'fullname': 'D Language Tool'},
                                           'snippets': {'snippet1': 'dontcheck'},
                                           'ctime': 'dontcheck',
-                                          'source': 'test/fixtures/assistants/creator/c/d.yaml',
+                                          'source': 'test/fixtures/assistants/crt/c/d.yaml',
                                           'subhierarchy': {}},
                                     'e': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
@@ -39,14 +39,14 @@ correct_cache = \
                                                     'fullname': 'E Language Tool'},
                                           'snippets': {},
                                           'ctime': 'dontcheck',
-                                          'source': 'test/fixtures/assistants/creator/c/e.yaml',
+                                          'source': 'test/fixtures/assistants/crt/c/e.yaml',
                                           'subhierarchy': {}}}},
              'f': {'attrs': {'args': {'name': {'flags': ['-n', '--name'],
                                                'help': 'Name of project to create'}},
                              'fullname': 'F Language Tool'},
                    'snippets': {},
                    'ctime': 'dontcheck',
-                   'source': 'test/fixtures/assistants/creator/f.yaml',
+                   'source': 'test/fixtures/assistants/crt/f.yaml',
                    'subhierarchy': {'g': {'attrs': {'args': {'name': {'flags': ['-n',
                                                                                 '--name'],
                                                                       'help': 'Name of project to create'}},
@@ -54,10 +54,10 @@ correct_cache = \
                                                     'fullname': 'G Language Tool'},
                                           'snippets': {},
                                           'ctime': 'dontcheck',
-                                          'source': 'test/fixtures/assistants/creator/f/g.yaml',
+                                          'source': 'test/fixtures/assistants/crt/f/g.yaml',
                                           'subhierarchy': {}}}}},
- 'modifier': {},
- 'preparer': {},
+ 'mod': {},
+ 'prep': {},
  'version': VERSION}
 
 class TestCache(object):
@@ -122,7 +122,7 @@ class TestCache(object):
         self.create_or_refresh_cache()
         time.sleep(0.1)
 
-        p = 'assistants/creator/c.yaml'
+        p = 'assistants/crt/c.yaml'
         self.touch_file(p)
         self.create_or_refresh_cache()
         self.assert_cache_newer(p)
@@ -148,19 +148,19 @@ class TestCache(object):
         self.create_or_refresh_cache()
 
         # add new assistant and test that everything is fine
-        self.addme_copy('addme.yaml', 'assistants/creator/addme.yaml')
+        self.addme_copy('addme.yaml', 'assistants/crt/addme.yaml')
         self.addme_copy('addme_snippet.yaml', 'snippets/addme_snippet.yaml')
         self.create_or_refresh_cache()
-        addme = self.cch.cache['creator']['addme']
+        addme = self.cch.cache['crt']['addme']
         assert 'addme_snippet' in addme['snippets']
         assert len(addme['snippets']) == 1
-        assert addme['source'].endswith('assistants/creator/addme.yaml')
+        assert addme['source'].endswith('assistants/crt/addme.yaml')
         assert addme['attrs']['fullname'] == 'Add me and watch miracles happen'
         assert addme['attrs']['args']['some_arg']['flags'] == ['-x']
 
         # change assistant fullname
         time.sleep(0.1)
-        self.addme_copy('addme_change_fullname.yaml', 'assistants/creator/addme.yaml')
+        self.addme_copy('addme_change_fullname.yaml', 'assistants/crt/addme.yaml')
         self.create_or_refresh_cache()
         assert addme['attrs']['fullname'] == 'Fullname changed!'
         
@@ -172,20 +172,20 @@ class TestCache(object):
         from devassistant import yaml_snippet_loader; yaml_snippet_loader.YamlSnippetLoader._snippets = {}
         self.cch.snip_ctimes = {}
         self.create_or_refresh_cache()
-        addme = self.cch.cache['creator']['addme']
+        addme = self.cch.cache['crt']['addme']
         assert addme['attrs']['args']['some_arg']['flags'] == ['-z']
 
         # switch assistant to another snippet
         time.sleep(0.1)
-        self.addme_copy('addme_change_snippet.yaml', 'assistants/creator/addme.yaml')
+        self.addme_copy('addme_change_snippet.yaml', 'assistants/crt/addme.yaml')
         self.create_or_refresh_cache()
         assert addme['attrs']['args']['some_arg']['flags'] == ['-s', '--some-arg']
 
         # finally, remove assistant completely
         time.sleep(0.1)
-        os.unlink(self.datafile_path('assistants/creator/addme.yaml'))
+        os.unlink(self.datafile_path('assistants/crt/addme.yaml'))
         self.create_or_refresh_cache()
-        assert 'addme' not in self.cch.cache['creator']
+        assert 'addme' not in self.cch.cache['crt']
 
     def test_cache_deletes_if_different_version(self):
         self.create_fake_cache({'version': '0.0.0'})

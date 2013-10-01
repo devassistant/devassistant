@@ -22,7 +22,7 @@ class TestYamlAssistantLoader(object):
         self.yl._classes = []
 
     def load_yaml_from_fixture(self, fixture):
-        fixture_path = os.path.join(self.yl.assistants_dirs[0], 'creator', '{0}.yaml'.format(fixture))
+        fixture_path = os.path.join(self.yl.assistants_dirs[0], 'crt', '{0}.yaml'.format(fixture))
         fhandler = open(fixture_path)
         return yaml.load(fhandler)
 
@@ -35,22 +35,22 @@ class TestYamlAssistantLoader(object):
         assert a.name == 'c'
         assert a.fullname == 'C Language Tool'
         assert a.description == 'C Language Tool description...'
-        assert a.role == 'creator'
+        assert a.role == 'crt'
         assert len(a.args) == 1
         assert a._dependencies == [{'default': [{'rpm': ['rpm']}]}]
         assert a._files == {
-            'clientc': {'source': 'templates/c/client.c'},
-            'serverc': {'source': 'templates/c/server.c'}
+            'clientc': {'source': 'crt/c/client.c'},
+            'serverc': {'source': 'crt/c/server.c'}
         }
         assert a._run == [{'cl': 'ls foo/bar'}]
 
     def test_load_all_assistants_loads_proper_structure(self):
-        YamlAssistantLoader.load_all_assistants(roles=['creator'])
+        YamlAssistantLoader.load_all_assistants(roles=['crt'])
         assert len(YamlAssistantLoader._assistants) == 1
-        assert len(YamlAssistantLoader._assistants['creator']) == 2
+        assert len(YamlAssistantLoader._assistants['crt']) == 2
         # ass is a really nice variable name, isn't it?
-        a1 = YamlAssistantLoader._assistants['creator'][0]
-        a2 = YamlAssistantLoader._assistants['creator'][1]
+        a1 = YamlAssistantLoader._assistants['crt'][0]
+        a2 = YamlAssistantLoader._assistants['crt'][1]
         if a1.name == 'c':
             c, f = a1, a2
         else:

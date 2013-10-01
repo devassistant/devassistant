@@ -12,5 +12,5 @@ class LoadedYaml(object):
         return d
 
     @property
-    def default_template_dir(self):
-        return os.path.join(self.load_path, 'templates')
+    def default_files_dir(self):
+        return os.path.join(self.load_path, 'files')
