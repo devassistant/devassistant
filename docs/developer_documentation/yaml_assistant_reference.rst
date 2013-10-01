@@ -59,17 +59,18 @@ in this order):
 3. "user" path, ``~/.devassistant/assistants``
 
 When DevAssistant starts up, it loads assistants from all these paths. It
-assumes, that Creator assistants are located under ``creator`` subdirectories
-of the above directories, the same applies to Modifier and Preparer assistants.
+assumes, that Creator assistants are located under ``crt`` subdirectories
+of the above directories, the same applies to Modifier (``mod``) and
+Preparer (``prep``) assistants.
 
 For example, loading process for Creator assistants looks like this:
 
-1. Load all assistants located in ``creator`` subdirectories of each load path
+1. Load all assistants located in ``crt`` subdirectories of each load path
    (do not descend into subdirectories). If there are multiple assistants with
    the same name in different load paths, the first traversed path wins.
 2. For each assistant named ``foo.yaml``:
 
-   a. If ``creator/foo`` directory doesn't exist, then this assistant is "leaf"
+   a. If ``crt/foo`` directory doesn't exist, then this assistant is "leaf"
       and therefore can be directly used by users.
    b. Else this assistant is not leaf and DevAssistant loads its subassistants
       from the directory, recursively going from point 1).
@@ -108,16 +109,17 @@ sort of reasonable default, it's up to your consideration which of them to use):
   specification of used files, see below `Files`_
 ``run`` (and ``run_*``)
   specification of actual operations, see below `Run`_
-``template_dir``
-  directory where to take templates from. Defaults to base directory from where this assistant
-  is taken + ``templates``. E.g. if this assistant lives in ``~/.devassistant/assistants/some/path/and/more/``,
-  templates will be taken from ``~/.devassistant/templates/`` by default.
+``files_dir``
+  directory where to take files (templates, helper scripts, ...) from. Defaults
+  to base directory from where this assistant is taken + ``files``. E.g. if
+  this assistant lives in ``~/.devassistant/assistants/some/path/and/more/``,
+  files will be taken from ``~/.devassistant/files/`` by default.
 ``icon_path``
   absolute or relative path to icon of this assistant (will be used by GUI).
   If not present, a default path will be used - this is derived from absolute
   assistant path by replacing ``assistants`` by ``icons`` and ``.yaml`` by
-  ``.svg`` - e.g. for ``~/.devassistant/assistants/creator/foo/bar.yaml``,
-  the default icon path is ``~/.devassistant/icons/creator/foo/bar.svg``
+  ``.svg`` - e.g. for ``~/.devassistant/assistants/crt/foo/bar.yaml``,
+  the default icon path is ``~/.devassistant/icons/crt/foo/bar.svg``
 
 Dependencies
 ------------
@@ -130,7 +132,7 @@ Yaml assistants can express their dependencies in multiple sections.
 
    $ da python --foo
 
-- These rules differ for ``modifier`` assistants, see `Modifier Assistants`_
+- These rules differ for `Modifier Assistants`_
 
 Each section contains a list of mappings ``dependency type: [list, of, deps]``.
 If you provide more mappings like this::
@@ -249,16 +251,21 @@ Files
 -----
 
 This section serves as a list of aliases of files stored in one of the
-template dirs of DevAssistant. E.g. if the DevAssistant's template dir
+``files`` dirs of DevAssistant. E.g. if the DevAssistant's files dir
 contains file ``foo/bar``, then you can use::
 
    files:
      bar: &bar
-     source: foo/bar
+       source: foo/bar
 
 This will allow you to reference the ``foo/bar`` file in ``run`` section as
 ``*bar`` without having to know where exactly it is located in your
 installation of DevAssistant.
+
+Files subdirectories structure should mimic structure of assistants dirs.
+E.g. if you had an assistant ``assistants/crt/python/django.yaml``, it should
+store its files in ``files/crt/python/django/`` directory. It would then
+need to use ``source: crt/python/django/<file>`` in files section.
 
 Run
 ---
@@ -266,7 +273,7 @@ Run
 Run sections are the essence of DevAssistant. They are responsible for
 preforming all the tasks and actions to set up the environment and
 the project itself. By default, section named ``run`` is invoked
-(this is a bit different for ``modifier`` assistants `Modifier Assistants`_).
+(this is a bit different for `Modifier Assistants`_).
 If there is a section named ``run_foo`` and ``foo`` argument is used,
 then **only** ``run_foo`` is invoked. This is different from
 dependencies sections, as the default ``dependencies`` section is used
@@ -409,7 +416,7 @@ Modifier Assistants
 -------------------
 
 Modifier assistants are assistants that are supposed to work with
-already created project. They must be placed under ``modifier``
+already created project. They must be placed under ``mod``
 subdirectory of one of the load paths, as mentioned in
 :ref:`assistants_loading_mechanism`.
 
@@ -441,7 +448,7 @@ Preparer Assistants
 Preparer assistants are assistants that are supposed to set up environment for
 executing arbitrary tasks or prepare environment and checkout existing upstream
 projects (possibly using their ``.devassistant`` file, if they have it).
-Preparers must be placed under ``preparer`` subdirectory of one of the load
+Preparers must be placed under ``prep`` subdirectory of one of the load
 paths, as mentioned in :ref:`assistants_loading_mechanism`.
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
