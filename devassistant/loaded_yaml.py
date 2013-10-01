@@ -11,6 +11,12 @@ class LoadedYaml(object):
 
         return d
 
-    @property
-    def default_files_dir(self):
-        return os.path.join(self.load_path, 'files')
+    def default_files_dir_for(self, files_subdir):
+        yaml_path = self.path.replace(os.path.join(self.load_path, files_subdir), '')
+        yaml_path = os.path.splitext(yaml_path)[0]
+        yaml_path = yaml_path.strip(os.sep)
+        parts = [self.load_path, 'files']
+        if files_subdir == 'snippets':
+            parts.append(files_subdir)
+        parts.append(yaml_path)
+        return os.path.join(*parts)

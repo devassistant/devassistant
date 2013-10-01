@@ -52,7 +52,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         self.icon_path = value.get('icon_path', self.default_icon_path)
 
         # attributes not needed for CLI/GUI - not cached
-        self.files_dir = value.get('files_dir', self.default_files_dir)
+        self.files_dir = value.get('files_dir', self.default_files_dir_for('assistants'))
         self._files = value.get('files', {})
         self._logging = value.get('logging', [])
         # set _run and _dependencies as empty in case assistant doesn't have them at all

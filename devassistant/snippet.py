@@ -19,7 +19,7 @@ class Snippet(loaded_yaml.LoadedYaml):
         return copy.deepcopy(self.parsed_yaml.get(section_name, None))
 
     def get_files_dir(self):
-        return self.parsed_yaml.get('files_dir', self.default_files_dir)
+        return self.parsed_yaml.get('files_dir', self.default_files_dir_for('snippets'))
 
     def get_dependencies_section(self, section_name='dependencies'):
         if not section_name in self.parsed_yaml:

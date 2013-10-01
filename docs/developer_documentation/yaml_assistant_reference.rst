@@ -112,8 +112,8 @@ sort of reasonable default, it's up to your consideration which of them to use):
 ``files_dir``
   directory where to take files (templates, helper scripts, ...) from. Defaults
   to base directory from where this assistant is taken + ``files``. E.g. if
-  this assistant lives in ``~/.devassistant/assistants/some/path/and/more/``,
-  files will be taken from ``~/.devassistant/files/`` by default.
+  this assistant is ``~/.devassistant/assistants/crt/path/and/more.yaml``,
+  files will be taken from ``~/.devassistant/files/crt/path/and/more`` by default.
 ``icon_path``
   absolute or relative path to icon of this assistant (will be used by GUI).
   If not present, a default path will be used - this is derived from absolute
@@ -251,21 +251,18 @@ Files
 -----
 
 This section serves as a list of aliases of files stored in one of the
-``files`` dirs of DevAssistant. E.g. if the DevAssistant's files dir
-contains file ``foo/bar``, then you can use::
+``files`` dirs of DevAssistant. E.g. if your assistant is
+``assistants/crt/foo/bar.yaml``, then files are taken relative to
+``files/crt/foo/bar/`` directory. So if you have a file
+``files/crt/foo/bar/spam``, you can use::
 
    files:
-     bar: &bar
-       source: foo/bar
+     spam: &spam
+       source: spam
 
-This will allow you to reference the ``foo/bar`` file in ``run`` section as
-``*bar`` without having to know where exactly it is located in your
+This will allow you to reference the ``spam`` file in ``run`` section as
+``*spam`` without having to know where exactly it is located in your
 installation of DevAssistant.
-
-Files subdirectories structure should mimic structure of assistants dirs.
-E.g. if you had an assistant ``assistants/crt/python/django.yaml``, it should
-store its files in ``files/crt/python/django/`` directory. It would then
-need to use ``source: crt/python/django/<file>`` in files section.
 
 Run
 ---
