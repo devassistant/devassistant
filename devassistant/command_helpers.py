@@ -9,7 +9,6 @@ import sys
 
 from devassistant import exceptions
 from devassistant.logger import logger
-from devassistant import settings
 
 class ClHelper(object):
     @classmethod

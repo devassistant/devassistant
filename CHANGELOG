@@ -1,5 +1,6 @@
 0.7.0
-- CLI facelift, introduce custom actions.
+- CLI facelift, introduce custom actions. Everything now works through
+  a single entry point - the "da" binary.
 - GUI refactoring and UX improvements.
 - All modules of devassistant.assistants package have been moved to
   the top-level devassistant package (the subpackage only made sense

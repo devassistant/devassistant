@@ -9,7 +9,6 @@ TODO:
  * write tests
 """
 import collections
-import logging
 import platform
 import tempfile
 
@@ -69,7 +68,7 @@ class PackageManager(object):
         """Raises exceptions.PackageManagerNotOperational if this manager
         can't be used (something's missing) - e.g. for rpm manager
         is_installed() returns whether rpm is installed, but works() finds
-        out whether the manager is usable."""
+        out whether the manager is usable - e.g. if we can install via yum."""
         raise NotImplementedError()
 
     @classmethod
@@ -181,7 +180,7 @@ class RPMPackageManager(PackageManager):
             import yum
             return True
         except ImportError:
-            msg = 'Package manager for "{0}" not operational: {1}'.format(dep_t, e)
+            msg = 'Cannot install RPM dependencies, YUM not importable.'
             logger.error(msg)
             raise exceptions.PackageManagerNotOperational(msg)
 
@@ -257,8 +256,8 @@ class PIPPackageManager(PackageManager):
         try:
             ClHelper.run_command('pip')
             return True
-        except exceptions.ClException as e:
-            msg = 'Package manager for "{0}" not operational: {1}'.format(dep_t, e)
+        except exceptions.ClException:
+            msg = '"pip" not found, can\'t install packages from PyPI.'
             logger.error(msg)
             raise exceptions.PackageManagerNotOperational(msg)
 

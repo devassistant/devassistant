@@ -5,15 +5,14 @@ include README.rst
 include manpages/*
 include da.bash
 
-include devassistant/zenity_wrapper.sh
 include devassistant/gui/devassistant.desktop
 
 recursive-include devassistant/data  *
-exclude devassistant/data/assistants/modifier/c.yaml
 recursive-include devassistant/gui *.glade
 
 recursive-include test *.yaml *.py
 recursive-exclude . __pycache__
 
 recursive-include docs *
+exclude docs/developer_documentation/tutorial_creating_assistant.rst
 recursive-exclude docs/_build *
