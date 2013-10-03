@@ -3,8 +3,10 @@ DevAssistant Core
 
 *Note: So far, this only covers some bits and pieces of the whole core.*
 
-DevAssistant Load Path
-----------------------
+.. _load_paths:
+
+DevAssistant Load Paths
+-----------------------
 DevAssistant has couple of load path entries, that are searched for assistants,
 snippets, icons and files used by assistants. In standard installations,
 there are three paths:

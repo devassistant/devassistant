@@ -1,10 +1,10 @@
 There are three assistant roles:
 
-creator
+creator (``crt`` in short)
   creates new projects
-modifier
+modifier (``mod`` in short)
   modifies existing projects
-preparer
+preparer (``prep`` in short)
   prepares environment for development of upstream project or custom task
 
 The main purpose of having roles is separating different types of tasks.

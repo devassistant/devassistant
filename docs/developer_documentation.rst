@@ -6,6 +6,7 @@ Developer Documentation
    :maxdepth: 2
 
    developer_documentation/devassistant_core
+   developer_documentation/tutorial_creating_assistant
    developer_documentation/yaml_assistant_reference
    developer_documentation/common_assistant_behaviour
 
@@ -36,7 +37,7 @@ Assistants
 Assistants
 ----------
 Internally, each assistant is represented by instance of
-devassistant.yaml_assistant.YamlAssistant. Instances are constructed
+``devassistant.yaml_assistant.YamlAssistant``. Instances are constructed
 by DevAssistant in runtime from parsed yaml files. Each assistant can
 have zero or more subassistants. This effectively forms a tree-like
 structure. For example::
@@ -58,15 +59,21 @@ the leftmost path with::
 
    $ da crt python [python assistant arguments] django [django assistant arguments]
 
+If an assistant has any subassistants, one of them **must** be used. E.g.
+in the example above, you can't use just Python assistant, you have to
+choose between Django and Flask. If Django would get a subassistant, it
+wouldn't be usable on its own any more, etc.
+
+.. _assistant_roles_devel:
+
+Assistant Roles
+~~~~~~~~~~~~~~~
+
 The ``crt`` in the above example means, that we're running an assistant that
 creates a project.
 
 .. include:: assistant-roles.txt
 
-If an assistant has any subassistants, one of them **must** be used. E.g.
-in the example above, you can't use just Python assistant, you have to
-choose between Django and Flask. If Django would get a subassistant, it
-wouldn't be usable on its own any more, etc.
 
 Contributing
 ------------
