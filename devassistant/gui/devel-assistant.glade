@@ -414,6 +414,18 @@
     </child>
   </object>
   <object class="GtkListStore" id="runStore"/>
+  <object class="GtkListStore" id="storeList">
+    <columns>
+      <!-- column-name assistants -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="substoreList">
+    <columns>
+      <!-- column-name Available -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="runWindow">
     <property name="width_request">500</property>
     <property name="can_focus">False</property>
@@ -489,6 +501,23 @@
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkButton" id="mainBtn">
+                        <property name="label" translatable="yes">_Main window</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="xalign">0.52999997138977051</property>
+                        <property name="yalign">0.43999999761581421</property>
+                        <signal name="clicked" handler="on_mainBtn_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkButton" id="cancelRunBtn">
                         <property name="label" translatable="yes">_Cancel</property>
                         <property name="visible">True</property>
@@ -500,7 +529,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
@@ -515,7 +544,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
@@ -530,7 +559,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">3</property>
+                        <property name="position">4</property>
                       </packing>
                     </child>
                   </object>
@@ -559,17 +588,5 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="storeList">
-    <columns>
-      <!-- column-name assistants -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="substoreList">
-    <columns>
-      <!-- column-name Available -->
-      <column type="gchararray"/>
-    </columns>
   </object>
 </interface>

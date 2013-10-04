@@ -220,3 +220,8 @@ class RunWindow(object):
         self.run_window.hide()
         self.parent.path_window.open_window(widget, data)
 
+
+    def main_btn_clicked(self, widget, data=None):
+        self.run_window.hide()
+        self.parent.open_window(widget,data)
+        pass

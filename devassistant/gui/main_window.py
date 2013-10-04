@@ -43,6 +43,7 @@ class MainWindow(object):
                 "on_debugBtn_clicked": self.run_window.debug_btn_clicked,
                 "on_clipboardBtn_clicked": self.run_window.clipboard_btn_clicked,
                 "on_backBtn_clicked": self.run_window.back_btn_clicked,
+                "on_mainBtn_clicked": self.run_window.main_btn_clicked,
                     }
         self.builder.connect_signals(self.mainhandlers)
         self.label_main_window = self.builder.get_object("sublabel")
@@ -143,6 +144,7 @@ class MainWindow(object):
         self.path_window.browse_path()
 
     def open_window(self, widget, data=None):
+        self.kwargs = dict()
         self.main_win.show_all()
 
     def btn_press_event(self, widget, event):
