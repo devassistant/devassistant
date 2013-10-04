@@ -144,6 +144,10 @@ Full example::
      - call: spam.spamspam
    - rpm: [ham]
 
+*Sometimes your dependencies may get terribly complex - they depend on many
+parameters, you need to use them dynamically during ``run``, etc. In these
+cases, it is better to use ``dependencies`` command in ``run`` section.*
+
 Args
 ----
 
@@ -281,6 +285,10 @@ List of supported commands follows:
     assistant context)
   - ``dda_run`` will execute a series of commands from ``run`` section from
     ``.devassistant`` (in context of current assistant)
+``dependencies``
+  Installs dependencies from given structure - the structure has to be in the
+  same format as in ``dependencies`` section, but no conditions are allowed
+  (you can use this command combined with conditions of ``run`` section).
 ``if <expression>``, ``else``
   conditional execution. The condition must be an `Expression`_.
 ``for <var> in <expression>``
