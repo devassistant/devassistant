@@ -59,7 +59,7 @@ class CommandFormatter(object):
         elif isinstance(self.comm, str) and self.comm.startswith('$'):
             return self.kwargs.get(self.comm.strip()[1:], [])
         else:
-            raise YamlTypeError('{ct} expected list, not {t}'.format(ct=self.comm_type, t=type(self.comm)))
+            raise exceptions.YamlTypeError('{ct} expected list, not {t}'.format(ct=self.comm_type, t=type(self.comm)))
 
     @classmethod
     def _homedir_expand(cls, matchobj):
