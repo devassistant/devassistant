@@ -2,16 +2,24 @@ import os
 import re
 import string
 
-class CommandFormatter(object):
-    @classmethod
-    def format(cls, comm_type, comm, files_dir, files, **kwargs):
-        if comm_type.startswith('dependencies'): # don't process dependencies
-            return comm
+from devassistant import exceptions
 
+class CommandFormatter(object):
+    def __init__(self, comm_type, comm, files_dir='', files={}, **kwargs):
+        self.comm_type = comm_type
+        self.comm = comm
+        self.files_dir = files_dir
+        self.files = files
+        self.kwargs = kwargs
+
+    def format_str(self):
+        """Formats the given command as a string."""
         # If command is false/true in yaml file, it gets coverted to False/True
         # which is bool object => convert
-        if isinstance(comm, bool):
-            comm = str(comm).lower()
+        if isinstance(self.comm, bool):
+            comm = str(self.comm).lower()
+        else:
+            comm = self.comm
 
         new_comm = []
         if not isinstance(comm, list):
@@ -24,11 +32,11 @@ class CommandFormatter(object):
         for c in parts_list:
             if isinstance(c, dict):
                 # TODO: raise a proper error if c['source'] is not present
-                new_comm.append(os.path.join(files_dir, c['source']))
+                new_comm.append(os.path.join(self.files_dir, c['source']))
             elif c.startswith('*'):
                 c_file = c[1:].strip('{}')
-                if c_file in files:
-                    new_comm.append(os.path.join(files_dir, files[c_file]['source']))
+                if c_file in self.files:
+                    new_comm.append(os.path.join(self.files_dir, self.files[c_file]['source']))
                 else:
                     new_comm.append(c)
             else:
@@ -37,12 +45,21 @@ class CommandFormatter(object):
         new_comm = ' '.join(new_comm)
 
         # substitute cli arguments for their values
-        substituted = string.Template(new_comm).safe_substitute(kwargs)
+        substituted = string.Template(new_comm).safe_substitute(self.kwargs)
 
         # we want to do homedir expansion in quotes (which bash doesn't)
         # therefore we must hack around this here
         regex = re.compile('\\\\*~')
-        return regex.sub(cls._homedir_expand, substituted)
+        return regex.sub(type(self)._homedir_expand, substituted)
+
+    def format_list(self):
+        """Formats the given command as a list."""
+        if isinstance(self.comm, list):
+            return self.comm
+        elif isinstance(self.comm, str) and self.comm.startswith('$'):
+            return self.kwargs.get(self.comm.strip()[1:], [])
+        else:
+            raise YamlTypeError('{ct} expected list, not {t}'.format(ct=self.comm_type, t=type(self.comm)))
 
     @classmethod
     def _homedir_expand(cls, matchobj):

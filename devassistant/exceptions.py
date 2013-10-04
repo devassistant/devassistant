@@ -16,6 +16,9 @@ class ClException(RunException):
     def __str__(self):
         return self.output
 
+class YamlTypeError(ExecutionException):
+    pass
+
 class AssistantNotFoundException(BaseException):
     pass
 

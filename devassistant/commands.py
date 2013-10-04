@@ -15,6 +15,7 @@ import yaml
 
 from devassistant import exceptions
 from devassistant.command_helpers import ClHelper, DialogHelper
+from devassistant.command_formatter import CommandFormatter
 from devassistant.logger import logger
 from devassistant import settings
 from devassistant import version
@@ -29,16 +30,17 @@ def register_command(command):
 @register_command
 class ClCommand(object):
     @classmethod
-    def matches(cls, comm_type):
-        return comm_type.startswith('cl')
+    def matches(cls, c):
+        return c.comm_type.startswith('cl')
 
     @classmethod
-    def run(cls, comm_type, comm, **kwargs):
+    def run(cls, c, **kwargs):
+        comm = c.format_str()
         log_level = logging.DEBUG
         log_error = True
-        if 'i' in comm_type:
+        if 'i' in c.comm_type:
             log_level = logging.INFO
-        if 'n' in comm_type:
+        if 'n' in c.comm_type:
             log_error = False
         scls = []
         if '__scls__' in kwargs:
@@ -58,13 +60,13 @@ class ClCommand(object):
 @register_command
 class DependenciesCommand(object):
     @classmethod
-    def matches(cls, comm_type):
-        return comm_type.startswith('dependencies')
+    def matches(cls, c):
+        return c.comm_type.startswith('dependencies')
 
     @classmethod
-    def run(cls, comm_type, comm, **kwargs):
-        if comm_type == 'dependencies':
-            struct = comm
+    def run(cls, c, **kwargs):
+        if c.comm_type == 'dependencies':
+            struct = c.format_list()
 
         di = DependencyInstaller()
         di.install(struct)
@@ -72,21 +74,22 @@ class DependenciesCommand(object):
 @register_command
 class DotDevassistantCommand(object):
     @classmethod
-    def matches(cls, comm_type):
-        return comm_type.startswith('dda_')
+    def matches(cls, c):
+        return c.comm_type.startswith('dda_')
 
     @classmethod
-    def run(cls, comm_type, comm, **kwargs):
-        if comm_type == 'dda_c':
+    def run(cls, c, **kwargs):
+        comm = c.format_str()
+        if c.comm_type == 'dda_c':
             return cls._dot_devassistant_create(comm, **kwargs)
-        elif comm_type == 'dda_r':
+        elif c.comm_type == 'dda_r':
             return cls._dot_devassistant_read(comm, **kwargs)
-        elif comm_type == 'dda_dependencies':
+        elif c.comm_type == 'dda_dependencies':
             return cls._dot_devassistant_dependencies(comm, **kwargs)
-        elif comm_type == 'dda_run':
+        elif c.comm_type == 'dda_run':
             return cls._dot_devassistant_run(comm, **kwargs)
         else:
-            logger.warning('Unknown .devassistant command {0}, skipping.'.format(comm_type))
+            logger.warning('Unknown .devassistant command {0}, skipping.'.format(c.comm_type))
 
     @classmethod
     def _dot_devassistant_create(cls, directory, **kwargs):
@@ -154,7 +157,7 @@ class DotDevassistantCommand(object):
                 if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                     struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
             struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), **kwargs))
-        run_command('dependencies', struct, **kwargs)
+        run_command(CommandFormatter('dependencies', struct, **kwargs))
 
     @classmethod
     def _dot_devassistant_run(cls, comm, **kwargs):
@@ -303,11 +306,12 @@ class GitHubCommand(object):
         _gh_module = None
 
     @classmethod
-    def matches(cls, comm_type):
-        return comm_type == 'github'
+    def matches(cls, c):
+        return c.comm_type == 'github'
 
     @classmethod
-    def run(cls, comm_type, comm, **kwargs):
+    def run(cls, c, **kwargs):
+        comm = c.format_str()
         if not cls._gh_module:
             logger.warning('PyGithub not installed, cannot execute github command.')
             return
@@ -398,21 +402,22 @@ class GitHubCommand(object):
 @register_command
 class LogCommand(object):
     @classmethod
-    def matches(cls, comm_type):
-        return comm_type.startswith('log_')
+    def matches(cls, c):
+        return c.comm_type.startswith('log_')
 
     @classmethod
-    def run(cls, comm_type, comm, **kwargs):
-        if comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
-            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[comm_type[-1]]], comm)
-            if comm_type[-1] in 'ce':
+    def run(cls, c, **kwargs):
+        comm = c.format_str()
+        if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
+            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], comm)
+            if c.comm_type[-1] in 'ce':
                 raise exceptions.RunException(comm)
         else:
-            logger.warning('Unknown logging command {0} with message {1}'.format(comm_type, comm))
+            logger.warning('Unknown logging command {0} with message {1}'.format(c.comm_type, comm))
 
-def run_command(comm_type, comm, **kwargs):
+def run_command(cf, **kwargs):
     for c in commands:
-        if c.matches(comm_type):
-            return c.run(comm_type, comm, **kwargs)
+        if c.matches(cf):
+            return c.run(cf, **kwargs)
 
-    logger.warning('Unknown action type {0}, skipping.'.format(comm_type))
+    logger.warning('Unknown command type {0}, skipping.'.format(cf.comm_type))

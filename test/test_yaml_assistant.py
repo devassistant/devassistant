@@ -62,10 +62,10 @@ class TestYamlAssistant(object):
         with pytest.raises(exceptions.RunException):
             self.ya.run()
 
-    def test_run_unkown_action(self):
+    def test_run_unkown_command(self):
         self.ya._run = [{'foo': 'bar'}]
         self.ya.run()
-        assert self.tlh.msgs == [('WARNING', 'Unknown action type foo, skipping.')]
+        assert self.tlh.msgs == [('WARNING', 'Unknown command type foo, skipping.')]
 
     def test_get_section_to_run_chooses_selected(self):
         self.ya._run = [{'cl': 'ls'}]

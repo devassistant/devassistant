@@ -14,10 +14,10 @@ class TestCommandFormatter(object):
         ('cp *{first} $foo', {'foo': 'a'}, 'cp {0}/f/g a'.format(files_dir)),
     ])
     def test_format(self, comm, arg_dict, result):
-        assert CommandFormatter.format('cl', comm, self.files_dir, self.files, **arg_dict) == result
+        assert CommandFormatter('cl', comm, self.files_dir, self.files, **arg_dict).format_str() == result
 
     def test_format_handles_bool(self): 
         # If command is false/true in yaml file, it gets coverted to False/True 
         # which is bool object. format should handle this. 
-        assert CommandFormatter.format('cl', True, self.files_dir, self.files) == 'true'
-        assert CommandFormatter.format('cl', False, self.files_dir, self.files) == 'false'
+        assert CommandFormatter('cl', True, self.files_dir, self.files).format_str() == 'true'
+        assert CommandFormatter('cl', False, self.files_dir, self.files).format_str() == 'false'

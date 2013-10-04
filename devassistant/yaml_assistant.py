@@ -124,7 +124,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         if self.role == 'mod':
             # don't rewrite old values
             # first get the new ones and then update them with the old
-            new_kwargs = run_command('dda_r', kwargs.get('path', '.'), **kwargs)
+            new_kwargs = run_command(CommandFormatter('dda_r',
+                                                      kwargs.get('path', '.')),
+                                     **kwargs)
             new_kwargs.update(kwargs)
             kwargs = new_kwargs
         return kwargs
@@ -301,7 +303,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                         logger.error(e)
                         raise e
                     try:
-                        eval_expression = self._evaluate()
+                        eval_expression = self._evaluate(expression, **kwargs)[1]
                     except exceptions.YamlSyntaxError as e:
                         logger.log(e)
                         raise e
@@ -319,7 +321,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 else:
                     files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
                     files_dir = kwargs['__files_dir__'][-1] if kwargs.get('__files_dir__', None) else self.files_dir
-                    run_command(comm_type, CommandFormatter.format(comm_type, comm, files_dir, files, **kwargs), **kwargs)
+                    run_command(CommandFormatter(comm_type, comm, files_dir, files, **kwargs), **kwargs)
 
     def _is_snippet_call(self, cmd_call, **kwargs):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
@@ -511,6 +513,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         # command output
         output = ''
         invert_success = False
+        # if we have an arbitrary structure, just return it
+        if not isinstance(expression, str):
+            return (True if expression else False, expression)
         expr = expression.strip()
         if expr.startswith('not '):
             invert_success = True
@@ -518,7 +523,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         if expr.startswith('$('): # only one expression: "$(expression)"
             try:
-                output = run_command('cl_n', CommandFormatter.format('cl', expr[2:-1], self.files_dir, self._files, **kwargs), **kwargs)
+                output = run_command(CommandFormatter('cl_n', expr[2:-1], self.files_dir, self._files, **kwargs), **kwargs)
             except exceptions.RunException as ex:
                 success = False
                 output = ex.output
