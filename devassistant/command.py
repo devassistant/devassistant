@@ -3,14 +3,28 @@ import re
 import string
 
 from devassistant import exceptions
+from devassistant.logger import logger
+from devassistant import utils
 
-class CommandFormatter(object):
+class Command(object):
+    _command_runners = None
+
     def __init__(self, comm_type, comm, files_dir='', files={}, **kwargs):
         self.comm_type = comm_type
         self.comm = comm
         self.files_dir = files_dir
         self.files = files
         self.kwargs = kwargs
+
+    def run(self):
+        if not type(self)._command_runners:
+            # avoid circular dependency between this module and command_runners
+            type(self)._command_runners = utils.import_module('devassistant.command_runners')
+        for cr in type(self)._command_runners.command_runners:
+            if cr.matches(self): 
+                return cr.run(self) 
+
+        logger.warning('Unknown command type {0}, skipping.'.format(self.comm_type))
 
     def format_str(self):
         """Formats the given command as a string."""

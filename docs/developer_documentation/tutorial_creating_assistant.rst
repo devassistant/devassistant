@@ -124,12 +124,12 @@ Run
 ~~~
 
 Finally, we will be adding a ``run`` section, which is the section that does
-all the hard work. A ``run`` section is a list of commands. Every command is
-in fact a Yaml mapping with exactly one key and value. The key determines
-type of command, while value is the command itself. So for example ``cl`` is
-a command type that says that given command should be run on commandline,
-``log_i`` is a command type that lets us print a command (message in this case)
-for user, etc.
+all the hard work. A ``run`` section is a list of **commands**. Every command
+is in fact a Yaml mapping with exactly one key and value. The key determines
+**command type**, while value is the **command input**. For example, ``cl`` is
+a **command type** that says that given **input** should be run on commandline,
+``log_i`` is a **command type** that lets us print the **input** (message in
+this case) for user, etc.
 
 Let's start writing our ``run`` section::
 

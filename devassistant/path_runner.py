@@ -1,6 +1,5 @@
 from devassistant import yaml_assistant
-from devassistant.commands import run_command
-from devassistant.command_formatter import CommandFormatter
+from devassistant import command
 
 class PathRunner(object):
     def __init__(self, path, override_sys_excepthook=True):
@@ -24,7 +23,7 @@ class PathRunner(object):
             if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                 deps.extend(a.dependencies(**parsed_args))
 
-        run_command(CommandFormatter('dependencies', deps))
+        command.Command('dependencies', deps).run()
 
     def _run_path_run(self, **parsed_args):
         """Runs *Assistant.run methods.

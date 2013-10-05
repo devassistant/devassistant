@@ -250,62 +250,82 @@ then **only** ``run_foo`` is invoked. This is different from
 dependencies sections, as the default ``dependencies`` section is used
 every time.
 
-Every ``run`` section is a sequence of various commands, mostly
+Every ``run`` section is a sequence of various **commands**, mostly
 invocations of commandline. Each command is a mapping
-``command_type: command``. During the execution, you may use logging
-(messages will be printed to terminal or gui) with following levels:
-``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL``. By default,
-messages of level ``INFO`` and higher are logged. As you can see below,
-there is a separate ``log_*`` command type for logging, but some other
-command types can also log various messages. Log messages with levels
-``ERROR`` and ``CRITICAL`` terminate execution of DevAssistant imediatelly.
+of **command type** to **command_input**::
+
+   run:
+   - type: input
+   - another_type: another_input
+
+During the execution, you may use logging (messages will be printed to
+terminal or gui) with following levels: ``DEBUG``, ``INFO``, ``WARNING``,
+``ERROR``, ``CRITICAL``. By default, messages of level ``INFO`` and higher
+are logged. As you can see below, there is a separate ``log_*`` **command**
+type for logging, but some other command types also log various messages.
+Log messages with levels ``ERROR`` and ``CRITICAL`` terminate execution of
+DevAssistant imediatelly.
 
 Run sections allow you to use variables with certain rules and
 limitations. See below.
 
-List of supported commands follows:
+List of supported **command types** and their function follows:
 
 ``cl``
-  runs given command on commandline, aborts execution of the invoked assistant if it fails.
-  **Note:** ``cd`` is a special cased command, which doesn't do shell expansion other than
-  user home dir (``~``) expansion.
+  runs given **input** on commandline, aborts execution of the invoked
+  assistant if it fails. **Note:** ``cd`` is a special cased **input**,
+  which doesn't do shell expansion other than user home dir (``~``) expansion.
 ``cl_i``
-  the ``i`` option makes the command execution be logged at ``INFO`` level
-  (default is ``DEBUG``), therefore visible to user
+  the ``i`` logs output of this command at ``INFO`` level (default is
+  ``DEBUG``), therefore visible to user
 ``log_[diwec]``
-  logs given message at level specified by the last letter in ``log_X``.
-  If the level is ``e`` or ``c``, the execution of the assistant is interrupted immediately.
-``dda_{c,dependencies,run}``
-  - ``c`` creates ``.devassistant`` file (containing some sane initial meta
-    information about the project) in given directory
-  - ``dda_dependencies`` let's you install dependencies from ``.devassistant`` file
-    (DevAssistant will use dependencies from original assistant and specified 
-    ``dependencies`` attribute, if any - this has the same structure as ``dependencies``
-    in normal assistants, and is evaluated in current assistant context, not the original
-    assistant context)
+  logs given **input** (message) at level specified by the last letter in
+  ``log_X``. If the level is ``e`` or ``c``, the execution of the assistant
+  is interrupted immediately.
+``dda_{c,dependencies,run}`` *unless otherwise noted, input of these command types is directory of created/used .devassistant file*
+  - ``dda_c`` creates ``.devassistant`` file (containing some sane initial meta
+    information about the project).
+  - ``dda_dependencies`` let's you install dependencies from ``.devassistant``
+    file (DevAssistant will use dependencies from original assistant and
+    specified ``dependencies`` attribute, if any - this has the same structure
+    as ``dependencies`` in normal assistants, and is evaluated in current
+    assistant context, not the original assistant context).
   - ``dda_run`` will execute a series of commands from ``run`` section from
     ``.devassistant`` (in context of current assistant)
 ``dependencies``
-  Installs dependencies from given structure - the structure has to be in the
-  same format as in ``dependencies`` section, but no conditions are allowed
-  (you can use this command combined with conditions of ``run`` section).
+  Installs dependencies from given **input** structure - the structure has to
+  be in the same format as in ``dependencies`` section, but no conditions are
+  allowed (you can use this command combined with conditions of ``run``
+  section).
 ``if <expression>``, ``else``
-  conditional execution. The condition must be an `Expression`_.
+  conditionally executes **input** section. The condition must be an
+  `Expression`_::
+     
+     if $foo:
+     - cl_i: Foo is $foo!
+
 ``for <var> in <expression>``
   (for example ``for $i in $(ls)``) - loop over *result* of given expression
-  (if it is string, which almost always is, it is split on whitespaces)
+  (if it is string, which almost always is, it is split on whitespaces) in
+  section given by **input**::
+
+     for $i in $(ls):
+     - log_i: $i
+
 ``$foo``
-  assigns *result* of an `Expression`_ to the given variable
+  assigns *result* of **input** (an `Expression`_) to the given variable
   (doesn't interrupt the assistant execution if command fails)
 ``$success, $foo``
-  assigns *logical result* (``True``/``False``) of evaluating an `Expression`_ to
-  ``$success`` and result to ``$foo`` (same as above)
+  assigns *logical result* (``True``/``False``) of **input** (an `Expression`_)
+  to ``$success`` and result to ``$foo`` (same as above)
 ``call``
-  run another section of this assistant (e.g.``call: self.run_foo``) of a snippet
-  run section (``call: snippet_name.run_foo``) at this place and then continue execution
+  run another section of this assistant (e.g. ``call: self.run_foo``) or a
+  snippet (e.g. ``call: snippet_name.run_foo``) run section specified by
+  **input**  at this place and then continue execution
 ``scl``
-  run a whole section in SCL environment of one or more SCLs (note: you **must**
-  use the scriptlet name - usually ``enable`` - because it might vary) - for example::
+  run a whole **input** section specified in SCL environment of one or more
+  SCLs (note: you **must** use the scriptlet name - usually ``enable`` -
+  because it might vary) - for example::
 
    run:
    - scl enable python33 postgresql92:
