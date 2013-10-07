@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2013 Slavek Kabrda <bkabrda@redhat.com> -->
+<application>
+ <id type="desktop">devassistant.desktop</id>
+ <licence>CC-BY-SA</licence>
+ <name>DevAssistant</name>
+ <summary>Start developing in a jiff</summary>
+ <description>
+  <p>
+    DevAssistant can help you with creating and setting up basic projects
+    in various languages, installing dependencies, setting up environment etc.
+    There are three main types of functionality provided:
+  </p>
+  <ul>
+   <li>Creating projects in various languages/frameworks</li>
+   <li>Modifying local projects</li>
+   <li>Preparing environment for upstream projects or custom tasks</li>
+  </ul>
+  <p>
+    List of currently supported languages includes C, C++, Java, Node.js,
+    Perl, PHP, Python and Ruby.
+  </p>
+ </description>
+ <screenshots>
+   <screenshot type="default"></screenshot>
+   <screenshot></screenshot>
+ </screenshots>
+ <url type="homepage">http://devassistant.org/</url>
+ <updatecontact>bkabrda@redhat.com</updatecontact>
+</application>
