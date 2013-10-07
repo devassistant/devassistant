@@ -218,6 +218,8 @@ class RunWindow(object):
 
     def back_btn_clicked(self, widget, data=None):
         self.run_window.hide()
+        data = {}
+        data['back'] = True
         self.parent.path_window.open_window(widget, data)
 
 

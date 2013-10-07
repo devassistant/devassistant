@@ -31,6 +31,7 @@ class PathWindow(object):
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
         self.hseparator = self.builder.get_object("hseparator")
+        self.back_button = False
 
     def next_window(self, widget, data=None):
         #print self.parent.data
@@ -89,6 +90,10 @@ class PathWindow(object):
             else:
                 if 'default' in self.button[btn].kwargs:
                     self.parent.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
+                if self.back_button:
+                    if btn.get_label().lower().replace('-','_') in self.parent.kwargs:
+                        del self.parent.kwargs[btn.get_label().lower().replace('-','_')]
+
 
         if self.parent.get_current_main_assistant().name == 'crt':
             self.parent.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
@@ -109,6 +114,8 @@ class PathWindow(object):
             return path
 
     def open_window(self, widget, data=None):
+        if data != None:
+            self.back_button = data.get('back', False)
         text = self.get_user_path()
         self.dir_name.set_text(text)
         self._remove_widget_items()
@@ -133,6 +140,19 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.grid, False, False, 0)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
+        self.entry_project_name.set_text(os.path.basename(self.parent.kwargs.get('name','')))
+        if 'name' in self.parent.kwargs:
+            self.dir_name.set_text(os.path.dirname(self.parent.kwargs.get('name','')))
+        for arg in filter(lambda x: x.title() in self.entries, self.parent.kwargs):
+            self.entries[arg.title()].set_text(self.parent.kwargs.get(arg))
+        for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
+            if btn.get_label().lower().replace('-','_') in self.parent.kwargs:
+                btn.set_active(True)
+                if btn.get_label().lower().replace('-','_') in self.browse_btns:
+                    self.browse_btns[btn.get_label()].set_sensitive(True)
+            else:
+                btn.set_active(False)
+
 
     def _check_box_toggled(self, widget, data=None):
         active = widget.get_active()
@@ -170,7 +190,6 @@ class PathWindow(object):
         star_flag = False
         if arg.kwargs.get('required'):
             # If argument is required then red star instead of checkbox
-            #star_label = self.gui_helper.create_label('<span color="#FF0000">* {0}</span>'.format(self._check_box_title(arg, number)))
             star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.format(self._check_box_title(arg, number)))
             label = self.gui_helper.create_label(self._check_box_title(arg, number))
             box = self.gui_helper.create_box()
