@@ -51,4 +51,6 @@ class Argument(object):
             elif hint_type == 'bool':
                 return hint_default or arg_default or False
             else:
+                if hint_default == '$(whoami)':
+                    hint_default = os.getlogin()
                 return hint_default or arg_default or ''
