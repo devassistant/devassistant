@@ -22,8 +22,12 @@
   </p>
  </description>
  <screenshots>
-   <screenshot type="default"></screenshot>
-   <screenshot></screenshot>
+   <screenshot type="default" width="702" height="633">
+     https://raw.github.com/bkabrda/devassistant/master/appdata/devassistant-main-window.png
+   </screenshot>
+   <screenshot width="642" height="690">
+     https://raw.github.com/bkabrda/devassistant/master/appdata/devassistant-params-window.png
+   </screenshot>
  </screenshots>
  <url type="homepage">http://devassistant.org/</url>
  <updatecontact>bkabrda@redhat.com</updatecontact>
