@@ -109,6 +109,7 @@ class RunWindow(object):
         dirname, projectname = self.parent.path_window.get_data()
         self.info_box.pack_start(self.info_label, False, False, 12)
         if self.kwargs.get('github'):
+            self.info_box.remove(self.link)
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
                     "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'),projectname))
@@ -120,9 +121,10 @@ class RunWindow(object):
         self.cancel_btn.set_sensitive(False)
         self.debug_btn.set_sensitive(False)
         self.back_btn.hide()
+        self.info_label.set_label('<span color="#FFA500">In progress...</span>')
         self.thread.start()
         self.cancel_btn.set_sensitive(True)
-        self.link.set_sensitive(True)
+        self.link.hide()
 
     def done_thread(self):
         self.cancel_btn.set_label("Close")
@@ -162,6 +164,8 @@ class RunWindow(object):
             if not self.project_canceled:
                 self.info_label.set_label('<span color="#008000">Done</span>')
                 self.cancel_btn.set_label("Close")
+                self.link.set_sensitive(True)
+                self.link.show_all()
             else:
                 self.cancel_btn.set_sensitive(True)
                 self.info_label.set_label('<span color="#FF0000">Failed</span>')
