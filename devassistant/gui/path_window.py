@@ -27,15 +27,18 @@ class PathWindow(object):
         self.title.set_alignment(0,0)
         self.entries = dict()
         self.browse_btns= dict()
+        self.kwargs = {}
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
         self.hseparator = self.builder.get_object("hseparator")
         self.back_button = False
+        self.top_assistant = None
+        self.current_main_assistant = None
 
     def next_window(self, widget, data=None):
         #print self.parent.data
-        if self.parent.get_current_main_assistant().name == 'crt':
+        if self.current_main_assistant.name == 'crt':
             if self.dir_name.get_text() == "":
                 md=self.gui_helper.create_message_dialog("Specify directory for project")
                 md.run()
@@ -69,7 +72,7 @@ class PathWindow(object):
                 md.run()
                 md.destroy()
                 return
-            self.parent.kwargs[label.get_label()]=self.entries[label.get_label()].get_text()
+            self.kwargs[label.get_label()]=self.entries[label.get_label()].get_text()
 
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
             if btn.get_active():
@@ -84,19 +87,23 @@ class PathWindow(object):
                             md.run()
                             md.destroy()
                             return
-                        self.parent.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
+                        self.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
                 else:
-                    self.parent.kwargs[btn.get_label().lower().replace('-','_')]=True
+                    self.kwargs[btn.get_label().lower().replace('-','_')]=True
             else:
                 if 'default' in self.button[btn].kwargs:
-                    self.parent.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
+                    self.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
                 if self.back_button:
-                    if btn.get_label().lower().replace('-','_') in self.parent.kwargs:
-                        del self.parent.kwargs[btn.get_label().lower().replace('-','_')]
+                    if btn.get_label().lower().replace('-','_') in self.kwargs:
+                        del self.kwargs[btn.get_label().lower().replace('-','_')]
 
 
-        if self.parent.get_current_main_assistant().name == 'crt':
-            self.parent.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
+        if self.current_main_assistant.name == 'crt':
+            self.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
+        data = {}
+        data['kwargs'] = self.kwargs
+        data['top_assistant'] = self.top_assistant
+        data['current_main_assistant'] = self.current_main_assistant
         self.parent.run_window.open_window(widget, data)
         self.path_window.hide()
 
@@ -116,10 +123,13 @@ class PathWindow(object):
     def open_window(self, widget, data=None):
         if data != None:
             self.back_button = data.get('back', False)
+            self.top_assistant = data.get('top_assistant', None)
+            self.current_main_assistant = data.get('current_main_assistant', None)
+            self.kwargs = data.get('kwargs', None)
         text = self.get_user_path()
         self.dir_name.set_text(text)
         self._remove_widget_items()
-        if self.parent.get_current_main_assistant().name != 'crt':
+        if self.current_main_assistant.name != 'crt':
             self.box6.remove(self.box_project)
         else:
             self.box6.remove(self.box_path_main)
@@ -129,7 +139,7 @@ class PathWindow(object):
         caption_text = "Project: "
         row = 0
         # get selectected assistants, but without TopAssistant itself
-        path = self.parent.top_assistant.get_selected_subassistant_path(**self.parent.kwargs)[1:]
+        path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)[1:]
         caption_parts = []
 
         for a in path:
@@ -140,13 +150,13 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.grid, False, False, 0)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
-        self.entry_project_name.set_text(os.path.basename(self.parent.kwargs.get('name','')))
-        if 'name' in self.parent.kwargs:
-            self.dir_name.set_text(os.path.dirname(self.parent.kwargs.get('name','')))
-        for arg in filter(lambda x: x.title() in self.entries, self.parent.kwargs):
-            self.entries[arg.title()].set_text(self.parent.kwargs.get(arg))
+        self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name','')))
+        if 'name' in self.kwargs:
+            self.dir_name.set_text(os.path.dirname(self.kwargs.get('name','')))
+        for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
+            self.entries[arg.title()].set_text(self.kwargs.get(arg))
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
-            if btn.get_label().lower().replace('-','_') in self.parent.kwargs:
+            if btn.get_label().lower().replace('-','_') in self.kwargs:
                 btn.set_active(True)
                 if btn.get_label().lower().replace('-','_') in self.browse_btns:
                     self.browse_btns[btn.get_label()].set_sensitive(True)
@@ -248,7 +258,7 @@ class PathWindow(object):
                 align_btn.add(self.browse_btn)
                 self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
             elif arg.get_gui_hint('type') == 'str':
-                if isinstance(self.parent.get_current_main_assistant(), CreatorAssistant):
+                if isinstance(self.current_main_assistant, CreatorAssistant):
                     align_btn.add(self.link_button)
                     self.browse_btns[self._check_box_title(arg,number)]=self.link_button
             new_box.pack_start(align_btn, False, False, 6)

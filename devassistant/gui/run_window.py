@@ -92,8 +92,15 @@ class RunWindow(object):
         self.link = self.gui_helper.create_button()
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
         self.project_canceled = False
+        self.kwargs = {}
+        self.current_main_assistant = None
+        self.top_assistant = None
 
     def open_window(self, widget, data=None):
+        if data != None:
+            self.kwargs = data.get('kwargs', None)
+            self.top_assistant = data.get('top_assistant', None)
+            self.current_main_assistant = data.get('current_main_assistant', None)
         self.store.clear()
         self.debugging = False
         self.debug_logs = dict()
@@ -101,10 +108,10 @@ class RunWindow(object):
         self.thread = threading.Thread(target=self.devassistant_start)
         dirname, projectname = self.parent.path_window.get_data()
         self.info_box.pack_start(self.info_label, False, False, 12)
-        if self.parent.kwargs.get('github'):
+        if self.kwargs.get('github'):
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
-                    "http://www.github.com/{0}/{1}".format(self.parent.kwargs.get('github'),projectname))
+                    "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'),projectname))
             self.link.set_border_width(6)
             self.link.set_sensitive(False)
             self.info_box.pack_start(self.link, False, False, 12)
@@ -147,10 +154,10 @@ class RunWindow(object):
 
     def devassistant_start(self):
         #logger_gui.info("Thread run")
-        path = self.parent.top_assistant.get_selected_subassistant_path(**self.parent.kwargs)
+        path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)
         self.pr = path_runner.PathRunner(path)
         try:
-            self.pr.run(**self.parent.kwargs)
+            self.pr.run(**self.kwargs)
             Gdk.threads_enter()
             if not self.project_canceled:
                 self.info_label.set_label('<span color="#008000">Done</span>')
@@ -220,6 +227,9 @@ class RunWindow(object):
         self.run_window.hide()
         data = {}
         data['back'] = True
+        data['top_assistant'] = self.top_assistant
+        data['current_main_assistant'] = self.current_main_assistant
+        data['kwargs'] = self.kwargs
         self.parent.path_window.open_window(widget, data)
 
 

@@ -125,7 +125,11 @@ class MainWindow(object):
         if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
         self.kwargs['subassistant_2']=item[1]
-        self.path_window.open_window(widget)
+        data = {}
+        data['top_assistant'] = self.top_assistant
+        data['current_main_assistant'] = self.get_current_main_assistant()
+        data['kwargs'] = self.kwargs
+        self.path_window.open_window(widget, data)
         self.main_win.hide()
 
     def get_current_main_assistant(self):
@@ -137,7 +141,11 @@ class MainWindow(object):
         self.kwargs['subassistant_1']=data
         if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
-        self.path_window.open_window(widget)
+        data = {}
+        data['top_assistant'] = self.top_assistant
+        data['current_main_assistant'] = self.get_current_main_assistant()
+        data['kwargs'] = self.kwargs
+        self.path_window.open_window(widget, data)
         self.main_win.hide()
 
     def browse_path(self, window):
