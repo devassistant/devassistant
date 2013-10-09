@@ -6,7 +6,7 @@
 Welcome to DevAssistant documentation!
 ======================================
 
-DevAssistant - start developing with ease.
+DevAssistant - start developing in a jiffy.
 
 Contents
 --------
