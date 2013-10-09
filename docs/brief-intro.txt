@@ -19,3 +19,7 @@ DevAssistant also allows you to work with a previously created project, for exam
 Last but not least, DevAssistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by DevAssistant or using specific assistant for specific projects)::
 
    $ da prep custom custom -u scm_url
+
+**Warning:** The ``custom`` assistant executes custom pieces of code from
+``.devassistant`` file of the project. Therefore you have to be extra careful
+and use this **only with projects whose authors you trust**.

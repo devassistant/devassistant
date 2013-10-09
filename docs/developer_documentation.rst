@@ -9,6 +9,7 @@ Developer Documentation
    developer_documentation/tutorial_creating_assistant
    developer_documentation/yaml_assistant_reference
    developer_documentation/common_assistant_behaviour
+   developer_documentation/dot_devassistant
 
 Overall Design
 --------------

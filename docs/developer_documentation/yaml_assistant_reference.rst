@@ -91,6 +91,8 @@ sort of reasonable default, it's up to your consideration which of them to use):
   ``.svg`` - e.g. for ``~/.devassistant/assistants/crt/foo/bar.yaml``,
   the default icon path is ``~/.devassistant/icons/crt/foo/bar.svg``
 
+.. _dependencies_ref:
+
 Dependencies
 ------------
 
@@ -237,6 +239,9 @@ This section serves as a list of aliases of files stored in one of the
 This will allow you to reference the ``spam`` file in ``run`` section as
 ``*spam`` without having to know where exactly it is located in your
 installation of DevAssistant.
+
+
+.. _run_ref:
 
 Run
 ---
