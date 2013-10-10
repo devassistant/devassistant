@@ -26,7 +26,7 @@ class CreatorWindow(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
         self.main_win = self.builder.get_object("mainWindow")
-        self.gui_helper = gui_helper.gui_helper(self)
+        self.gui_helper = gui_helper.GuiHelper(self)
         self.yaml_window = yaml_window.YamlWindow(self, self.main_win, self.builder)
         #self.finalWindow = finalWindow.finalWindow(self, self.pathWindow, self.builder)
         #self.runWindow = runWindow.runWindow(self, self.finalWindow, self.builder, DevelCreatorAssistants())
