@@ -114,7 +114,12 @@ class DotDevassistantCommandRunner(object):
     @classmethod
     def _dot_devassistant_read(cls, comm, **kwargs):
         """Don't use this directly from assistants (yet), raises uncaught exception
-        if anything goes wrong."""
+        if anything goes wrong.
+        Reads and returns data from .devassistant file. On top of it, it adds:
+        - "name" - contains the name of current directory.
+        - "dda__<var>" - (yes, that is double underscore) - for each <var> that
+          this project was created with.
+        """
         dot_devassistant = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
         try:
             with open(dot_devassistant, 'r') as stream:
@@ -124,6 +129,8 @@ class DotDevassistantCommandRunner(object):
             logger.error(msg)
             raise exceptions.RunException(msg)
 
+        for k, v in result.get('original_kwargs', {}).items():
+            result['dda__' + k] = v
         result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
         return result
 

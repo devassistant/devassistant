@@ -54,6 +54,8 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         self.files_dir = value.get('files_dir', self.default_files_dir_for('assistants'))
         self._files = value.get('files', {})
         self._logging = value.get('logging', [])
+        # modifiers use this to decide whether or not to read .devassistant
+        self._devassistant_projects_only = value.get('devassistant_projects_only', True)
         # set _run and _dependencies as empty in case assistant doesn't have them at all
         self._dependencies = value.get('dependencies', [])
         self._run = value.get('run', [])
@@ -120,7 +122,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def proper_kwargs(self, **kwargs):
         """Returns kwargs possibly updated with values from .devassistant
         file, when appropriate."""
-        if self.role == 'mod':
+        if self.role == 'mod' and self._devassistant_projects_only:
             # don't rewrite old values
             # first get the new ones and then update them with the old
             new_kwargs = command.Command('dda_r', kwargs.get('path', '.'), **kwargs).run()
@@ -161,10 +163,10 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         kwargs = self.proper_kwargs(**kwargs)
         sections = [getattr(self, '_dependencies', [])]
-        if self.role == 'mod':
+        if self.role == 'mod' and self._devassistant_projects_only:
             # if subassistant_path is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
-            for i in range(1, len(kwargs['subassistant_path']) + 1):
+            for i in range(1, len(kwargs.get('subassistant_path', [])) + 1):
                 possible_dep_section = '_dependencies_{0}'.format('_'.join(kwargs['subassistant_path'][:i]))
                 if possible_dep_section in dir(self):
                     sections.append(getattr(self, possible_dep_section))
@@ -216,10 +218,10 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     @needs_fully_loaded
     def run(self, **kwargs):
         kwargs = self.proper_kwargs(**kwargs)
-        if self.role == 'mod':
+        if self.role == 'mod' and self._devassistant_projects_only:
             # try to get a section to run from the most specialized one to the least specialized one
             # e.g. first run_python_django, then run_python and then just run
-            sa_path = kwargs['subassistant_path']
+            sa_path = kwargs.get('subassistant_path', [])
             for i in range(len(sa_path), -1, -1):
                 path = '_'.join(sa_path[:i])
                 if path:

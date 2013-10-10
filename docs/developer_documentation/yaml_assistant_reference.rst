@@ -422,8 +422,18 @@ subdirectory of one of the load paths, as mentioned in
 
 There are few special things about modifier assistants:
 
-- They read the whole .devassistant file and make its contents available
-  as any other variables (notably ``$subassistant_path``).
+- They read the whole ``.devassistant`` file (from directory specified by
+  ``path`` variable or from current directory, if ``path`` is not specified)
+  and make its contents available in variables (notably ``$subassistant_path``).
+  If you don't want your assistant to search for and read ``.devassistant``,
+  just specify ``devassistant_projects_only: False`` (the default value
+  is ``True``)::
+
+     mymodifier:
+       fullname: My Modifier
+       description: Blah blah blah
+       devassistant_projects_only: False
+
 - They use dependency sections according to the normal rules + they use *all*
   the sections that are named according to loaded ``$subassistant_path``,
   e.g. if ``$subassistant_path`` is ``[foo, bar]``, dependency sections
