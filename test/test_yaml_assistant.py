@@ -238,6 +238,17 @@ class TestYamlAssistant(object):
         assert ('INFO', 'foo') in self.tlh.msgs
         assert ('INFO', 'bar') in self.tlh.msgs
 
+    def test_loop_two_control_vars_fails_on_string(self):
+        self.ya._run = [{'for $i, $j in $(echo "foo bar")': [{'log_i': '$i'}]}]
+        with pytest.raises(exceptions.YamlSyntaxError):
+            self.ya.run()
+
+    def test_loop_two_control_vars_fails_on_string(self):
+        self.ya._run = [{'for $i, $j in $foo': [{'log_i': '$i, $j'}]}]
+        self.ya.run(foo={'bar': 'barval', 'spam': 'spamval'})
+        assert ('INFO', 'bar, barval') in self.tlh.msgs
+        assert ('INFO', 'spam, spamval') in self.tlh.msgs
+
 
 class TestExpressions(TestYamlAssistant):
     def test_assign_existing_nonempty_variable(self):
@@ -333,9 +344,6 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
         assert ('INFO', 'False') in self.tlh.msgs
         assert ('INFO', 'good, no spam') in self.tlh.msgs
-
-    # TODO: test loops
-
 
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):

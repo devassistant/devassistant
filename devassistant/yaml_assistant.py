@@ -2,6 +2,7 @@ import copy
 import functools
 import logging
 import os
+import re
 import sys
 
 from devassistant import argument
@@ -300,9 +301,13 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     skip_else = False
                 elif comm_type.startswith('for'):
                     # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                    control_var, eval_expression = self._get_for_control_var_and_eval_expr(comm_type, **kwargs)
+                    control_vars, eval_expression = self._get_for_control_var_and_eval_expr(comm_type, **kwargs)
                     for i in eval_expression:
-                        kwargs[control_var] = i
+                        if len(control_vars) == 2:
+                            kwargs[control_vars[0]] = i[0]
+                            kwargs[control_vars[1]] = i[1]
+                        else:
+                            kwargs[control_vars[0]] = i
                         self._run_one_section(comm, kwargs)
                 elif comm_type.startswith('scl'):
                     if '__scls__' not in kwargs:
@@ -320,41 +325,37 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return not (cmd_call == 'self' or cmd_call.startswith('self.'))
 
     def _parse_for(self, control_line, **kwargs):
-        """Returns name of loop control variable and expression to iterate on.
+        """Returns name of loop control variable(s) and expression to iterate on.
 
         For example:
-        - given "for $i in $foo", returns ('i', '$foo')
-        - given "for ${i} in $(ls $foo)", returns ('i', 'ls $foo')
+        - given "for $i in $foo", returns (['i'], '$foo')
+        - given "for ${i} in $(ls $foo)", returns (['i'], 'ls $foo')
+        - given "for $k, $v in $foo", returns (['k', 'v'], '$foo')
         """
-        for_parts = control_line.split(None, 3)
         error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
-        if for_parts[0] != 'for':
-            pass # specify the error more?
-        elif for_parts[2] != 'in':
-            pass # specify the error more?
-        elif len(for_parts) != 4:
-            pass # specify the error more?
-        else:
-            try:
-                control_var = self._get_var_name(for_parts[1])
-                error = None
-            except exceptions.YamlSyntaxError:
-                pass # specify the error more?
-
-        if error:
+        regex = re.compile(r'for\s+(\${?\S}?)(?:\s*,\s+(\${?\S}?))?\s+in\s+(\S.+)')
+        res = regex.match(control_line).groups()
+        if not res:
             raise exceptions.YamlSyntaxError(error)
 
-        return (control_var, for_parts[3])
+        control_vars = []
+        control_vars.append(self._get_var_name(res[0]))
+        if res[1]:
+            control_vars.append(self._get_var_name(res[1]))
+        expr = res[2]
+
+        return (control_vars, expr)
 
     def _get_for_control_var_and_eval_expr(self, comm_type, **kwargs):
         """Returns tuple that consists of control variable name and iterable that is result
         of evaluated expression of given for loop.
 
         For example:
-        - given 'for $i in $(echo "foo bar")' it returns ('i', ['foo', 'bar'])
+        - given 'for $i in $(echo "foo bar")' it returns (['i'], ['foo', 'bar'])
+        - given 'for $i, $j in $foo' it returns (['i', 'j'], [('foo', 'bar')])
         """
         try:
-            control_var, expression = self._parse_for(comm_type)
+            control_vars, expression = self._parse_for(comm_type)
         except exceptions.YamlSyntaxError as e:
             logger.error(e)
             raise e
@@ -365,9 +366,15 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             raise e
 
         iterval = []
-        if isinstance(eval_expression, basestring):
+        if len(control_vars) == 2:
+            if not isinstance(eval_expression, dict):
+                raise exceptions.YamlSyntaxError('Can\'t expand {t} to two control variables.'.\
+                        format(t=type(eval_expression)))
+            else:
+                iterval = list(eval_expression.items())
+        elif isinstance(eval_expression, basestring):
             iterval = eval_expression.split()
-        return control_var, iterval
+        return control_vars, iterval
 
     def _get_section_from_condition(self, if_section, else_section=None, **kwargs):
         """Returns section that should be used from given if/else sections by evaluating given condition.

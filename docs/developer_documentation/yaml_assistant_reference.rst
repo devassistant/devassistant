@@ -309,13 +309,22 @@ List of supported **command types** and their function follows:
      if $foo:
      - cl_i: Foo is $foo!
 
-``for <var> in <expression>``
+``for <var>[, <var>] in <expression>``
   (for example ``for $i in $(ls)``) - loop over *result* of given expression
   (if it is string, which almost always is, it is split on whitespaces) in
   section given by **input**::
 
      for $i in $(ls):
      - log_i: $i
+
+  If the result of the expression is a mapping type, you can use two variables
+  to loop over key-value pairs::
+
+     foo:
+       1: one
+       2: two
+     for $k, $v in $foo:
+     - log_i: $k, $v
 
 ``$foo``
   assigns *result* of **input** (an `Expression`_) to the given variable
