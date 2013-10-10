@@ -240,6 +240,12 @@ dependencies. (There is more to this, you can for example add a custom
 but this is not covered by this tutorial (not even by reference, so I need to
 place TODO here to document it).)
 
+*Note: There can be more dependencies sections and run sections in one
+assistant. To find out more about the rules of when they're used and how
+run sections can call each other, consult*
+:ref:`dependencies reference <dependencies_ref>` *and*
+:ref:`run reference <run_ref>`.
+
 Something About Snippets
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -303,3 +309,34 @@ The Whole Assistant
      - log_i: Project "$proj_name" has been created in "$name".
 
 And can be run like this: ``da crt python argh -n foo/bar``.
+
+
+Creating a Modifier
+-------------------
+
+*This section assumes that you've read the previous tutorial and are therefore
+familiar with DevAssistant basics.*
+Modifiers are meant to modify existing projects, that means projects with
+``.devassistant`` file (there is also an option to write assistant that
+modifies an arbitrary project without ``.devassistant``, read on).
+
+Modifier Specialties
+~~~~~~~~~~~~~~~~~~~~
+
+On invocation of a modifier, DevAssistant tries to read ``.devassistant``
+file from path specified by ``path`` argument, if the assistant has such
+argument. Otherwise, it tries to read it from current directory. It the
+file is not found, DevAssistant fails immediately. If you don't want
+DevAssistant to look for and read ``.devassistant``, you need to specify
+``devassistant_projects_only: False``, see reference for
+:ref:`modifier_assistants_ref`.
+
+Another specialty of modifiers is, that DevAssistant tries to search for more
+``dependencies`` sections to use. If the project was previously created by
+``crt python django``, the engine will install dependencies from sections
+``dependencies_python_django``, ``dependencies_python`` and ``dependencies``.
+
+Also, the engine will try to run ``run_python_django`` section first, then it
+will try ``run_python`` and then ``run`` - note, that this will only run the
+first found section and then exit, unlike with dependencies, where all found
+sections are used.
