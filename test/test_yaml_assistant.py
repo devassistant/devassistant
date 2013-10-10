@@ -227,6 +227,17 @@ class TestYamlAssistant(object):
         self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/bar/baz.yaml')
         assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/crt/bar/baz.svg')
 
+    def test_loop_empty_string(self):
+        self.ya._run = [{'for $i in $(echo "")': [{'log_i': '$i'}]}]
+        self.ya.run()
+        assert 'INFO' not in map(lambda x: x[0], self.tlh.msgs)
+
+    def test_loop_words(self):
+        self.ya._run = [{'for $i in $(echo "foo bar")': [{'log_i': '$i'}]}]
+        self.ya.run()
+        assert ('INFO', 'foo') in self.tlh.msgs
+        assert ('INFO', 'bar') in self.tlh.msgs
+
 
 class TestExpressions(TestYamlAssistant):
     def test_assign_existing_nonempty_variable(self):

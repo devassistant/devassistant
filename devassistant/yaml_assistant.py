@@ -2,6 +2,7 @@ import copy
 import functools
 import logging
 import os
+import sys
 
 from devassistant import argument
 from devassistant import assistant_base
@@ -26,6 +27,9 @@ def needs_fully_loaded(method):
         return method(self, *args, **kwargs)
 
     return inner
+
+if sys.version_info[0] > 2:
+    basestring = str
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='crt'):
@@ -296,17 +300,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     skip_else = False
                 elif comm_type.startswith('for'):
                     # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                    try:
-                        control_var, expression = self._parse_for(comm_type)
-                    except exceptions.YamlSyntaxError as e:
-                        logger.error(e)
-                        raise e
-                    try:
-                        eval_expression = self._evaluate(expression, **kwargs)[1]
-                    except exceptions.YamlSyntaxError as e:
-                        logger.log(e)
-                        raise e
-
+                    control_var, eval_expression = self._get_for_control_var_and_eval_expr(comm_type, **kwargs)
                     for i in eval_expression:
                         kwargs[control_var] = i
                         self._run_one_section(comm, kwargs)
@@ -351,6 +345,29 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             raise exceptions.YamlSyntaxError(error)
 
         return (control_var, for_parts[3])
+
+    def _get_for_control_var_and_eval_expr(self, comm_type, **kwargs):
+        """Returns tuple that consists of control variable name and iterable that is result
+        of evaluated expression of given for loop.
+
+        For example:
+        - given 'for $i in $(echo "foo bar")' it returns ('i', ['foo', 'bar'])
+        """
+        try:
+            control_var, expression = self._parse_for(comm_type)
+        except exceptions.YamlSyntaxError as e:
+            logger.error(e)
+            raise e
+        try:
+            eval_expression = self._evaluate(expression, **kwargs)[1]
+        except exceptions.YamlSyntaxError as e:
+            logger.log(e)
+            raise e
+
+        iterval = []
+        if isinstance(eval_expression, basestring):
+            iterval = eval_expression.split()
+        return control_var, iterval
 
     def _get_section_from_condition(self, if_section, else_section=None, **kwargs):
         """Returns section that should be used from given if/else sections by evaluating given condition.
