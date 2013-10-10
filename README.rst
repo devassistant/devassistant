@@ -10,7 +10,7 @@ DevAssistant
 .. image:: https://pypip.in/d/devassistant/badge.png
         :target: https://pypi.python.org/pypi/devassistant
 
-Start developing with ease!
+DevAssistant - making life easier for developers
 
 DevAssistant project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 

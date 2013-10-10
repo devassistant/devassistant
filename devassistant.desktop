@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=0.7
 Name=DevAssistant
-GenericName=Start developing with ease
+GenericName=DevAssistant - making life easier for developers
 Exec=da-gui
 Terminal=false
 Type=Application
