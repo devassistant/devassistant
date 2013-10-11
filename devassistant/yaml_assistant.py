@@ -1,9 +1,6 @@
-import copy
 import functools
 import logging
 import os
-import re
-import sys
 
 from devassistant import argument
 from devassistant import assistant_base
@@ -14,7 +11,6 @@ from devassistant import lang
 from devassistant import loaded_yaml
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
-from devassistant import package_managers
 
 def needs_fully_loaded(method):
     """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded

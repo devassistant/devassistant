@@ -3,6 +3,7 @@ import sys
 
 from devassistant import command
 from devassistant import exceptions
+from devassistant.logger import logger
 from devassistant import package_managers
 
 if sys.version_info[0] > 2:
