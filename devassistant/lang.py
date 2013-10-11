@@ -33,7 +33,9 @@ def dependencies_section(section, kwargs, runner=None):
             elif dep_type == 'else':
                 # else on its own means error, otherwise execute it
                 if not skip_else:
-                    logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                    msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
+                    logger.error(msg)
+                    raise exceptions.YamlSyntaxError(msg)
                 skip_else = False
             else:
                 logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
@@ -64,7 +66,9 @@ def run_section(section, kwargs, runner=None):
                     run_section(to_run, kwargs, runner=runner)
             elif comm_type == 'else':
                 if not skip_else:
-                    logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                    msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
+                    logger.error(msg)
+                    raise exceptions.YamlSyntaxError(msg)
                 skip_else = False
             elif comm_type.startswith('for'):
                 # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
