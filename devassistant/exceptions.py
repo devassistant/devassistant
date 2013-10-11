@@ -16,16 +16,16 @@ class ClException(RunException):
     def __str__(self):
         return self.output
 
-class YamlTypeError(BaseException):
+class YamlTypeError(ExecutionException):
     pass
 
-class YamlSyntaxError(BaseException):
+class YamlSyntaxError(ExecutionException):
     pass
 
-class AssistantNotFoundException(BaseException):
+class AssistantNotFoundException(ExecutionException):
     pass
 
-class SnippetNotFoundException(BaseException):
+class SnippetNotFoundException(ExecutionException):
     pass
 
 
