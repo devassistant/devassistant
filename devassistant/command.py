@@ -9,7 +9,7 @@ from devassistant import utils
 class Command(object):
     _command_runners = None
 
-    def __init__(self, comm_type, comm, kwargs):
+    def __init__(self, comm_type, comm, kwargs={}):
         self.comm_type = comm_type
         self.comm = comm
         self.files_dir = kwargs.get('__files_dir__', [''])[-1]

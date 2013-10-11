@@ -14,6 +14,8 @@ from devassistant.yaml_snippet_loader import YamlSnippetLoader
 # hook app testing logging
 from test.logger import TestLoggingHandler
 
+# TODO: some of this should probably be tested in command_runners/lang
+
 class TestYamlAssistant(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '')

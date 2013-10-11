@@ -235,8 +235,8 @@ class DotDevassistantCommandRunner(object):
                 #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                 if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
                     struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
-            struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), **kwargs))
-        command.Command('dependencies', struct, **kwargs).run()
+            struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), kwargs))
+        command.Command('dependencies', struct, kwargs).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, **kwargs):
