@@ -1,5 +1,8 @@
-from devassistant import yaml_assistant
 from devassistant import command
+from devassistant.logger import logger
+from devassistant import exceptions
+from devassistant import utils
+from devassistant import yaml_assistant
 
 class PathRunner(object):
     def __init__(self, path, override_sys_excepthook=True):
@@ -41,10 +44,16 @@ class PathRunner(object):
         Raises:
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
-        self._logging(**parsed_args)
-        self._run_path_dependencies(**parsed_args)
-        if not 'deps_only' in parsed_args:
-            self._run_path_run(**parsed_args)
+        try: # serve as a central place for error logging
+            self._logging(**parsed_args)
+            self._run_path_dependencies(**parsed_args)
+            if not 'deps_only' in parsed_args:
+                self._run_path_run(**parsed_args)
+        except exceptions.ExecutionException as e:
+            if not getattr(e, 'already_logged', False):
+                # this is here primarily because of log_ command, that logs the message itself
+                logger.error(utils.u(e))
+            raise e
 
     def stop(self):
         for a in self.path:

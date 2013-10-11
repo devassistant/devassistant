@@ -5,7 +5,6 @@ from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import package_managers
-from devassistant import utils
 
 if sys.version_info[0] > 2:
     basestring = str
@@ -50,45 +49,41 @@ def run_section(section, kwargs, runner=None):
         if getattr(runner, 'stop_flag', False):
             break
         for comm_type, comm in command_dict.items():
-            try: # serves as a central place where we log the exception and reraise it
-                if comm_type.startswith('$'):
-                    # intentionally pass kwargs as dict, not as keywords
-                    assign_variable(comm_type, comm, kwargs)
-                elif comm_type.startswith('if'):
-                    possible_else = None
-                    if len(section) > i + 1: # do we have "else" clause?
-                        possible_else = list(section[i + 1].items())[0]
-                    _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
-                    if to_run:
-                        # run with original kwargs, so that they might be changed for code after this if
-                        run_section(to_run, kwargs, runner=runner)
-                elif comm_type == 'else':
-                    if not skip_else:
-                        msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
-                        raise exceptions.YamlSyntaxError(msg)
-                    skip_else = False
-                elif comm_type.startswith('for'):
-                    # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                    control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type, kwargs)
-                    for i in eval_expression:
-                        if len(control_vars) == 2:
-                            kwargs[control_vars[0]] = i[0]
-                            kwargs[control_vars[1]] = i[1]
-                        else:
-                            kwargs[control_vars[0]] = i
-                        run_section(comm, kwargs, runner=runner)
-                elif comm_type.startswith('scl'):
-                    # list of lists of scl names
-                    kwargs['__scls__'].append(comm_type.split()[1:])
+            if comm_type.startswith('$'):
+                # intentionally pass kwargs as dict, not as keywords
+                assign_variable(comm_type, comm, kwargs)
+            elif comm_type.startswith('if'):
+                possible_else = None
+                if len(section) > i + 1: # do we have "else" clause?
+                    possible_else = list(section[i + 1].items())[0]
+                _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
+                if to_run:
+                    # run with original kwargs, so that they might be changed for code after this if
+                    run_section(to_run, kwargs, runner=runner)
+            elif comm_type == 'else':
+                if not skip_else:
+                    msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
+                    raise exceptions.YamlSyntaxError(msg)
+                skip_else = False
+            elif comm_type.startswith('for'):
+                # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
+                control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type, kwargs)
+                for i in eval_expression:
+                    if len(control_vars) == 2:
+                        kwargs[control_vars[0]] = i[0]
+                        kwargs[control_vars[1]] = i[1]
+                    else:
+                        kwargs[control_vars[0]] = i
                     run_section(comm, kwargs, runner=runner)
-                    kwargs['__scls__'].pop()
-                else:
-                    command.Command(comm_type,
-                                    comm,
-                                    kwargs).run()
-            except exceptions.ExecutionException as e:
-                logger.error(utils.u(e))
-                raise e
+            elif comm_type.startswith('scl'):
+                # list of lists of scl names
+                kwargs['__scls__'].append(comm_type.split()[1:])
+                run_section(comm, kwargs, runner=runner)
+                kwargs['__scls__'].pop()
+            else:
+                command.Command(comm_type,
+                                comm,
+                                kwargs).run()
 
 def parse_for(control_line):
     """Returns name of loop control variable(s) and expression to iterate on.

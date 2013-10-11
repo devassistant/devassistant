@@ -515,6 +515,8 @@ class LogCommandRunner(CommandRunner):
         if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
             logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], comm)
             if c.comm_type[-1] in 'ce':
-                raise exceptions.RunException(comm)
+                e = exceptions.RunException(comm)
+                e.already_logged = True
+                raise e
         else:
             logger.warning('Unknown logging command {0} with message {1}'.format(c.comm_type, comm))
