@@ -9,6 +9,7 @@ import yaml
 from devassistant import exceptions
 from devassistant import command
 from devassistant.command_helpers import ClHelper, DialogHelper
+from devassistant import lang
 from devassistant.logger import logger
 from devassistant.package_managers import DependencyInstaller
 from devassistant import settings
@@ -47,9 +48,9 @@ class CallCommandRunner(object):
             c.kwargs['__files_dir__'].append(snippet.get_files_dir())
 
         if sect_type == 'dependencies':
-            result = assistant._dependencies_section(section, copy.deepcopy(c.kwargs))
+            result = lang.dependencies_section(section, copy.deepcopy(c.kwargs), runner=assistant)
         else:
-            result = assistant._run_one_section(section, copy.deepcopy(c.kwargs))
+            result = lang.run_section(section, copy.deepcopy(c.kwargs), runner=assistant)
 
         if cls.is_snippet_call(c.comm):
             c.kwargs['__files__'].pop()
@@ -233,15 +234,18 @@ class DotDevassistantCommandRunner(object):
                 logger.warning(str(e))
             for a in path:
                 #TODO: maybe figure out more DRY code (similar is in path_runner, too)
-                if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
+                if 'dependencies' in vars(a.__class__) or \
+                   isinstance(a, yaml_assistant.YamlAssistant):
                     struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
-            struct.extend(kwargs['__assistant__']._dependencies_section(dda_content.get('dependencies', []), kwargs))
+            struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
+                                                    kwargs,
+                                                    runner=kwargs['__assistant__']))
         command.Command('dependencies', struct, kwargs).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, **kwargs):
         dda_content = cls._dot_devassistant_read(comm, **kwargs)
-        return kwargs['__assistant__']._run_one_section(dda_content.get('run', []), kwargs)
+        return lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
 
 class GitHubAuth(object):
     _user = None

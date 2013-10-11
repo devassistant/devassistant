@@ -3,9 +3,87 @@ import sys
 
 from devassistant import command
 from devassistant import exceptions
+from devassistant import package_managers
 
 if sys.version_info[0] > 2:
     basestring = str
+
+def dependencies_section(section, kwargs, runner=None):
+    # "deps" is the same structure as gets returned by "dependencies" method
+    skip_else = False
+    deps = []
+
+    for i, dep in enumerate(section):
+        if getattr(runner, 'stop_flag', False):
+            break
+        for dep_type, dep_list in dep.items():
+            # rpm dependencies (can't handle anything else yet)
+            if dep_type == 'call': # we don't allow general commands, only "call" command here
+                deps.extend(command.Command(dep_type, dep_list, kwargs).run())
+            elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
+                deps.append({dep_type: dep_list})
+            elif dep_type.startswith('if'):
+                possible_else = None
+                if len(section) > i + 1: # do we have "else" clause?
+                    possible_else = list(section[i + 1].items())[0]
+                _, skip_else, to_run = get_section_from_condition((dep_type, dep_list), possible_else, kwargs)
+                if to_run:
+                    deps.extend(dependencies_section(to_run, kwargs, runner=runner))
+            elif dep_type == 'else':
+                # else on its own means error, otherwise execute it
+                if not skip_else:
+                    logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                skip_else = False
+            else:
+                logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
+
+    return deps
+
+def run_section(section, kwargs, runner=None):
+    skip_else = False
+
+    for i, command_dict in enumerate(section):
+        if getattr(runner, 'stop_flag', False):
+            break
+        for comm_type, comm in command_dict.items():
+            if comm_type.startswith('$'):
+                # intentionally pass kwargs as dict, not as keywords
+                try:
+                    assign_variable(comm_type, comm, kwargs)
+                except exceptions.YamlSyntaxError as e:
+                    logger.error(e)
+                    raise e
+            elif comm_type.startswith('if'):
+                possible_else = None
+                if len(section) > i + 1: # do we have "else" clause?
+                    possible_else = list(section[i + 1].items())[0]
+                _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
+                if to_run:
+                    # run with original kwargs, so that they might be changed for code after this if
+                    run_section(to_run, kwargs, runner=runner)
+            elif comm_type == 'else':
+                if not skip_else:
+                    logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                skip_else = False
+            elif comm_type.startswith('for'):
+                # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
+                control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type, kwargs)
+                for i in eval_expression:
+                    if len(control_vars) == 2:
+                        kwargs[control_vars[0]] = i[0]
+                        kwargs[control_vars[1]] = i[1]
+                    else:
+                        kwargs[control_vars[0]] = i
+                    run_section(comm, kwargs, runner=runner)
+            elif comm_type.startswith('scl'):
+                # list of lists of scl names
+                kwargs['__scls__'].append(comm_type.split()[1:])
+                run_section(comm, kwargs, runner=runner)
+                kwargs['__scls__'].pop()
+            else:
+                command.Command(comm_type,
+                                comm,
+                                kwargs).run()
 
 def parse_for(control_line):
     """Returns name of loop control variable(s) and expression to iterate on.

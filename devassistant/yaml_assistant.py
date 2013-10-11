@@ -186,36 +186,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         deps = []
 
         for sect in sections:
-            deps.extend(self._dependencies_section(sect, kwargs))
-
-        return deps
-
-    def _dependencies_section(self, section, kwargs):
-        # "deps" is the same structure as gets returned by "dependencies" method
-        skip_else = False
-        deps = []
-
-        for i, dep in enumerate(section):
-            for dep_type, dep_list in dep.items():
-                # rpm dependencies (can't handle anything else yet)
-                if dep_type == 'call': # we don't allow general commands, only "call" command here
-                    deps.extend(command.Command(dep_type, dep_list, kwargs).run())
-                elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
-                    deps.append({dep_type: dep_list})
-                elif dep_type.startswith('if'):
-                    possible_else = None
-                    if len(section) > i + 1: # do we have "else" clause?
-                        possible_else = list(section[i + 1].items())[0]
-                    _, skip_else, to_run = lang.get_section_from_condition((dep_type, dep_list), possible_else, kwargs)
-                    if to_run:
-                        deps.extend(self._dependencies_section(to_run, kwargs))
-                elif dep_type == 'else':
-                    # else on its own means error, otherwise execute it
-                    if not skip_else:
-                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
-                    skip_else = False
-                else:
-                    logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
+            deps.extend(lang.dependencies_section(sect, kwargs, runner=self))
 
         return deps
 
@@ -263,56 +234,10 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
 
         if self._pre_run:
-            self._run_one_section(self._pre_run, kwargs)
-        self._run_one_section(to_run, kwargs)
+            lang.run_section(self._pre_run, kwargs, runner=self)
+        lang.run_section(to_run, kwargs, runner=self)
         if self._post_run:
-            self._run_one_section(self._post_run, kwargs)
-
-    def _run_one_section(self, section, kwargs):
-        skip_else = False
-
-        for i, command_dict in enumerate(section):
-            if self.stop_flag:
-                break
-            for comm_type, comm in command_dict.items():
-                if comm_type.startswith('$'):
-                    # intentionally pass kwargs as dict, not as keywords
-                    try:
-                        lang.assign_variable(comm_type, comm, kwargs)
-                    except exceptions.YamlSyntaxError as e:
-                        logger.error(e)
-                        raise e
-                elif comm_type.startswith('if'):
-                    possible_else = None
-                    if len(section) > i + 1: # do we have "else" clause?
-                        possible_else = list(section[i + 1].items())[0]
-                    _, skip_else, to_run = lang.get_section_from_condition((comm_type, comm), possible_else, kwargs)
-                    if to_run:
-                        # run with original kwargs, so that they might be changed for code after this if
-                        self._run_one_section(to_run, kwargs)
-                elif comm_type == 'else':
-                    if not skip_else:
-                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
-                    skip_else = False
-                elif comm_type.startswith('for'):
-                    # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                    control_vars, eval_expression = lang.get_for_control_var_and_eval_expr(comm_type, kwargs)
-                    for i in eval_expression:
-                        if len(control_vars) == 2:
-                            kwargs[control_vars[0]] = i[0]
-                            kwargs[control_vars[1]] = i[1]
-                        else:
-                            kwargs[control_vars[0]] = i
-                        self._run_one_section(comm, kwargs)
-                elif comm_type.startswith('scl'):
-                    # list of lists of scl names
-                    kwargs['__scls__'].append(comm_type.split()[1:])
-                    self._run_one_section(comm, kwargs)
-                    kwargs['__scls__'].pop()
-                else:
-                    command.Command(comm_type,
-                                    comm,
-                                    kwargs).run()
+            lang.run_section(self._post_run, kwargs, runner=self)
 
     @needs_fully_loaded
     def stop(self):
