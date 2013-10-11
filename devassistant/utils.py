@@ -13,6 +13,8 @@ def import_module(module):
 
 def u(string):
     try:
-        return unicode(e)
+        return unicode(string)
     except:
-        return e
+        return string
+
+# ok, if we need one more compat thingie, we _will_ start using six :)
