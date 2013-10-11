@@ -257,7 +257,7 @@ every time.
 
 Every ``run`` section is a sequence of various **commands**, mostly
 invocations of commandline. Each command is a mapping
-of **command type** to **command_input**::
+of **command type** to **command input**::
 
    run:
    - type: input
@@ -345,6 +345,10 @@ List of supported **command types** and their function follows:
    - scl enable python33 postgresql92:
      - cl_i: python --version
      - cl_i: pgsql --version
+
+*Missing something?* Commands are your entrypoint for extending DevAssistant.
+If you're missing some functionality in ``run`` sections, just
+:ref:`write a command runner <command_runners>` and send us a pull request.
 
 Variables
 ~~~~~~~~~
