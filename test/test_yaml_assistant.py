@@ -134,7 +134,7 @@ class TestYamlAssistant(object):
     def test_run_snippet_missing(self):
         self.ya._run = [{'call': 'foo.bar'}]
         self.ya.run()
-        assert ('WARNING', 'Couldn\'t find section to run: foo.bar.') in self.tlh.msgs
+        assert ('WARNING', 'Couldn\'t find run section "foo.bar".') in self.tlh.msgs
 
     def test_run_snippet(self):
         self.ya._run = [{'call': 'mysnippet'}]

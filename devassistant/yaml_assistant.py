@@ -10,6 +10,7 @@ from devassistant import assistant_base
 from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
+from devassistant import lang
 from devassistant import loaded_yaml
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
@@ -28,9 +29,6 @@ def needs_fully_loaded(method):
         return method(self, *args, **kwargs)
 
     return inner
-
-if sys.version_info[0] > 2:
-    basestring = str
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='crt'):
@@ -124,20 +122,25 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return self._subassistants
 
     @needs_fully_loaded
-    def proper_kwargs(self, **kwargs):
-        """Returns kwargs possibly updated with values from .devassistant
-        file, when appropriate."""
+    def proper_kwargs(self, section='run', **kwargs):
+        """Returns kwargs updated with proper meta variables (like __assistant__), and possibly
+        updated with values from .devassistant file, when appropriate."""
         if self.role == 'mod' and self._devassistant_projects_only:
             # don't rewrite old values
             # first get the new ones and then update them with the old
-            new_kwargs = command.Command('dda_r', kwargs.get('path', '.'), **kwargs).run()
+            new_kwargs = command.Command('dda_r', kwargs.get('path', '.'), kwargs).run()
             new_kwargs.update(kwargs)
             kwargs = new_kwargs
+        kwargs['__section__'] = section
+        kwargs['__assistant__'] = self
+        kwargs['__files__'] = [self._files]
+        kwargs['__files_dir__'] = [self.files_dir]
+        kwargs['__scls__'] = []
         return kwargs
 
     @needs_fully_loaded
     def logging(self, **kwargs):
-        kwargs = self.proper_kwargs(**kwargs)
+        kwargs = self.proper_kwargs(section='logging', **kwargs)
         for l in self._logging:
             handler_type, l_list = l.popitem()
             if handler_type == 'file':
@@ -166,7 +169,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         [{'rpm', ['rubygems']}, {'gem', ['mygem']}, {'rpm', ['spam']}, ...]
         """
 
-        kwargs = self.proper_kwargs(**kwargs)
+        kwargs = self.proper_kwargs(section='dependencies', **kwargs)
         sections = [getattr(self, '_dependencies', [])]
         if self.role == 'mod' and self._devassistant_projects_only:
             # if subassistant_path is "foo bar baz", then search for dependency sections
@@ -183,11 +186,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         deps = []
 
         for sect in sections:
-            deps.extend(self._dependencies_section(sect, **kwargs))
+            deps.extend(self._dependencies_section(sect, kwargs))
 
         return deps
 
-    def _dependencies_section(self, section, **kwargs):
+    def _dependencies_section(self, section, kwargs):
         # "deps" is the same structure as gets returned by "dependencies" method
         skip_else = False
         deps = []
@@ -195,21 +198,17 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         for i, dep in enumerate(section):
             for dep_type, dep_list in dep.items():
                 # rpm dependencies (can't handle anything else yet)
-                if dep_type == 'call':
-                    section = self._get_section_from_call(dep_list, 'dependencies', **kwargs)
-                    if section is not None:
-                        deps.extend(self._dependencies_section(section, **kwargs))
-                    else:
-                        logger.warning('Couldn\'t find dependencies section "{0}", in snippet {1}, skipping.'.format(dep_list.split('.')))
+                if dep_type == 'call': # we don't allow general commands, only "call" command here
+                    deps.extend(command.Command(dep_type, dep_list, kwargs).run())
                 elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                     deps.append({dep_type: dep_list})
                 elif dep_type.startswith('if'):
                     possible_else = None
                     if len(section) > i + 1: # do we have "else" clause?
                         possible_else = list(section[i + 1].items())[0]
-                    _, skip_else, to_run = self._get_section_from_condition((dep_type, dep_list), possible_else, **kwargs)
+                    _, skip_else, to_run = lang.get_section_from_condition((dep_type, dep_list), possible_else, kwargs)
                     if to_run:
-                        deps.extend(self._dependencies_section(to_run, **kwargs))
+                        deps.extend(self._dependencies_section(to_run, kwargs))
                 elif dep_type == 'else':
                     # else on its own means error, otherwise execute it
                     if not skip_else:
@@ -219,221 +218,6 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     logger.warning('Unknown dependency type {0}, skipping.'.format(dep_type))
 
         return deps
-
-    @needs_fully_loaded
-    def run(self, **kwargs):
-        kwargs = self.proper_kwargs(**kwargs)
-        if self.role == 'mod' and self._devassistant_projects_only:
-            # try to get a section to run from the most specialized one to the least specialized one
-            # e.g. first run_python_django, then run_python and then just run
-            sa_path = kwargs.get('subassistant_path', [])
-            for i in range(len(sa_path), -1, -1):
-                path = '_'.join(sa_path[:i])
-                if path:
-                    path = '_' + path
-                to_run = self._get_section_to_run(section='run{path}'.format(path=path),
-                                                  kwargs_override=True,
-                                                  **kwargs)
-                if to_run:
-                    break
-        else:
-            to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
-
-        kwargs['__assistant__'] = self
-        if self._pre_run:
-            self._run_one_section(self._pre_run, kwargs)
-        self._run_one_section(to_run, kwargs)
-        if self._post_run:
-            self._run_one_section(self._post_run, kwargs)
-
-    def _run_one_section(self, section, kwargs):
-        skip_else = False
-
-        for i, command_dict in enumerate(section):
-            if self.stop_flag:
-                break
-            for comm_type, comm in command_dict.items():
-                if comm_type.startswith('call'):
-                    # calling workflow:
-                    # 1) get proper run section (either from self or from snippet)
-                    # 2) if running snippet, add its files to kwargs['__files__']
-                    # 3) actually run
-                    # 4) if running snippet, pop its files from kwargs['__files__']
-                    sect = self._get_section_from_call(comm, 'run')
-
-                    if sect is None:
-                        logger.warning('Couldn\'t find section to run: {0}.'.format(comm))
-                        continue
-
-                    if self._is_snippet_call(comm, **kwargs):
-                        # we're calling a snippet => add files and files_dir to kwargs
-                        snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(comm.split('.')[0])
-
-                        if '__files__' not in kwargs:
-                            kwargs['__files__'] = []
-                            kwargs['__files_dir__'] = []
-                        kwargs['__files__'].append(snippet.get_files_section())
-                        kwargs['__files_dir__'].append(snippet.get_files_dir())
-
-                    self._run_one_section(sect, copy.deepcopy(kwargs))
-
-                    if self._is_snippet_call(comm, **kwargs):
-                        kwargs['__files__'].pop()
-                        kwargs['__files_dir__'].pop()
-                elif comm_type.startswith('$'):
-                    # intentionally pass kwargs as dict, not as keywords
-                    try:
-                        self._assign_variable(comm_type, comm, kwargs)
-                    except exceptions.YamlSyntaxError as e:
-                        logger.error(e)
-                        raise e
-                elif comm_type.startswith('if'):
-                    possible_else = None
-                    if len(section) > i + 1: # do we have "else" clause?
-                        possible_else = list(section[i + 1].items())[0]
-                    _, skip_else, to_run = self._get_section_from_condition((comm_type, comm), possible_else, **kwargs)
-                    if to_run:
-                        # run with original kwargs, so that they might be changed for code after this if
-                        self._run_one_section(to_run, kwargs)
-                elif comm_type == 'else':
-                    if not skip_else:
-                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
-                    skip_else = False
-                elif comm_type.startswith('for'):
-                    # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                    control_vars, eval_expression = self._get_for_control_var_and_eval_expr(comm_type, **kwargs)
-                    for i in eval_expression:
-                        if len(control_vars) == 2:
-                            kwargs[control_vars[0]] = i[0]
-                            kwargs[control_vars[1]] = i[1]
-                        else:
-                            kwargs[control_vars[0]] = i
-                        self._run_one_section(comm, kwargs)
-                elif comm_type.startswith('scl'):
-                    if '__scls__' not in kwargs:
-                        kwargs['__scls__'] = []
-                    # list of lists of scl names
-                    kwargs['__scls__'].append(comm_type.split()[1:])
-                    self._run_one_section(comm, kwargs)
-                    kwargs['__scls__'].pop()
-                else:
-                    files = kwargs['__files__'][-1] if kwargs.get('__files__', None) else self._files
-                    files_dir = kwargs['__files_dir__'][-1] if kwargs.get('__files_dir__', None) else self.files_dir
-                    command.Command(comm_type, comm, files_dir, files, **kwargs).run()
-
-    def _is_snippet_call(self, cmd_call, **kwargs):
-        return not (cmd_call == 'self' or cmd_call.startswith('self.'))
-
-    def _parse_for(self, control_line, **kwargs):
-        """Returns name of loop control variable(s) and expression to iterate on.
-
-        For example:
-        - given "for $i in $foo", returns (['i'], '$foo')
-        - given "for ${i} in $(ls $foo)", returns (['i'], 'ls $foo')
-        - given "for $k, $v in $foo", returns (['k', 'v'], '$foo')
-        """
-        error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
-        regex = re.compile(r'for\s+(\${?\S}?)(?:\s*,\s+(\${?\S}?))?\s+in\s+(\S.+)')
-        res = regex.match(control_line).groups()
-        if not res:
-            raise exceptions.YamlSyntaxError(error)
-
-        control_vars = []
-        control_vars.append(self._get_var_name(res[0]))
-        if res[1]:
-            control_vars.append(self._get_var_name(res[1]))
-        expr = res[2]
-
-        return (control_vars, expr)
-
-    def _get_for_control_var_and_eval_expr(self, comm_type, **kwargs):
-        """Returns tuple that consists of control variable name and iterable that is result
-        of evaluated expression of given for loop.
-
-        For example:
-        - given 'for $i in $(echo "foo bar")' it returns (['i'], ['foo', 'bar'])
-        - given 'for $i, $j in $foo' it returns (['i', 'j'], [('foo', 'bar')])
-        """
-        try:
-            control_vars, expression = self._parse_for(comm_type)
-        except exceptions.YamlSyntaxError as e:
-            logger.error(e)
-            raise e
-        try:
-            eval_expression = self._evaluate(expression, **kwargs)[1]
-        except exceptions.YamlSyntaxError as e:
-            logger.log(e)
-            raise e
-
-        iterval = []
-        if len(control_vars) == 2:
-            if not isinstance(eval_expression, dict):
-                raise exceptions.YamlSyntaxError('Can\'t expand {t} to two control variables.'.\
-                        format(t=type(eval_expression)))
-            else:
-                iterval = list(eval_expression.items())
-        elif isinstance(eval_expression, basestring):
-            iterval = eval_expression.split()
-        return control_vars, iterval
-
-    def _get_section_from_condition(self, if_section, else_section=None, **kwargs):
-        """Returns section that should be used from given if/else sections by evaluating given condition.
-
-        Args:
-            if_section - section with if clause
-            else_section - section that *may* be else clause (just next section after if_section,
-                           this method will check if it really is else); possibly None if not present
-
-        Returns:
-            tuple (<0 or 1>, <True or False>, section), where
-            - the first member says whether we're going to "if" section (0) or else section (1)
-            - the second member says whether we should skip next section during further evaluation
-              (True or False - either we have else to skip, or we don't)
-            - the third member is the appropriate section to run or None if there is only "if"
-              clause and condition evaluates to False
-        """
-        # check if else section is really else
-        skip = True if else_section is not None and else_section[0] == 'else' else False
-        if self._evaluate(if_section[0][2:].strip(), **kwargs)[0]:
-            return (0, skip, if_section[1])
-        else:
-            return (1, skip, else_section[1]) if skip else (1, skip, None)
-
-    def _get_section_from_call(self, cmd_call, section_type, **kwargs):
-        """Returns a section form call.
-
-        Examples:
-            if section_type == dependencies, then
-              cmd_call == self.dependencies_bar returns content of dependencies_bar from this assistant
-            if section_type == run, then
-              cmd_call == self.run_foo returns run_foo of this assistant
-              cmd_call == eclipse.run_python returns run_python section of eclipse snippet
-
-        Args:
-            cmd_call - a string with the call, e.g. "eclipse.run_python"
-            section_type - either "dependencies" or "run"
-
-        Returns:
-            section to run - dict, None if not found
-        """
-
-        section = None
-        call_parts = cmd_call.split('.')
-        section_name = call_parts[1] if len(call_parts) > 1 else section_type
-
-        if call_parts[0] == 'self':
-            section = getattr(self, '_' + section_name, None)
-        else: # snippet
-            try:
-                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
-                if section_type == 'run':
-                    section = snippet.get_run_section(section_name) if snippet else None
-                else:
-                    section = snippet.get_dependencies_section(section_name) if snippet else None
-            except exceptions.SnippetNotFoundException:
-                section = None
-
-        return section
 
     def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
         """Returns the proper section to run.
@@ -459,112 +243,76 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         return to_run
 
-    def _assign_variable(self, variable, comm, kwargs):
-        """Assigns *result* of expression to variable. If there are two variables separated by
-        comma, the first gets assigned *logical result* and the second the *result*.
-        The variable is then put into kwargs (overwriting original value, if already there).
-        Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
-
-        Even if comm has *logical result* == False, output is still stored and
-        this method doesn't fail.
-
-        Args:
-            variable: variable (or two variables separated by ",") to assign to
-            comm: either another variable or command to run
-        """
-        comma_count = variable.count(',')
-        if comma_count > 1:
-            raise exceptions.YamlSyntaxError('Max two variables allowed on left side.')
-
-        res1, res2 = self._evaluate(comm, **kwargs)
-        if comma_count == 1:
-            var1, var2 = map(lambda v: self._get_var_name(v), variable.split(','))
-            kwargs[var1] = res1
+    @needs_fully_loaded
+    def run(self, **kwargs):
+        kwargs = self.proper_kwargs(section='run', **kwargs)
+        if self.role == 'mod' and self._devassistant_projects_only:
+            # try to get a section to run from the most specialized one to the least specialized one
+            # e.g. first run_python_django, then run_python and then just run
+            sa_path = kwargs.get('subassistant_path', [])
+            for i in range(len(sa_path), -1, -1):
+                path = '_'.join(sa_path[:i])
+                if path:
+                    path = '_' + path
+                to_run = self._get_section_to_run(section='run{path}'.format(path=path),
+                                                  kwargs_override=True,
+                                                  **kwargs)
+                if to_run:
+                    break
         else:
-            var2 = self._get_var_name(variable)
-        kwargs[var2] = res2
+            to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
 
-    def _get_var_name(self, dolar_variable):
-        name = dolar_variable.strip()
-        name = name.strip('"\'')
-        if not name.startswith('$'):
-            raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dolar_variable)
-        name = name[1:] # strip the dollar
-        return name.strip('{}')
+        if self._pre_run:
+            self._run_one_section(self._pre_run, kwargs)
+        self._run_one_section(to_run, kwargs)
+        if self._post_run:
+            self._run_one_section(self._post_run, kwargs)
 
-    def _evaluate(self, expression, **kwargs):
-        """Evaluates given expression.
+    def _run_one_section(self, section, kwargs):
+        skip_else = False
 
-        Syntax and semantics:
-
-        - ``$foo``
-
-            - if ``$foo`` is defined:
-
-                - *logical result*: ``True`` **iff** value is not empty and it is not
-                  ``False``
-                - *result*: value of ``$foo``
-              - otherwise:
-
-                  - *logical result*: ``False``
-                  - *result*: empty string
-        - ``$(commandline command)``
-
-            - if ``commandline command`` has return value 0:
-
-                - *logical result*: ``True``
-
-            - otherwise:
-
-                - *logical result*: ``False``
-
-            - regardless of *logical result*, *result* always contains both stdout
-              and stderr lines in the order they were printed by ``commandline command``
-        - ``not`` - negates the *logical result* of an expression, while leaving
-          *result* intact, can only be used once (no, you can't use ``not not not $foo``, sorry)
-        - ``defined $foo`` - works exactly as ``$foo``, but has *logical result*
-          ``True`` even if the value is empty or ``False``
-
-        Returns:
-            tuple (logical result, result) - see above for explanation
-
-        Raises:
-            exceptions.YamlSyntaxError if expression is malformed
-        """
-        # was command successful?
-        success = True
-        # command output
-        output = ''
-        invert_success = False
-        # if we have an arbitrary structure, just return it
-        if not isinstance(expression, str):
-            return (True if expression else False, expression)
-        expr = expression.strip()
-        if expr.startswith('not '):
-            invert_success = True
-            expr = expr[4:]
-
-        if expr.startswith('$('): # only one expression: "$(expression)"
-            try:
-                output = command.Command('cl_n', expr[2:-1], self.files_dir, self._files, **kwargs).run()
-            except exceptions.RunException as ex:
-                success = False
-                output = ex.output
-        elif expr.startswith('$') or expr.startswith('"$'):
-            var_name = self._get_var_name(expr)
-            if var_name in kwargs and kwargs[var_name]:
-                success = True
-                output = kwargs[var_name]
-            else:
-                success = False
-        elif expr.startswith('defined '):
-            varname = self._get_var_name(expr[8:])
-            success = varname in kwargs
-            output = kwargs.get(varname, '')
-        else:
-            raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
-
-        return (success if not invert_success else not success, output)
+        for i, command_dict in enumerate(section):
+            if self.stop_flag:
+                break
+            for comm_type, comm in command_dict.items():
+                if comm_type.startswith('$'):
+                    # intentionally pass kwargs as dict, not as keywords
+                    try:
+                        lang.assign_variable(comm_type, comm, kwargs)
+                    except exceptions.YamlSyntaxError as e:
+                        logger.error(e)
+                        raise e
+                elif comm_type.startswith('if'):
+                    possible_else = None
+                    if len(section) > i + 1: # do we have "else" clause?
+                        possible_else = list(section[i + 1].items())[0]
+                    _, skip_else, to_run = lang.get_section_from_condition((comm_type, comm), possible_else, kwargs)
+                    if to_run:
+                        # run with original kwargs, so that they might be changed for code after this if
+                        self._run_one_section(to_run, kwargs)
+                elif comm_type == 'else':
+                    if not skip_else:
+                        logger.warning('Yaml error: encountered "else" with no associated "if", skipping.')
+                    skip_else = False
+                elif comm_type.startswith('for'):
+                    # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
+                    control_vars, eval_expression = lang.get_for_control_var_and_eval_expr(comm_type, kwargs)
+                    for i in eval_expression:
+                        if len(control_vars) == 2:
+                            kwargs[control_vars[0]] = i[0]
+                            kwargs[control_vars[1]] = i[1]
+                        else:
+                            kwargs[control_vars[0]] = i
+                        self._run_one_section(comm, kwargs)
+                elif comm_type.startswith('scl'):
+                    # list of lists of scl names
+                    kwargs['__scls__'].append(comm_type.split()[1:])
+                    self._run_one_section(comm, kwargs)
+                    kwargs['__scls__'].pop()
+                else:
+                    command.Command(comm_type,
+                                    comm,
+                                    kwargs).run()
 
     @needs_fully_loaded
     def stop(self):

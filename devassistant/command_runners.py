@@ -1,3 +1,5 @@
+import copy
+import functools
 import getpass
 import logging
 import os
@@ -12,12 +14,90 @@ from devassistant.package_managers import DependencyInstaller
 from devassistant import settings
 from devassistant import utils
 from devassistant import version
+from devassistant import yaml_snippet_loader
 
 command_runners = []
 
 def register_command_runner(command_runner):
     command_runners.append(command_runner)
     return command_runner
+
+@register_command_runner
+class CallCommandRunner(object):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'call'
+
+    @classmethod
+    def run(cls, c):
+        sect_type = c.kwargs['__section__']
+        assistant = c.kwargs['__assistant__']
+        section = cls.get_section_from_call(c.comm, sect_type, assistant)
+        if not section:
+            msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
+                                                             n=c.comm)
+            logger.warning(msg)
+            return [] if sect_type == 'dependencies' else None
+
+        if cls.is_snippet_call(c.comm):
+            # we're calling a snippet => add files and files_dir to kwargs
+            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(c.comm.split('.')[0])
+
+            c.kwargs['__files__'].append(snippet.get_files_section())
+            c.kwargs['__files_dir__'].append(snippet.get_files_dir())
+
+        if sect_type == 'dependencies':
+            result = assistant._dependencies_section(section, copy.deepcopy(c.kwargs))
+        else:
+            result = assistant._run_one_section(section, copy.deepcopy(c.kwargs))
+
+        if cls.is_snippet_call(c.comm):
+            c.kwargs['__files__'].pop()
+            c.kwargs['__files_dir__'].pop()
+
+        return result
+
+    @classmethod
+    def is_snippet_call(cls, cmd_call):
+        return not (cmd_call == 'self' or cmd_call.startswith('self.'))
+
+    @classmethod
+    def get_section_from_call(cls, cmd_call, section_type, assistant):
+        """Returns a section form call.
+
+        Examples:
+            if section_type == dependencies, then
+              cmd_call == self.dependencies_bar returns content of dependencies_bar from this assistant
+            if section_type == run, then
+              cmd_call == self.run_foo returns run_foo of this assistant
+              cmd_call == eclipse.run_python returns run_python section of eclipse snippet
+
+        Args:
+            cmd_call - a string with the call, e.g. "eclipse.run_python"
+            section_type - either "dependencies" or "run"
+            assistant - current assistant for the possibility of trying to use "self"
+
+        Returns:
+            section to run - dict, None if not found
+        """
+
+        section = None
+        call_parts = cmd_call.split('.')
+        section_name = call_parts[1] if len(call_parts) > 1 else section_type
+
+        if call_parts[0] == 'self':
+            section = getattr(assistant, '_' + section_name, None)
+        else: # snippet
+            try:
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
+                if section_type == 'run':
+                    section = snippet.get_run_section(section_name) if snippet else None
+                else:
+                    section = snippet.get_dependencies_section(section_name) if snippet else None
+            except exceptions.SnippetNotFoundException:
+                section = None
+
+        return section
 
 @register_command_runner
 class ClCommandRunner(object):
@@ -36,7 +116,7 @@ class ClCommandRunner(object):
             log_error = False
         scls = []
         if '__scls__' in c.kwargs:
-            scls = reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
+            scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
         try:
             result = ClHelper.run_command(comm, log_level, scls=scls)
         except exceptions.ClException as e:
