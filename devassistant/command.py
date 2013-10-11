@@ -27,13 +27,16 @@ class Command(object):
         logger.warning('Unknown command type {0}, skipping.'.format(self.comm_type))
 
     def format_str(self):
-        """Formats the given command as a string."""
-        # If command is false/true in yaml file, it gets coverted to False/True
+        """Formats input of this command as a string."""
+        return self._format_str(s=self.comm)
+
+    def _format_str(self, s):
+        # If command is false/true in yaml file, it gets converted to False/True
         # which is bool object => convert
-        if isinstance(self.comm, bool):
-            comm = str(self.comm).lower()
+        if isinstance(s, bool):
+            comm = str(s).lower()
         else:
-            comm = self.comm
+            comm = s
 
         new_comm = []
         if not isinstance(comm, list):
@@ -66,14 +69,23 @@ class Command(object):
         regex = re.compile('\\\\*~')
         return regex.sub(type(self)._homedir_expand, substituted)
 
-    def format_list(self):
-        """Formats the given command as a list."""
-        if isinstance(self.comm, list):
-            return self.comm
-        elif isinstance(self.comm, str) and self.comm.startswith('$'):
-            return self.kwargs.get(self.comm.strip()[1:], [])
+    def format_deep(self):
+        """Formats command input of this command as a list."""
+        return self._format_deep_recursive(struct=self.comm)
+
+    def _format_deep_recursive(self, struct):
+        if isinstance(struct, dict):
+            new_struct = {}
+            for k, v in struct.items():
+                new_struct[self._format_deep_recursive(k)] = self._format_deep_recursive(v)
+        elif isinstance(struct, list):
+            new_struct = []
+            for i in struct:
+                new_struct.append(self._format_deep_recursive(i))
         else:
-            raise exceptions.YamlTypeError('{ct} expected list, not {t}'.format(ct=self.comm_type, t=type(self.comm)))
+            new_struct = self._format_str(struct)
+
+        return new_struct
 
     @classmethod
     def _homedir_expand(cls, matchobj):

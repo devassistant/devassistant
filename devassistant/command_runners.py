@@ -160,8 +160,10 @@ class DependenciesCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        if c.comm_type == 'dependencies':
-            struct = c.format_list()
+        struct = c.format_deep()
+        if not isinstance(struct, list):
+            msg = 'Dependencies for installation must be list, got {v}.'.format(v=struct)
+            raise exceptions.RunException(msg)
 
         di = DependencyInstaller()
         di.install(struct)
