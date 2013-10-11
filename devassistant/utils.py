@@ -10,3 +10,9 @@ except ImportError:
 
 def import_module(module):
     return importlib.import_module(module)
+
+def u(string):
+    try:
+        return unicode(e)
+    except:
+        return e
