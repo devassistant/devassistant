@@ -23,8 +23,37 @@ def register_command_runner(command_runner):
     command_runners.append(command_runner)
     return command_runner
 
+class CommandRunner(object):
+    @classmethod
+    def matches(cls, c):
+        """Returns True if this command runner can run given command,
+        False otherwise.
+
+        Args:
+            c - command to check, instance of devassistant.command.Command
+
+        Returns:
+            True if this runner can run the command, False otherwise
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def run(cls, c):
+        """Runs the given command.
+
+        Args:
+            c - command to run, instance of devassistant.command.Command
+
+        Returns:
+            currently doesn't really matter :)
+
+        Raises:
+            Any exception that's subclass of devassistant.exceptions.ExecutionExceptions
+        """
+        raise NotImplementedError()
+
 @register_command_runner
-class CallCommandRunner(object):
+class CallCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'call'
@@ -101,7 +130,7 @@ class CallCommandRunner(object):
         return section
 
 @register_command_runner
-class ClCommandRunner(object):
+class ClCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('cl')
@@ -118,20 +147,13 @@ class ClCommandRunner(object):
         scls = []
         if '__scls__' in c.kwargs:
             scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
-        try:
-            result = ClHelper.run_command(comm, log_level, scls=scls)
-        except exceptions.ClException as e:
-            if log_error:
-                try:
-                    logger.error(unicode(e))
-                except:
-                    logger.error(e)
-            raise e
+        # if there is an exception, just let it bubble up
+        result = ClHelper.run_command(comm, log_level, scls=scls)
 
         return result.strip() if hasattr(result, 'strip') else result
 
 @register_command_runner
-class DependenciesCommandRunner(object):
+class DependenciesCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('dependencies')
@@ -145,7 +167,7 @@ class DependenciesCommandRunner(object):
         di.install(struct)
 
 @register_command_runner
-class DotDevassistantCommandRunner(object):
+class DotDevassistantCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('dda_')
@@ -194,8 +216,9 @@ class DotDevassistantCommandRunner(object):
 
     @classmethod
     def _dot_devassistant_read(cls, comm, **kwargs):
-        """Don't use this directly from assistants (yet), raises uncaught exception
-        if anything goes wrong.
+        """Don't use this directly from assistants (yet), doesn't store
+        data in kwargs.
+
         Reads and returns data from .devassistant file. On top of it, it adds:
         - "name" - contains the name of current directory.
         - "dda__<var>" - (yes, that is double underscore) - for each <var> that
@@ -207,7 +230,6 @@ class DotDevassistantCommandRunner(object):
                 result = yaml.load(stream)
         except IOError as e:
             msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
-            logger.error(msg)
             raise exceptions.RunException(msg)
 
         for k, v in result.get('original_kwargs', {}).items():
@@ -292,7 +314,6 @@ class GitHubAuth(object):
                     cls._github_create_auth(**kwargs) # create auth for future use
                 except cls._gh_module.GithubException as e:
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
-                    logger.error(msg)
                     # reset cls._user to None, so that we don't use it if calling this multiple times
                     cls._user = None
                     raise exceptions.RunException(msg)
@@ -381,7 +402,7 @@ class GitHubAuth(object):
         return inner
 
 @register_command_runner
-class GitHubCommandRunner(object):
+class GitHubCommandRunner(CommandRunner):
     _user = None
     try:
         _gh_module = utils.import_module('github')
@@ -446,7 +467,6 @@ class GitHubCommandRunner(object):
 
         if reponame in map(lambda x: x.name, cls._user.get_repos()):
             msg = 'Repository already exists on GitHub'
-            logger.error(msg)
             raise exceptions.RunException(msg)
         else:
             try:
@@ -455,7 +475,6 @@ class GitHubCommandRunner(object):
                 msg = 'Failed to create GitHub repo. This sometime happens when you delete '
                 msg += 'a repo and then you want to create the same one immediately. Wait '
                 msg += 'for few minutes and then try again.'
-                logger.error(msg)
                 raise exceptions.RunException(msg)
             logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
@@ -483,7 +502,7 @@ class GitHubCommandRunner(object):
         logger.info('GitHub repository was created and source code pushed.')
 
 @register_command_runner
-class LogCommandRunner(object):
+class LogCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('log_')
