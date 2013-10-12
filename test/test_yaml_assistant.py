@@ -75,18 +75,6 @@ class TestYamlAssistant(object):
         section = self.ya._get_section_to_run(section='run', kwargs_override=False, foo=True)
         assert section is self.ya._run
 
-    def test_get_section_to_run_overrides_if_allowed(self):
-        self.ya._run = [{'cl': 'ls'}]
-        self.ya._run_foo = [{'cl': 'pwd'}]
-        section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=True)
-        assert section is self.ya._run_foo
-
-    def test_get_section_to_run_runs_with_None_parameter(self):
-        self.ya._run = [{'cl': 'ls'}]
-        self.ya._run_foo = [{'cl': 'pwd'}]
-        section = self.ya._get_section_to_run(section='run', kwargs_override=True, foo=None)
-        assert section is self.ya._run_foo
-
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
         # distributions (due to Fedora's usrmove), so use something that should be common

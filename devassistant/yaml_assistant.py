@@ -186,11 +186,10 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         return deps
 
-    def _get_section_to_run(self, section, kwargs_override=False, **kwargs):
+    def _get_section_to_run(self, section, **kwargs):
         """Returns the proper section to run.
         Args:
             section: name of section to run
-            kwargs_override: whether or not first of [_run_{arg} for arg in kwargs] is preffered over specified section
             **kwargs: devassistant arguments
         Returns:
             section to run - dict, None if not found
@@ -201,12 +200,6 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             underscored = '_' + section
             if underscored in dir(self):
                 to_run = getattr(self, underscored)
-
-        if kwargs_override:
-            for method in dir(self):
-                if method.startswith('_run_'):
-                    if method[len('_run_'):] in kwargs:
-                        to_run = getattr(self, method)
 
         return to_run
 
@@ -221,13 +214,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 path = '_'.join(sa_path[:i])
                 if path:
                     path = '_' + path
-                to_run = self._get_section_to_run(section='run{path}'.format(path=path),
-                                                  kwargs_override=True,
-                                                  **kwargs)
+                to_run = self._get_section_to_run(section='run{path}'.format(path=path), **kwargs)
                 if to_run:
                     break
         else:
-            to_run = self._get_section_to_run(section='run', kwargs_override=True, **kwargs)
+            to_run = self._get_section_to_run(section='run', **kwargs)
 
         if self._pre_run:
             lang.run_section(self._pre_run, kwargs, runner=self)

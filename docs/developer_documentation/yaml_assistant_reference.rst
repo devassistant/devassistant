@@ -248,12 +248,9 @@ Run
 
 Run sections are the essence of DevAssistant. They are responsible for
 preforming all the tasks and actions to set up the environment and
-the project itself. By default, section named ``run`` is invoked
-(this is a bit different for `Modifier Assistants`_).
-If there is a section named ``run_foo`` and ``foo`` argument is used,
-then **only** ``run_foo`` is invoked. This is different from
-dependencies sections, as the default ``dependencies`` section is used
-every time.
+the project itself. For Creator and Preparer assistants, ``run`` section
+is always invoked, `Modifier Assistants`_ may invoke different sections
+based on info from ``.devassistant`` file.
 
 Every ``run`` section is a sequence of various **commands**, mostly
 invocations of commandline. Each command is a mapping
