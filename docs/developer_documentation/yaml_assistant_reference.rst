@@ -105,18 +105,6 @@ If any of the first three sections fails in any step, DevAssistant will immediat
 ``post_run`` and the whole invocation will be considered as failed (will return non-zero code
 on command line and show "Failed" in GUI).
 
-When assistant with one or more subassistants is used (e.g. ``python django``), DevAssistant will
-invoke each of the above sections for each assistant in given order, e.g:
-
-- ``pre_run`` of ``python``
-- ``pre_run`` of ``django``
-- ``dependencies`` of ``python``
-
-...
-
-If any of them fails, DevAssistant will invoke ``post_run`` sections of all assistants, again in
-given order.
-
 .. _dependencies_ref:
 
 Dependencies
@@ -145,12 +133,14 @@ they will be traversed and installed one by one. Supported dependency types:
   the dependency list can contain RPM packages or YUM groups
   (groups must begin with ``@`` and be quoted, e.g. ``"@Group name"``)
 ``call``
-  installs dependencies from snippet or other dependency section of this assistant. For example::
+  installs dependencies from snippet/another dependency section of this assistant/dependency
+  section of superassistant. For example::
 
    dependencies:
    - call: foo # will install dependencies from snippet "foo", section "dependencies"
    - call: foo.dependencies_bar # will install dependencies from snippet "foo", section "bar"
    - call: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
+   - call: super.dependencies # will install dependencies from "dependencies" section of first superassistant that has such section
 
 ``if``, ``else``
   conditional dependency installation. For more info on conditions, `Run`_ below.
@@ -170,7 +160,7 @@ Full example::
    - rpm: [beans, eggs]
    - if $with_spam:
      - call: spam.spamspam
-   - rpm: [ham]
+   - rpm: ["ham${more_ham}"]
 
 *Sometimes your dependencies may get terribly complex - they depend on many
 parameters, you need to use them dynamically during ``run``, etc. In these
@@ -363,9 +353,12 @@ List of supported **command types** and their function follows:
   assigns *logical result* (``True``/``False``) of **input** (an `Expression`_)
   to ``$success`` and result to ``$foo`` (same as above)
 ``call``
-  run another section of this assistant (e.g. ``call: self.run_foo``) or a
-  snippet (e.g. ``call: snippet_name.run_foo``) run section specified by
-  **input**  at this place and then continue execution
+  run a section specified by **input** at this place and then continue execution:
+
+  - another section of this assistant (e.g. ``call: self.run_foo``)
+  - section of superassistant (e.g. ``call: super.run``) - searches all superassistants
+    (parent of this, parent of the parent, etc.) and runs the first found section of given name
+  - section from snippet (e.g. ``call: snippet_name.run_foo``)
 ``scl``
   run a whole **input** section specified in SCL environment of one or more
   SCLs (note: you **must** use the scriptlet name - usually ``enable`` -
