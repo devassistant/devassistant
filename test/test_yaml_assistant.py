@@ -39,8 +39,8 @@ class TestYamlAssistant(object):
     def test_dependencies_uses_non_default_section_on_param(self):
         self.ya._dependencies = [{'rpm': ['foo']}]
         self.ya._dependencies_a = [{'rpm': ['bar']}]
-        assert self.ya._dependencies[0] in self.ya.dependencies(a=True)
-        assert self.ya._dependencies_a[0] in self.ya.dependencies(a=True)
+        assert self.ya._dependencies[0] in self.ya.dependencies(kwargs={'a': True})
+        assert self.ya._dependencies_a[0] in self.ya.dependencies(kwargs={'a': True})
 
     def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
         self.ya._dependencies = [{'rpm': ['foo']}]
@@ -49,7 +49,7 @@ class TestYamlAssistant(object):
 
     def test_dependencies_if(self):
         self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
-        assert self.ya.dependencies(x='x') == [{'rpm': ['foo']}]
+        assert self.ya.dependencies(kwargs={'x': 'x'}) == [{'rpm': ['foo']}]
 
     def test_dependencies_else(self):
         self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
@@ -69,22 +69,16 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert self.tlh.msgs == [('WARNING', 'Unknown command type foo, skipping.')]
 
-    def test_get_section_to_run_chooses_selected(self):
-        self.ya._run = [{'cl': 'ls'}]
-        self.ya._run_foo = [{'cl': 'pwd'}]
-        section = self.ya._get_section_to_run(section='run', kwargs_override=False, foo=True)
-        assert section is self.ya._run
-
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
         # distributions (due to Fedora's usrmove), so use something that should be common
         self.ya._run = [{'cl': 'id'}]
-        self.ya.run(foo='bar')
+        self.ya.run(kwargs={'foo':'bar'})
         assert ('DEBUG', 'id') in self.tlh.msgs
 
     def test_run_logs_command_at_info_if_asked(self):
         self.ya._run = [{'cl_i': 'id'}]
-        self.ya.run(foo='bar')
+        self.ya.run(kwargs={'foo': 'bar'})
         assert ('INFO', 'id') in self.tlh.msgs
 
     def test_log(self):
@@ -99,11 +93,11 @@ class TestYamlAssistant(object):
 
     def test_log_formats_message(self):
         self.ya._run = [{'log_i': 'this is $how cool'}]
-        self.ya.run(how='very')
+        self.ya.run(kwargs={'how': 'very'})
         assert self.tlh.msgs == [('INFO', 'this is very cool')]
 
     def test_run_if_nested_else(self):
-        self.ya2.run(ide=True)
+        self.ya2.run(kwargs={'ide': True})
         assert ('DEBUG', 'ifelse') in self.tlh.msgs
 
     def test_successful_command_with_no_output_evaluates_to_true(self):
@@ -183,13 +177,13 @@ class TestYamlAssistant(object):
 
     def test_assign_in_condition_modifies_outer_scope(self):
         self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
-        self.ya.run(foo='foo', spam='spam')
+        self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
         assert('INFO', 'spam') in self.tlh.msgs
 
     def test_assign_in_snippet_or_run_doesnt_modify_outer_scope(self):
         self.ya._run = [{'call': 'self.run_blah'}, {'log_i': '$foo'}]
         self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
-        self.ya.run(foo='foo', spam='spam')
+        self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
         assert('INFO', 'yes, I ran') in self.tlh.msgs
         assert('INFO', 'foo') in self.tlh.msgs
 
@@ -235,7 +229,7 @@ class TestYamlAssistant(object):
 
     def test_loop_two_control_vars_fails_on_string(self):
         self.ya._run = [{'for $i, $j in $foo': [{'log_i': '$i, $j'}]}]
-        self.ya.run(foo={'bar': 'barval', 'spam': 'spamval'})
+        self.ya.run(kwargs={'foo': {'bar': 'barval', 'spam': 'spamval'}})
         assert ('INFO', 'bar, barval') in self.tlh.msgs
         assert ('INFO', 'spam, spamval') in self.tlh.msgs
 
@@ -243,27 +237,27 @@ class TestYamlAssistant(object):
 class TestExpressions(TestYamlAssistant):
     def test_assign_existing_nonempty_variable(self):
         self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
-        self.ya.run(bar='bar')
+        self.ya.run(kwargs={'bar': 'bar'})
         assert ('INFO', 'bar') in self.tlh.msgs
 
         # both logical result and result
         self.ya._run = [{'$success, $val': '$foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
-        self.ya.run(foo='foo')
+        self.ya.run(kwargs={'foo': 'foo'})
         assert ('INFO', 'True') in self.tlh.msgs
         assert ('INFO', 'foo') in self.tlh.msgs
 
     def test_assign_existing_empty_variable(self):
         self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
-        self.ya.run(bar='')
+        self.ya.run(kwargs={'bar': ''})
         assert ('INFO', '') in self.tlh.msgs
 
         # both logical result and result
         self.ya._run = [{'$success, $val': '$foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
-        self.ya.run(foo='')
+        self.ya.run(kwargs={'foo': ''})
         assert ('INFO', 'False') in self.tlh.msgs
         assert ('INFO', '') in self.tlh.msgs
 
@@ -284,7 +278,7 @@ class TestExpressions(TestYamlAssistant):
         self.ya._run = [{'$success, $val': 'defined $foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
-        self.ya.run(foo='')
+        self.ya.run(kwargs={'foo': ''})
         assert ('INFO', 'True') in self.tlh.msgs
         assert ('INFO', '') in self.tlh.msgs
 
@@ -292,7 +286,7 @@ class TestExpressions(TestYamlAssistant):
         self.ya._run = [{'$success, $val': 'defined $foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
-        self.ya.run(foo='foo')
+        self.ya.run(kwargs={'foo': 'foo'})
         assert ('INFO', 'True') in self.tlh.msgs
         assert ('INFO', 'foo') in self.tlh.msgs
 
@@ -337,7 +331,7 @@ class TestExpressions(TestYamlAssistant):
 
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):
-        self.ya = yaml_assistant.YamlAssistant('ya', {}, '')
+        self.ya = yaml_assistant.YamlAssistant('ya', {}, '', None)
         self.ya.role = 'mod'
         self.ya._files = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
@@ -348,14 +342,15 @@ class TestYamlAssistantModifier(object):
         self.ya._dependencies = [{'rpm': ['spam']}]
         self.ya._dependencies_foo = [{'rpm': ['beans']}]
         self.ya._dependencies_foo_bar_baz = [{'rpm': ['eggs']}]
-        assert {'rpm': ['spam']} in self.ya.dependencies()
-        assert {'rpm': ['beans']} in self.ya.dependencies()
-        assert {'rpm': ['eggs']} in self.ya.dependencies()
+        deps = self.ya.dependencies(kwargs=self.dda)
+        assert {'rpm': ['spam']} in deps
+        assert {'rpm': ['beans']} in deps
+        assert {'rpm': ['eggs']} in deps
 
     def test_run_chooses_proper_method(self):
         flexmock(self.ya).should_receive('proper_kwargs').and_return(self.dda)
         self.ya._run = [{'log_i': 'wrong!'}]
         self.ya._run_foo = [{'log_i': 'wrong too!'}]
         self.ya._run_foo_bar_baz = [{'log_i': 'correct'}]
-        self.ya.run()
+        self.ya.run(kwargs=self.dda)
         assert ('INFO', 'correct') in self.tlh.msgs

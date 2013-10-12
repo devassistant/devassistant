@@ -151,7 +151,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
     @needs_fully_loaded
-    def dependencies(self, kwargs):
+    def dependencies(self, kwargs=None):
         """Returns all dependencies of this assistant with regards to specified kwargs.
 
         This is list of mappings of dependency types to actual dependencies
@@ -159,6 +159,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         Example:
         [{'rpm', ['rubygems']}, {'gem', ['mygem']}, {'rpm', ['spam']}, ...]
         """
+        # we can't use {} as a default for kwargs, as that initializes the dict only once in Python
+        # and uses the same dict in all subsequent calls of this method
+        if not kwargs: kwargs = {}
 
         self.proper_kwargs('dependencies', kwargs)
         sections = [getattr(self, '_dependencies', [])]
@@ -182,7 +185,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return deps
 
     @needs_fully_loaded
-    def run(self, stage, kwargs):
+    def run(self, stage='', kwargs=None):
+        # we can't use {} as a default for kwargs, as that initializes the dict only once in Python
+        # and uses the same dict in all subsequent calls of this method
+        if not kwargs: kwargs = {}
+
         self.proper_kwargs('run', kwargs)
         to_run = '_run'
         if stage: # if we have stage, always use that
