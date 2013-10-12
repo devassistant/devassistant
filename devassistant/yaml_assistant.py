@@ -117,8 +117,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
     @needs_fully_loaded
     def proper_kwargs(self, section, kwargs):
-        """Returns kwargs updated with proper meta variables (like __assistant__), and possibly
-        updated with values from .devassistant file, when appropriate.
+        """Returns kwargs updated with proper meta variables (like __assistant__).
         If this method is run repeatedly with the same section and the same kwargs,
         it always modifies kwargs in the same way.
         """
