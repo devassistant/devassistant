@@ -91,6 +91,32 @@ sort of reasonable default, it's up to your consideration which of them to use):
   ``.svg`` - e.g. for ``~/.devassistant/assistants/crt/foo/bar.yaml``,
   the default icon path is ``~/.devassistant/icons/crt/foo/bar.svg``
 
+Assistants Invocation
+---------------------
+
+When you invoke DevAssistant with it will run following assistants sections in following order:
+
+- ``pre_run``
+- ``dependencies``
+- ``run`` (possibly different section for `Modifier Assistants`_)
+- ``post_run``
+
+If any of the first three sections fails in any step, DevAssistant will immediately skip to
+``post_run`` and the whole invocation will be considered as failed (will return non-zero code
+on command line and show "Failed" in GUI).
+
+When assistant with one or more subassistants is used (e.g. ``python django``), DevAssistant will
+invoke each of the above sections for each assistant in given order, e.g:
+
+- ``pre_run`` of ``python``
+- ``pre_run`` of ``django``
+- ``dependencies`` of ``python``
+
+...
+
+If any of them fails, DevAssistant will invoke ``post_run`` sections of all assistants, again in
+given order.
+
 .. _dependencies_ref:
 
 Dependencies
@@ -248,9 +274,12 @@ Run
 
 Run sections are the essence of DevAssistant. They are responsible for
 preforming all the tasks and actions to set up the environment and
-the project itself. For Creator and Preparer assistants, ``run`` section
+the project itself. For Creator and Preparer assistants, section named ``run``
 is always invoked, `Modifier Assistants`_ may invoke different sections
-based on info from ``.devassistant`` file.
+based on metadata in ``.devassistant`` file.
+
+Note, that ``pre_run`` and ``post_run`` follow the same rules as ``run`` sections.
+See `Assistants Invocation`_ to find out how these sections are invoked.
 
 Every ``run`` section is a sequence of various **commands**, mostly
 invocations of commandline. Each command is a mapping

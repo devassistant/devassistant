@@ -118,30 +118,32 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         return self._subassistants
 
     @needs_fully_loaded
-    def proper_kwargs(self, section='run', **kwargs):
+    def proper_kwargs(self, section, kwargs):
         """Returns kwargs updated with proper meta variables (like __assistant__), and possibly
-        updated with values from .devassistant file, when appropriate."""
+        updated with values from .devassistant file, when appropriate.
+        If this method is run repeatedly with the same section and the same kwargs,
+        it always modifies kwargs in the same way.
+        """
         if self.role == 'mod' and self._devassistant_projects_only:
-            # don't rewrite old values
-            # first get the new ones and then update them with the old
-            new_kwargs = command.Command('dda_r', kwargs.get('path', '.'), kwargs).run()
-            new_kwargs.update(kwargs)
-            kwargs = new_kwargs
+            read_kwargs = command.Command('dda_r', kwargs.get('path', '.'), kwargs).run()
+            for k, v in read_kwargs.items():
+                # don't rewrite old values
+                kwargs.setdefault(k, v)
         kwargs['__section__'] = section
         kwargs['__assistant__'] = self
         kwargs['__files__'] = [self._files]
         kwargs['__files_dir__'] = [self.files_dir]
         kwargs['__scls__'] = []
-        return kwargs
 
     @needs_fully_loaded
-    def logging(self, **kwargs):
-        kwargs = self.proper_kwargs(section='logging', **kwargs)
+    def logging(self, kwargs):
+        # TODO: this doesn't seem to work, fix it...
+        self.proper_kwargs('logging', kwargs)
         for l in self._logging:
             handler_type, l_list = l.popitem()
             if handler_type == 'file':
                 level, lfile = l_list
-                expanded_lfile = self._format(lfile, **kwargs)
+                expanded_lfile = self._format(lfile, kwargs)
                 # make dirs, create logger
                 if not os.path.exists(os.path.dirname(expanded_lfile)):
                     os.makedirs(os.path.dirname(expanded_lfile))
@@ -156,7 +158,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 logger.warning('Unknown logger type {0}, ignoring.'.format(handler_type))
 
     @needs_fully_loaded
-    def dependencies(self, **kwargs):
+    def dependencies(self, kwargs):
         """Returns all dependencies of this assistant with regards to specified kwargs.
 
         This is list of mappings of dependency types to actual dependencies
@@ -165,7 +167,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         [{'rpm', ['rubygems']}, {'gem', ['mygem']}, {'rpm', ['spam']}, ...]
         """
 
-        kwargs = self.proper_kwargs(section='dependencies', **kwargs)
+        self.proper_kwargs('dependencies', kwargs)
         sections = [getattr(self, '_dependencies', [])]
         if self.role == 'mod' and self._devassistant_projects_only:
             # if subassistant_path is "foo bar baz", then search for dependency sections
@@ -186,45 +188,23 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         return deps
 
-    def _get_section_to_run(self, section, **kwargs):
-        """Returns the proper section to run.
-        Args:
-            section: name of section to run
-            **kwargs: devassistant arguments
-        Returns:
-            section to run - dict, None if not found
-        """
-        to_run = None
-
-        if section:
-            underscored = '_' + section
-            if underscored in dir(self):
-                to_run = getattr(self, underscored)
-
-        return to_run
-
     @needs_fully_loaded
-    def run(self, **kwargs):
-        kwargs = self.proper_kwargs(section='run', **kwargs)
-        if self.role == 'mod' and self._devassistant_projects_only:
+    def run(self, stage, kwargs):
+        self.proper_kwargs('run', kwargs)
+        to_run = '_run'
+        if stage: # if we have stage, always use that
+            to_run = '_' + stage + '_run'
+        elif self.role == 'mod' and self._devassistant_projects_only:
             # try to get a section to run from the most specialized one to the least specialized one
             # e.g. first run_python_django, then run_python and then just run
             sa_path = kwargs.get('subassistant_path', [])
             for i in range(len(sa_path), -1, -1):
-                path = '_'.join(sa_path[:i])
-                if path:
-                    path = '_' + path
-                to_run = self._get_section_to_run(section='run{path}'.format(path=path), **kwargs)
-                if to_run:
+                possible_run = '_'.join(['_run'] + sa_path[:i])
+                if hasattr(self, possible_run):
+                    to_run = possible_run
                     break
-        else:
-            to_run = self._get_section_to_run(section='run', **kwargs)
 
-        if self._pre_run:
-            lang.run_section(self._pre_run, kwargs, runner=self)
-        lang.run_section(to_run, kwargs, runner=self)
-        if self._post_run:
-            lang.run_section(self._post_run, kwargs, runner=self)
+        lang.run_section(getattr(self, to_run, {}), kwargs, runner=self)
 
     @needs_fully_loaded
     def stop(self):
