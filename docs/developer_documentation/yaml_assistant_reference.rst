@@ -313,7 +313,11 @@ List of supported **command types** and their function follows:
   logs given **input** (message) at level specified by the last letter in
   ``log_X``. If the level is ``e`` or ``c``, the execution of the assistant
   is interrupted immediately.
-``dda_{c,dependencies,run}`` *unless otherwise noted, input of these command types is directory of created/used .devassistant file*
+``dda_{r,c,dependencies,run}`` *unless otherwise noted, input of these command types is directory of created/used .devassistant file*
+  - ``dda_r`` is meant to be used in modifier assistants, as it reads and adds
+    all the information from ``.devassistant`` and puts it into global variables
+    (notably, all the arguments that the project was created in are in ``original_kwargs``
+    mapping and are also accessible ``dda__<argname>`` (yes, that's double underscore).
   - ``dda_c`` creates ``.devassistant`` file (containing some sane initial meta
     information about the project).
   - ``dda_dependencies`` let's you install dependencies from ``.devassistant``
@@ -461,17 +465,12 @@ subdirectory of one of the load paths, as mentioned in
 
 There are few special things about modifier assistants:
 
-- They read the whole ``.devassistant`` file (from directory specified by
-  ``path`` variable or from current directory, if ``path`` is not specified)
-  and make its contents available in variables (notably ``$subassistant_path``).
-  If you don't want your assistant to search for and read ``.devassistant``,
-  just specify ``devassistant_projects_only: False`` (the default value
-  is ``True``)::
+- They usually utilize ``dda_r`` to read the whole ``.devassistant`` file (usually from directory
+  specified by ``path`` variable or from current directory). **Since version 0.8.0, every modifier
+  assistant has to do this on its own, be it in pre_run or run section**. This also allows you
+  to modify non-devassistant projects - just don't use ``dda_r``.
 
-     mymodifier:
-       fullname: My Modifier
-       description: Blah blah blah
-       devassistant_projects_only: False
+The special rules below **only apply if you use dda_t in pre_run section**.
 
 - They use dependency sections according to the normal rules + they use *all*
   the sections that are named according to loaded ``$subassistant_path``,

@@ -53,8 +53,6 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         self.files_dir = value.get('files_dir', self.default_files_dir_for('assistants'))
         self._files = value.get('files', {})
         self._logging = value.get('logging', [])
-        # modifiers use this to decide whether or not to read .devassistant
-        self._devassistant_projects_only = value.get('devassistant_projects_only', True)
         # set _run and _dependencies as empty in case assistant doesn't have them at all
         self._dependencies = value.get('dependencies', [])
         self._run = value.get('run', [])
@@ -124,11 +122,6 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         If this method is run repeatedly with the same section and the same kwargs,
         it always modifies kwargs in the same way.
         """
-        if self.role == 'mod' and self._devassistant_projects_only:
-            read_kwargs = command.Command('dda_r', kwargs.get('path', '.'), kwargs).run()
-            for k, v in read_kwargs.items():
-                # don't rewrite old values
-                kwargs.setdefault(k, v)
         kwargs['__section__'] = section
         kwargs['__assistant__'] = self
         kwargs['__files__'] = [self._files]
@@ -169,7 +162,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
         self.proper_kwargs('dependencies', kwargs)
         sections = [getattr(self, '_dependencies', [])]
-        if self.role == 'mod' and self._devassistant_projects_only:
+        if self.role == 'mod':
             # if subassistant_path is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
             for i in range(1, len(kwargs.get('subassistant_path', [])) + 1):
@@ -194,7 +187,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         to_run = '_run'
         if stage: # if we have stage, always use that
             to_run = '_' + stage + '_run'
-        elif self.role == 'mod' and self._devassistant_projects_only:
+        elif self.role == 'mod':
             # try to get a section to run from the most specialized one to the least specialized one
             # e.g. first run_python_django, then run_python and then just run
             sa_path = kwargs.get('subassistant_path', [])

@@ -323,18 +323,15 @@ modifies an arbitrary project without ``.devassistant``, read on).
 Modifier Specialties
 ~~~~~~~~~~~~~~~~~~~~
 
-On invocation of a modifier, DevAssistant tries to read ``.devassistant``
-file from path specified by ``path`` argument, if the assistant has such
-argument. Otherwise, it tries to read it from current directory. It the
-file is not found, DevAssistant fails immediately. If you don't want
-DevAssistant to look for and read ``.devassistant``, you need to specify
-``devassistant_projects_only: False``, see reference for
-:ref:`modifier_assistants_ref`.
+**The special behaviour of modifiers only applies if you use dda_r in pre_run
+section. This command reads .devassistant file from given directory and
+puts the read variables in global variable context, so they're available from
+all the following dependencies and run section.**
 
-Another specialty of modifiers is, that DevAssistant tries to search for more
-``dependencies`` sections to use. If the project was previously created by
-``crt python django``, the engine will install dependencies from sections
-``dependencies_python_django``, ``dependencies_python`` and ``dependencies``.
+If modifier reads ``.devassistant`` file in ``pre_run`` section, DevAssistant
+tries to search for more ``dependencies`` sections to use. If the project was
+previously created by ``crt python django``, the engine will install dependencies
+from sections ``dependencies_python_django``, ``dependencies_python`` and ``dependencies``.
 
 Also, the engine will try to run ``run_python_django`` section first, then it
 will try ``run_python`` and then ``run`` - note, that this will only run the

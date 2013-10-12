@@ -178,18 +178,18 @@ class DotDevassistantCommandRunner(CommandRunner):
     def run(cls, c):
         comm = c.format_str()
         if c.comm_type == 'dda_c':
-            return cls._dot_devassistant_create(comm, **c.kwargs)
+            return cls._dot_devassistant_create(comm, c.kwargs)
         elif c.comm_type == 'dda_r':
-            return cls._dot_devassistant_read(comm, **c.kwargs)
+            return cls._dot_devassistant_read(comm, c.kwargs)
         elif c.comm_type == 'dda_dependencies':
-            return cls._dot_devassistant_dependencies(comm, **c.kwargs)
+            return cls._dot_devassistant_dependencies(comm, c.kwargs)
         elif c.comm_type == 'dda_run':
-            return cls._dot_devassistant_run(comm, **c.kwargs)
+            return cls._dot_devassistant_run(comm, c.kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(c.comm_type))
 
     @classmethod
-    def _dot_devassistant_create(cls, directory, **kwargs):
+    def _dot_devassistant_create(cls, directory, kwargs):
         cls._dot_devassistant_path = os.path.join(directory, '.devassistant')
         f = open(cls._dot_devassistant_path, 'w')
         # write path to this subassistant
@@ -217,11 +217,9 @@ class DotDevassistantCommandRunner(CommandRunner):
         f.close()
 
     @classmethod
-    def _dot_devassistant_read(cls, comm, **kwargs):
-        """Don't use this directly from assistants (yet), doesn't store
-        data in kwargs.
-
-        Reads and returns data from .devassistant file. On top of it, it adds:
+    def _dot_devassistant_read(cls, comm, kwargs):
+        """Reads and stores data from .devassistant file in kwargs.
+        On top of it, it adds:
         - "name" - contains the name of current directory.
         - "dda__<var>" - (yes, that is double underscore) - for each <var> that
           this project was created with.
@@ -234,15 +232,16 @@ class DotDevassistantCommandRunner(CommandRunner):
             msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
             raise exceptions.RunException(msg)
 
+        for k, v in result.items():
+            kwargs.setdefault(k, v)
         for k, v in result.get('original_kwargs', {}).items():
-            result['dda__' + k] = v
-        result['name'] = os.path.basename(os.path.abspath(os.path.expanduser(comm)))
-        return result
+            kwargs.setdefault('dda__' + k, v)
+        kwargs.setdefault('name', os.path.basename(os.path.abspath(os.path.expanduser(comm))))
 
     @classmethod
-    def _dot_devassistant_dependencies(cls, comm, **kwargs):
+    def _dot_devassistant_dependencies(cls, comm, kwargs):
         struct = []
-        dda_content = cls._dot_devassistant_read(comm, **kwargs)
+        dda_content = cls._dot_devassistant_read(comm, kwargs)
         original_assistant_path = dda_content.get('subassistant_path', [])
         if original_assistant_path:
             # if we have an original path, try to get original assistant
@@ -260,16 +259,16 @@ class DotDevassistantCommandRunner(CommandRunner):
                 #TODO: maybe figure out more DRY code (similar is in path_runner, too)
                 if 'dependencies' in vars(a.__class__) or \
                    isinstance(a, yaml_assistant.YamlAssistant):
-                    struct.extend(a.dependencies(**dda_content.get('original_kwargs', {})))
+                    struct.extend(a.dependencies(dda_content.get('original_kwargs', {})))
             struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
                                                     kwargs,
                                                     runner=kwargs['__assistant__']))
         command.Command('dependencies', struct, kwargs).run()
 
     @classmethod
-    def _dot_devassistant_run(cls, comm, **kwargs):
+    def _dot_devassistant_run(cls, comm, kwargs):
         dda_content = cls._dot_devassistant_read(comm, **kwargs)
-        return lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
+        lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
 
 class GitHubAuth(object):
     _user = None
