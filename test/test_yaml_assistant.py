@@ -18,12 +18,12 @@ from test.logger import TestLoggingHandler
 
 class TestYamlAssistant(object):
     def setup_method(self, method):
-        self.ya = yaml_assistant.YamlAssistant('ya', {}, '')
+        self.ya = yaml_assistant.YamlAssistant('ya', {}, '', None)
         self.ya.role = 'crt'
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
-        self.ya2 = yaml_assistant.YamlAssistant('ya2', {}, '')
+        self.ya2 = yaml_assistant.YamlAssistant('ya2', {}, '', None)
         self.ya2._files = {}
         self.ya2.role = 'crt'
         self.ya2._run = [{'if $ide':

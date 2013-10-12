@@ -93,30 +93,37 @@ class CallCommandRunner(CommandRunner):
 
     @classmethod
     def get_section_from_call(cls, cmd_call, section_type, assistant):
-        """Returns a section form call.
+        """Returns a section from call command.
 
         Examples:
-            if section_type == dependencies, then
-              cmd_call == self.dependencies_bar returns content of dependencies_bar from this assistant
-            if section_type == run, then
-              cmd_call == self.run_foo returns run_foo of this assistant
-              cmd_call == eclipse.run_python returns run_python section of eclipse snippet
+        - self.dependencies_bar ~> dependencies_bar section from this assistant
+        - eclipse.run_foo ~> run_foo section from eclipse snippet
+        - super.dependencies ~> dependencies section from first superassistant that has such
+
+        If the part after dot is omitted, "section_type" is used instead
 
         Args:
             cmd_call - a string with the call, e.g. "eclipse.run_python"
             section_type - either "dependencies" or "run"
-            assistant - current assistant for the possibility of trying to use "self"
+            assistant - current assistant for the possibility of trying to use "self" or "super"
 
         Returns:
-            section to run - dict, None if not found
+            section to call (list), None if not found
         """
-
         section = None
         call_parts = cmd_call.split('.')
         section_name = call_parts[1] if len(call_parts) > 1 else section_type
 
         if call_parts[0] == 'self':
             section = getattr(assistant, '_' + section_name, None)
+        elif call_parts[0] == 'super':
+            a = assistant.superassistant
+            while a:
+                if hasattr(a, 'assert_fully_loaded'):
+                    a.assert_fully_loaded()
+                if hasattr(a, '_' + section_name):
+                    section = getattr(a, '_' + section_name)
+                    break
         else: # snippet
             try:
                 snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])

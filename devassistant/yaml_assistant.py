@@ -27,9 +27,10 @@ def needs_fully_loaded(method):
     return inner
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
-    def __init__(self, name, parsed_yaml, path, fully_loaded=True, role='crt'):
+    def __init__(self, name, parsed_yaml, path, superassistant, fully_loaded=True, role='crt'):
         self.name = name
         self.path = path
+        self.superassistant = superassistant
         self.fully_loaded = fully_loaded
         self.role = role
         self.stop_flag = False

@@ -12,7 +12,7 @@ class ExecutableAssistant(assistant_base.AssistantBase):
 
 class CreatorAssistant(ExecutableAssistant):
     def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['crt'])
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
         return sa
 
     name = 'crt'
@@ -21,7 +21,7 @@ class CreatorAssistant(ExecutableAssistant):
 
 class ModifierAssistant(ExecutableAssistant):
     def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['mod'])
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
         return sa
 
     name = 'mod'
@@ -30,7 +30,7 @@ class ModifierAssistant(ExecutableAssistant):
 
 class PreparerAssistant(ExecutableAssistant):
     def get_subassistants(self):
-        sa = yaml_assistant_loader.YamlAssistantLoader.get_top_level_assistants(roles=['prep'])
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
         return sa
 
     name = 'prep'

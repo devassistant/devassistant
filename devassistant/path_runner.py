@@ -11,31 +11,24 @@ class PathRunner(object):
             import devassistant.excepthook
 
     def _logging(self, parsed_args):
-        """Registers a logging handler from the leaf assistant, if specified"""
-        if 'logging' in vars(self.path[-1].__class__) or isinstance(self.path[-1], yaml_assistant.YamlAssistant):
-            self.path[-1].logging(parsed_args)
+        """Registers a logging handler from the leaf assistant."""
+        self.path[-1].logging(parsed_args)
 
     def _run_path_dependencies(self, parsed_args):
-        """Runs *Assistant.dependencies methods.
+        """Installs dependencies from the leaf assistant.
         Raises:
             devassistant.exceptions.DependencyException with a cause if something goes wrong
         """
-        deps = []
-
-        for a in self.path:
-            if 'dependencies' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                deps.extend(a.dependencies(parsed_args))
+        deps = self.path[-1].dependencies(parsed_args)
 
         command.Command('dependencies', deps, parsed_args).run()
 
     def _run_path_run(self, stage, parsed_args):
-        """Runs *Assistant.run methods.
+        """Runs run section with given stage from leaf assistants.
         Raises:
             devassistant.exceptions.RunException with a cause if something goes wrong
         """
-        for a in self.path:
-            if 'run' in vars(a.__class__) or isinstance(a, yaml_assistant.YamlAssistant):
-                a.run(stage, parsed_args)
+        self.path[-1].run(stage, parsed_args)
 
     def run(self, **parsed_args):
         """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.

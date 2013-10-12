@@ -12,23 +12,24 @@ class YamlAssistantLoader(object):
     _assistants = {}
 
     @classmethod
-    def get_top_level_assistants(cls, roles=settings.ASSISTANT_ROLES):
-        """Returns list of top level assistants with specified roles (defaults to all roles).
+    def get_assistants(cls, superassistants):
+        """Returns list of assistants that are subassistants of given superassistants
+        (I love this docstring).
 
         Args:
             roles: list of names of roles, defaults to all roles
         Returns:
             list of YamlAssistant instances with specified roles
         """
-        cls.load_all_assistants(roles=roles)
+        cls.load_all_assistants(superassistants)
         result = []
-        for r in roles:
-            result.extend(cls._assistants[r])
+        for supa in superassistants:
+            result.extend(cls._assistants[supa.name])
 
         return result
 
     @classmethod
-    def load_all_assistants(cls, roles):
+    def load_all_assistants(cls, superassistants):
         """Fills self._assistants with loaded YamlAssistant instances of requested roles.
 
         Tries to use cache (updated/created if needed). If cache is unusable, it
@@ -37,7 +38,9 @@ class YamlAssistantLoader(object):
         Args:
             roles: list of required assistant roles
         """
-        to_load = set(roles) - set(cls._assistants.keys())
+        # {'crt': CreatorAssistant, ...}
+        superas_dict = dict(map(lambda a: (a.name, a), superassistants))
+        to_load = set(superas_dict.keys()) - set(cls._assistants.keys())
         for tl in to_load:
             dirs = [os.path.join(d, tl) for d in cls.assistants_dirs]
             file_hierarchy = cls.get_assistants_file_hierarchy(dirs)
@@ -45,14 +48,16 @@ class YamlAssistantLoader(object):
                 cch = cache.Cache()
                 cch.refresh_role(tl, file_hierarchy)
                 cls._assistants[tl] = cls.get_assistants_from_cache_hierarchy(cch.cache[tl],
+                                                                              superas_dict[tl],
                                                                               role=tl)
             except BaseException as e:
                 logger.debug(e)
                 cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy,
+                                                                             superas_dict[tl],
                                                                              role=tl)
 
     @classmethod
-    def get_assistants_from_cache_hierarchy(cls, cache_hierarchy, role='crt'):
+    def get_assistants_from_cache_hierarchy(cls, cache_hierarchy, superassistant, role='crt'):
         """Accepts cache_hierarch as described in devassistant.cache and returns
         instances of YamlAssistant (only with cached attributes) for loaded files
 
@@ -70,16 +75,18 @@ class YamlAssistantLoader(object):
         for name, attrs in cache_hierarchy.items():
             ass = cls.assistant_from_yaml(attrs['source'],
                                           {name: attrs['attrs']},
+                                          superassistant,
                                           fully_loaded=False,
                                           role=role)
             ass._subassistants = cls.get_assistants_from_cache_hierarchy(attrs['subhierarchy'],
+                                                                         ass,
                                                                          role=role)
             result.append(ass)
 
         return result
 
     @classmethod
-    def get_assistants_from_file_hierarchy(cls, file_hierarchy, role='crt'):
+    def get_assistants_from_file_hierarchy(cls, file_hierarchy, superassistant, role='crt'):
         """Accepts file_hierarch as returned by cls.get_assistant_file_hierarchy and returns
         instances of YamlAssistant for loaded files
 
@@ -97,8 +104,10 @@ class YamlAssistantLoader(object):
             loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(attrs['source'])
             ass = cls.assistant_from_yaml(attrs['source'],
                                           loaded_yaml,
+                                          superassistant,
                                           role=role)
             ass._subassistants = cls.get_assistants_from_file_hierarchy(attrs['subhierarchy'],
+                                                                        ass,
                                                                         role=role)
             result.append(ass)
 
@@ -138,13 +147,14 @@ class YamlAssistantLoader(object):
         return result
 
     @classmethod
-    def assistant_from_yaml(cls, source, y, fully_loaded=True, role='crt'):
+    def assistant_from_yaml(cls, source, y, superassistant, fully_loaded=True, role='crt'):
         """Constructs instance of YamlAssistant loaded from given structure y, loaded
         from source file source.
 
         Args:
             source: path to assistant source file
             y: loaded yaml structure
+            superassistant: superassistant of this assistant
         Returns:
             YamlAssistant instance constructed from y with source file source
         """
@@ -153,6 +163,7 @@ class YamlAssistantLoader(object):
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,
                                                  source,
+                                                 superassistant,
                                                  fully_loaded=fully_loaded,
                                                  role=role)
 

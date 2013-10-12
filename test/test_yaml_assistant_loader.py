@@ -3,9 +3,13 @@ import os
 import pytest
 import yaml
 
+from devassistant.assistant_base import AssistantBase
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 from test.logger import TestLoggingHandler
+
+class CreatorAssistant(AssistantBase):
+    name = 'crt'
 
 class TestYamlAssistantLoader(object):
     def setup_method(self, method):
@@ -30,7 +34,7 @@ class TestYamlAssistantLoader(object):
         # TODO: probably move testing to yaml_assistants tests, since
         # most of this stuff is done there now (although it's testable here)
         y = self.load_yaml_from_fixture('c')
-        a = self.yl.assistant_from_yaml('foo', y)
+        a = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
 
         assert a.name == 'c'
         assert a.fullname == 'C Language Tool'
@@ -45,7 +49,7 @@ class TestYamlAssistantLoader(object):
         assert a._run == [{'cl': 'ls foo/bar'}]
 
     def test_load_all_assistants_loads_proper_structure(self):
-        YamlAssistantLoader.load_all_assistants(roles=['crt'])
+        YamlAssistantLoader.load_all_assistants(superassistants=[CreatorAssistant()])
         assert len(YamlAssistantLoader._assistants) == 1
         assert len(YamlAssistantLoader._assistants['crt']) == 2
         # ass is a really nice variable name, isn't it?
@@ -60,7 +64,7 @@ class TestYamlAssistantLoader(object):
         #TODO: some more checks...
 
     def test_get_top_level_assistants(self):
-        ass = YamlAssistantLoader.get_top_level_assistants()
+        ass = YamlAssistantLoader.get_assistants(superassistants=[CreatorAssistant])
         assert set(['c', 'f']) == set(map(lambda x: x.name, ass))
 
     def test_assistant_from_yaml_doesnt_fail_on_missing_snippet(self):
@@ -68,7 +72,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_snippet_for_arg')
-        klass = self.yl.assistant_from_yaml('foo', y)
+        klass = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
 
     def test_assistant_from_yaml_doesnt_fail_on_missing_arg(self):
@@ -76,5 +80,5 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
-        a = self.yl.assistant_from_yaml('foo', y)
+        a = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
