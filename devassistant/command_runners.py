@@ -89,7 +89,8 @@ class CallCommandRunner(CommandRunner):
 
     @classmethod
     def is_snippet_call(cls, cmd_call):
-        return not (cmd_call == 'self' or cmd_call.startswith('self.'))
+        return not ((cmd_call == 'self' or cmd_call.startswith('self.')) or
+                    (cmd_call == 'super' or cmd_call.startswith('super.')))
 
     @classmethod
     def get_section_from_call(cls, cmd_call, section_type, assistant):
