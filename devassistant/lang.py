@@ -179,6 +179,9 @@ def assign_variable(variable, comm, kwargs):
         var2 = get_var_name(variable)
     kwargs[var2] = res2
 
+def is_var(string):
+    return string.startswith('$')
+
 def get_var_name(dolar_variable):
     name = dolar_variable.strip()
     name = name.strip('"\'')
