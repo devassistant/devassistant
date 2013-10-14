@@ -440,7 +440,7 @@ class GitHubCommandRunner(CommandRunner):
         if comm == 'create_repo':
             cls._github_create_repo(**kwargs)
         elif comm == 'push':
-            cls._github_push(**kwargs)
+            cls._github_push()
         elif comm == 'create_and_push':
             cls._github_create_and_push(**kwargs)
         elif comm == 'add_remote_origin':
@@ -488,7 +488,7 @@ class GitHubCommandRunner(CommandRunner):
 
 
     @classmethod
-    def _github_push_repo(cls):
+    def _github_push(cls):
         ClHelper.run_command("git push -u origin master", logging.INFO)
 
     @classmethod
@@ -538,7 +538,7 @@ class GitHubCommandRunner(CommandRunner):
 
     @classmethod
     @GitHubAuth.github_authenticated
-    def _github_push(cls, **kwargs):
+    def _github_add_remote_and_push(cls, **kwargs):
         """Add a remote and push to GitHub.
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
@@ -547,7 +547,7 @@ class GitHubCommandRunner(CommandRunner):
         """
         cls._github_add_remote_origin(**kwargs)
         cls._github_remote_show_origin()
-        cls._github_push_repo()
+        cls._github_push()
 
     @classmethod
     @GitHubAuth.github_authenticated
@@ -559,7 +559,7 @@ class GitHubCommandRunner(CommandRunner):
                        kwargs['reponame']))
         cls._github_create_repo(**kwargs)
         logger.info('Pushing your project to the new GitHub repository...')
-        cls._github_push(**kwargs)
+        cls._github_add_remote_and_push(**kwargs)
         logger.info('GitHub repository was created and source code pushed.')
 
 @register_command_runner
