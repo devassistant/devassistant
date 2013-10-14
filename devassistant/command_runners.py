@@ -287,25 +287,22 @@ class GitHubAuth(object):
         _gh_module = None
 
     @classmethod
-    def _github_login(cls, **kwargs):
-        return kwargs['github'] or getpass.getuser()
-
-    @classmethod
-    def _github_token(cls, **kwargs):
+    def _github_token(cls, login):
         if not cls._token:
             try:
                 cls._token = ClHelper.run_command("git config github.token.{login}".format(
-                    login=cls._github_login(**kwargs)))
+                    login=login))
             except exceptions.ClException:
                 pass # token is not available yet
 
         return cls._token
 
     @classmethod
-    def _get_github_user(cls, login, token, **kwargs):
+    def _get_github_user(cls, login):
         if not cls._user:
             try:
                 # try logging with token
+                token = cls._github_token(login)
                 gh = cls._gh_module.Github(login_or_token=token)
                 cls._user = gh.get_user()
                 # try if the authentication was successful
@@ -320,7 +317,7 @@ class GitHubAuth(object):
                 cls._user = gh.get_user()
                 try:
                     cls._user.login
-                    cls._github_create_auth(**kwargs) # create auth for future use
+                    cls._github_create_auth() # create auth for future use
                 except cls._gh_module.GithubException as e:
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
                     # reset cls._user to None, so that we don't use it if calling this multiple times
@@ -329,7 +326,7 @@ class GitHubAuth(object):
         return cls._user
 
     @classmethod
-    def _github_create_auth(cls, **kwargs):
+    def _github_create_auth(cls):
         """ Store token into ~/.gitconfig.
 
         If token is not defined then store it into ~/.gitconfig file
@@ -346,7 +343,7 @@ class GitHubAuth(object):
                 logger.warning('Creating authorization failed: {0}'.format(e))
 
     @classmethod
-    def _github_create_ssh_key(cls, **kwargs):
+    def _github_create_ssh_key(cls):
         try:
             login = cls._user.login
             pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
@@ -366,12 +363,12 @@ class GitHubAuth(object):
             else:
                 cls._user.create_key("devassistant", public_key)
             # next, create ~/.ssh/config entry for the key, if system username != GH login
-            cls._github_create_ssh_config_entry(**kwargs)
+            cls._github_create_ssh_config_entry()
         except exceptions.ClException:
             pass # TODO: determine and log the error
 
     @classmethod
-    def _github_create_ssh_config_entry(cls, **kwargs):
+    def _github_create_ssh_config_entry(cls):
         if getpass.getuser() != cls._user.login:
             ssh_config = os.path.expanduser('~/.ssh/config')
             user_github_string = 'github.com-{0}'.format(cls._user.login)
@@ -401,11 +398,9 @@ class GitHubAuth(object):
                 logger.warning('PyGithub not installed, skipping github authentication procedures.')
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
-                func_cls._user = cls._get_github_user(cls._github_login(**kwargs),
-                                                  cls._github_token(**kwargs),
-                                                  **kwargs)
+                func_cls._user = cls._get_github_user(kwargs['login'])
                 # create ssh key for pushing
-                cls._github_create_ssh_key(**kwargs)
+                cls._github_create_ssh_key()
             func(func_cls, *args, **kwargs)
 
         return inner
@@ -424,55 +419,107 @@ class GitHubCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = c.format_str()
+        """Arguments given to 'github' command may be:
+        - Just a string (action), which implies that all the other arguments are deducted from
+          global context and local system.
+        - List containing a string (action) as a first item and rest of the args in a dict.
+          (args not specified in the dict are taken from global context.
+
+        Possible arguments:
+        - login - taken from 'github' or system username - represents Github login
+        - reponame - taken from 'name' (first applies os.path.basename) - repo to operate on
+        """
+        comm, kwargs = cls.format_args(c)
         if not cls._gh_module:
             logger.warning('PyGithub not installed, cannot execute github command.')
             return
+
+        # we pass arguments as kwargs, so that the auth decorator can easily query them
+        # NOTE: these are not the variables from global context, but rather what
+        # cls.format_args returned
         if comm == 'create_repo':
-            cls._github_create_repo(**c.kwargs)
+            cls._github_create_repo(**kwargs)
         elif comm == 'push':
-            cls._github_push(**c.kwargs)
+            cls._github_push(**kwargs)
         elif comm == 'create_and_push':
-            cls._github_create_and_push(**c.kwargs)
+            cls._github_create_and_push(**kwargs)
         else:
             logger.warning('Unknow github command {0}, skipping.'.format(comm))
 
     @classmethod
-    def _github_reponame(cls, **kwargs):
-        """Extracts reponame from name, which is possibly a path."""
-        return os.path.basename(kwargs['name'])
+    def format_args(cls, c):
+        args = c.format_deep()
+        if isinstance(args, list):
+            comm = args[0]
+            args_rest = args[1]
+        else:
+            comm = args
+            args_rest = {}
+        kwargs = {'login': args_rest.get('login', cls._github_login(c.kwargs)),
+                  'reponame': args_rest.get('reponame', cls._github_reponame(c.kwargs))}
+        return comm, kwargs
 
     @classmethod
-    def _github_push_repo(cls, **kwargs):
+    def _github_login(cls, ctxt):
+        """Get github login, either from 'github' global variable or from local username.
+
+        Args:
+            kwargs: global context
+
+        Returns:
+            guessed github login
+        """
+        return ctxt['github'] or getpass.getuser()
+
+
+    @classmethod
+    def _github_reponame(cls, ctxt):
+        """Extracts reponame from 'name' global variable, which is possibly a path.
+
+        Args:
+            kwargs: global context
+
+        Returns:
+            guessed reponame
+        """
+        return os.path.basename(ctxt['name'])
+
+
+    @classmethod
+    def _github_push_repo(cls):
         ClHelper.run_command("git push -u origin master", logging.INFO)
 
     @classmethod
-    def _github_remote_show_origin(cls, **kwargs):
+    def _github_remote_show_origin(cls):
         ClHelper.run_command("git remote show origin")
 
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_add_remote_origin(cls, **kwargs):
-        reponame = cls._github_reponame(**kwargs)
+        """Note: the kwargs are not the global context here, but what cls.format_args returns."""
+        reponame = kwargs['reponame']
+        login = kwargs['login']
         # if system username != GH login, we need to use git@github.com-{login}:...
         # else just git@github.com:...
         dash_login = ''
-        if getpass.getuser() != cls._user.login:
-            dash_login = '-' + cls._user.login
+        if getpass.getuser() != login:
+            dash_login = '-' + login
         ClHelper.run_command("git remote add origin git@github.com{dash_login}:{login}/{reponame}.git".\
-                             format(dash_login=dash_login, login=cls._user.login, reponame=reponame), logging.INFO)
+                             format(dash_login=dash_login, login=login, reponame=reponame),
+                             logging.INFO)
 
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_create_repo(cls, **kwargs):
         """Create repo on GitHub.
+        Note: the kwargs are not the global context here, but what cls.format_args returns.
 
         If repository already exists then RunException will be raised.
 
         Raises:
             devassistant.exceptions.RunException on error
         """
-        reponame = cls._github_reponame(**kwargs)
+        reponame = kwargs['reponame']
 
         if reponame in map(lambda x: x.name, cls._user.get_repos()):
             msg = 'Repository already exists on GitHub'
@@ -491,20 +538,23 @@ class GitHubCommandRunner(CommandRunner):
     @GitHubAuth.github_authenticated
     def _github_push(cls, **kwargs):
         """Add a remote and push to GitHub.
+        Note: the kwargs are not the global context here, but what cls.format_args returns.
 
         Raises:
             devassistant.exceptions.RunException on error
         """
         cls._github_add_remote_origin(**kwargs)
-        cls._github_remote_show_origin(**kwargs)
-        cls._github_push_repo(**kwargs)
+        cls._github_remote_show_origin()
+        cls._github_push_repo()
 
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_create_and_push(cls, **kwargs):
+        """Note: the kwargs are not the global context here, but what cls.format_args returns."""
         # we assume we're in the project directory
-        logger.info('Registering your project on GitHub as {0}/{1}...'.format(cls._user.login,
-                                                                              cls._github_reponame(**kwargs)))
+        logger.info('Registering your project on GitHub as {0}/{1}...'.\
+                format(kwargs['login'],
+                       kwargs['reponame']))
         cls._github_create_repo(**kwargs)
         logger.info('Pushing your project to the new GitHub repository...')
         cls._github_push(**kwargs)
