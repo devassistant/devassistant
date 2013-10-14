@@ -8,6 +8,7 @@ from devassistant import utils
 
 class Command(object):
     _command_runners = None
+    _lang = None
 
     def __init__(self, comm_type, comm, kwargs={}):
         self.comm_type = comm_type
@@ -71,6 +72,10 @@ class Command(object):
 
     def format_deep(self):
         """Formats command input of this command as a list."""
+        if not self._lang:
+            # avoid circular dependency between this module and lang
+            type(self)._lang = utils.import_module('devassistant.lang')
+
         return self._format_deep_recursive(struct=self.comm)
 
     def _format_deep_recursive(self, struct):
@@ -82,6 +87,8 @@ class Command(object):
             new_struct = []
             for i in struct:
                 new_struct.append(self._format_deep_recursive(i))
+        elif type(self)._lang.is_var(struct):
+            return self._format_deep_recursive(type(self)._lang.evaluate(struct, self.kwargs)[1])
         else:
             new_struct = self._format_str(struct)
 
