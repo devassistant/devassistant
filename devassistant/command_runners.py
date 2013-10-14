@@ -443,6 +443,8 @@ class GitHubCommandRunner(CommandRunner):
             cls._github_push(**kwargs)
         elif comm == 'create_and_push':
             cls._github_create_and_push(**kwargs)
+        elif comm == 'add_remote_origin':
+            cls._github_add_remote_origin(**kwargs)
         else:
             logger.warning('Unknow github command {0}, skipping.'.format(comm))
 
@@ -455,8 +457,8 @@ class GitHubCommandRunner(CommandRunner):
         else:
             comm = args
             args_rest = {}
-        kwargs = {'login': args_rest.get('login', cls._github_login(c.kwargs)),
-                  'reponame': args_rest.get('reponame', cls._github_reponame(c.kwargs))}
+        kwargs = {'login': args_rest.get('login', None) or cls._github_login(c.kwargs),
+                  'reponame': args_rest.get('reponame', None) or cls._github_reponame(c.kwargs)}
         return comm, kwargs
 
     @classmethod
@@ -469,7 +471,7 @@ class GitHubCommandRunner(CommandRunner):
         Returns:
             guessed github login
         """
-        return ctxt['github'] or getpass.getuser()
+        return ctxt.get('github') or getpass.getuser()
 
 
     @classmethod
