@@ -204,7 +204,6 @@ class RPMPackageManager(PackageManager):
                     y.install(y.returnPackageByDep(pkg))
                 except yum.Errors.YumBaseError:
                     msg = 'Package not found: {pkg}'.format(pkg=pkg)
-                    logger.error(msg)
                     raise exceptions.DependencyException(msg)
         y.resolveDeps()
         logger.debug('Installing/Updating:')
@@ -258,7 +257,6 @@ class PIPPackageManager(PackageManager):
             return True
         except exceptions.ClException:
             msg = '"pip" not found, can\'t install packages from PyPI.'
-            logger.error(msg)
             raise exceptions.PackageManagerNotOperational(msg)
 
     @classmethod
@@ -380,7 +378,6 @@ class DependencyInstaller(object):
             if manager.match(dep_t):
                 return manager
         err = "Package manager for dependency type {0} was not found".format(dep_t)
-        logger.error(err)
         raise exceptions.PackageManagerUnknown(err)
 
     def _process_dependency(self, dep_t, dep_l):
@@ -427,7 +424,6 @@ class DependencyInstaller(object):
             confirm = self._ask_to_confirm(pkg_mgr, *to_install)
             if not confirm:
                 msg = 'List of packages denied by user, exiting.'
-                logger.error(msg)
                 raise exceptions.DependencyException(msg)
 
             type(self).install_lock = True
@@ -437,7 +433,6 @@ class DependencyInstaller(object):
 
             if not installed:
                 msg = 'Failed to install dependencies, exiting.'
-                logger.error(msg)
                 raise exceptions.DependencyException(msg)
             else:
                 logger.info('Successfully installed dependencies!')
