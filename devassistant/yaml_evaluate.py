@@ -129,7 +129,10 @@ class interpreter(object):
         """
         Evaluates 'expression' and returns it's value(s)
         """
-        self.next = self.tokenize(expression).next
+        if sys.version_info[0] > 2:
+            self.next = self.tokenize(expression).__next__
+        else:
+            self.next = self.tokenize(expression).next
         self.token = self.next()
         return self.expression()
 
