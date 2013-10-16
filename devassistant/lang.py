@@ -5,6 +5,7 @@ from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import package_managers
+from devassistant.yaml_evaluate import evaluate_expression
 
 if sys.version_info[0] > 2:
     basestring = str
@@ -117,7 +118,7 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
     """
     # let possible exceptions bubble up
     control_vars, expression = parse_for(comm_type)
-    eval_expression = evaluate(expression, kwargs)[1]
+    eval_expression = evaluate_expression(expression, kwargs)[1]
 
     iterval = []
     if len(control_vars) == 2:
@@ -149,7 +150,7 @@ def get_section_from_condition(if_section, else_section, kwargs):
     """
     # check if else section is really else
     skip = True if else_section is not None and else_section[0] == 'else' else False
-    if evaluate(if_section[0][2:].strip(), kwargs)[0]:
+    if evaluate_expression(if_section[0][2:].strip(), kwargs)[0]:
         return (0, skip, if_section[1])
     else:
         return (1, skip, else_section[1]) if skip else (1, skip, None)
@@ -171,7 +172,7 @@ def assign_variable(variable, comm, kwargs):
     if comma_count > 1:
         raise exceptions.YamlSyntaxError('Max two variables allowed on left side.')
 
-    res1, res2 = evaluate(comm, kwargs)
+    res1, res2 = evaluate_expression(comm, kwargs)
     if comma_count == 1:
         var1, var2 = map(lambda v: get_var_name(v), variable.split(','))
         kwargs[var1] = res1
@@ -189,77 +190,3 @@ def get_var_name(dolar_variable):
         raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dolar_variable)
     name = name[1:] # strip the dollar
     return name.strip('{}')
-
-def evaluate(expression, kwargs):
-    """Evaluates given expression.
-
-    Syntax and semantics:
-
-    - ``$foo``
-
-        - if ``$foo`` is defined:
-
-            - *logical result*: ``True`` **iff** value is not empty and it is not
-              ``False``
-            - *result*: value of ``$foo``
-          - otherwise:
-
-              - *logical result*: ``False``
-              - *result*: empty string
-    - ``$(commandline command)``
-
-        - if ``commandline command`` has return value 0:
-
-            - *logical result*: ``True``
-
-        - otherwise:
-
-            - *logical result*: ``False``
-
-        - regardless of *logical result*, *result* always contains both stdout
-          and stderr lines in the order they were printed by ``commandline command``
-    - ``not`` - negates the *logical result* of an expression, while leaving
-      *result* intact, can only be used once (no, you can't use ``not not not $foo``, sorry)
-    - ``defined $foo`` - works exactly as ``$foo``, but has *logical result*
-      ``True`` even if the value is empty or ``False``
-
-    Returns:
-        tuple (logical result, result) - see above for explanation
-
-    Raises:
-        exceptions.YamlSyntaxError if expression is malformed
-    """
-    # was command successful?
-    success = True
-    # command output
-    output = ''
-    invert_success = False
-    # if we have an arbitrary structure, just return it
-    if not isinstance(expression, str):
-        return (True if expression else False, expression)
-    expr = expression.strip()
-    if expr.startswith('not '):
-        invert_success = True
-        expr = expr[4:]
-
-    if expr.startswith('$('): # only one expression: "$(expression)"
-        try:
-            output = command.Command('cl_n', expr[2:-1], kwargs).run()
-        except exceptions.RunException as ex:
-            success = False
-            output = ex.output
-    elif expr.startswith('$') or expr.startswith('"$'):
-        var_name = get_var_name(expr)
-        if var_name in kwargs and kwargs[var_name]:
-            success = True
-            output = kwargs[var_name]
-        else:
-            success = False
-    elif expr.startswith('defined '):
-        varname = get_var_name(expr[8:])
-        success = varname in kwargs
-        output = kwargs.get(varname, '')
-    else:
-        raise exceptions.YamlSyntaxError('Not a valid expression: ' + expression)
-
-    return (success if not invert_success else not success, output)
