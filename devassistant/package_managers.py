@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
-
-"""
-TODO:
- * merge prompts
-  * issue only one prompt for dependencies
-  * and one prompt for polkit
- * figure out how to install using pip when 'venv' option is specified
- * write tests
-"""
+from __future__ import print_function
 import collections
+import math
 import platform
+import sys
 import tempfile
+import threading
 
+from devassistant import current_run
 from devassistant.command_helpers import ClHelper, DialogHelper
-
 from devassistant.logger import logger
 from devassistant import exceptions
 
@@ -427,8 +422,17 @@ class DependencyInstaller(object):
                 raise exceptions.DependencyException(msg)
 
             type(self).install_lock = True
-            logger.info('Installing dependencies, sit back and relax ...')
+            # TODO: we should do this more systematically (send signal to cl/gui?)
+            logger.info('Installing dependencies, sit back and relax ...',
+                        extra={'event_type': 'dep_installation_start'})
+            if current_run.UI == 'cli': # TODO: maybe let every manager to decide when to start
+                event = threading.Event()
+                t = FakeProgressThread(event)
+                t.start()
             installed = pkg_mgr.install(*to_install)
+            if current_run.UI == 'cli':
+                event.set()
+                t.join()
             type(self).install_lock = False
 
             if not installed:
@@ -458,6 +462,20 @@ class DependencyInstaller(object):
         # TODO: rpm by default, custom logic for other distros
 
         return 'rpm'
+
+class FakeProgressThread(threading.Thread):
+    def __init__(self, finish_event):
+        super(FakeProgressThread, self).__init__()
+        self.finish_event = finish_event
+
+    def run(self):
+        wait_for = 1
+        while not self.finish_event.isSet():
+            print('.', end='')
+            sys.stdout.flush()
+            wait_for += 1
+            self.finish_event.wait(math.log(wait_for))
+        print()
 
 
 def main():
