@@ -53,6 +53,27 @@ class CommandRunner(object):
         raise NotImplementedError()
 
 @register_command_runner
+class AskCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type.startswith('ask_')
+
+    @classmethod
+    def run(cls, c):
+        var, args = cls.format_args(c)
+        if c.comm_type == 'ask_password':
+            c.kwargs[var] = DialogHelper.ask_for_password(**args)
+        elif c.comm_type == 'ask_confirm':
+            c.kwargs[var] = DialogHelper.ask_for_confirm_with_message(**args)
+
+    @classmethod
+    def format_args(cls, c):
+        # get variable name before formatting
+        var = lang.get_var_name(c.comm[0])
+        fmtd = c.format_deep()
+        return var, fmtd[1]
+
+@register_command_runner
 class CallCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):

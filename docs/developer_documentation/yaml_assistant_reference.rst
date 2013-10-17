@@ -322,6 +322,25 @@ List of supported **command types** and their function follows:
   be in the same format as in ``dependencies`` section, but no conditions are
   allowed (you can use this command combined with conditions of ``run``
   section).
+``ask_{password,confirm}``
+  Asks for user input. As **input**, it takes list - first item is the variable
+  in which to store result, the second is a mapping of parameters specific to
+  the ``ask_`` command:
+
+  - ``ask_password`` - Takes ``prompt`` to display to user as the only parameter::
+
+     ask_password:
+     - $passwd
+     - prompt: "Please provide your password"
+
+  - ``ask_confirm`` - Takes ``prompt`` to display to user and optionally a ``message``,
+    which might be a longer text specifying what type of input is needed::
+
+     ask_confirm:
+     - $confirmed
+     - message: "Do you think DevAssistant is great?"
+       prompt: "Please select yes."
+
 ``if <expression>``, ``else``
   conditionally executes **input** section. The condition must be an
   `Expression`_::
