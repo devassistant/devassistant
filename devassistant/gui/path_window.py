@@ -92,7 +92,7 @@ class PathWindow(object):
                     self.kwargs[btn.get_label().lower().replace('-','_')]=True
             else:
                 if 'default' in self.button[btn].kwargs:
-                    self.kwargs[btn.get_label()]=self.button[btn].get_gui_hint('default')
+                    self.kwargs[btn.get_label().lower()]=self.button[btn].get_gui_hint('default')
                 if self.back_button:
                     if btn.get_label().lower().replace('-','_') in self.kwargs:
                         del self.kwargs[btn.get_label().lower().replace('-','_')]
