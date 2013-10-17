@@ -63,7 +63,8 @@ setup(
     include_package_data = True,
     entry_points = {'console_scripts':['da=devassistant.cli.cli_runner:CliRunner.run',
                                        'da-gui=devassistant.gui:run_gui',
-                                       'devassistant=devassistant.cli.cli_runner:CliRunner.run']},
+                                       'devassistant=devassistant.cli.cli_runner:CliRunner.run',
+                                       'devassistant-gui=devassistant.gui:run_gui']},
     # PyGithub is in fact optional, but let's keep it here
     install_requires=['PyYaml', 'PyGithub>=1.14.2'],
     setup_requires = [],
