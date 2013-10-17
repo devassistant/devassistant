@@ -12,8 +12,20 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     @classmethod
-    def run_command(cls, cmd_str, log_level=logging.DEBUG, scls=[], ignore_sigint=False):
-        """Runs a command from string, e.g. "cp foo bar" """
+    def run_command(cls,
+                    cmd_str,
+                    log_level=logging.DEBUG,
+                    scls=[],
+                    ignore_sigint=False,
+                    output_callback=None):
+        """Runs a command from string, e.g. "cp foo bar"
+        Args:
+            cmd_str: the command to run as string
+            log_level: level at which to log command output (DEBUG by default)
+            scls: list of ['enable', 'foo', 'bar'] (scriptlet name + arbitrary number of scl names)
+            ignore_sigint: should we ignore sigint during this command (False by default)
+            output_callback: function that gets called with every line of output as argument
+        """
         # format for scl execution if needed
         cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
@@ -44,19 +56,21 @@ class ClHelper(object):
             stdout.append(output)
             if output:
                 logger.log(log_level, output, extra={'event_type': 'cmd_out'})
+            if output_callback:
+                output_callback(output)
         stdout = '\n'.join(stdout)
         # there may be some remains not read after exiting the previous loop
         output_rest = proc.stdout.read().strip().decode('utf8')
         # we want to log lines separately, not as one big chunk
         output_rest_lines = output_rest.splitlines()
         for i, l in enumerate(output_rest.splitlines()):
+            # add newline for every line - for last line, only add it if it was originally present
+            if i != len(output_rest_lines) - 1 or output_rest.endswith('\n'):
+                l += '\n'
             logger.log(log_level, l, extra={'event_type': 'cmd_out'})
-            # if rest of the output doesn't end with \n, we don't add \n after last line
-            if i == len(output_rest_lines) - 1 and not output_rest.endswith('\n'):
-                stdout += l
-            # else we add it everytime
-            else:
-                stdout += l + '\n'
+            stdout += l
+            if output_callback:
+                output_callback(l)
 
         # log return code always on debug level
         logger.log(logging.DEBUG, proc.returncode, extra={'event_type': 'cmd_retcode'})
