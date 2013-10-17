@@ -7,6 +7,7 @@ import signal
 import subprocess
 import sys
 
+from devassistant import current_run
 from devassistant import exceptions
 from devassistant.logger import logger
 
@@ -125,8 +126,6 @@ class DialogHelper(object):
     Zenity, possibly other registered).
     """
     helpers = {}
-    # can be set to something different from the respective UI frontend
-    use_helper = 'cli'
 
     @classmethod
     def register_helper(cls, helper):
@@ -136,7 +135,7 @@ class DialogHelper(object):
 
     @classmethod
     def get_appropriate_helper(cls):
-        return cls.helpers[cls.use_helper]
+        return cls.helpers[current_run.UI]
 
     @classmethod
     def ask_for_password(cls, prompt='Provide your password:', **options):
