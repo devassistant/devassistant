@@ -1,6 +1,6 @@
 import os
 import re
-from devassistant.yaml_evaluate import evaluate_expression
+from devassistant.lang import evaluate_expression
 
 
 class TestEvaluate(object):
@@ -112,3 +112,9 @@ class TestEvaluate(object):
         assert evaluate_expression('defined $empty or $empty and \
                                     $(echo -e foo bar "and also baz") or "else $nonempty"',
                                     self.names) == (True, 'else foo')
+
+    def test_python_struct(self):
+        assert evaluate_expression({'foo': 'bar'}, self.names) == (True, {'foo': 'bar'})
+        assert evaluate_expression(['foo', 'bar'], self.names) == (True, ['foo', 'bar'])
+        assert evaluate_expression({}, self.names) == (False, {})
+        assert evaluate_expression([], self.names) == (False, [])

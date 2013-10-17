@@ -88,7 +88,7 @@ class Command(object):
             for i in struct:
                 new_struct.append(self._format_deep_recursive(i))
         elif type(self)._lang.is_var(struct):
-            return self._format_deep_recursive(type(self)._lang.evaluate(struct, self.kwargs)[1])
+            return self._format_deep_recursive(type(self)._lang.evaluate_expression(struct, self.kwargs)[1])
         else:
             new_struct = self._format_str(struct)
 
