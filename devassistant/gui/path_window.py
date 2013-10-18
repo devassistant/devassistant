@@ -72,9 +72,10 @@ class PathWindow(object):
                 md.run()
                 md.destroy()
                 return
-            self.kwargs[label.get_label()]=self.entries[label.get_label()].get_text()
+            self.kwargs[label.get_label().lower()]=self.entries[label.get_label()].get_text()
 
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
+            arg_name = btn.get_label().lower().replace('-', '_')
             if btn.get_active():
                 if btn.get_label() is None:
                     continue
@@ -87,15 +88,15 @@ class PathWindow(object):
                             md.run()
                             md.destroy()
                             return
-                        self.kwargs[btn.get_label().lower().replace('-','_')]=self.entries[btn.get_label()].get_text()
+                        self.kwargs[arg_name]=self.entries[btn.get_label()].get_text()
                 else:
-                    self.kwargs[btn.get_label().lower().replace('-','_')]=True
+                    self.kwargs[arg_name]=True
             else:
                 if 'default' in self.button[btn].kwargs:
-                    self.kwargs[btn.get_label().lower()]=self.button[btn].get_gui_hint('default')
+                    self.kwargs[arg_name]=self.button[btn].get_gui_hint('default')
                 if self.back_button:
-                    if btn.get_label().lower().replace('-','_') in self.kwargs:
-                        del self.kwargs[btn.get_label().lower().replace('-','_')]
+                    if arg_name in self.kwargs:
+                        del self.kwargs[arg_name]
 
 
         if self.current_main_assistant.name == 'crt':
