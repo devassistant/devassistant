@@ -285,7 +285,7 @@ class Interpreter(object):
                 # literals
                 symbol = self.symbol_table["(literal)"]
                 s = symbol()
-                s.value = tok.strip('"')
+                s.value = tok
                 yield s
             else:
                 if not self.in_shell:
@@ -360,7 +360,7 @@ def evaluate_expression(expression, names):
         for v in reversed(sorted(interpr.names.keys())):
             self.value = self.value.replace("$" + v, str(interpr.names[v]))
 
-        return bool(self.value), self.value
+        return bool(self.value.strip('"')), self.value.strip('"')
 
     @interpr.method("and")
     def led(self, left):

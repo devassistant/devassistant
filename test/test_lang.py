@@ -98,6 +98,7 @@ class TestEvaluate(object):
         #assert re.match(".*/foo/bar$",
         #               evaluate_expression("$(cd foo; cd bar; pwd; cd ../..)",
         #                                   self.names)[1])
+        assert evaluate_expression('$(echo -e "foo\\nbar" | grep "bar")', self.names) == (True, "bar")
 
     def test_literal(self):
         assert evaluate_expression('"foobar"', self.names) == (True, "foobar")
