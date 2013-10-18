@@ -89,21 +89,7 @@
                 <property name="spacing">12</property>
                 <property name="homogeneous">True</property>
                 <child>
-                  <object class="GtkButton" id="cancelMainBtn">
-                    <property name="label" translatable="yes">_Cancel</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <property name="yalign">0.54000002145767212</property>
-                    <accelerator key="c" signal="clicked" modifiers="GDK_MOD1_MASK"/>
-                    <signal name="clicked" handler="on_cancelMainBtn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
@@ -414,18 +400,6 @@
     </child>
   </object>
   <object class="GtkListStore" id="runStore"/>
-  <object class="GtkListStore" id="storeList">
-    <columns>
-      <!-- column-name assistants -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="substoreList">
-    <columns>
-      <!-- column-name Available -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkWindow" id="runWindow">
     <property name="width_request">500</property>
     <property name="can_focus">False</property>
@@ -588,5 +562,17 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="storeList">
+    <columns>
+      <!-- column-name assistants -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="substoreList">
+    <columns>
+      <!-- column-name Available -->
+      <column type="gchararray"/>
+    </columns>
   </object>
 </interface>

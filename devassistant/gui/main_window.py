@@ -30,7 +30,6 @@ class MainWindow(object):
         self.path_window = path_window.PathWindow(self, self.main_win, self.builder, self.gui_helper)
         self.run_window = run_window.RunWindow(self, self.builder, self.gui_helper)
         self.mainhandlers = {
-                "on_cancelMainBtn_clicked": Gtk.main_quit,
                 "on_mainWindow_delete_event": Gtk.main_quit,
                 "on_browsePathBtn_clicked": self.path_window.browse_path,
                 "on_cancelPathBtn_clicked": Gtk.main_quit,
