@@ -1,5 +1,5 @@
 DevAssistant
-===================
+============
 
 .. image:: https://badge.fury.io/py/devassistant.png
     :target: http://badge.fury.io/py/devassistant
@@ -35,6 +35,29 @@ Last but not least, DevAssistant allows you to prepare environment for executing
   $ da prep custom -u scm_url -p directory_to_save_to
 
 For full documentation, see http://doc.devassistant.org/
+
+To start developing, do:
+
+.. code:: sh
+
+  git clone https://github.com/bkabrda/devassistant
+  cd devassistant
+  git submodule init
+  git submodule update
+
+And install dependencies from requirements-devel.txt:
+
+.. code:: sh
+
+  pip install -r requirements-devel.txt
+
+Apart from git, DevAssistant also assumes that polkit is installed on your machine (provides pkexec binary). If you want to work with GUI, you'll need pygobject3.
+
+Or, assuming that you have DevAssistant version 0.8.0 or higher installed, you just need to do:
+
+.. code:: sh
+
+  da prep devassistant
 
 DevAssistant works on Python 2.6, 2.7 and >= 3.3.
 

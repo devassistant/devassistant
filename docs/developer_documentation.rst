@@ -85,7 +85,7 @@ improving documentation, ...), please use our Github repo:
 - code: https://github.com/bkabrda/devassistant
 - issue tracker: https://github.com/bkabrda/devassistant/issues
 
-If you have DevAssistant installed, there is a fair chance that you have
+If you have DevAssistant installed (version 0.8.0 or newer), there is a fair chance that you have
 ``devassistant`` preparer. Just run ``da prep devassistant`` and it will
 checkout our sources and do all the boring stuff that you'd have to do
 without DevAssistant.
@@ -99,7 +99,11 @@ like this (just copy&paste this to get the job done)::
    git submodule init
    git submodule update
 
-You can find list of core Python dependencies in file ``requirements.txt``.
-On top of that, you'll need ``pygobject`` if you want to play around with GUI.
-DevAssistant also assumes that ``git`` is installed on your system (see how
+You can find list of core Python dependencies in file ``requirements.txt``. If you want
+to write and run tests (you should!), install dependencies from ``requirements-devel.txt``::
+
+   pip install -r requirements-devel.txt
+
+On top of that, you'll need ``polkit`` for requesting root privileges for dependency installation
+etc. If you want to play around with GUI, you have to install ``pygobject``, too (see how
 hard this is compared to ``da prep devassistant``?)
