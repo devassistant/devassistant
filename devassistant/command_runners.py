@@ -197,7 +197,7 @@ class DependenciesCommandRunner(CommandRunner):
 
         di = DependencyInstaller()
         di.install(struct)
-        return [True, '']
+        return [True, struct]
 
 @register_command_runner
 class DotDevassistantCommandRunner(CommandRunner):
