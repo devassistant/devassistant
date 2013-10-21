@@ -78,7 +78,12 @@ and dispatches them to their respective command runners. Every command runner
 can do whatever it wants - for example, we have a command runner that creates
 Github repos.
 
-For reference of current commands, see :ref:`run section reference<run_ref>`.
+After a command runner is run, DevAssistant sets ``LAST_LRES`` and ``LAST_RES`` global variables
+for usage (these are rewritten with every command run). These variables represent the logical
+result of the command (``True``/``False``) and result (a "return value", something computed),
+much like with :ref:`expressions_ref`.
+
+For reference of current commands, see :ref:`command_ref`.
 
 If you're missing some cool functionality, you can implement your own command
 runner and send us a pull request. (We're thinking of creating some sort of
@@ -97,6 +102,7 @@ Each command must be a class with two classmethods::
            formatted = c.format_str()
            logger.info('MyCommandRunner was invoked: {ct}: {ci}'.format(ct=c.comm_type,
                                                                         ci=formatted))
+           return [True, len(formatted)]
 
 This command runner will run all commands with command type ``mycomm``.
 For example if your assistant contains::
@@ -108,6 +114,9 @@ For example if your assistant contains::
 than DevAssistant will print out something like::
 
    ``INFO: MyCommandRunner was invoked: mycomm: You are using DevAssistant!``
+
+After this command is run, ``LAST_LRES`` will be set to ``True`` and ``LAST_RES`` to length
+of the printed string.
 
 Generally, the ``matches`` method should just decide (True/False) whether given
 command is runnable or not and the ``run`` method should actually run it.

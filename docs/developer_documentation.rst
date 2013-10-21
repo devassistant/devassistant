@@ -8,6 +8,7 @@ Developer Documentation
    developer_documentation/devassistant_core
    developer_documentation/tutorial_creating_assistant
    developer_documentation/yaml_assistant_reference
+   developer_documentation/command_reference
    developer_documentation/common_assistant_behaviour
    developer_documentation/dot_devassistant
 

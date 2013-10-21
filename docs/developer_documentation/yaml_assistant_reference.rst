@@ -276,8 +276,8 @@ invocations of commandline. Each command is a mapping
 of **command type** to **command input**::
 
    run:
-   - type: input
-   - another_type: another_input
+   - cl: cp foo bar/baz
+   - log_i: Done copying.
 
 During the execution, you may use logging (messages will be printed to
 terminal or gui) with following levels: ``DEBUG``, ``INFO``, ``WARNING``,
@@ -290,107 +290,7 @@ DevAssistant imediatelly.
 Run sections allow you to use variables with certain rules and
 limitations. See below.
 
-List of supported **command types** and their function follows:
-
-``cl``
-  runs given **input** on commandline, aborts execution of the invoked
-  assistant if it fails. **Note:** ``cd`` is a special cased **input**,
-  which doesn't do shell expansion other than user home dir (``~``) expansion.
-``cl_i``
-  the ``i`` logs output of this command at ``INFO`` level (default is
-  ``DEBUG``), therefore visible to user
-``log_[diwec]``
-  logs given **input** (message) at level specified by the last letter in
-  ``log_X``. If the level is ``e`` or ``c``, the execution of the assistant
-  is interrupted immediately.
-``dda_{r,c,dependencies,run}`` *unless otherwise noted, input of these command types is directory of created/used .devassistant file*
-  - ``dda_r`` is meant to be used in modifier assistants, as it reads and adds
-    all the information from ``.devassistant`` and puts it into global variables
-    (notably, all the arguments that the project was created in are in ``original_kwargs``
-    mapping and are also accessible ``dda__<argname>`` (yes, that's double underscore).
-  - ``dda_c`` creates ``.devassistant`` file (containing some sane initial meta
-    information about the project).
-  - ``dda_dependencies`` let's you install dependencies from ``.devassistant``
-    file (DevAssistant will use dependencies from original assistant and
-    specified ``dependencies`` attribute, if any - this has the same structure
-    as ``dependencies`` in normal assistants, and is evaluated in current
-    assistant context, not the original assistant context).
-  - ``dda_run`` will execute a series of commands from ``run`` section from
-    ``.devassistant`` (in context of current assistant)
-``dependencies``
-  Installs dependencies from given **input** structure - the structure has to
-  be in the same format as in ``dependencies`` section, but no conditions are
-  allowed (you can use this command combined with conditions of ``run``
-  section).
-``ask_{password,confirm}``
-  Asks for user input. As **input**, it takes list - first item is the variable
-  in which to store result, the second is a mapping of parameters specific to
-  the ``ask_`` command:
-
-  - ``ask_password`` - Takes ``prompt`` to display to user as the only parameter::
-
-     ask_password:
-     - $passwd
-     - prompt: "Please provide your password"
-
-  - ``ask_confirm`` - Takes ``prompt`` to display to user and optionally a ``message``,
-    which might be a longer text specifying what type of input is needed::
-
-     ask_confirm:
-     - $confirmed
-     - message: "Do you think DevAssistant is great?"
-       prompt: "Please select yes."
-
-``if <expression>``, ``else``
-  conditionally executes **input** section. The condition must be an
-  `Expression`_::
-     
-     if $foo:
-     - cl_i: Foo is $foo!
-
-``for <var>[, <var>] in <expression>``
-  (for example ``for $i in $(ls)``) - loop over *result* of given expression
-  (if it is string, which almost always is, it is split on whitespaces) in
-  section given by **input**::
-
-     for $i in $(ls):
-     - log_i: $i
-
-  If the result of the expression is a mapping type, you can use two variables
-  to loop over key-value pairs::
-
-     foo:
-       1: one
-       2: two
-     for $k, $v in $foo:
-     - log_i: $k, $v
-
-``$foo``
-  assigns *result* of **input** (an `Expression`_) to the given variable
-  (doesn't interrupt the assistant execution if command fails)
-``$success, $foo``
-  assigns *logical result* (``True``/``False``) of **input** (an `Expression`_)
-  to ``$success`` and result to ``$foo`` (same as above)
-``use`` / ``call`` (these two do completely same, ``call`` is obsolete and will be removed in 0.9.0)
-  run a section specified by **input** at this place and then continue execution:
-
-  - another section of this assistant (e.g. ``use: self.run_foo``)
-  - section of superassistant (e.g. ``use: super.run``) - searches all superassistants
-    (parent of this, parent of the parent, etc.) and runs the first found section of given name
-  - section from snippet (e.g. ``use: snippet_name.run_foo``)
-``scl``
-  run a whole **input** section specified in SCL environment of one or more
-  SCLs (note: you **must** use the scriptlet name - usually ``enable`` -
-  because it might vary) - for example::
-
-   run:
-   - scl enable python33 postgresql92:
-     - cl_i: python --version
-     - cl_i: pgsql --version
-
-*Missing something?* Commands are your entrypoint for extending DevAssistant.
-If you're missing some functionality in ``run`` sections, just
-:ref:`write a command runner <command_runners>` and send us a pull request.
+List of supported **commands** can be found at :ref:`command_ref`.
 
 Variables
 ~~~~~~~~~
@@ -400,6 +300,9 @@ commandline/gui and there are no other variables defined for creator
 assistants. For modifier assistants global variables are prepopulated
 with some values read from ``.devassistant``. You can either define
 (and assign to) your own variables or change the values of current ones.
+
+Additionally, after each command, variables ``$LAST_RES`` and ``$LAST_LRES`` are populated
+with result of the last command - see :ref:`command_ref`
 
 The variable scope works as follows:
 
@@ -412,7 +315,7 @@ The variable scope works as follows:
 All variables are global in the sense that if you call a snippet or another
 section, it can see all the arguments that are defined.
 
-.. _Expression:
+.. _expressions_ref:
 
 Expressions
 ~~~~~~~~~~~
