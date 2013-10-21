@@ -426,7 +426,7 @@ class GitHubAuth(object):
                 func_cls._user = cls._get_github_user(kwargs['login'])
                 # create ssh key for pushing
                 cls._github_create_ssh_key()
-            func(func_cls, *args, **kwargs)
+            return func(func_cls, *args, **kwargs)
 
         return inner
 
@@ -463,19 +463,19 @@ class GitHubCommandRunner(CommandRunner):
         # NOTE: these are not the variables from global context, but rather what
         # cls.format_args returned
         if comm == 'create_repo':
-            cls._github_create_repo(**kwargs)
+            ret = cls._github_create_repo(**kwargs)
         elif comm == 'push':
-            cls._github_push()
+            ret = cls._github_push()
         elif comm == 'create_and_push':
-            cls._github_create_and_push(**kwargs)
+            ret = cls._github_create_and_push(**kwargs)
         elif comm == 'add_remote_origin':
-            cls._github_add_remote_origin(**kwargs)
+            ret = cls._github_add_remote_origin(**kwargs)
         elif comm == 'create_fork':
-            cls._github_fork(**kwargs)
+            ret = cls._github_fork(**kwargs)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
-        return [True, '']
+        return [True, ret or '']
 
     @classmethod
     def format_args(cls, c):
@@ -567,6 +567,8 @@ class GitHubCommandRunner(CommandRunner):
                 raise exceptions.CommandException(msg)
             logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
+        return new_repo.clone_url
+
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_add_remote_and_push(cls, **kwargs):
@@ -612,6 +614,7 @@ class GitHubCommandRunner(CommandRunner):
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
             raise exceptions.CommandException(msg)
         logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
+        return fork.clone_url
 
 @register_command_runner
 class LogCommandRunner(CommandRunner):
