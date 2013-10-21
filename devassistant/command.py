@@ -22,10 +22,11 @@ class Command(object):
             # avoid circular dependency between this module and command_runners
             type(self)._command_runners = utils.import_module('devassistant.command_runners')
         for cr in type(self)._command_runners.command_runners:
-            if cr.matches(self): 
+            if cr.matches(self):
                 return cr.run(self) 
 
         logger.warning('Unknown command type {0}, skipping.'.format(self.comm_type))
+        return [False, '']
 
     def format_str(self):
         """Formats input of this command as a string."""

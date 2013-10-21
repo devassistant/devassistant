@@ -11,6 +11,8 @@ LOG_FORMATS_MAP = {'log_cmd': u'{levelname}: {msg}',
                    'cmd_out': u'| {msg}',
                    'cmd_retcode': u'|> retcode: {msg}'}
 LOG_LEVELS_MAP = {'d': 'DEBUG', 'i': 'INFO', 'w': 'WARNING', 'e': 'ERROR', 'c': 'CRITICAL'}
+LAST_LR_VAR = 'LAST_LRES'
+LAST_R_VAR = 'LAST_RES'
 SUBASSISTANT_PREFIX = 'subassistant'
 SUBASSISTANT_N_STRING = 'subassistant_{0}'
 DEPS_ONLY_FLAG = '--deps-only'

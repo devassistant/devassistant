@@ -45,7 +45,8 @@ class CommandRunner(object):
             c - command to run, instance of devassistant.command.Command
 
         Returns:
-            currently doesn't really matter :)
+            Tuple/list [logical_result, result] of the run (e.g. [True, 'output']). Usually,
+            assistant should rather raise an exception than return [False, 'something'].
 
         Raises:
             Any exception that's subclass of devassistant.exceptions.ExecutionExceptions
@@ -62,9 +63,13 @@ class AskCommandRunner(CommandRunner):
     def run(cls, c):
         var, args = cls.format_args(c)
         if c.comm_type == 'ask_password':
-            c.kwargs[var] = DialogHelper.ask_for_password(**args)
+            result = [True, DialogHelper.ask_for_password(**args)]
         elif c.comm_type == 'ask_confirm':
-            c.kwargs[var] = DialogHelper.ask_for_confirm_with_message(**args)
+            result = [True, DialogHelper.ask_for_confirm_with_message(**args)]
+        else:
+            result = [False, '']
+        c.kwargs[var] = result[1]
+        return result
 
     @classmethod
     def format_args(cls, c):
@@ -88,7 +93,7 @@ class CallCommandRunner(CommandRunner):
             msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
                                                              n=c.comm)
             logger.warning(msg)
-            return [] if sect_type == 'dependencies' else None
+            return [False, [] if sect_type == 'dependencies' else '']
 
         if cls.is_snippet_call(c.comm):
             # we're calling a snippet => add files and files_dir to kwargs
@@ -168,18 +173,15 @@ class ClCommandRunner(CommandRunner):
     def run(cls, c):
         comm = c.format_str()
         log_level = logging.DEBUG
-        log_error = True
         if 'i' in c.comm_type:
             log_level = logging.INFO
-        if 'n' in c.comm_type:
-            log_error = False
         scls = []
         if '__scls__' in c.kwargs:
             scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
         # if there is an exception, just let it bubble up
         result = ClHelper.run_command(comm, log_level, scls=scls)
 
-        return result.strip() if hasattr(result, 'strip') else result
+        return [True, result]
 
 @register_command_runner
 class DependenciesCommandRunner(CommandRunner):
@@ -196,6 +198,7 @@ class DependenciesCommandRunner(CommandRunner):
 
         di = DependencyInstaller()
         di.install(struct)
+        return [True, '']
 
 @register_command_runner
 class DotDevassistantCommandRunner(CommandRunner):
@@ -207,15 +210,18 @@ class DotDevassistantCommandRunner(CommandRunner):
     def run(cls, c):
         comm = c.format_str()
         if c.comm_type == 'dda_c':
-            return cls._dot_devassistant_create(comm, c.kwargs)
+            cls._dot_devassistant_create(comm, c.kwargs)
         elif c.comm_type == 'dda_r':
-            return cls._dot_devassistant_read(comm, c.kwargs)
+            cls._dot_devassistant_read(comm, c.kwargs)
         elif c.comm_type == 'dda_dependencies':
-            return cls._dot_devassistant_dependencies(comm, c.kwargs)
+            cls._dot_devassistant_dependencies(comm, c.kwargs)
         elif c.comm_type == 'dda_run':
-            return cls._dot_devassistant_run(comm, c.kwargs)
+            cls._dot_devassistant_run(comm, c.kwargs)
         else:
             logger.warning('Unknown .devassistant command {0}, skipping.'.format(c.comm_type))
+            return [False, '']
+
+        return [True, '']
 
     @classmethod
     def _dot_devassistant_create(cls, directory, kwargs):
@@ -453,7 +459,7 @@ class GitHubCommandRunner(CommandRunner):
         comm, kwargs = cls.format_args(c)
         if not cls._gh_module:
             logger.warning('PyGithub not installed, cannot execute github command.')
-            return
+            return [False, '']
 
         # we pass arguments as kwargs, so that the auth decorator can easily query them
         # NOTE: these are not the variables from global context, but rather what
@@ -470,6 +476,8 @@ class GitHubCommandRunner(CommandRunner):
             cls._github_fork(**kwargs)
         else:
             logger.warning('Unknow github command {0}, skipping.'.format(comm))
+
+        return [True, '']
 
     @classmethod
     def format_args(cls, c):
@@ -624,3 +632,5 @@ class LogCommandRunner(CommandRunner):
                 raise e
         else:
             logger.warning('Unknown logging command {0} with message {1}'.format(c.comm_type, comm))
+
+        return [True, comm]

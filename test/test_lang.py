@@ -1,6 +1,6 @@
 import os
 import re
-from devassistant.lang import evaluate_expression
+from devassistant.lang import evaluate_expression, run_section
 
 
 class TestEvaluate(object):
@@ -119,3 +119,14 @@ class TestEvaluate(object):
         assert evaluate_expression(['foo', 'bar'], self.names) == (True, ['foo', 'bar'])
         assert evaluate_expression({}, self.names) == (False, {})
         assert evaluate_expression([], self.names) == (False, [])
+
+class TestRunSection(object):
+    def test_result(self):
+        assert run_section([], {}) == [False, '']
+
+        rs = [{'$foo': '$(echo asd)'}]
+        assert run_section(rs, {}) == [True, 'asd']
+
+        rs = [{'if $foo': [{'$foo': '"bar"'}, {'$foo': '"baz"'}]}]
+        assert run_section(rs, {}) == [False, '']
+        assert run_section(rs, {'foo': 'yes'}) == [True, 'baz']

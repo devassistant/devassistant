@@ -6,6 +6,7 @@ from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import package_managers
+from devassistant import settings
 
 if sys.version_info[0] > 2:
     basestring = str
@@ -51,17 +52,18 @@ def run_section(section, kwargs, runner=None):
         if getattr(runner, 'stop_flag', False):
             break
         for comm_type, comm in command_dict.items():
+            retval = [False, '']
             if comm_type.startswith('$'):
                 # intentionally pass kwargs as dict, not as keywords
-                assign_variable(comm_type, comm, kwargs)
+                retval = assign_variable(comm_type, comm, kwargs)
             elif comm_type.startswith('if'):
                 possible_else = None
                 if len(section) > i + 1: # do we have "else" clause?
                     possible_else = list(section[i + 1].items())[0]
                 _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
+                # run with original kwargs, so that they might be changed for code after this
                 if to_run:
-                    # run with original kwargs, so that they might be changed for code after this if
-                    run_section(to_run, kwargs, runner=runner)
+                    retval = run_section(to_run, kwargs, runner=runner)
             elif comm_type == 'else':
                 if not skip_else:
                     msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
@@ -76,16 +78,27 @@ def run_section(section, kwargs, runner=None):
                         kwargs[control_vars[1]] = i[1]
                     else:
                         kwargs[control_vars[0]] = i
-                    run_section(comm, kwargs, runner=runner)
+                    retval = run_section(comm, kwargs, runner=runner)
             elif comm_type.startswith('scl'):
                 # list of lists of scl names
                 kwargs['__scls__'].append(comm_type.split()[1:])
-                run_section(comm, kwargs, runner=runner)
+                retval = run_section(comm, kwargs, runner=runner)
                 kwargs['__scls__'].pop()
             else:
-                command.Command(comm_type,
-                                comm,
-                                kwargs).run()
+                retval = command.Command(comm_type,
+                                         comm,
+                                         kwargs).run()
+
+            if not isinstance(retval, (list, tuple)):
+                raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
+                        format(ct=comm_type, c=comm, r=retval))
+            assign_last_result(kwargs, *retval)
+
+    return [kwargs.get(settings.LAST_LR_VAR, False), kwargs.get(settings.LAST_R_VAR, '')]
+
+def assign_last_result(kwargs, log_res, res):
+    kwargs[settings.LAST_LR_VAR] = log_res
+    kwargs[settings.LAST_R_VAR] = res
 
 def parse_for(control_line):
     """Returns name of loop control variable(s) and expression to iterate on.
@@ -180,6 +193,7 @@ def assign_variable(variable, comm, kwargs):
     else:
         var2 = get_var_name(variable)
     kwargs[var2] = res2
+    return res1, res2
 
 def is_var(string):
     return string.startswith('$')
@@ -431,7 +445,7 @@ def evaluate_expression(expression, names):
 
         success = True
         try:
-            output = command.Command('cl_n', cmd, interpr.names).run()
+            output = command.Command('cl_n', cmd, interpr.names).run()[1]
         except exceptions.RunException as ex:
             success = False
             output = ex.output
