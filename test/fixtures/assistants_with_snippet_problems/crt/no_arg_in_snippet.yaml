@@ -1,4 +1,4 @@
 no_arg_in_snippet:
   args:
     bar:
-      snippet: snippet1
+      use: snippet1

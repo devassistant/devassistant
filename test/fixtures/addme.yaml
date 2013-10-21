@@ -5,4 +5,4 @@ addme:
   fullname: Add me and watch miracles happen
   args:
     some_arg:
-      snippet: addme_snippet
+      use: addme_snippet

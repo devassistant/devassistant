@@ -167,7 +167,10 @@ for Creator assistants like this::
 
    args:
      name:
-       snippet: common_args
+       use: common_args
+
+*Note: up to version 0.8.0, "snippet" can also be used in place of "use"; "snippet" is
+obsolete and will be removed in 0.9.0.*
 
 Run Again
 ~~~~~~~~~
@@ -260,12 +263,15 @@ since there is a snippet called ``git_init_add_commit``, which does exactly
 what we need. We'll use it like this::
 
    - cl: cd "$name"
-   - call: git_init_add_commit
+   - use: git_init_add_commit
 
 This calls section ``run`` from snippet ``git_init_add_commit`` in this place.
 Note, that all variables are "global" and the snippet will have access to them
 and will be able to change their values. However, variables defined in called
 snippet section will not propagate into current section.
+
+*Note: up to version 0.8.0, "call" can also be used in place of "use"; "call" is
+obsolete and will be removed in 0.9.0.*
 
 Finished!
 ~~~~~~~~~
@@ -293,7 +299,7 @@ The Whole Assistant
 
      args:
        name:
-         snippet: common_args
+         use: common_args
 
      run:
      - log_i: Hello, I'm Argh assistant and I will create an argh project for you.
@@ -305,7 +311,7 @@ The Whole Assistant
      - cl: chmod +x *arghs ${name}/${proj_name}.py
      - dda_c: "$name"
      - cl: cd "$name"
-     - call: git_init_add_commit
+     - use: git_init_add_commit
      - log_i: Project "$proj_name" has been created in "$name".
 
 And can be run like this: ``da crt python argh -n foo/bar``.

@@ -116,12 +116,12 @@ class TestYamlAssistant(object):
 
 
     def test_run_snippet_missing(self):
-        self.ya._run = [{'call': 'foo.bar'}]
+        self.ya._run = [{'use': 'foo.bar'}]
         self.ya.run()
         assert ('WARNING', 'Couldn\'t find run section "foo.bar".') in self.tlh.msgs
 
     def test_run_snippet(self):
-        self.ya._run = [{'call': 'mysnippet'}]
+        self.ya._run = [{'use': 'mysnippet'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -131,7 +131,7 @@ class TestYamlAssistant(object):
         assert ('INFO', 'spam') in self.tlh.msgs
 
     def test_run_non_default_snippet_section(self):
-        self.ya._run = [{'call': 'mysnippet.run_foo'}]
+        self.ya._run = [{'use': 'mysnippet.run_foo'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -142,7 +142,7 @@ class TestYamlAssistant(object):
         assert ('INFO', 'foo') in self.tlh.msgs
 
     def test_dependencies_snippet(self):
-        self.ya._dependencies = [{'call': 'mysnippet.dependencies_foo'}]
+        self.ya._dependencies = [{'use': 'mysnippet.dependencies_foo'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -151,7 +151,7 @@ class TestYamlAssistant(object):
         assert self.ya.dependencies() == [{'rpm': ['bar']}]
 
     def test_dependencies_snippet_also_installs_default_dependencies(self):
-        self.ya._dependencies = [{'call': 'mysnippet.dependencies_foo'}]
+        self.ya._dependencies = [{'use': 'mysnippet.dependencies_foo'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -162,7 +162,7 @@ class TestYamlAssistant(object):
         assert {'rpm': ['spam']} in self.ya.dependencies()
 
     def test_snippet_uses_its_own_files_section(self):
-        self.ya._run = [{'call': 'mysnippet'}, {'log_w': '*first'}]
+        self.ya._run = [{'use': 'mysnippet'}, {'log_w': '*first'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -181,7 +181,7 @@ class TestYamlAssistant(object):
         assert('INFO', 'spam') in self.tlh.msgs
 
     def test_assign_in_snippet_or_run_doesnt_modify_outer_scope(self):
-        self.ya._run = [{'call': 'self.run_blah'}, {'log_i': '$foo'}]
+        self.ya._run = [{'use': 'self.run_blah'}, {'log_i': '$foo'}]
         self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
         self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
         assert('INFO', 'yes, I ran') in self.tlh.msgs
@@ -194,7 +194,7 @@ class TestYamlAssistant(object):
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
 
     def test_snippet_uses_own_files_dir(self):
-        self.ya._run = [{'call': 'a.run'}, {'log_i': '*first'}]
+        self.ya._run = [{'use': 'a.run'}, {'log_i': '*first'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('a').\
                                     and_return(snippet.Snippet('mysnippet',

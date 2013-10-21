@@ -132,15 +132,15 @@ they will be traversed and installed one by one. Supported dependency types:
 ``rpm``
   the dependency list can contain RPM packages or YUM groups
   (groups must begin with ``@`` and be quoted, e.g. ``"@Group name"``)
-``call``
+``use`` / ``call`` (these two do completely same, ``call`` is obsolete and will be removed in 0.9.0)
   installs dependencies from snippet/another dependency section of this assistant/dependency
   section of superassistant. For example::
 
    dependencies:
-   - call: foo # will install dependencies from snippet "foo", section "dependencies"
-   - call: foo.dependencies_bar # will install dependencies from snippet "foo", section "bar"
-   - call: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
-   - call: super.dependencies # will install dependencies from "dependencies" section of first superassistant that has such section
+   - use: foo # will install dependencies from snippet "foo", section "dependencies"
+   - use: foo.dependencies_bar # will install dependencies from snippet "foo", section "bar"
+   - use: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
+   - use: super.dependencies # will install dependencies from "dependencies" section of first superassistant that has such section
 
 ``if``, ``else``
   conditional dependency installation. For more info on conditions, `Run`_ below.
@@ -159,7 +159,7 @@ Full example::
    dependencies_spam:
    - rpm: [beans, eggs]
    - if $with_spam:
-     - call: spam.spamspam
+     - use: spam.spamspam
    - rpm: ["ham${more_ham}"]
 
 *Sometimes your dependencies may get terribly complex - they depend on many
@@ -204,7 +204,7 @@ Available argument attributes:
   parameters; the ``[default_iff_used, value]`` will cause the argument to
   be set to default value ``value`` **iff** it was used without parameters
   (if it wasn't used, it won't be defined at all)
-``snippet``
+``use`` / ``snippet`` (these two do completely same, ``snippet`` is obsolete and will be removed in 0.9.0)
   name of the snippet to load this argument from; any other specified attributes
   will override those from the snippet By convention, some arguments
   should be common to all or most of the assistants.
@@ -371,13 +371,13 @@ List of supported **command types** and their function follows:
 ``$success, $foo``
   assigns *logical result* (``True``/``False``) of **input** (an `Expression`_)
   to ``$success`` and result to ``$foo`` (same as above)
-``call``
+``use`` / ``call`` (these two do completely same, ``call`` is obsolete and will be removed in 0.9.0)
   run a section specified by **input** at this place and then continue execution:
 
-  - another section of this assistant (e.g. ``call: self.run_foo``)
-  - section of superassistant (e.g. ``call: super.run``) - searches all superassistants
+  - another section of this assistant (e.g. ``use: self.run_foo``)
+  - section of superassistant (e.g. ``use: super.run``) - searches all superassistants
     (parent of this, parent of the parent, etc.) and runs the first found section of given name
-  - section from snippet (e.g. ``call: snippet_name.run_foo``)
+  - section from snippet (e.g. ``use: snippet_name.run_foo``)
 ``scl``
   run a whole **input** section specified in SCL environment of one or more
   SCLs (note: you **must** use the scriptlet name - usually ``enable`` -

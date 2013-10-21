@@ -2,4 +2,4 @@ addme:
   fullname: Fullname changed!
   args:
     some_arg:
-      snippet: addme_snippet
+      use: addme_snippet

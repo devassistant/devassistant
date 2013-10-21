@@ -20,7 +20,8 @@ def dependencies_section(section, kwargs, runner=None):
             break
         for dep_type, dep_list in dep.items():
             # rpm dependencies (can't handle anything else yet)
-            if dep_type == 'call': # we don't allow general commands, only "call" command here
+            # we don't allow general commands, only "call"/"use" command here
+            if dep_type in ['call', 'use']:
                 deps.extend(command.Command(dep_type, dep_list, kwargs).run())
             elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                 deps.append({dep_type: dep_list})

@@ -77,7 +77,7 @@ class AskCommandRunner(CommandRunner):
 class CallCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
-        return c.comm_type == 'call'
+        return c.comm_type == 'call' or c.comm_type == 'use'
 
     @classmethod
     def run(cls, c):

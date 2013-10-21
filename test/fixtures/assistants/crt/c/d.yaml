@@ -19,7 +19,7 @@ d:
       nargs:
         '?'
     some_arg:
-      snippet: snippet1
+      use: snippet1
 
   run:
   - cl: mkdir -p $name

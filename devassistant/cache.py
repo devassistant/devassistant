@@ -186,8 +186,9 @@ class Cache(object):
         if 'args' in attrs:
             cached_ass['attrs']['args'] = {}
         for argname, argparams in attrs.get('args', {}).items():
-            if 'snippet' in argparams:
-                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(argparams.pop('snippet'))
+            if 'use' in argparams or 'snippet' in argparams:
+                snippet_name = argparams.pop('use', None) or argparams.pop('snippet')
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(snippet_name)
                 cached_ass['attrs']['args'][argname] = snippet.get_arg_by_name(argname)
                 cached_ass['attrs']['args'][argname].update(argparams)
                 cached_ass['snippets'][snippet.name] = self._get_snippet_ctime(snippet.name)

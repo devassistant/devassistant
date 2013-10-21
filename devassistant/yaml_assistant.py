@@ -87,7 +87,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def _construct_args(self, struct):
         args = []
         for arg_name, arg_params in struct.items():
-            use_snippet = arg_params.pop('snippet', None)
+            use_snippet = arg_params.pop('use', None) or arg_params.pop('snippet', None)
             if use_snippet:
                 # if snippet is used, take this parameter from snippet and update
                 # it with current arg_params, if any
