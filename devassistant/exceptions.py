@@ -16,6 +16,9 @@ class ClException(RunException):
     def __str__(self):
         return self.output
 
+class CommandException(RunException):
+    pass
+
 class YamlTypeError(ExecutionException):
     pass
 

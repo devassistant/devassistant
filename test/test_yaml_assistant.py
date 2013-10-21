@@ -66,8 +66,8 @@ class TestYamlAssistant(object):
 
     def test_run_unkown_command(self):
         self.ya._run = [{'foo': 'bar'}]
-        self.ya.run()
-        assert self.tlh.msgs == [('WARNING', 'Unknown command type foo, skipping.')]
+        with pytest.raises(exceptions.CommandException):
+            self.ya.run()
 
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
@@ -88,8 +88,8 @@ class TestYamlAssistant(object):
 
     def test_log_wrong_level(self):
         self.ya._run = [{'log_b': 'bar'}]
-        self.ya.run()
-        assert self.tlh.msgs == [('WARNING', 'Unknown logging command log_b with message bar')]
+        with pytest.raises(exceptions.CommandException):
+            self.ya.run()
 
     def test_log_formats_message(self):
         self.ya._run = [{'log_i': 'this is $how cool'}]
@@ -117,8 +117,8 @@ class TestYamlAssistant(object):
 
     def test_run_snippet_missing(self):
         self.ya._run = [{'use': 'foo.bar'}]
-        self.ya.run()
-        assert ('WARNING', 'Couldn\'t find run section "foo.bar".') in self.tlh.msgs
+        with pytest.raises(exceptions.CommandException):
+            self.ya.run()
 
     def test_run_snippet(self):
         self.ya._run = [{'use': 'mysnippet'}]

@@ -49,7 +49,7 @@ class CommandRunner(object):
             assistant should rather raise an exception than return [False, 'something'].
 
         Raises:
-            Any exception that's subclass of devassistant.exceptions.ExecutionExceptions
+            Any exception that's subclass of devassistant.exceptions.CommandException
         """
         raise NotImplementedError()
 
@@ -67,7 +67,7 @@ class AskCommandRunner(CommandRunner):
         elif c.comm_type == 'ask_confirm':
             result = [True, DialogHelper.ask_for_confirm_with_message(**args)]
         else:
-            result = [False, '']
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
         c.kwargs[var] = result[1]
         return result
 
@@ -92,8 +92,7 @@ class CallCommandRunner(CommandRunner):
         if not section:
             msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
                                                              n=c.comm)
-            logger.warning(msg)
-            return [False, [] if sect_type == 'dependencies' else '']
+            raise exceptions.CommandException(msg)
 
         if cls.is_snippet_call(c.comm):
             # we're calling a snippet => add files and files_dir to kwargs
@@ -194,7 +193,7 @@ class DependenciesCommandRunner(CommandRunner):
         struct = c.format_deep()
         if not isinstance(struct, list):
             msg = 'Dependencies for installation must be list, got {v}.'.format(v=struct)
-            raise exceptions.RunException(msg)
+            raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
         di.install(struct)
@@ -218,8 +217,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         elif c.comm_type == 'dda_run':
             cls._dot_devassistant_run(comm, c.kwargs)
         else:
-            logger.warning('Unknown .devassistant command {0}, skipping.'.format(c.comm_type))
-            return [False, '']
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, '']
 
@@ -265,7 +263,7 @@ class DotDevassistantCommandRunner(CommandRunner):
                 result = yaml.load(stream)
         except IOError as e:
             msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
-            raise exceptions.RunException(msg)
+            raise exceptions.CommandException(msg)
 
         for k, v in result.items():
             kwargs.setdefault(k, v)
@@ -349,7 +347,7 @@ class GitHubAuth(object):
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
                     # reset cls._user to None, so that we don't use it if calling this multiple times
                     cls._user = None
-                    raise exceptions.RunException(msg)
+                    raise exceptions.CommandException(msg)
         return cls._user
 
     @classmethod
@@ -475,7 +473,7 @@ class GitHubCommandRunner(CommandRunner):
         elif comm == 'create_fork':
             cls._github_fork(**kwargs)
         else:
-            logger.warning('Unknow github command {0}, skipping.'.format(comm))
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, '']
 
@@ -549,16 +547,16 @@ class GitHubCommandRunner(CommandRunner):
         """Create repo on GitHub.
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
-        If repository already exists then RunException will be raised.
+        If repository already exists then CommandException will be raised.
 
         Raises:
-            devassistant.exceptions.RunException on error
+            devassistant.exceptions.CommandException on error
         """
         reponame = kwargs['reponame']
 
         if reponame in map(lambda x: x.name, cls._user.get_repos()):
             msg = 'Repository already exists on GitHub'
-            raise exceptions.RunException(msg)
+            raise exceptions.CommandException(msg)
         else:
             try:
                 new_repo = cls._user.create_repo(reponame)
@@ -566,7 +564,7 @@ class GitHubCommandRunner(CommandRunner):
                 msg = 'Failed to create GitHub repo. This sometime happens when you delete '
                 msg += 'a repo and then you want to create the same one immediately. Wait '
                 msg += 'for few minutes and then try again.'
-                raise exceptions.RunException(msg)
+                raise exceptions.CommandException(msg)
             logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
     @classmethod
@@ -576,7 +574,7 @@ class GitHubCommandRunner(CommandRunner):
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
         Raises:
-            devassistant.exceptions.RunException on error
+            devassistant.exceptions.CommandException on error
         """
         cls._github_add_remote_origin(**kwargs)
         cls._github_remote_show_origin()
@@ -603,7 +601,7 @@ class GitHubCommandRunner(CommandRunner):
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
         Raises:
-            devassistant.exceptions.RunException on error
+            devassistant.exceptions.CommandException on error
         """
         logger.info('Forking {repo} for user {login} on Github ...'.format(login=kwargs['login'],
                                                                            repo=kwargs['reponame']))
@@ -612,7 +610,7 @@ class GitHubCommandRunner(CommandRunner):
             fork = cls._user.create_fork(repo)
         except cls._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
-            raise exceptions.RunException(msg)
+            raise exceptions.CommandException(msg)
         logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
 
 @register_command_runner
@@ -627,10 +625,10 @@ class LogCommandRunner(CommandRunner):
         if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
             logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], comm)
             if c.comm_type[-1] in 'ce':
-                e = exceptions.RunException(comm)
+                e = exceptions.CommandException(comm)
                 e.already_logged = True
                 raise e
         else:
-            logger.warning('Unknown logging command {0} with message {1}'.format(c.comm_type, comm))
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, comm]

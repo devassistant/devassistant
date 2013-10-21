@@ -25,8 +25,9 @@ class Command(object):
             if cr.matches(self):
                 return cr.run(self) 
 
-        logger.warning('Unknown command type {0}, skipping.'.format(self.comm_type))
-        return [False, '']
+        raise exceptions.CommandException('No runner for command "{ct}: {c}".'.\
+                format(ct=self.comm_type,
+                       c=self.comm))
 
     def format_str(self):
         """Formats input of this command as a string."""
