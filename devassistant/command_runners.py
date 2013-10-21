@@ -466,6 +466,8 @@ class GitHubCommandRunner(CommandRunner):
             cls._github_create_and_push(**kwargs)
         elif comm == 'add_remote_origin':
             cls._github_add_remote_origin(**kwargs)
+        elif comm == 'create_fork':
+            cls._github_fork(**kwargs)
         else:
             logger.warning('Unknow github command {0}, skipping.'.format(comm))
 
@@ -480,6 +482,8 @@ class GitHubCommandRunner(CommandRunner):
             args_rest = {}
         kwargs = {'login': args_rest.get('login', None) or cls._github_login(c.kwargs),
                   'reponame': args_rest.get('reponame', None) or cls._github_reponame(c.kwargs)}
+        if comm == 'create_fork':
+            kwargs['fork_login'] = args_rest.get('fork_login', '')
         return comm, kwargs
 
     @classmethod
@@ -582,6 +586,26 @@ class GitHubCommandRunner(CommandRunner):
         logger.info('Pushing your project to the new GitHub repository...')
         cls._github_add_remote_and_push(**kwargs)
         logger.info('GitHub repository was created and source code pushed.')
+
+    @classmethod
+    @GitHubAuth.github_authenticated
+    def _github_fork(cls, **kwargs):
+        """Create a fork of repo from kwargs['reponame']. Assumes 'fork_login'
+        to be in kwargs'
+        Note: the kwargs are not the global context here, but what cls.format_args returns.
+
+        Raises:
+            devassistant.exceptions.RunException on error
+        """
+        logger.info('Forking {repo} for user {login} on Github ...'.format(login=kwargs['login'],
+                                                                           repo=kwargs['reponame']))
+        try:
+            repo = cls._gh_module.Github().get_user(kwargs['fork_login']).get_repo(kwargs['reponame'])
+            fork = cls._user.create_fork(repo)
+        except cls._gh_module.GithubException as e:
+            msg = 'Failed to create Github fork with error: {err}'.format(err=e)
+            raise exceptions.RunException(msg)
+        logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
 
 @register_command_runner
 class LogCommandRunner(CommandRunner):
