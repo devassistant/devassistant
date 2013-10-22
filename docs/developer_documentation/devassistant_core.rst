@@ -113,7 +113,7 @@ For example if your assistant contains::
 
 than DevAssistant will print out something like::
 
-   ``INFO: MyCommandRunner was invoked: mycomm: You are using DevAssistant!``
+   INFO: MyCommandRunner was invoked: mycomm: You are using DevAssistant!
 
 After this command is run, ``LAST_LRES`` will be set to ``True`` and ``LAST_RES`` to length
 of the printed string.
