@@ -437,6 +437,8 @@ class GitHubCommandRunner(CommandRunner):
         _gh_module = utils.import_module('github')
     except:
         _gh_module = None
+    _required_yaml_args = {'default': ['login', 'reponame'],
+                           'create_fork': ['login', 'repo_url']}
 
     @classmethod
     def matches(cls, c):
@@ -486,37 +488,60 @@ class GitHubCommandRunner(CommandRunner):
         else:
             comm = args
             args_rest = {}
-        kwargs = {'login': args_rest.get('login', None) or cls._github_login(c.kwargs),
-                  'reponame': args_rest.get('reponame', None) or cls._github_reponame(c.kwargs)}
-        if comm == 'create_fork':
-            kwargs['fork_login'] = args_rest.get('fork_login', '')
+        # find out what arguments we will need
+        kwargs = {}
+        req_kwargs = cls._required_yaml_args.get(comm, cls._required_yaml_args['default'])
+        for k in req_kwargs:
+            kwargs[k] = getattr(cls, '_guess_' + k)(c.kwargs)
+            if k in args_rest and not kwargs[k]:
+                kwargs[k] = args_rest[k]
+
         return comm, kwargs
 
     @classmethod
-    def _github_login(cls, ctxt):
+    def _guess_login(cls, ctxt):
         """Get github login, either from 'github' global variable or from local username.
 
         Args:
-            kwargs: global context
+            ctxt: global context
 
         Returns:
             guessed github login
         """
-        return ctxt.get('github') or getpass.getuser()
+        return ctxt.get('github', None) or getpass.getuser()
 
 
     @classmethod
-    def _github_reponame(cls, ctxt):
+    def _guess_reponame(cls, ctxt):
         """Extracts reponame from 'name' global variable, which is possibly a path.
 
         Args:
-            kwargs: global context
+            ctxt: global context
 
         Returns:
             guessed reponame
         """
+        if not 'name' in ctxt:
+            raise exceptions.CommandException('Cannot guess Github reponame - no argument given\
+                                               and there is no "name" variable.')
         return os.path.basename(ctxt['name'])
 
+    @classmethod
+    def _guess_repo_url(cls, ctxt):
+        """Get repo to fork in form of '<login>/<reponame>' from global variable 'url'.
+
+        Args:
+            ctxt: global context
+
+        Returns:
+            guessed fork reponame
+        """
+        if not 'url' in ctxt:
+            raise exceptions.CommandException('Cannot guess name of Github repo to fork - no\
+                                               argument given and there is no "url" variable.')
+
+        url = ctxt['url'][:-4] if ctxt['url'].endswith('.git') else ctxt['url']
+        return '/'.join(url.split('/')[-2:])
 
     @classmethod
     def _github_push(cls):
@@ -598,17 +623,17 @@ class GitHubCommandRunner(CommandRunner):
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_fork(cls, **kwargs):
-        """Create a fork of repo from kwargs['reponame']. Assumes 'fork_login'
-        to be in kwargs'
+        """Create a fork of repo from kwargs['fork_repo'].
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
         Raises:
             devassistant.exceptions.CommandException on error
         """
+        fork_login, fork_reponame = kwargs['repo_url'].split('/')
         logger.info('Forking {repo} for user {login} on Github ...'.format(login=kwargs['login'],
-                                                                           repo=kwargs['reponame']))
+                                                                           repo=kwargs['repo_url']))
         try:
-            repo = cls._gh_module.Github().get_user(kwargs['fork_login']).get_repo(kwargs['reponame'])
+            repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
             fork = cls._user.create_fork(repo)
         except cls._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
