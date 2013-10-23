@@ -36,4 +36,5 @@ class TestClHelper(object):
         try:
             ClHelper.run_command(test_script)
         except ClException as e:
+            assert 'script really ran' in e.output
             assert '\n\n' not in e.output
