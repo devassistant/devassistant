@@ -53,9 +53,10 @@ class ClHelper(object):
                                 preexec_fn=preexec_fn)
         stdout = []
         while proc.poll() == None:
-            output = proc.stdout.readline().strip().decode('utf8')
-            stdout.append(output)
+            output = proc.stdout.readline().decode('utf8')
             if output:
+                output = output.strip()
+                stdout.append(output)
                 logger.log(log_level, output, extra={'event_type': 'cmd_out'})
             if output_callback:
                 output_callback(output)
@@ -64,7 +65,7 @@ class ClHelper(object):
         output_rest = proc.stdout.read().strip().decode('utf8')
         # we want to log lines separately, not as one big chunk
         output_rest_lines = output_rest.splitlines()
-        for i, l in enumerate(output_rest.splitlines()):
+        for i, l in enumerate(output_rest_lines):
             # add newline for every line - for last line, only add it if it was originally present
             if i != len(output_rest_lines) - 1 or output_rest.endswith('\n'):
                 l += '\n'
@@ -75,9 +76,10 @@ class ClHelper(object):
 
         # log return code always on debug level
         logger.log(logging.DEBUG, proc.returncode, extra={'event_type': 'cmd_retcode'})
+        stdout = stdout.strip()
 
         if proc.returncode == 0:
-            return stdout.strip()
+            return stdout
         else:
             raise exceptions.ClException(cmd_str,
                                          proc.returncode,
