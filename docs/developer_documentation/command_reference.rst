@@ -11,15 +11,41 @@ result** and **result**):
 - ``LAST_LRES`` - a logical result of the run - ``True``/``False`` if successful/unsuccessful
 - ``LAST_RES`` - a "return value" - e.g. a computed value
 
+In the Yaml DSL, commands are called like this::
+
+   command_type: command_input
+
+This reference summarizes commands included in DevAssistant itself in following format:
+
+``command_type`` - some optional info
+
+- Input: what should the input look like?
+- RES: what is ``LAST_RES`` set to after this command?
+- LRES: what is ``LAST_LRES`` set to after this command?
+- Example: example usage
+
 *Missing something?* Commands are your entrypoint for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
 :ref:`write a command runner <command_runners>` and send us a pull request.
 
-Assign To Variable
-------------------
+Builtin Commands
+----------------
+
+There are three builtin commands that are inherent part of DevAssistant Yaml DSL:
+
+- variable assignment
+- condition
+- loop
+
+All of these builtin commands utilize expressions in some way - these must follow rules in
+:ref:`expressions_ref`.
+
+
+Variable Assignment
+~~~~~~~~~~~~~~~~~~~
 
 Assign *result* (and possibly also *logical result*) of :ref:`expressions_ref`
-to a variable.
+to a variable(s).
 
 ``$<var1>[, $<var2>]`` - if one variable is given, *result* of expression (**command input**)
 is assigned. If two variables are given, the first gets assigned *logical result* and the
@@ -38,10 +64,10 @@ second *result*.
     $bar: $baz
     $success, $list: $(ls "$foo")
 
-Flow Control Commands
----------------------
+Condition
+~~~~~~~~~
 
-Conditional execution and loops. The expressions must follow rules in :ref:`expressions_ref`.
+Conditional execution.
 
 ``if <expression>``, ``else`` - conditionally execute one or the other section (``if`` can
 stand alone, of course)
@@ -57,6 +83,11 @@ stand alone, of course)
     - log_i: Foo is $foo!
     else:
     - log_i: Foo is not defined!
+
+Loop
+~~~~
+
+A simple for loop.
 
 ``for <var>[, <var>] in <expression>`` - loop over result of the expression (strings are
 split in whitespaces). When iterating over mapping, two control variables may be provided
@@ -237,7 +268,7 @@ because it might vary)
       - cl_i: python --version 
       - cl_i: pgsql --version
 
-Use Another Section
+Using Another Section
 -------------------
 
 Runs a section specified by **command input** at this place.
