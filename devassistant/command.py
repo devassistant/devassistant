@@ -72,25 +72,40 @@ class Command(object):
         regex = re.compile('\\\\*~')
         return regex.sub(type(self)._homedir_expand, substituted)
 
-    def format_deep(self):
-        """Formats command input of this command as a list."""
+    def format_deep(self, eval_expressions=True):
+        """Formats command input of this command as a Python structure (list/dict/str).
+
+        Args:
+            eval_expressions: if False, format_deep will only substitute variables, but won't
+                              evaluate expressions
+        """
         if not self._lang:
             # avoid circular dependency between this module and lang
             type(self)._lang = utils.import_module('devassistant.lang')
 
-        return self._format_deep_recursive(struct=self.comm)
+        return self._format_deep_recursive(struct=self.comm, eval_expressions=eval_expressions)
 
-    def _format_deep_recursive(self, struct):
+    def _format_deep_recursive(self, struct, eval_expressions):
+        """Formats given struct as a Python structure (list/dict/str).
+
+        Args:
+            struct: Python structure (list/dict/string) to format
+            eval_expressions: if False, format_deep will only substitute variables, but won't
+                              evaluate expressions
+        """
         if isinstance(struct, dict):
             new_struct = {}
             for k, v in struct.items():
-                new_struct[self._format_deep_recursive(k)] = self._format_deep_recursive(v)
+                new_struct[self._format_deep_recursive(k, eval_expressions)] =\
+                        self._format_deep_recursive(v, eval_expressions)
         elif isinstance(struct, list):
             new_struct = []
             for i in struct:
-                new_struct.append(self._format_deep_recursive(i))
-        elif type(self)._lang.is_var(struct):
-            return self._format_deep_recursive(type(self)._lang.evaluate_expression(struct, self.kwargs)[1])
+                new_struct.append(self._format_deep_recursive(i, eval_expressions))
+        elif type(self)._lang.is_var(struct) and eval_expressions:
+            return self._format_deep_recursive(
+                    type(self)._lang.evaluate_expression(struct, self.kwargs)[1],
+                    eval_expressions)
         else:
             new_struct = self._format_str(struct)
 
