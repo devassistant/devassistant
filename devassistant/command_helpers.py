@@ -66,10 +66,10 @@ class ClHelper(object):
         # we want to log lines separately, not as one big chunk
         output_rest_lines = output_rest.splitlines()
         for i, l in enumerate(output_rest_lines):
+            logger.log(log_level, l, extra={'event_type': 'cmd_out'})
             # add newline for every line - for last line, only add it if it was originally present
             if i != len(output_rest_lines) - 1 or output_rest.endswith('\n'):
                 l += '\n'
-            logger.log(log_level, l, extra={'event_type': 'cmd_out'})
             stdout += l
             if output_callback:
                 output_callback(l)
