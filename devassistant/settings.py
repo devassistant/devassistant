@@ -21,3 +21,4 @@ DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]
 ASSISTANT_ROLES=['crt', 'mod', 'prep']
+DEFAULT_ASSISTANT_ROLE = 'crt'

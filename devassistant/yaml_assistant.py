@@ -11,6 +11,7 @@ from devassistant import lang
 from devassistant import loaded_yaml
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
+from devassistant import settings
 
 def needs_fully_loaded(method):
     """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded
@@ -27,7 +28,8 @@ def needs_fully_loaded(method):
     return inner
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
-    def __init__(self, name, parsed_yaml, path, superassistant, fully_loaded=True, role='crt'):
+    def __init__(self, name, parsed_yaml, path, superassistant, fully_loaded=True,
+                 role=settings.DEFAULT_ASSISTANT_ROLE):
         self.name = name
         self.path = path
         self.superassistant = superassistant

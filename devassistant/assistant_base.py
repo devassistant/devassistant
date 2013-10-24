@@ -11,7 +11,7 @@ class AssistantBase(object):
     name = 'base'
     fullname = 'Base'
     description = ''
-    role = 'crt'
+    role = settings.DEFAULT_ASSISTANT_ROLE
     args = []
     source_file = ''
 
