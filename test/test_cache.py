@@ -58,6 +58,7 @@ correct_cache = \
                                           'subhierarchy': {}}}}},
  'mod': {},
  'prep': {},
+ 'task': {},
  'version': VERSION}
 
 class TestCache(object):

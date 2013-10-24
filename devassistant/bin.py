@@ -35,12 +35,22 @@ class PreparerAssistant(ExecutableAssistant):
 
     name = 'prep'
     fullname = 'Prepare Environment'
-    description = 'Prepare environment for upstream projects or various tasks with DevAssistant.'
+    description = 'Prepare environment for upstream projects with DevAssistant.'
+
+class TaskAssistant(ExecutableAssistant):
+    def get_subassistants(self):
+        sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
+        return sa
+
+    name = 'task'
+    fullname = 'Custom Task'
+    description = 'Perform a custom task not related to a specific project with DevAssistant.'
 
 class TopAssistant(assistant_base.AssistantBase):
     _assistants = []
     def get_subassistants(self):
         # cache assistants to always return the same instances
         if not self._assistants:
-            self._assistants = [CreatorAssistant(), ModifierAssistant(), PreparerAssistant()]
+            self._assistants = [CreatorAssistant(), ModifierAssistant(),
+                                PreparerAssistant(), TaskAssistant()]
         return self._assistants

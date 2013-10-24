@@ -1,3 +1,5 @@
+from devassistant import settings
+
 actions = {}
 
 def register_action(action):
@@ -39,9 +41,12 @@ class HelpAction(Action):
             format_type: type of formatting for nice output, see format_text for possible values
         """
         # we will justify the action names (and assistant types) to the same width
-        just = max(len('crt'), len('mod'), len('prep'), *map(lambda x: len(x), actions)) + 2
+        just = max(
+                max(*map(lambda x: len(x), settings.ASSISTANT_ROLES)),
+                max(*map(lambda x: len(x), actions))
+               ) + 2
         text = ['You can either run assistants with:']
-        text.append(cls.format_text('da [--debug] {crt,mod,prep} [ASSISTANT [ARGUMENTS]] ...',
+        text.append(cls.format_text('da [--debug] {crt,mod,prep,task} [ASSISTANT [ARGUMENTS]] ...',
                                     'bold',
                                     format_type))
         text.append('')
@@ -55,7 +60,11 @@ class HelpAction(Action):
                                            just,
                                            format_type))
         text.append(cls.format_action_line('prep',
-                                           'used for preparing environment for upstream projects and various tasks',
+                                           'used for preparing environment for upstream projects',
+                                            just,
+                                            format_type))
+        text.append(cls.format_action_line('task',
+                                           'used for performing custom tasks not related to a specific project',
                                             just,
                                             format_type))
         text.append('')

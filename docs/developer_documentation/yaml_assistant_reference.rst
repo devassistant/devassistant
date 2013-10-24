@@ -24,26 +24,16 @@ at `assistants in our Github repo`_.
 
 Assistant Roles
 ---------------
-There are three types of assistants:
 
-Creator
-  creator assistants are meant to create new projects from scratch, they're
-  accessed using ``da`` binary
-Modifier
-  modifier assistants are used for modifying existing projects previously
-  created by DevAssistant
-Preparer
-  preparer assistants are used for setting up environment for already existing
-  projects (located e.g. at remote SCM etc.) that may or may not have been
-  creating by DevAssistant
+For list and description of assistant roles see :ref:`assistant_roles_devel`.
 
 The role is implied by assistant location in one of the load path directories,
 as mentioned in :ref:`assistants_loading_mechanism`.
 
 All the rules mentioned in this document apply to all types of assistants,
-with exception of sections :ref:`modifier_assistants_ref` and
-:ref:`preparer_assistants_ref` that talk about specifics of Modifier, resp.
-Preparer assistants.
+with exception of sections :ref:`modifier_assistants_ref`, :ref:`preparer_assistants_ref` and
+:ref:`task_assistants_ref` that talk about specifics of Modifier, resp. Preparer, resp. Task
+assistants.
 
 Assistant Name
 --------------
@@ -437,11 +427,18 @@ The special rules below **only apply if you use dda_t in pre_run section**.
 Preparer Assistants
 -------------------
 
-Preparer assistants are assistants that are supposed to set up environment for
-executing arbitrary tasks or prepare environment and checkout existing upstream
-projects (possibly using their ``.devassistant`` file, if they have it).
-Preparers must be placed under ``prep`` subdirectory of one of the load
+Preparer assistants are assistants that are supposed to checkout sources of upstream
+projects and set up environment for them (possibly utilizing their ``.devassistant`` file,
+if they have one). Preparers must be placed under ``prep`` subdirectory of one of the load
 paths, as mentioned in :ref:`assistants_loading_mechanism`.
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.
+
+.. _task_assistants_ref:
+
+Task Assistants
+---------------
+
+Task assistants are supposed to carry out arbitrary task that are not related to a specific
+project. <TODO>

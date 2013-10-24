@@ -20,5 +20,5 @@ CACHE_FILE = os.path.expanduser('~/.devassistant/.cache.yaml')
 DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]
-ASSISTANT_ROLES=['crt', 'mod', 'prep']
+ASSISTANT_ROLES=['crt', 'mod', 'prep', 'task']
 DEFAULT_ASSISTANT_ROLE = 'crt'

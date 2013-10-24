@@ -38,6 +38,7 @@ class Cache(object):
             'subhierarchy': {'d': {...}},
      'mod': {...},
      'prep': {...},
+     'task': {...},
      # version of devassistant that cache has been created with
      'version': VERSION}
     """

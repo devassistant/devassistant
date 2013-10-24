@@ -82,11 +82,15 @@ Preparing Environment
 ~~~~~~~~~~~~~~~~~~~~~
 
 DevAssistant can set up environment and install dependencies for
-executing aribtrary tasks or development of already existing project located
-in a remote SCM (e.g. Github). For custom projects created
-by DevAssistant, you can use the ``custom`` assistant::
+development of already existing project located
+in a remote SCM (e.g. Github). For custom projects you can use the ``custom`` assistant.
+Note that for projects that don't have ``.devassistant`` file, this will just checkout
+the sources::
 
    $ da prep custom -u scm_url
+
+**Warning:** The ``custom`` assistant executes custom pieces of code from ``.devassistant`` file,
+so use this only for projects whose upstreams you trust.
 
 The plan is to also include assistants for well known and largely developed projects
 (that, of course, don't contain ``.devassistant`` file). So in future you should be
@@ -96,6 +100,14 @@ able to do something like::
 
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...
+
+Tasks
+~~~~~
+
+The last piece of functionality is performing arbitrary tasks that are not related to a specific
+projects. E.g.::
+
+   $ da task <TODO:NOTHING YET>
 
 Custom Actions
 ~~~~~~~~~~~~~~
@@ -173,3 +185,8 @@ Preparing
 
 - Custom - checkout a custom previously created project from SCM (git only so far) and
   install needed dependencies
+
+Tasks
+~~~~~
+
+<TODO: NOTHING YET>

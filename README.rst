@@ -28,11 +28,17 @@ DevAssistant also allows you to work with a previously created project, for exam
 
   $ da mod eclipse # run in project dir or use -p to specify path
 
-Last but not least, DevAssistant allows you to prepare environment for executing arbitrary tasks or developing upstream projects (either using "custom" assistant for projects previously created by DevAssistant or using specific assistant for specific projects):
+With DevAssistant, you can also prepare environment for developing upstream projects - either using project-specific assistants or using "custom" assistant for arbitrary projects (even those not created by DevAssistant):
 
 .. code:: sh
 
   $ da prep custom -u scm_url -p directory_to_save_to
+
+Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific project:
+
+.. code:: sh
+
+  $ da task <TODO:NOTHING YET>
 
 For full documentation, see http://doc.devassistant.org/
 
