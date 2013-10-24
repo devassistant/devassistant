@@ -1,6 +1,8 @@
 import os
+import re
 
 from devassistant.argument import Argument
+from devassistant.cli.devassistant_argparse import ArgumentParser
 
 class TestArgument(object):
     p = Argument('-p', '--path',
@@ -20,3 +22,9 @@ class TestArgument(object):
         assert self.b.get_gui_hint('type') == 'bool'
         assert self.b.get_gui_hint('default') == True
 
+    def test_argument_is_added(self, capsys):
+        parser = ArgumentParser()
+        self.p.add_argument_to(parser)
+        parser.print_help()
+        output = capsys.readouterr()[0] # captured stdout
+        assert re.compile('-p.*helptext').search(output)

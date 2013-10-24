@@ -22,6 +22,16 @@ class TestAssistantBase(object):
             args_dict[settings.SUBASSISTANT_N_STRING.format(i)] = n
         return args_dict
 
+    def test_get_subassistants_returns_empty_list_on_leaves(self):
+        ch = FlaskA().get_subassistants()
+        assert ch == []
+
+    def test_get_subassistants_returns_correct_instance(self):
+        al = RubyA().get_subassistants()
+        assert len(al) == 1
+        assert isinstance(al[0], RailsA)
+
+
     def test_get_subassistant_tree_constructs_proper_structure(self):
         ch = MainA().get_subassistant_tree()
         main, subas = ch
