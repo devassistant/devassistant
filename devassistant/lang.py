@@ -79,11 +79,6 @@ def run_section(section, kwargs, runner=None):
                     else:
                         kwargs[control_vars[0]] = i
                     retval = run_section(comm, kwargs, runner=runner)
-            elif comm_type.startswith('scl'):
-                # list of lists of scl names
-                kwargs['__scls__'].append(comm_type.split()[1:])
-                retval = run_section(comm, kwargs, runner=runner)
-                kwargs['__scls__'].pop()
             else:
                 retval = command.Command(comm_type,
                                          comm,

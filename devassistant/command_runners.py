@@ -660,3 +660,17 @@ class LogCommandRunner(CommandRunner):
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, comm]
+
+@register_command_runner
+class SCLCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type.startswith('scl ')
+
+    @classmethod
+    def run(cls, c):
+        c.kwargs['__scls__'].append(c.comm_type.split()[1:])
+        retval = lang.run_section(c.comm, c.kwargs, runner=c.kwargs['__assistant__'])
+        c.kwargs['__scls__'].pop()
+
+        return retval
