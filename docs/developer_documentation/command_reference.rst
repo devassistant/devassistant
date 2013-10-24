@@ -269,7 +269,7 @@ because it might vary)
       - cl_i: pgsql --version
 
 Using Another Section
--------------------
+---------------------
 
 Runs a section specified by **command input** at this place.
 
