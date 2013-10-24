@@ -207,7 +207,7 @@ class DotDevassistantCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = c.format_deep()
+        comm = cls.format_args(c)
         if c.comm_type == 'dda_c':
             cls._dot_devassistant_create(comm, c.kwargs)
         elif c.comm_type == 'dda_r':
@@ -216,15 +216,27 @@ class DotDevassistantCommandRunner(CommandRunner):
             cls._dot_devassistant_dependencies(comm, c.kwargs)
         elif c.comm_type == 'dda_run':
             cls._dot_devassistant_run(comm, c.kwargs)
-        elif c.comm_type == 'dda_set':
-            cls._dot_devassistant_set(c)
+        elif c.comm_type == 'dda_w':
+            cls._dot_devassistant_write(comm)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, '']
 
     @classmethod
-    def __dot_devassistant_write(cls, directory, struct):
+    def format_args(cls, c):
+        if c.comm_type == 'dda_w':
+            comm = c.format_deep(eval_expressions=False)
+            if not isinstance(comm, list) or len(comm) != 2:
+                msg = 'dda_write expects list with path to .devassistant and mapping to add.'
+                raise exceptions.CommandException(msg)
+        else:
+            comm = c.format_str()
+
+        return comm
+
+    @classmethod
+    def __dot_devassistant_write_struct(cls, directory, struct):
         """Helper for other methods that write to .devassistant file."""
         dda_path = os.path.join(os.path.abspath(os.path.expanduser(directory)), '.devassistant')
         f = open(dda_path, 'w')
@@ -265,7 +277,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         to_write = {'devassistant_version': version.VERSION,
                     'subassistant_path': path,
                     'original_kwargs': original_kwargs}
-        cls.__dot_devassistant_write(directory, to_write)
+        cls.__dot_devassistant_write_struct(directory, to_write)
 
     @classmethod
     def _dot_devassistant_read(cls, comm, kwargs):
@@ -300,15 +312,13 @@ class DotDevassistantCommandRunner(CommandRunner):
             except exceptions.AssistantNotFoundException as e:
                 path = []
                 logger.warning(str(e))
-            for a in path:
-                #TODO: maybe figure out more DRY code (similar is in path_runner, too)
-                if 'dependencies' in vars(a.__class__) or \
-                   isinstance(a, yaml_assistant.YamlAssistant):
-                    struct.extend(a.dependencies(dda_content.get('original_kwargs', {})))
+            if path and isinstance(path[-1], yaml_assistant.YamlAssistant):
+                print(dda_content.get('original_kwargs'))
+                struct.extend(path[-1].dependencies(dda_content.get('original_kwargs', {})))
             struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
                                                     kwargs,
                                                     runner=kwargs['__assistant__']))
-        command.Command('dependencies', struct, kwargs).run()
+        command.Command('dependencies', struct, dda_content.get('original_kwargs', {})).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
@@ -316,14 +326,10 @@ class DotDevassistantCommandRunner(CommandRunner):
         lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
 
     @classmethod
-    def _dot_devassistant_set(cls, c):
-        comm = c.format_deep(eval_expressions=False)
-        if not isinstance(comm, list) or len(comm) != 2:
-            msg = 'dda_set expects list with path to .devassistant and mapping to add.'
-            raise exceptions.CommandException(msg)
+    def _dot_devassistant_write(cls, comm):
         dda_content = cls.__dot_devassistant_read_exact(comm[0])
         dda_content.update(comm[1])
-        cls.__dot_devassistant_write(comm[0], dda_content)
+        cls.__dot_devassistant_write_struct(comm[0], dda_content)
 
 class GitHubAuth(object):
     _user = None
