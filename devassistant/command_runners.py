@@ -207,7 +207,7 @@ class DotDevassistantCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = c.format_str()
+        comm = c.format_deep()
         if c.comm_type == 'dda_c':
             cls._dot_devassistant_create(comm, c.kwargs)
         elif c.comm_type == 'dda_r':
@@ -216,15 +216,34 @@ class DotDevassistantCommandRunner(CommandRunner):
             cls._dot_devassistant_dependencies(comm, c.kwargs)
         elif c.comm_type == 'dda_run':
             cls._dot_devassistant_run(comm, c.kwargs)
+        elif c.comm_type == 'dda_set':
+            cls._dot_devassistant_set(c)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, '']
 
     @classmethod
+    def __dot_devassistant_write(cls, directory, struct):
+        """Helper for other methods that write to .devassistant file."""
+        dda_path = os.path.join(os.path.abspath(os.path.expanduser(directory)), '.devassistant')
+        f = open(dda_path, 'w')
+        yaml.dump(struct, stream=f, default_flow_style=False)
+        f.close()
+
+    @classmethod
+    def __dot_devassistant_read_exact(cls, directory):
+        """Helper for other methods that read .devassistant file."""
+        dda_path = os.path.join(os.path.abspath(os.path.expanduser(directory)), '.devassistant')
+        try:
+            with open(dda_path, 'r') as stream:
+                return yaml.load(stream)
+        except IOError as e:
+            msg = 'Couldn\'t find/open/read .devassistant file: {0}'.format(e)
+            raise exceptions.CommandException(msg)
+
+    @classmethod
     def _dot_devassistant_create(cls, directory, kwargs):
-        cls._dot_devassistant_path = os.path.join(directory, '.devassistant')
-        f = open(cls._dot_devassistant_path, 'w')
         # write path to this subassistant
         path = []
         i = 0
@@ -246,8 +265,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         to_write = {'devassistant_version': version.VERSION,
                     'subassistant_path': path,
                     'original_kwargs': original_kwargs}
-        yaml.dump(to_write, stream=f, default_flow_style=False)
-        f.close()
+        cls.__dot_devassistant_write(directory, to_write)
 
     @classmethod
     def _dot_devassistant_read(cls, comm, kwargs):
@@ -257,13 +275,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         - "dda__<var>" - (yes, that is double underscore) - for each <var> that
           this project was created with.
         """
-        dot_devassistant = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
-        try:
-            with open(dot_devassistant, 'r') as stream:
-                result = yaml.load(stream)
-        except IOError as e:
-            msg = 'Couldn\'t find properly formatted .devassistant file: {0}'.format(e)
-            raise exceptions.CommandException(msg)
+        result = cls.__dot_devassistant_read_exact(comm)
 
         for k, v in result.items():
             kwargs.setdefault(k, v)
@@ -274,7 +286,7 @@ class DotDevassistantCommandRunner(CommandRunner):
     @classmethod
     def _dot_devassistant_dependencies(cls, comm, kwargs):
         struct = []
-        dda_content = cls._dot_devassistant_read(comm, kwargs)
+        dda_content = cls.__dot_devassistant_read_exact(comm)
         original_assistant_path = dda_content.get('subassistant_path', [])
         if original_assistant_path:
             # if we have an original path, try to get original assistant
@@ -300,8 +312,18 @@ class DotDevassistantCommandRunner(CommandRunner):
 
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
-        dda_content = cls._dot_devassistant_read(comm, **kwargs)
+        dda_content = cls.__dot_devassistant_read_exact(comm)
         lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
+
+    @classmethod
+    def _dot_devassistant_set(cls, c):
+        comm = c.format_deep(eval_expressions=False)
+        if not isinstance(comm, list) or len(comm) != 2:
+            msg = 'dda_set expects list with path to .devassistant and mapping to add.'
+            raise exceptions.CommandException(msg)
+        dda_content = cls.__dot_devassistant_read_exact(comm[0])
+        dda_content.update(comm[1])
+        cls.__dot_devassistant_write(comm[0], dda_content)
 
 class GitHubAuth(object):
     _user = None
