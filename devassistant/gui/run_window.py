@@ -71,7 +71,6 @@ class RunWindow(object):
         self.parent = parent
         self.run_window = builder.get_object("runWindow")
         self.run_tree_view = builder.get_object("runTreeView")
-        self.cancel_btn = builder.get_object("cancelRunBtn")
         self.debug_btn = builder.get_object("debugBtn")
         self.info_box = builder.get_object("infoBox")
         self.scrolled_window = builder.get_object("scrolledWindow")
@@ -95,6 +94,7 @@ class RunWindow(object):
         self.kwargs = {}
         self.current_main_assistant = None
         self.top_assistant = None
+        self.close_win = False
 
     def open_window(self, widget, data=None):
         if data != None:
@@ -118,41 +118,44 @@ class RunWindow(object):
             self.info_box.pack_start(self.link, False, False, 12)
         self.run_tree_view.connect('size-allocate', self.treeview_changed)
         self.run_window.show_all()
-        self.cancel_btn.set_sensitive(False)
         self.debug_btn.set_sensitive(False)
         self.back_btn.hide()
         self.info_label.set_label('<span color="#FFA500">In progress...</span>')
+        self.disable_close_window()
         self.thread.start()
-        self.cancel_btn.set_sensitive(True)
         self.link.hide()
 
-    def done_thread(self):
-        self.cancel_btn.set_label("Close")
-        return False
+    def destroy(self, widget, data=None):
+        Gtk.main_quit()
 
-    def close_btn(self, widget, data=None):
-        name = self.cancel_btn.get_label()
-        if name == "Cancel":
-            dlg = self.gui_helper.create_message_dialog("Do you want to cancel project creation?",
+    def delete_event(self, widget, event, data=None):
+        if not self.close_win:
+            if self.thread.isAlive():
+                dlg = self.gui_helper.create_message_dialog("Do you want to cancel project creation?",
                                                         buttons=Gtk.ButtonsType.YES_NO)
-            response = dlg.run()
-            if response == Gtk.ResponseType.YES:
-                if self.thread.isAlive():
-                    self.info_label.set_label('<span color="#FFA500">Cancelling...</span>')
-                    self.cancel_btn.set_sensitive(False)
-                    self.pr.stop()
-                    self.project_canceled = True
-                else:
-                    self.info_label.set_label('<span color="#008000">Done</span>')
-                self.cancel_btn.set_label("Close")
-            dlg.destroy()
-
+                response = dlg.run()
+                if response == Gtk.ResponseType.YES:
+                    if self.thread.isAlive():
+                        self.info_label.set_label('<span color="#FFA500">Cancelling...</span>')
+                        self.pr.stop()
+                        self.project_canceled = True
+                    else:
+                        self.info_label.set_label('<span color="#008000">Done</span>')
+                    self.allow_close_window()
+                dlg.destroy()
+                return True
         else:
-            Gtk.main_quit()
+            return False
 
     def treeview_changed(self, widget, event, data=None):
         adj = self.scrolled_window.get_vadjustment()
         adj.set_value( adj.get_upper() - adj.get_page_size())
+
+    def allow_close_window(self):
+        self.close_win = True
+
+    def disable_close_window(self):
+        self.close_win = False
 
     def devassistant_start(self):
         #logger_gui.info("Thread run")
@@ -163,28 +166,27 @@ class RunWindow(object):
             Gdk.threads_enter()
             if not self.project_canceled:
                 self.info_label.set_label('<span color="#008000">Done</span>')
-                self.cancel_btn.set_label("Close")
+                self.allow_close_window()
                 self.link.set_sensitive(True)
                 self.link.show_all()
             else:
-                self.cancel_btn.set_sensitive(True)
                 self.info_label.set_label('<span color="#FF0000">Failed</span>')
                 self.back_btn.show()
             self.debug_btn.set_sensitive(True)
             Gdk.threads_leave()
         except exceptions.ClException as cl:
             self.debug_btn.set_sensitive(True)
-            self.cancel_btn.set_label("Close")
+            self.allow_close_window()
             self.back_btn.show()
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
         except exceptions.ExecutionException as ee:
             self.debug_btn.set_sensitive(True)
-            self.cancel_btn.set_label("Close")
+            self.allow_close_window()
             self.back_btn.show()
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
         except IOError as ie:
             self.debug_btn.set_sensitive(True)
-            self.cancel_btn.set_label("Close")
+            self.allow_close_window()
             self.back_btn.show()
             self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
 
@@ -213,6 +215,7 @@ class RunWindow(object):
                             add_row(record, self.store, last_row)
                     else:
                         add_row(record, self.store, last_row)
+
     def clipboard_btn_clicked(self, widget, data=None):
         _clipboard_text=list()
         for record in self.debug_logs['logs']:
@@ -240,4 +243,3 @@ class RunWindow(object):
     def main_btn_clicked(self, widget, data=None):
         self.run_window.hide()
         self.parent.open_window(widget,data)
-        pass
