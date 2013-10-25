@@ -197,6 +197,17 @@ class GuiHelper(object):
             grid_lang.attach(btn, column, row, 1, 1)
         return btn
 
+    def get_btn_label(self, btn):
+        return btn.get_label()
+
+    def get_btn_lower_label(self, btn):
+        label = self.get_btn_label(btn)
+        return label.lower()
+
+    def get_btn_lower_replace(self, btn):
+        label = self.get_btn_lower_label(btn)
+        return label.replace("-", "_")
+
     def get_formated_description(self, description):
         return '\n'.join(wrap(description, 60))
 

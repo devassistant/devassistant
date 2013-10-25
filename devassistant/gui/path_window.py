@@ -64,40 +64,8 @@ class PathWindow(object):
                     md.run()
                     md.destroy()
                     return
-        for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
-            if not self.entries[label.get_label()].get_text():
-                md = self.gui_helper.create_message_dialog(
-                    "Entry {0} is empty".format(label.get_label())
-                    )
-                md.run()
-                md.destroy()
-                return
-            self.kwargs[label.get_label().lower()]=self.entries[label.get_label()].get_text()
 
-        for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
-            arg_name = btn.get_label().lower().replace('-', '_')
-            if btn.get_active():
-                if btn.get_label() is None:
-                    continue
-                if btn.get_label() in self.entries:
-                    for entry in filter(lambda x: x == btn.get_label(), self.entries):
-                        if not self.entries[btn.get_label()].get_text():
-                            md = self.gui_helper.create_message_dialog(
-                                "Entry {0} is empty".format(btn.get_label())
-                                )
-                            md.run()
-                            md.destroy()
-                            return
-                        self.kwargs[arg_name]=self.entries[btn.get_label()].get_text()
-                else:
-                    self.kwargs[arg_name]=True
-            else:
-                if 'default' in self.button[btn].kwargs:
-                    self.kwargs[arg_name]=self.button[btn].get_gui_hint('default')
-                if self.back_button:
-                    if arg_name in self.kwargs:
-                        del self.kwargs[arg_name]
-
+        self._build_flags()
 
         if self.current_main_assistant.name == 'crt':
             self.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
@@ -107,6 +75,38 @@ class PathWindow(object):
         data['current_main_assistant'] = self.current_main_assistant
         self.parent.run_window.open_window(widget, data)
         self.path_window.hide()
+
+    def _build_flags(self):
+        for widget in self.button:
+            if isinstance(widget, Gtk.Label) or isinstance(widget, Gtk.CheckButton) and widget.get_active():
+                if widget in self.entries and not self.entries[widget.get_label()].get_text():
+                    md = self.gui_helper.create_message_dialog(
+                        "Entry {0} is empty".format(widget.get_label())
+                        )
+                    md.run()
+                    md.destroy()
+                    return
+        for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
+            self.kwargs[label.get_label().lower()]=self.entries[label.get_label()].get_text()
+
+        check_button = filter(lambda x: isinstance(x, Gtk.CheckButton), self.button)
+        # Check for active CheckButtons
+        for active in filter(lambda x: x.get_active(),check_button):
+            lbl = self.gui_helper.get_btn_lower_replace(active)
+            btn = self.gui_helper.get_btn_label(active)
+            if not btn in self.entries:
+                self.kwargs[lbl]=True
+                continue
+            for entry in filter(lambda x: x == btn, self.entries):
+                self.kwargs[lbl]=self.entries[btn].get_text()
+
+        # Check for non active CheckButtons but with defaults flag
+        for not_active in filter(lambda x: not x.get_active(),check_button):
+            lbl = self.gui_helper.get_btn_lower_label(not_active)
+            if 'default' in self.button[not_active].kwargs:
+                self.kwargs[lbl]=self.button[not_active].get_gui_hint('default')
+            if self.back_button and not_active in self.kwargs:
+                del self.kwargs[lbl]
 
     def _remove_widget_items(self):
         self.button=dict()
