@@ -435,11 +435,15 @@ class DependencyInstaller(object):
                 t.join()
             type(self).install_lock = False
 
+            log_extra = {'event_type': 'dep_installation_end'}
             if not installed:
                 msg = 'Failed to install dependencies, exiting.'
-                raise exceptions.DependencyException(msg)
+                logger.error(msg, extra=log_extra)
+                ex = exceptions.DependencyException(msg)
+                ex.already_logged = True
+                raise ex
             else:
-                logger.info('Successfully installed dependencies!')
+                logger.info('Successfully installed dependencies!', extra=log_extra)
 
     def install(self, struct):
         """
