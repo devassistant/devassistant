@@ -143,9 +143,9 @@ class PathWindow(object):
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)[1:]
         caption_parts = []
 
-        for a in path:
+        for a in sorted(path):
             caption_parts.append("<b>"+a.fullname+"</b>")
-            for arg in filter(lambda x: not '--name' in x.flags, a.args):
+            for arg in sorted(filter(lambda x: not '--name' in x.flags, a.args), key=lambda x: x.flags):
                 row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
         caption_text += ' -> '.join(caption_parts)
         self.box_path_main.pack_start(self.grid, False, False, 0)
