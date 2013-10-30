@@ -60,6 +60,14 @@ class RunLoggingHandler(logging.Handler):
             self.parent.debug_logs['logs'].append(record)
             if record.levelname != 'DEBUG':
                 if getattr(record,'event_type',''):
+                    if record.event_type == 'dep_installation_start':
+                        watch = Gdk.Cursor(Gdk.CursorType.WATCH)
+                        window = self.parent.run_window.get_root_window()
+                        window.set_cursor(watch)
+                    if record.event_type == 'dep_installation_end':
+                        arrow = Gdk.Cursor(Gdk.CursorType.ARROW)
+                        window = self.parent.run_window.get_root_window()
+                        window.set_cursor(arrow)
                     if not record.event_type.startswith("dep_"):
                         add_row(record, tree_store, last_row)
                 else:
