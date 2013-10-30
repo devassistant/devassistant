@@ -10,6 +10,8 @@ include devassistant/gui/devassistant.desktop
 recursive-include devassistant/data  *
 recursive-include devassistant/gui *.glade
 
+exclude da-yaml-gui.py
+
 recursive-include test *.yaml *.py
 recursive-exclude . __pycache__
 
