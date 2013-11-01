@@ -88,7 +88,7 @@ class CallCommandRunner(CommandRunner):
     def run(cls, c):
         sect_type = c.kwargs['__section__']
         assistant = c.kwargs['__assistant__']
-        section = cls.get_section_from_call(c.comm, sect_type, assistant)
+        section, sourcefile = cls.get_section_from_call(c.comm, sect_type, assistant)
         if not section:
             msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
                                                              n=c.comm)
@@ -104,7 +104,10 @@ class CallCommandRunner(CommandRunner):
         if sect_type == 'dependencies':
             result = lang.dependencies_section(section, copy.deepcopy(c.kwargs), runner=assistant)
         else:
-            result = lang.run_section(section, copy.deepcopy(c.kwargs), runner=assistant)
+            result = lang.run_section(section,
+                                      copy.deepcopy(c.kwargs),
+                                      runner=assistant,
+                                      sourcefile=sourcefile)
 
         if cls.is_snippet_call(c.comm):
             c.kwargs['__files__'].pop()
@@ -119,7 +122,7 @@ class CallCommandRunner(CommandRunner):
 
     @classmethod
     def get_section_from_call(cls, cmd_call, section_type, assistant):
-        """Returns a section from call command.
+        """Returns a section and source file from call command.
 
         Examples:
         - self.dependencies_bar ~> dependencies_bar section from this assistant
@@ -135,13 +138,17 @@ class CallCommandRunner(CommandRunner):
 
         Returns:
             section to call (list), None if not found
+            sourcefile, None if not found
         """
         section = None
         call_parts = cmd_call.split('.')
         section_name = call_parts[1] if len(call_parts) > 1 else section_type
 
+        section = sourcefile = None
+
         if call_parts[0] == 'self':
             section = getattr(assistant, '_' + section_name, None)
+            sourcefile = assistant.path
         elif call_parts[0] == 'super':
             a = assistant.superassistant
             while a:
@@ -149,7 +156,9 @@ class CallCommandRunner(CommandRunner):
                     a.assert_fully_loaded()
                 if hasattr(a, '_' + section_name):
                     section = getattr(a, '_' + section_name)
+                    sourcefile = a.path
                     break
+                a = a.superassistant
         else: # snippet
             try:
                 snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
@@ -157,10 +166,11 @@ class CallCommandRunner(CommandRunner):
                     section = snippet.get_run_section(section_name) if snippet else None
                 else:
                     section = snippet.get_dependencies_section(section_name) if snippet else None
+                sourcefile = snippet.path
             except exceptions.SnippetNotFoundException:
-                section = None
+                pass # snippet not found => leave section = sourcefile = None
 
-        return section
+        return section, sourcefile
 
 @register_command_runner
 class ClCommandRunner(CommandRunner):
@@ -323,7 +333,13 @@ class DotDevassistantCommandRunner(CommandRunner):
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
         dda_content = cls.__dot_devassistant_read_exact(comm)
-        lang.run_section(dda_content.get('run', []), kwargs, runner=kwargs['__assistant__'])
+        # TODO: we should really create devassistant.util.expand_path to not use
+        # abspath + expanduser everywhere all the time...
+        dda_fullpath = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
+        lang.run_section(dda_content.get('run', []),
+                         kwargs,
+                         runner=kwargs['__assistant__'],
+                         sourcefile=dda_fullpath)
 
     @classmethod
     def _dot_devassistant_write(cls, comm):
@@ -698,7 +714,10 @@ class SCLCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
-        retval = lang.run_section(c.comm, c.kwargs, runner=c.kwargs['__assistant__'])
+        retval = lang.run_section(c.comm,
+                                  c.kwargs,
+                                  runner=c.kwargs['__assistant__'],
+                                  sourcefile=c.kwargs['__assistant__'].path)
         c.kwargs['__scls__'].pop()
 
         return retval

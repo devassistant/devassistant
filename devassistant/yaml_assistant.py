@@ -206,7 +206,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     to_run = possible_run
                     break
 
-        lang.run_section(getattr(self, to_run, {}), kwargs, runner=self)
+        lang.run_section(getattr(self, to_run, {}), kwargs, runner=self, sourcefile=self.path)
 
     @needs_fully_loaded
     def stop(self):
