@@ -1,3 +1,13 @@
+- Added appdata for Gnome Software Center.
+- Added task assistants, whose aim is to carry out custom tasks not related
+  to any project.
+- Refactored commands to be more pluggable and have a defined API.
+- Separated the Yaml language from assistants, which means DevAssistant is now
+  usable as a library that can execute commands from passed Python structures.
+- Expressions now allow complex stuff, since we have a parser now (thx sYnfo).
+- GUI tweaks and improvements for better usability.
+- Tons of documentation were added, notably command reference page.
+
 0.7.0
 - CLI facelift, introduce custom actions. Everything now works through
   a single entry point - the "da" binary.
