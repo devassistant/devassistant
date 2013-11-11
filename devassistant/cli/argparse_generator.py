@@ -6,6 +6,8 @@ from devassistant import settings
 class ArgparseGenerator(object):
     subparsers_str = 'subassistants'
     subparsers_desc = '''Following subassistants will help you with setting up your project.'''
+    subactions_str = 'subactions'
+    subactions_desc = 'This action has following subactions.'
 
     @classmethod
     def generate_argument_parser(cls, tree, actions={}):
@@ -14,7 +16,8 @@ class ArgparseGenerator(object):
         Args:
             tree: assistant tree as returned by
                   devassistant.assistant_base.AssistantBase.get_subassistant_tree
-            actions: dict mapping action names to devassistant.actions.Action subclasses
+            actions: dict mapping actions (devassistant.actions.Action subclasses) to their
+                     subaction dicts
         Returns:
             instance of devassistant_argparse.ArgumentParser (subclass of argparse.ArgumentParser)
         """
@@ -42,8 +45,8 @@ class ArgparseGenerator(object):
             for subas in sorted(cur_subas, key=lambda x: x[0].name):
                 cls.add_subassistants_to(subparsers, subas, level=1)
 
-            for action_name, action in sorted(actions.items()):
-                cls.add_action_to(subparsers, action)
+            for action, subactions in sorted(actions.items(), key=lambda x:x[0].name):
+                cls.add_action_to(subparsers, action, subactions, level=1)
 
         return parser
 
@@ -71,16 +74,23 @@ class ArgparseGenerator(object):
                 cls.add_subassistants_to(subparsers, subas_tuple, level + 1)
 
     @classmethod
-    def add_action_to(cls, parser, action):
+    def add_action_to(cls, parser, action, subactions, level):
         """Adds given action to given parser
 
         Args:
             parser: instance of devassistant_argparse.ArgumentParser
             action: devassistant.actions.Action subclass
+            subactions: dict with subactions - {SubA: {SubB: {}}, SubC: {}}
         """
         p = parser.add_parser(action.name,
                               description=action.description,
                               argument_default=argparse.SUPPRESS)
-
         for arg in action.args:
             arg.add_argument_to(p)
+
+        if subactions:
+            subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
+                                          title=cls.subactions_str,
+                                          description=cls.subactions_desc)
+            for subact, subsubacts in sorted(subactions.items(), key=lambda x: x[0].name):
+                cls.add_action_to(subparsers, subact, subsubacts, level + 1)

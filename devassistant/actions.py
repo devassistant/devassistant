@@ -3,9 +3,38 @@ from devassistant import settings
 actions = {}
 
 def register_action(action):
-    """Decorator that adds an action class to active actions"""
-    actions[action.name] = action
+    """Decorator that adds an action class to active actions.
+    Only toplevel actions should be registered, subactions will be
+    read from Action.get_subactions()."""
+    actions[action] = _register_actions_recursive(action, {})
     return action
+
+def _register_actions_recursive(action, subact_dict):
+    for a in action.get_subactions():
+        subact_dict[a] = {}
+        _register_actions_recursive(a, subact_dict[a])
+    return subact_dict
+
+def is_action_run(**kwargs):
+    first_act = kwargs.get(settings.SUBASSISTANT_N_STRING.format(0), None)
+    if first_act in map(lambda a: a.name, actions.keys()):
+        return True
+    return False
+
+def get_action_to_run(level=0, **kwargs):
+    return _get_action_to_run_recursive(level, actions, **kwargs)
+
+def _get_action_to_run_recursive(level, subact_dict, **kwargs):
+    alevel = settings.SUBASSISTANT_N_STRING.format(level)
+    aname = kwargs.get(alevel, None)
+    if not aname:
+        return None
+    for a, suba in subact_dict.items():
+        if a.name == aname:
+            if settings.SUBASSISTANT_N_STRING.format(level + 1) in kwargs:
+                return _get_action_to_run_recursive(level + 1, suba, **kwargs)
+            else:
+                return a
 
 class Action(object):
     """Superclass of custom actions of devassistant"""
@@ -14,7 +43,12 @@ class Action(object):
     description = 'Action description'
     args = []
 
-    def run(self, **kwargs):
+    @classmethod
+    def get_subactions(cls):
+        return []
+
+    @classmethod
+    def run(cls, **kwargs):
         """Runs this actions, accepts arguments parsed from cli/retrieved from gui.
 
         Raises:
@@ -43,7 +77,7 @@ class HelpAction(Action):
         # we will justify the action names (and assistant types) to the same width
         just = max(
                 max(*map(lambda x: len(x), settings.ASSISTANT_ROLES)),
-                max(*map(lambda x: len(x), actions))
+                max(*map(lambda x: len(x.name), actions.keys()))
                ) + 2
         text = ['You can either run assistants with:']
         text.append(cls.format_text('da [--debug] {crt,mod,prep,task} [ASSISTANT [ARGUMENTS]] ...',
@@ -74,8 +108,8 @@ class HelpAction(Action):
                                     format_type))
         text.append('')
         text.append('Available actions:')
-        for action_name, action in sorted(actions.items()):
-            text.append(cls.format_action_line(action_name,
+        for action in sorted(actions.keys(), key=lambda x: x.name):
+            text.append(cls.format_action_line(action.name,
                                                action.description,
                                                just,
                                                format_type))

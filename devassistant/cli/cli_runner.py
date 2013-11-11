@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from devassistant.actions import actions
+from devassistant import actions
 from devassistant import bin
 from devassistant.cli import argparse_generator
 from devassistant import exceptions
@@ -40,13 +40,12 @@ class CliRunner(object):
         top_assistant = bin.TopAssistant()
         tree = top_assistant.get_subassistant_tree()
         argparser = argparse_generator.ArgparseGenerator.\
-                        generate_argument_parser(tree, actions=actions)
+                        generate_argument_parser(tree, actions=actions.actions)
         parsed_args = argparser.parse_args()
         if parsed_args.da_debug:
             cls.change_logging_level(logging.DEBUG)
-        first_subparser = vars(parsed_args)[settings.SUBASSISTANT_N_STRING.format(0)]
-        if first_subparser in actions:
-            to_run = actions[first_subparser]
+        if actions.is_action_run(**vars(parsed_args)):
+            to_run = actions.get_action_to_run(**vars(parsed_args))
         else:
             path = top_assistant.get_selected_subassistant_path(**vars(parsed_args))
             to_run = path_runner.PathRunner(path, vars(parsed_args))
