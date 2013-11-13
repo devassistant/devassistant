@@ -1,4 +1,6 @@
 from devassistant import settings
+from devassistant import handling_projects
+from devassistant import argument
 
 actions = {}
 
@@ -160,3 +162,36 @@ class VersionAction(Action):
     def run(cls, **kwargs):
         from devassistant.version import VERSION
         print('DevAssistant {version}'.format(version=VERSION))
+
+class ListAction(Action):
+    name = 'list'
+    description = 'list of projects used by DevAssistant'
+
+    @classmethod
+    def run(cls, **kwargs):
+        hp = handling_projects.HandlingProjects()
+        hp.list_projects_cli(**kwargs)
+
+class DeleteProjectAction(Action):
+    name = 'delete'
+    description = 'delete project used by DevAssistant'
+    args = [argument.Argument('-p',
+                              '--path',
+                              help='specify full path of project',
+                              required=True
+                              )]
+
+    @classmethod
+    def run(cls, **kwargs):
+        hp = handling_projects.HandlingProjects()
+        hp.delete_project(**kwargs)
+
+@register_action
+class ProjectsAction(Action):
+    """List DevAssistant projects"""
+    name = 'project'
+    description = 'operations above projects used by DevAssistant'
+
+    @classmethod
+    def get_subactions(cls):
+        return [ListAction, DeleteProjectAction]
