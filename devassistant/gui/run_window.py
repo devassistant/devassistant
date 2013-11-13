@@ -83,6 +83,7 @@ class RunWindow(object):
         self.info_box = builder.get_object("infoBox")
         self.scrolled_window = builder.get_object("scrolledWindow")
         self.back_btn = builder.get_object("backBtn")
+        self.main_btn = builder.get_object("mainBtn")
         self.tlh = RunLoggingHandler(self, self.run_tree_view)
         self.gui_helper = gui_helper
         logger.addHandler(self.tlh)
@@ -126,12 +127,8 @@ class RunWindow(object):
             self.info_box.pack_start(self.link, False, False, 12)
         self.run_tree_view.connect('size-allocate', self.treeview_changed)
         self.run_window.show_all()
-        self.debug_btn.set_sensitive(False)
-        self.back_btn.hide()
-        self.info_label.set_label('<span color="#FFA500">In progress...</span>')
-        self.disable_close_window()
+        self.disable_buttons()
         self.thread.start()
-        self.link.hide()
 
     def destroy(self, widget, data=None):
         Gtk.main_quit()
@@ -165,6 +162,25 @@ class RunWindow(object):
     def disable_close_window(self):
         self.close_win = False
 
+    def disable_buttons(self):
+        self.debug_btn.set_sensitive(False)
+        self.main_btn.set_sensitive(False)
+        self.back_btn.hide()
+        self.info_label.set_label('<span color="#FFA500">In progress...</span>')
+        self.disable_close_window()
+        self.link.hide()
+
+    def allow_buttons(self, message="", link=True, back=True):
+        self.info_label.set_label(message)
+        self.allow_close_window()
+        if link:
+            self.link.set_sensitive(True)
+            self.link.show_all()
+        if back:
+            self.back_btn.show()
+        self.debug_btn.set_sensitive(True)
+        self.main_btn.set_sensitive(True)
+
     def devassistant_start(self):
         #logger_gui.info("Thread run")
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)
@@ -173,30 +189,21 @@ class RunWindow(object):
             self.pr.run(**self.kwargs)
             Gdk.threads_enter()
             if not self.project_canceled:
-                self.info_label.set_label('<span color="#008000">Done</span>')
-                self.allow_close_window()
-                self.link.set_sensitive(True)
-                self.link.show_all()
+                message = '<span color="#008000">Done</span>'
+                link = True
+                back = False
             else:
-                self.info_label.set_label('<span color="#FF0000">Failed</span>')
-                self.back_btn.show()
-            self.debug_btn.set_sensitive(True)
+                message = '<span color="#FF0000">Failed</span>'
+                link = False
+                back = True
+            self.allow_buttons(message=message,link=link,back=back)
             Gdk.threads_leave()
         except exceptions.ClException as cl:
-            self.debug_btn.set_sensitive(True)
-            self.allow_close_window()
-            self.back_btn.show()
-            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
         except exceptions.ExecutionException as ee:
-            self.debug_btn.set_sensitive(True)
-            self.allow_close_window()
-            self.back_btn.show()
-            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
         except IOError as ie:
-            self.debug_btn.set_sensitive(True)
-            self.allow_close_window()
-            self.back_btn.show()
-            self.info_label.set_label('<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
 
     def debug_btn_clicked(self, widget, data=None):
         self.store.clear()
