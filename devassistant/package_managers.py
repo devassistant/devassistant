@@ -217,7 +217,7 @@ class PacmanPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cmd = ['pkexec', cls.c_pacman, '-S']
+        cmd = ['pkexec', cls.c_pacman, '-S', '--noconfirm']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
@@ -230,13 +230,14 @@ class PacmanPackageManager(PackageManager):
     def is_pacmanpkg_installed(cls, pkg_name):
         logger.info('Checking for presence of {0}...'.format(pkg_name), extra={'event_type': 'dep_check'})
 
-        found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.\
-                                         format(pacman=cls.c_pacman, pkg=pkg_name))
-        if found_pkg:
+        try:
+            found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.\
+                                             format(pacman=cls.c_pacman, pkg=pkg_name))
             logger.info('Found {0}'.format(found_pkg), extra={'event_type': 'dep_found'})
-        else:
+            return found_pkg
+        except exceptions.ClException:
             logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
-        return found_pkg
+            return False
 
     @classmethod
     def is_group_installed(cls, group):
@@ -253,7 +254,7 @@ class PacmanPackageManager(PackageManager):
     @classmethod
     def works(cls):
         try:
-            ClHelper('which pacman')
+            ClHelper.run_command('which pacman')
             return True
         except exceptions.ClException:
             return False
