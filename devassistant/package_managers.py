@@ -70,11 +70,6 @@ class PackageManager(object):
         raise NotImplementedError()
 
     @classmethod
-    def is_installed(cls, *args, **kwargs):
-        """Is this manager available?"""
-        raise NotImplementedError()
-
-    @classmethod
     def works(cls, *args, **kwargs):
         """Returns True if this package manager is usable, False otherwise."""
         raise NotImplementedError()
@@ -169,14 +164,6 @@ class YUMPackageManager(PackageManager):
         try:
             ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
             return args
-        except exceptions.ClException:
-            return False
-
-    @classmethod
-    def is_installed(cls, dep):
-        try:
-            ClHelper('which rpm')
-            return True
         except exceptions.ClException:
             return False
 
@@ -302,14 +289,6 @@ class PIPPackageManager(PackageManager):
             return False
 
     @classmethod
-    def is_installed(cls):
-        try:
-            ClHelper.run_command('which pip')
-            return True
-        except exceptions.ClException:
-            return False
-
-    @classmethod
     def works(cls):
         try:
             ClHelper.run_command('pip')
@@ -364,14 +343,6 @@ class NPMPackageManager(PackageManager):
         try:
             ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
             return args
-        except exceptions.ClException:
-            return False
-
-    @classmethod
-    def is_installed(cls):
-        try:
-            ClHelper.run_command('which npm')
-            return True
         except exceptions.ClException:
             return False
 
