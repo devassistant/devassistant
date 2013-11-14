@@ -221,6 +221,67 @@ class YUMPackageManager(PackageManager):
 
 
 @register_manager
+class PacmanPackageManager(PackageManager):
+    """Package manager for managing Arch Linux packages by pacman."""
+    permission_prompt = "Installing {num} package{plural} by Pacman. Is this ok?"
+    shortcut = 'pacman'
+
+    c_pacman = 'pacman'
+
+    @classmethod
+    def install(cls, *args):
+        cmd = ['pkexec', cls.c_pacman, '-S']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_pacmanpkg_installed(cls, pkg_name):
+        logger.info('Checking for presence of {0}...'.format(pkg_name), extra={'event_type': 'dep_check'})
+
+        found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.\
+                                         format(pacman=cls.c_pacman, pkg=pkg_name))
+        if found_pkg:
+            logger.info('Found {0}'.format(found_pkg), extra={'event_type': 'dep_found'})
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+        return found_pkg
+
+    @classmethod
+    def is_group_installed(cls, group):
+        logger.info('Checking for presence of group {0}...'.format(group))
+
+        try:
+            output = ClHelper.run_command('{pacman} -Qg "{group}"'.\
+                                          format(pacman=cls.c_pacman,
+                                                 group=group))
+            return group
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def works(cls):
+        try:
+            ClHelper('which pacman')
+            return True
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_pkg_installed(cls, pkg):
+        return cls.is_pacmanpkg_installed(pkg) or cls.is_group_installed(pkg)
+
+    @classmethod
+    def resolve(cls, *args):
+        # TODO: I currently see no way how to just resolve dependencies by pacman
+        return args
+
+
+@register_manager
 class PIPPackageManager(PackageManager):
     """ Package manager for managing python dependencies from PyPI """
     permission_prompt = "Installing {num} package{plural} from PyPI. Is this ok?"
