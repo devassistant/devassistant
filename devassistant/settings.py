@@ -23,3 +23,8 @@ DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     os.path.expanduser('~/.devassistant')]
 ASSISTANT_ROLES=['crt', 'mod', 'prep', 'task']
 DEFAULT_ASSISTANT_ROLE = 'crt'
+
+# system dependency types and package managers for various distros
+# more distros can have the same system deptype, but different manager
+SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora'],
+                             'pacman': ['arch']}

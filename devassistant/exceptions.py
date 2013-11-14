@@ -32,18 +32,15 @@ class SnippetNotFoundException(ExecutionException):
     pass
 
 
-class PackageManagerNotOperational(DependencyException):
+class NoPackageManagerOperationalException(DependencyException):
     """
-    this exception should be thrown when  package manager is missing:
-    yum, dpkg, rpm etc. This means that we don't how to proceed (this could
-    happen in sandbox e.g. virtualenv)
+    Should be thrown when no package manager for given dependency type works.
     """
     pass
 
 
-class PackageManagerUnknown(DependencyException):
+class NoPackageManagerException(DependencyException):
     """
-    specified package manager is not defined and thus we don't know how
-    to install dependencies
+    No manager exists for a type of dependency.
     """
     pass

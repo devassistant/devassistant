@@ -1,3 +1,5 @@
+import platform
+
 try: # ugly hack for using imp instead of importlib on Python <= 2.6
     import importlib
 except ImportError:
@@ -18,3 +20,5 @@ def u(string):
         return string
 
 # ok, if we need one more compat thingie, we _will_ start using six :)
+def get_distro_name():
+    return platform.linux_distribution()[0].lower()
