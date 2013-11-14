@@ -75,6 +75,8 @@ class AskCommandRunner(CommandRunner):
     @classmethod
     def format_args(cls, c):
         # get variable name before formatting
+        if not c.comm or len(c.comm) < 1:
+            raise exceptions.CommandException('No commands specified')
         var = lang.get_var_name(c.comm[0])
         fmtd = c.format_deep()
         return var, fmtd[1]
