@@ -1,3 +1,4 @@
+import os
 import platform
 
 try: # ugly hack for using imp instead of importlib on Python <= 2.6
@@ -21,4 +22,10 @@ def u(string):
 
 # ok, if we need one more compat thingie, we _will_ start using six :)
 def get_distro_name():
-    return platform.linux_distribution()[0].lower()
+    distro = platform.linux_distribution()[0].lower()
+    if not distro and os.path.exists('/etc/os-release'):
+        with open('/etc/os-release') as osrel:
+            for l in osrel.readlines():
+                if l.startswith('ID'):
+                    distro = l.split('=')[-1].strip()
+    return distro
