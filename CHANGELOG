@@ -1,3 +1,4 @@
+- DevAssistant can now install dependencies by Pacman on ArchLinux.
 - Added appdata for Gnome Software Center.
 - Added task assistants, whose aim is to carry out custom tasks not related
   to any project.
