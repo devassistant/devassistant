@@ -48,7 +48,7 @@ def excepthook(type, value, traceback):
             # skip 'if', 'for' and 'scl' commands
             # they call run_section recursively, but are still in the same 'run*' section
             if not is_local_subsection(current_command_dict):
-                print('File {0}:'.format(frame.f_locals['sourcefile']))
+                print('File {0}:'.format(frame.f_locals['kwargs']['__sourcefiles__'][-1]))
                 print(pp.pformat(current_command_dict, indent=2))
 
         print('Variables in last frame:')

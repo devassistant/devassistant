@@ -129,6 +129,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         kwargs['__files__'] = [self._files]
         kwargs['__files_dir__'] = [self.files_dir]
         kwargs['__scls__'] = []
+        kwargs['__sourcefiles__'] = [self.path]
 
     @needs_fully_loaded
     def logging(self, kwargs):
@@ -206,7 +207,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     to_run = possible_run
                     break
 
-        lang.run_section(getattr(self, to_run, {}), kwargs, runner=self, sourcefile=self.path)
+        lang.run_section(getattr(self, to_run, {}), kwargs, runner=self)
 
     @needs_fully_loaded
     def stop(self):

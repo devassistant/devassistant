@@ -104,18 +104,19 @@ class CallCommandRunner(CommandRunner):
 
             c.kwargs['__files__'].append(snippet.get_files_section())
             c.kwargs['__files_dir__'].append(snippet.get_files_dir())
+            c.kwargs['__sourcefiles__'].append(snippet.path)
 
         if sect_type == 'dependencies':
             result = lang.dependencies_section(section, copy.deepcopy(c.kwargs), runner=assistant)
         else:
             result = lang.run_section(section,
                                       copy.deepcopy(c.kwargs),
-                                      runner=assistant,
-                                      sourcefile=sourcefile)
+                                      runner=assistant)
 
         if cls.is_snippet_call(c.comm):
             c.kwargs['__files__'].pop()
             c.kwargs['__files_dir__'].pop()
+            c.kwargs['__sourcefiles__'].pop()
 
         return result
 
@@ -340,10 +341,11 @@ class DotDevassistantCommandRunner(CommandRunner):
         # TODO: we should really create devassistant.util.expand_path to not use
         # abspath + expanduser everywhere all the time...
         dda_fullpath = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
+        kwargs['__sourcefiles__'].append(dda_fullpath)
         lang.run_section(dda_content.get('run', []),
                          kwargs,
-                         runner=kwargs['__assistant__'],
-                         sourcefile=dda_fullpath)
+                         runner=kwargs['__assistant__'])
+        kwargs.pop()
 
     @classmethod
     def _dot_devassistant_write(cls, comm):
@@ -607,8 +609,7 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
         retval = lang.run_section(c.comm,
                                   c.kwargs,
-                                  runner=c.kwargs['__assistant__'],
-                                  sourcefile=c.kwargs['__assistant__'].path)
+                                  runner=c.kwargs['__assistant__'])
         c.kwargs['__scls__'].pop()
 
         return retval

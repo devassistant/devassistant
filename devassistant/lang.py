@@ -45,7 +45,7 @@ def dependencies_section(section, kwargs, runner=None):
 
     return deps
 
-def run_section(section, kwargs, runner=None, sourcefile='<struct>'):
+def run_section(section, kwargs, runner=None):
     skip_else = False
 
     for i, command_dict in enumerate(section):
@@ -63,7 +63,7 @@ def run_section(section, kwargs, runner=None, sourcefile='<struct>'):
                 _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
                 # run with original kwargs, so that they might be changed for code after this
                 if to_run:
-                    retval = run_section(to_run, kwargs, runner=runner, sourcefile=sourcefile)
+                    retval = run_section(to_run, kwargs, runner=runner)
             elif comm_type == 'else':
                 if not skip_else:
                     msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
@@ -78,7 +78,7 @@ def run_section(section, kwargs, runner=None, sourcefile='<struct>'):
                         kwargs[control_vars[1]] = i[1]
                     else:
                         kwargs[control_vars[0]] = i
-                    retval = run_section(comm, kwargs, runner=runner, sourcefile=sourcefile)
+                    retval = run_section(comm, kwargs, runner=runner)
             else:
                 retval = command.Command(comm_type,
                                          comm,
