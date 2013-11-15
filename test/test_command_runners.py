@@ -40,7 +40,7 @@ class TestAskCommandRunner(object):
         assert p[0] is True
         assert p[1] == decision
 
-    @pytest.mark.parametrize('command, exception, exception_text', [
+    @pytest.mark.parametrize(('command', 'exception', 'exception_text'), [
         (Command('foo', None),  CommandException, 'No commands specified'),
         (Command('foo', []),    CommandException, 'No commands specified'),
         (Command('foo', {}),    CommandException, 'No commands specified'),
