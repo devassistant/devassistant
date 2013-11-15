@@ -23,6 +23,8 @@ Contents
 Overview
 --------
 
+*This is documentation for version* |release|.
+
 .. include:: brief-intro.txt
 
 DevAssistant works on Python 2.6, 2.7 and >= 3.3.
