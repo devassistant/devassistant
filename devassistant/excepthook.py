@@ -3,49 +3,59 @@ from __future__ import print_function
 import pprint
 import sys
 
+from devassistant import utils
+
 class DAPrettyPrinter(pprint.PrettyPrinter):
     def pformat(self, object, indent=1, width=80, depth=None, special=False):
-        lines = pprint.pformat(object, indent, width, depth).splitlines()
-        for i, line in enumerate(lines):
-            if special:
-                lines[i] = '>>> ' + line
-            else:
-                lines[i] = '    ' + line
-        return '\n'.join(lines)
+        # we explicitly pass indent=1 because we don't want the dict indented
+        lines = pprint.pformat(object, indent=0, width=width, depth=depth).splitlines()
+        return '\n'.join(map(lambda l: ' ' * indent + l, lines))
+
+    def pformat_kwargs(self, object, indent=1, width=80, depth=None, special=False):
+        res = []
+        varname_maxlen = max(map(lambda k: len(k), object.keys()))
+        for k, v in sorted(object.items()):
+            varname = '{indent}{var}: {space}'.format(indent=' ' * indent,
+                                                      var=k,
+                                                      space=' ' * (varname_maxlen - len(k)))
+            res.append(varname + v.__repr__())
+        return '\n'.join(res)
+
+def is_local_subsection(command_dict):
+    """Returns True if command dict is "local subsection", meaning
+    that it is "if", "for" or "scl" (not a real call, but calls
+    run_section recursively."""
+    for local_com in ['if ', 'for ', 'scl ']:
+        if command_dict.keys()[0].startswith(local_com):
+            return True
+    return False
 
 def excepthook(type, value, traceback):
+    print('DevAssistant traceback (most recent call last):')
     curr_tb = traceback
     run_section_frames = []
     while curr_tb:
-        if 'yaml_assistant.py' in curr_tb.tb_frame.f_code.co_filename and \
-           curr_tb.tb_frame.f_code.co_name == '_run_one_section':
+        if 'lang.py' in curr_tb.tb_frame.f_code.co_filename and \
+           curr_tb.tb_frame.f_code.co_name == 'run_section':
                run_section_frames.append(curr_tb.tb_frame)
             
         curr_tb = curr_tb.tb_next
 
     if run_section_frames:
         pp = DAPrettyPrinter()
-        # keep last file to reference it if we are still in the file, but in
-        # different run section/condition
-        last_file = run_section_frames[0].f_locals['self'].path
-        print('File {0}'.format(last_file))
-        print('  In {0} assistant'.format(run_section_frames[0].f_locals['self'].fullname))
-
         for frame in run_section_frames:
             current_command_dict = frame.f_locals['command_dict']
-            print_up_to = frame.f_locals['section'].index(current_command_dict) + 1
-            section_upto_command = frame.f_locals['section'][:print_up_to]
+            # skip 'if', 'for' and 'scl' commands
+            # they call run_section recursively, but are still in the same 'run*' section
+            if not is_local_subsection(current_command_dict):
+                print('File {0}:'.format(frame.f_locals['sourcefile']))
+                print(pp.pformat(current_command_dict, indent=2))
 
-            for i, command in enumerate(section_upto_command):
-                print(pp.pformat(command, special=(i==len(section_upto_command) - 1)))
-            print('\n')
-            ccd_short = str(current_command_dict)
-            ccd_short = ccd_short[:46] + ' ...' if len(ccd_short) > 50 else ccd_short
-
-            if 'snippet' in frame.f_locals:
-                last_file = frame.f_locals['snippet'].path
-            print('File {0}:'.format(last_file))
-            print('  In {0}:'.format(ccd_short))
+        print('Variables in last frame:')
+        print(pp.pformat_kwargs(frame.f_locals['kwargs'], indent=2))
+    else:
+        print('Error: No DevAssistant frames to print.')
+    print()
 
     old_excepthook(type, value, traceback)
 
