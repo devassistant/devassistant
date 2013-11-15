@@ -7,6 +7,9 @@
   usable as a library that can execute commands from passed Python structures.
 - Expressions now allow complex stuff, since we have a parser now (thx sYnfo).
 - GUI tweaks and improvements for better usability.
+- Added --no-cache switch to turn of cache using.
+- Added an option to specify additional load paths by DEVASSISTANT_PATH
+  environment variable.
 - Tons of documentation were added, notably command reference page.
 
 0.7.0
