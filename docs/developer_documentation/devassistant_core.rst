@@ -17,6 +17,10 @@ there are three paths:
 2. "local" path, ``/usr/local/share/devassistant/``
 3. "user" path, ``~/.devassistant/``
 
+Another path(s) can be added by specifying ``DEVASSISTANT_PATHS`` environment
+variable (if more paths are used, they must be separated by colon). These paths
+are prepended to the list of standard load paths.
+
 Each load path entry has this structure::
 
    assistants/

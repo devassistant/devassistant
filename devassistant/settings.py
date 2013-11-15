@@ -21,6 +21,8 @@ PROJECTS_CACHE_FILE = os.path.expanduser('~/.devassistant/.projects.yaml')
 DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]
+if 'DEVASSISTANT_PATH' in os.environ:
+    DATA_DIRECTORIES = os.environ['DEVASSISTANT_PATH'].split(':') + DATA_DIRECTORIES
 ASSISTANT_ROLES=['crt', 'mod', 'prep', 'task']
 DEFAULT_ASSISTANT_ROLE = 'crt'
 
