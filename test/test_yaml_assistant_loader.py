@@ -4,6 +4,7 @@ import pytest
 import yaml
 
 from devassistant.assistant_base import AssistantBase
+from devassistant import current_run
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 from test.logger import TestLoggingHandler
@@ -82,3 +83,14 @@ class TestYamlAssistantLoader(object):
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
         a = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
+
+    def test_no_cache(self):
+        current_run.USE_CACHE = False
+        oldm = self.yl.get_assistants_from_cache_hierarchy
+        self.yl.get_assistants_from_cache_hierarchy = None
+        # if YamlAssistantLoader tries to load from cache now, it will log debug message
+        ass = self.yl.get_assistants(superassistants=[CreatorAssistant])
+        assert self.tlh.msgs == []
+        # assert that assistants were loaded ok
+        assert set(['c', 'f']) == set(map(lambda x: x.name, ass))
+        self.yl.get_assistants_from_cache_hierarchy = oldm

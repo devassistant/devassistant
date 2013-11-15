@@ -26,12 +26,7 @@ class ArgparseGenerator(object):
                                                       usage=argparse.SUPPRESS,
                                                       add_help=False)
 
-        # add --debug to the top parser (GUI does this completely differently)
-        parser.add_argument('--debug',
-                            help='Show debug output (may be a verbose a lot!).',
-                            action='store_true',
-                            dest='da_debug',
-                            default=False)
+        cls.add_default_arguments_to(parser)
 
         # add any arguments of the top assistant
         for arg in cur_as.args:
@@ -49,6 +44,25 @@ class ArgparseGenerator(object):
                 cls.add_action_to(subparsers, action, subactions, level=1)
 
         return parser
+
+    @classmethod
+    def add_default_arguments_to(cls, parser):
+        # add --debug to the top parser (GUI does this completely differently)
+        parser.add_argument('--debug',
+                            help='Show debug output (may be a verbose a lot!).',
+                            action='store_true',
+                            dest='da_debug',
+                            default=False)
+        # TODO: should gui also get --no-cache?
+        # This really only stores the True/False value. We need to set
+        # current_run.USE_CACHE before we create the parser, but for creating
+        # the parser, we need to load assistants. That means we set
+        # current_run.USE_CACHE in cli_runner according to sys.argv.
+        parser.add_argument('--no-cache',
+                            help='Don\'t use assistants cache (useful for debugging).',
+                            action='store_true',
+                            dest='da_no_cache',
+                            default=False)
 
     @classmethod
     def add_subassistants_to(cls, parser, assistant_tuple, level):
