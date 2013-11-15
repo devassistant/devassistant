@@ -87,10 +87,6 @@ class TestDependenciesCommandRunner(object):
 class TestDotDevassistantCommandRunner(object):
     pass
 
-class TestGitHubAuth(object):
-    # This should probably go to helpers or somewhere
-    pass
-
 class TestGitHubCommandRunner(object):
     pass
 
