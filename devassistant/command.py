@@ -9,6 +9,8 @@ from devassistant import utils
 class Command(object):
     _command_runners = None
     _lang = None
+    # spliting strings by _command_splitter.findall(str) preserves whitespace
+    _command_splitter = re.compile(r'(\s+|\S+)')
 
     def __init__(self, comm_type, comm, kwargs={}):
         self.comm_type = comm_type
@@ -43,7 +45,7 @@ class Command(object):
 
         new_comm = []
         if not isinstance(comm, list):
-            parts_list = comm.split()
+            parts_list = type(self)._command_splitter.findall(comm)
         else:
             parts_list = comm
 
@@ -62,7 +64,7 @@ class Command(object):
             else:
                 new_comm.append(c)
 
-        new_comm = ' '.join(new_comm)
+        new_comm = ''.join(new_comm)
 
         # substitute cli arguments for their values
         substituted = string.Template(new_comm).safe_substitute(self.kwargs)

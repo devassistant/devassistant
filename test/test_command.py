@@ -24,6 +24,10 @@ class TestCommand(object):
         assert Command('cl', True, {}).format_str() == 'true'
         assert Command('cl', False, {}).format_str() == 'false'
 
+    def test_format_str_preserves_whitespace(self):
+        c = "  eggs   spam    beans  "
+        assert Command('log_i', c, {}).format_str() == c
+
     def test_format_deep_returns_correct_type(self):
         assert isinstance(Command('cl', {}).format_deep(), dict)
         assert isinstance(Command('cl', []).format_deep(), list)
