@@ -50,7 +50,7 @@ class TestAskCommandRunner(object):
     def test_format_args_fails(self, command, exception, exception_text):
         with pytest.raises(exception) as excinfo:
             self.acr.format_args(command)
-        assert exception_text in excinfo.value
+        assert exception_text in excinfo.exconly()
 
     def test_format_args_passes(self):
         comm = Command('ask_password', ['$password', {'prompt': 'foo'}])
