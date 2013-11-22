@@ -17,7 +17,6 @@ from devassistant import settings
 from devassistant import utils
 from devassistant import version
 from devassistant import yaml_snippet_loader
-from devassistant import handling_projects
 
 command_runners = []
 
@@ -384,6 +383,7 @@ class GitHubCommandRunner(CommandRunner):
         if not cls._gh_module:
             logger.warning('PyGithub not installed, cannot execute github command.')
             return [False, '']
+
         # we pass arguments as kwargs, so that the auth decorator can easily query them
         # NOTE: these are not the variables from global context, but rather what
         # cls.format_args returned
@@ -581,20 +581,6 @@ class LogCommandRunner(CommandRunner):
                 raise e
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
-
-        return [True, comm]
-
-@register_command_runner
-class SaveProjectCommandRunner(CommandRunner):
-    @classmethod
-    def matches(cls, c):
-        return c.comm_type == 'save_project'
-
-    @classmethod
-    def run(cls, c):
-        comm = c.format_str()
-        hp = handling_projects.HandlingProjects()
-        hp.save_project_info(c.kwargs)
 
         return [True, comm]
 
