@@ -1,10 +1,13 @@
 import os
 
 import yaml
+import yaml.scanner
 try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
+
+from devassistant.logger import logger
 
 class YamlLoader(object):
     @classmethod
@@ -26,8 +29,7 @@ class YamlLoader(object):
                 yaml_files.extend(map(lambda x: os.path.join(dirname, x), filter(lambda x: x.endswith('.yaml'), files)))
 
         for f in yaml_files:
-            with open(f, 'r') as stream:
-                loaded_yamls[f] = yaml.load(stream, Loader=Loader)
+            loaded_yamls[f] = cls.load_yaml_by_path(f)
 
         return loaded_yamls
 
@@ -47,11 +49,21 @@ class YamlLoader(object):
                 os.makedirs(d)
             possible_path = os.path.join(d, rel_path)
             if os.path.exists(possible_path):
-                return (possible_path, cls.load_yaml_by_path(possible_path))
+                loaded = cls.load_yaml_by_path(possible_path)
+                if loaded != None:
+                    return (possible_path, cls.load_yaml_by_path(possible_path))
 
         return None
 
     @classmethod
     def load_yaml_by_path(cls, path):
         """Load a yaml file that is at given path"""
-        return yaml.load(open(path, 'r'), Loader=Loader)
+        try:
+            return yaml.load(open(path, 'r'), Loader=Loader)
+        except yaml.scanner.ScannerError as e:
+            logger.warning('Yaml error in {path} (line {ln}, column {col}): {err}'.\
+                    format(path=path,
+                           ln=e.problem_mark.line,
+                           col=e.problem_mark.column,
+                           err=e.problem))
+            return None

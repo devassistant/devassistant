@@ -107,13 +107,20 @@ class YamlAssistantLoader(object):
             references to instances of their subassistants (and their subassistants, ...)
         """
         result = []
+        warn_msg ='Failed to load assistant {source}, skipping subassistants.'
 
         for name, attrs in file_hierarchy.items():
             loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(attrs['source'])
+            if not loaded_yaml: # there was an error parsing yaml
+                logger.warning(warn_msg.format(source=attrs['source']))
+                continue
             ass = cls.assistant_from_yaml(attrs['source'],
                                           loaded_yaml,
                                           superassistant,
                                           role=role)
+            if not ass: # assistant isn't written properly (misses top-level mapping)
+                logger.warning(warn_msg.format(source=attrs['source']))
+                continue
             ass._subassistants = cls.get_assistants_from_file_hierarchy(attrs['subhierarchy'],
                                                                         ass,
                                                                         role=role)
@@ -167,8 +174,12 @@ class YamlAssistantLoader(object):
         Returns:
             YamlAssistant instance constructed from y with source file source
         """
-        # assume only one key and value
-        name, attrs = y.popitem()
+        try:
+            name, attrs = y.popitem() # assume only one key and value
+        except AttributeError:
+            logger.warning('File {source} is not formatted properly - no top level mapping.'.\
+                    format(source=source))
+            return None
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,
                                                  source,

@@ -94,3 +94,37 @@ class TestYamlAssistantLoader(object):
         # assert that assistants were loaded ok
         assert set(['c', 'f']) == set(map(lambda x: x.name, ass))
         self.yl.get_assistants_from_cache_hierarchy = oldm
+
+    def test_get_assistants_from_file_hierarchy_with_bad_syntax(self):
+        bad_syntax = os.path.join(os.path.dirname(__file__),
+                                  'fixtures',
+                                  'assistants_malformed',
+                                  'crt',
+                                  'a1.yaml')
+        err = 'Failed to load assistant {src}, skipping subassistants.'.format(src=bad_syntax)
+        self.yl.assistants_dirs = [os.path.join(os.path.split(bad_syntax[:-2]))]
+        res = self.yl.get_assistants_from_file_hierarchy({'a1': {'source': bad_syntax,
+                                                                 'subhierarchy': {}}},
+                                                         None)
+        assert ('WARNING', err) in self.tlh.msgs
+        assert res == []
+
+    def test_get_assistants_from_file_hierarchy_with_bad_assistant(self):
+        bad_syntax = os.path.join(os.path.dirname(__file__),
+                                  'fixtures',
+                                  'assistants_malformed',
+                                  'crt',
+                                  'a2.yaml')
+        err = 'Failed to load assistant {src}, skipping subassistants.'.format(src=bad_syntax)
+        self.yl.assistants_dirs = [os.path.join(os.path.split(bad_syntax[:-2]))]
+        res = self.yl.get_assistants_from_file_hierarchy({'a1': {'source': bad_syntax,
+                                                                 'subhierarchy': {}}},
+                                                         None)
+        assert ('WARNING', err) in self.tlh.msgs
+        assert res == []
+
+    def test_assistant_from_yaml_logs_and_returns_None_on_bad_assistant(self):
+        res = self.yl.assistant_from_yaml('/foo/bar', 'not a mapping', None)
+        assert ('WARNING', 'File /foo/bar is not formatted properly - no top level mapping.') \
+                in self.tlh.msgs
+        assert res == None
