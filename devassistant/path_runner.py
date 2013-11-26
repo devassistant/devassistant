@@ -35,7 +35,6 @@ class PathRunner(object):
         Raises:
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
         """
-        kwargs = dict(**parsed_args)
         error = None
         # run 'pre_run', 'logging', 'dependencies' and 'run'
         try: # serve as a central place for error logging

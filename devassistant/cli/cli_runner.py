@@ -9,7 +9,6 @@ from devassistant import current_run
 from devassistant import exceptions
 from devassistant import logger
 from devassistant import path_runner
-from devassistant import settings
 
 class CliRunner(object):
     cur_handler = None

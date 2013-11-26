@@ -3,8 +3,6 @@ from __future__ import print_function
 import pprint
 import sys
 
-from devassistant import utils
-
 class DAPrettyPrinter(pprint.PrettyPrinter):
     def pformat(self, object, indent=1, width=80, depth=None, special=False):
         # we explicitly pass indent=1 because we don't want the dict indented
