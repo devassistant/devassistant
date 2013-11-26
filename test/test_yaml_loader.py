@@ -8,6 +8,7 @@ class TestYamlLoader(object):
     bad_syntax = os.path.join(os.path.dirname(__file__),
                               'fixtures',
                               'assistants_malformed',
+                              'crt',
                               'a1.yaml')
 
     def setup_method(self, method):
