@@ -1,4 +1,5 @@
 PyGithub
 PyYAML
+jinja2
 flexmock
 pytest

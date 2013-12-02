@@ -4,6 +4,7 @@ import getpass
 import logging
 import os
 
+import jinja2
 import yaml
 
 from devassistant import exceptions
@@ -599,3 +600,77 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs['__scls__'].pop()
 
         return retval
+
+@register_command_runner
+class Jinja2Runner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'jinja_render'
+
+    @classmethod
+    def run(cls, c):
+        # Transform list of dicts (where keys are unique) into a single dict
+        args = dict([(key, param[key]) for param in c.format_deep() for key in param])
+        logger.debug('args={}'.format(repr(args)))
+
+        # Retrieve required parameters:
+        # - 'template'    template descriptor from `files' section. it consist of
+        #                 two keys: `source' -- a name of template to use and`
+        #                 `output' pattern to generate output filename
+        #
+        # - 'data'        dict of parameters to use when rendering
+        #
+        # - 'destination' path for output files
+        #
+
+        if 'template' not in args or not isinstance(args['template'], dict):
+            raise exceptions.CommandException('Missed template parameter or wrong type')
+        template = args['template']
+        # NOTE 'source' and 'output' keys must present in a `files' section of assistant .yaml file!
+        # TODO Make a real check and raise an error!?! ORLY?
+        assert('source' in template and isinstance(template['source'], str))
+        assert('output' in template and isinstance(template['output'], str))
+
+        if 'destination' not in args or not isinstance(args['destination'], str):
+            raise exceptions.CommandException('Missed destination parameter or wrong type')
+
+        data = {}
+        if 'data' in args and isinstance(args['data'], list):
+            data = dict([(key, param[key]) for param in args['data'] for key in param])
+        logger.debug('Template context data: {}'.format(data))
+        # NOTE Data must contain at least 'output' key to specify a name of generated file!
+        # TODO Throw?
+        assert('output' in data and isinstance(data['output'], str))
+
+        # Create an environment!
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
+        env.trim_blocks = True
+        env.lstrip_blocks = True
+
+        # Get a template instance
+        tpl = None
+        try:
+            tpl = env.get_template(template['source'])
+        except jinja2.TemplateError as e:
+            raise exceptions.CommandException('Template file failure: {}'.format(str(e)))
+
+        # Form a destination file
+        result_filename = template['output'].format(data['output'])
+        result_filename = os.path.join(args['destination'], result_filename)
+
+        # Check if destination file exists, overwrite if needed
+        if os.path.exists(result_filename):
+            overwrite = args['overwrite'] if 'overwrite' in args else False
+            overwrite = True if overwrite == 'True' or overwrite == 'true' or overwrite == 'yes' else False
+            if overwrite:
+                logger.info('Overwriting the destination file {}'.format(result_filename))
+                os.remove(result_filename)
+            else:
+                raise exceptions.CommandException('The destination file already exists: {}'.format(result_filename))
+
+        # Generate an output file finally...
+        with open(result_filename, 'w') as out:
+            result = tpl.render(**data)
+            out.write(result)
+
+        return (True, 'success')
