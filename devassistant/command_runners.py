@@ -607,43 +607,13 @@ class Jinja2Runner(CommandRunner):
     def matches(cls, c):
         return c.comm_type == 'jinja_render'
 
-    @classmethod
-    def run(cls, c):
-        # Transform list of dicts (where keys are unique) into a single dict
-        args = dict([(key, param[key]) for param in c.format_deep(True) for key in param])
-        logger.debug('args={}'.format(repr(args)))
-
-        # Retrieve required parameters:
-        # - 'template'    template descriptor from `files' section. it consist of
-        #                 the only `source' key -- a name of template to use
-        #
-        # - 'data'        dict of parameters to use when rendering
-        #
-        # - 'destination' path for output files
-        #
-
-        if 'template' not in args or not isinstance(args['template'], dict):
-            raise exceptions.CommandException('Missed template parameter or wrong type')
-        template = args['template']
-        # NOTE 'source' and 'output' keys must present in a `files' section of assistant .yaml file!
-        # TODO Make a real check and raise an error!?! ORLY?
-        assert('source' in template and isinstance(template['source'], str))
-        template = template['source']
-
-        if 'destination' not in args or not isinstance(args['destination'], str):
-            raise exceptions.CommandException('Missed destination parameter or wrong type')
-        assert(os.path.isdir(args['destination']))
-
-        data = {}
-        if 'data' in args and isinstance(args['data'], dict):
-            data = args['data']
-        logger.debug('Template context data: {}'.format(data))
-
-        # Check for output filename:
-        # - if template['output'] is present, just use it!
-        # - otherwise, output file name produced from the source template name
-        #   by stripping '.tpl' suffix if latter presents, or used as is
-        #   if absent
+    def _make_output_file_name(args, template):
+        """ Form an output filename:
+            - if 'output' is specified among `args`, just use it!
+            - otherwise, output file name produced from the source template name
+              by stripping '.tpl' suffix if latter presents, or just used as
+              if none given.
+        """
         output = str()
         if 'output' in args:
             assert(isinstance(args['output'], str))
@@ -655,6 +625,45 @@ class Jinja2Runner(CommandRunner):
 
         # Form a destination file
         result_filename = os.path.join(args['destination'], output)
+        return result_filename
+
+    def _try_obtain_mandatory_params(args):
+        """ Retrieve required parameters from `args` dict:
+         - 'template'    template descriptor from `files' section. it consist of
+                         the only `source' key -- a name of template to use
+         - 'data'        dict of parameters to use when rendering
+         - 'destination' path for output files
+        """
+
+        if 'template' not in args or not isinstance(args['template'], dict):
+            raise exceptions.CommandException('Missed template parameter or wrong type')
+        template = args['template']
+
+        if 'source' not in template or not isinstance(template['source'], str):
+            raise exceptions.CommandException('Missed template parameter or wrong type')
+        template = template['source']
+
+        if 'destination' not in args or not isinstance(args['destination'], str):
+            raise exceptions.CommandException('Missed destination parameter or wrong type')
+
+        if not os.path.isdir(args['destination']):
+            raise exceptions.CommandException("Destination directory doesn't exists")
+
+        data = {}
+        if 'data' in args and isinstance(args['data'], dict):
+            data = args['data']
+        logger.debug('Template context data: {}'.format(data))
+
+        return (template, Jinja2Runner._make_output_file_name(args, template), data)
+
+    @classmethod
+    def run(cls, c):
+        # Transform list of dicts (where keys are unique) into a single dict
+        args = dict([(key, param[key]) for param in c.format_deep(True) for key in param])
+        logger.debug('args={}'.format(repr(args)))
+
+        # Get parameters
+        template, result_filename, data = Jinja2Runner._try_obtain_mandatory_params(args)
 
         # Create an environment!
         logger.debug('Using templats dir: {}'.format(c.files_dir))
