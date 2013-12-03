@@ -638,9 +638,18 @@ class Jinja2Runner(CommandRunner):
         if 'data' in args and isinstance(args['data'], list):
             data = dict([(key, param[key]) for param in args['data'] for key in param])
         logger.debug('Template context data: {}'.format(data))
-        # NOTE Data must contain at least 'output' key to specify a name of generated file!
-        # TODO Throw?
-        assert('output' in data and isinstance(data['output'], str))
+
+        # Check for output filename:
+        # if template['output'] has any placeholer (i.e. '{}' string)
+        # it is supposed to form a result filename using pattern from template['output']
+        # value and (substituting) args['output']...
+        # Otherwise, it can be ommited...
+        output = str()
+        if template['output'].find('{}') != -1:
+            if 'output' not in args or not isinstance(args['output'], str):
+                raise exceptions.CommandException('Missed output parameter or wrong type')
+            else:
+                output = args['output']
 
         # Create an environment!
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
@@ -655,7 +664,7 @@ class Jinja2Runner(CommandRunner):
             raise exceptions.CommandException('Template file failure: {}'.format(str(e)))
 
         # Form a destination file
-        result_filename = template['output'].format(data['output'])
+        result_filename = template['output'].format(output)
         result_filename = os.path.join(args['destination'], result_filename)
 
         # Check if destination file exists, overwrite if needed
