@@ -610,13 +610,12 @@ class Jinja2Runner(CommandRunner):
     @classmethod
     def run(cls, c):
         # Transform list of dicts (where keys are unique) into a single dict
-        args = dict([(key, param[key]) for param in c.format_deep() for key in param])
+        args = dict([(key, param[key]) for param in c.format_deep(True) for key in param])
         logger.debug('args={}'.format(repr(args)))
 
         # Retrieve required parameters:
         # - 'template'    template descriptor from `files' section. it consist of
-        #                 two keys: `source' -- a name of template to use and`
-        #                 `output' pattern to generate output filename
+        #                 the only `source' key -- a name of template to use
         #
         # - 'data'        dict of parameters to use when rendering
         #
@@ -629,29 +628,36 @@ class Jinja2Runner(CommandRunner):
         # NOTE 'source' and 'output' keys must present in a `files' section of assistant .yaml file!
         # TODO Make a real check and raise an error!?! ORLY?
         assert('source' in template and isinstance(template['source'], str))
-        assert('output' in template and isinstance(template['output'], str))
+        template = template['source']
 
         if 'destination' not in args or not isinstance(args['destination'], str):
             raise exceptions.CommandException('Missed destination parameter or wrong type')
+        assert(os.path.isdir(args['destination']))
 
         data = {}
-        if 'data' in args and isinstance(args['data'], list):
-            data = dict([(key, param[key]) for param in args['data'] for key in param])
+        if 'data' in args and isinstance(args['data'], dict):
+            data = args['data']
         logger.debug('Template context data: {}'.format(data))
 
         # Check for output filename:
-        # if template['output'] has any placeholer (i.e. '{}' string)
-        # it is supposed to form a result filename using pattern from template['output']
-        # value and (substituting) args['output']...
-        # Otherwise, it can be ommited...
+        # - if template['output'] is present, just use it!
+        # - otherwise, output file name produced from the source template name
+        #   by stripping '.tpl' suffix if latter presents, or used as is
+        #   if absent
         output = str()
-        if template['output'].find('{}') != -1:
-            if 'output' not in args or not isinstance(args['output'], str):
-                raise exceptions.CommandException('Missed output parameter or wrong type')
-            else:
-                output = args['output']
+        if 'output' in args:
+            assert(isinstance(args['output'], str))
+            output = args['output']
+        elif template.endswith('.tpl'):
+            output = template[:-len('.tpl')]
+        else:
+            output = template
+
+        # Form a destination file
+        result_filename = os.path.join(args['destination'], output)
 
         # Create an environment!
+        logger.debug('Using templats dir: {}'.format(c.files_dir))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
         env.trim_blocks = True
         env.lstrip_blocks = True
@@ -659,13 +665,10 @@ class Jinja2Runner(CommandRunner):
         # Get a template instance
         tpl = None
         try:
-            tpl = env.get_template(template['source'])
+            logger.debug('Using template file: {}'.format(template))
+            tpl = env.get_template(template)
         except jinja2.TemplateError as e:
-            raise exceptions.CommandException('Template file failure: {}'.format(str(e)))
-
-        # Form a destination file
-        result_filename = template['output'].format(output)
-        result_filename = os.path.join(args['destination'], result_filename)
+            raise exceptions.CommandException('Template file failure: {}'.format(e.message))
 
         # Check if destination file exists, overwrite if needed
         if os.path.exists(result_filename):
