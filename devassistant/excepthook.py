@@ -24,7 +24,7 @@ def is_local_subsection(command_dict):
     that it is "if", "for" or "scl" (not a real call, but calls
     run_section recursively."""
     for local_com in ['if ', 'for ', 'scl ']:
-        if command_dict.keys()[0].startswith(local_com):
+        if list(command_dict.keys())[0].startswith(local_com):
             return True
     return False
 
@@ -36,7 +36,7 @@ def excepthook(type, value, traceback):
         if 'lang.py' in curr_tb.tb_frame.f_code.co_filename and \
            curr_tb.tb_frame.f_code.co_name == 'run_section':
                run_section_frames.append(curr_tb.tb_frame)
-            
+
         curr_tb = curr_tb.tb_next
 
     if run_section_frames:
