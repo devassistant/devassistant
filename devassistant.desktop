@@ -1,5 +1,4 @@
 [Desktop Entry]
-Version=0.7
 Name=DevAssistant
 GenericName=DevAssistant - making life easier for developers
 Exec=da-gui
