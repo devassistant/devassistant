@@ -251,6 +251,40 @@ creator.
 
     dda_run: ${path}/to/project
 
+Jinja2 Render Command
+---------------------
+
+Render a Jinja2 template.
+
+``jinja_render``
+
+- Input: a mapping containing
+
+  - ``template`` - a reference to file in ``files`` section
+  - ``destination`` - where to place rendered template
+  - ``data`` - a mapping of values used to render the template itself
+  - ``overwrite`` (optional) - overwrite the file if it exists?
+  - ``output`` (optional) - specify a filename of the rendered template
+
+- RES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: always ``success`` string
+- Example::
+
+    jinja_render:
+      template: *somefile
+      destination: ${dest}/foo
+      overwrite: yes
+      output: filename.foo
+      data:
+        foo: bar
+        spam: spam
+
+The filename of the rendered template is created in this way:
+
+- if ``output`` is provided, use that as the filename
+- else if name of the template endswith ``.tpl``, strip ``.tpl`` and use it
+- else use the template name
+
 Logging Commands
 ----------------
 
