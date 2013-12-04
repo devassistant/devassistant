@@ -2,6 +2,10 @@ import signal
 
 from devassistant import package_managers
 
+__version__ = '0.8.0'
+"""PEP-396 compliant package version"""
+
+
 def signal_handler(signal, frame):
     import sys
     if package_managers.DependencyInstaller.install_lock:

@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import subprocess
 
-from devassistant.version import VERSION
+import devassistant
 
 try:
     from setuptools import setup, Command
@@ -51,7 +51,7 @@ description = ''.join(open('README.rst').readlines())
 
 setup(
     name = 'devassistant',
-    version = VERSION,
+    version = devassistant.__version__,
     description = 'DevAssistant helps you kickstart your projects with ease.',
     long_description = description,
     keywords = 'develop,kickstart,easy,quick',
