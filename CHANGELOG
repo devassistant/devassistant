@@ -10,6 +10,7 @@
 - Added --no-cache switch to turn of cache using.
 - Added an option to specify additional load paths by DEVASSISTANT_PATH
   environment variable.
+- Added jinja template renderer.
 - Tons of documentation were added, notably command reference page.
 
 0.7.0
