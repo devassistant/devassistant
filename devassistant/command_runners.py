@@ -607,7 +607,8 @@ class Jinja2Runner(CommandRunner):
     def matches(cls, c):
         return c.comm_type == 'jinja_render'
 
-    def _make_output_file_name(args, template):
+    @classmethod
+    def _make_output_file_name(cls, args, template):
         """ Form an output filename:
             - if 'output' is specified among `args`, just use it!
             - otherwise, output file name produced from the source template name
@@ -627,7 +628,8 @@ class Jinja2Runner(CommandRunner):
         result_filename = os.path.join(args['destination'], output)
         return result_filename
 
-    def _try_obtain_mandatory_params(args):
+    @classmethod
+    def _try_obtain_mandatory_params(cls, args):
         """ Retrieve required parameters from `args` dict:
          - 'template'    template descriptor from `files' section. it consist of
                          the only `source' key -- a name of template to use
@@ -654,7 +656,7 @@ class Jinja2Runner(CommandRunner):
             data = args['data']
         logger.debug('Template context data: {}'.format(data))
 
-        return (template, Jinja2Runner._make_output_file_name(args, template), data)
+        return (template, cls._make_output_file_name(args, template), data)
 
     @classmethod
     def run(cls, c):
@@ -663,7 +665,7 @@ class Jinja2Runner(CommandRunner):
         logger.debug('args={}'.format(repr(args)))
 
         # Get parameters
-        template, result_filename, data = Jinja2Runner._try_obtain_mandatory_params(args)
+        template, result_filename, data = cls._try_obtain_mandatory_params(args)
 
         # Create an environment!
         logger.debug('Using templats dir: {}'.format(c.files_dir))

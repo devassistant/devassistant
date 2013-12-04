@@ -1,10 +1,11 @@
-import pytest
+import os
 
+import pytest
 from flexmock import flexmock
 
 from devassistant.command import Command
 from devassistant.command_helpers import DialogHelper
-from devassistant.command_runners import AskCommandRunner, CallCommandRunner
+from devassistant.command_runners import AskCommandRunner, CallCommandRunner, Jinja2Runner
 from devassistant.exceptions import CommandException, YamlSyntaxError
 
 
@@ -89,6 +90,28 @@ class TestDotDevassistantCommandRunner(object):
 
 class TestGitHubCommandRunner(object):
     pass
+
+class TestJinja2CommandRunner(object):
+    def setup_method(self, method):
+        self.jr = Jinja2Runner
+        self.filesdir = os.path.join(os.path.dirname(__file__), 'fixtures', 'files')
+
+    def get_file_contents(self, tmpdir, f):
+        return open(os.path.join(tmpdir.strpath, f)).read()
+
+    def test_matches(self):
+        assert self.jr.matches(Command('jinja_render', None))
+
+    def test_render_tpl_file(self, tmpdir):
+        fn = 'jinja_template.py'
+        fntpl = fn + '.tpl'
+        c = Command('jinja_render',
+                    {'template': {'source': fntpl},
+                     'data': {'what': 'foo'},
+                     'destination': tmpdir.strpath},
+                    kwargs={'__files_dir__': [self.filesdir]})
+        c.run()
+        assert self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
 class TestLogCommandRunner(object):
     pass
