@@ -32,3 +32,7 @@ class TestCommand(object):
         assert isinstance(Command('cl', {}).format_deep(), dict)
         assert isinstance(Command('cl', []).format_deep(), list)
         assert isinstance(Command('cl', 'foo').format_deep(), str)
+
+    def test_format_deep_formats_deep_strings(self):
+        c = Command('cl', {'foo': 'some_${bar}_string'}, kwargs={'bar': 'great'})
+        assert c.format_deep() == {'foo': 'some_great_string'}
