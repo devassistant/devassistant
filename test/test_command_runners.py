@@ -150,7 +150,7 @@ class TestJinja2CommandRunner(object):
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmp, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
 class TestLogCommandRunner(object):
     pass
