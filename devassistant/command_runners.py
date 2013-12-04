@@ -4,6 +4,7 @@ import getpass
 import logging
 import os
 
+import jinja2
 import yaml
 
 from devassistant import exceptions
@@ -599,3 +600,98 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs['__scls__'].pop()
 
         return retval
+
+@register_command_runner
+class Jinja2Runner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'jinja_render'
+
+    def _make_output_file_name(args, template):
+        """ Form an output filename:
+            - if 'output' is specified among `args`, just use it!
+            - otherwise, output file name produced from the source template name
+              by stripping '.tpl' suffix if latter presents, or just used as
+              if none given.
+        """
+        output = str()
+        if 'output' in args:
+            assert(isinstance(args['output'], str))
+            output = args['output']
+        elif template.endswith('.tpl'):
+            output = template[:-len('.tpl')]
+        else:
+            output = template
+
+        # Form a destination file
+        result_filename = os.path.join(args['destination'], output)
+        return result_filename
+
+    def _try_obtain_mandatory_params(args):
+        """ Retrieve required parameters from `args` dict:
+         - 'template'    template descriptor from `files' section. it consist of
+                         the only `source' key -- a name of template to use
+         - 'data'        dict of parameters to use when rendering
+         - 'destination' path for output files
+        """
+
+        if 'template' not in args or not isinstance(args['template'], dict):
+            raise exceptions.CommandException('Missed template parameter or wrong type')
+        template = args['template']
+
+        if 'source' not in template or not isinstance(template['source'], str):
+            raise exceptions.CommandException('Missed template parameter or wrong type')
+        template = template['source']
+
+        if 'destination' not in args or not isinstance(args['destination'], str):
+            raise exceptions.CommandException('Missed destination parameter or wrong type')
+
+        if not os.path.isdir(args['destination']):
+            raise exceptions.CommandException("Destination directory doesn't exists")
+
+        data = {}
+        if 'data' in args and isinstance(args['data'], dict):
+            data = args['data']
+        logger.debug('Template context data: {}'.format(data))
+
+        return (template, Jinja2Runner._make_output_file_name(args, template), data)
+
+    @classmethod
+    def run(cls, c):
+        # Transform list of dicts (where keys are unique) into a single dict
+        args = dict([(key, param[key]) for param in c.format_deep(True) for key in param])
+        logger.debug('args={}'.format(repr(args)))
+
+        # Get parameters
+        template, result_filename, data = Jinja2Runner._try_obtain_mandatory_params(args)
+
+        # Create an environment!
+        logger.debug('Using templats dir: {}'.format(c.files_dir))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
+        env.trim_blocks = True
+        env.lstrip_blocks = True
+
+        # Get a template instance
+        tpl = None
+        try:
+            logger.debug('Using template file: {}'.format(template))
+            tpl = env.get_template(template)
+        except jinja2.TemplateError as e:
+            raise exceptions.CommandException('Template file failure: {}'.format(e.message))
+
+        # Check if destination file exists, overwrite if needed
+        if os.path.exists(result_filename):
+            overwrite = args['overwrite'] if 'overwrite' in args else False
+            overwrite = True if overwrite == 'True' or overwrite == 'true' or overwrite == 'yes' else False
+            if overwrite:
+                logger.info('Overwriting the destination file {}'.format(result_filename))
+                os.remove(result_filename)
+            else:
+                raise exceptions.CommandException('The destination file already exists: {}'.format(result_filename))
+
+        # Generate an output file finally...
+        with open(result_filename, 'w') as out:
+            result = tpl.render(**data)
+            out.write(result)
+
+        return (True, 'success')
