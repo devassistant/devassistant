@@ -28,7 +28,6 @@ class TestActions(object):
 
     def test_version_action(self, capsys):
         va = actions.VersionAction
-        from devassistant.version import VERSION
+        from devassistant import __version__ as VERSION
         va.run()
         assert VERSION in capsys.readouterr()[0]
-

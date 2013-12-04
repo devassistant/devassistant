@@ -18,8 +18,8 @@ class TestAskCommandRunner(object):
         self.acr = AskCommandRunner
 
     def test_matches(self):
-        assert(self.acr.matches(Command('ask_foo', [])))
-        assert(not self.acr.matches(Command('foo', [])))
+        assert self.acr.matches(Command('ask_foo', []))
+        assert not self.acr.matches(Command('foo', []))
 
     def test_run_password(self):
         flexmock(DialogHelper)
@@ -27,9 +27,9 @@ class TestAskCommandRunner(object):
         comm = Command('ask_password', ['$password', {}])
         p = self.acr.run(comm)
 
-        assert(comm.kwargs['password'] == 'foobar')
-        assert(p[0] is True)
-        assert(p[1] == 'foobar')
+        assert comm.kwargs['password'] == 'foobar'
+        assert p[0] is True
+        assert p[1] == 'foobar'
 
     @pytest.mark.parametrize('decision', [True, False])
     def test_run_confirm(self, decision):
@@ -38,9 +38,9 @@ class TestAskCommandRunner(object):
         comm = Command('ask_confirm', ['$var', {}])
         p = self.acr.run(comm)
 
-        assert(comm.kwargs['var'] == decision)
-        assert(p[0] is True)
-        assert(p[1] == decision)
+        assert comm.kwargs['var'] == decision
+        assert p[0] is True
+        assert p[1] == decision
 
     @pytest.mark.parametrize(('command', 'exception', 'exception_text'), [
         (Command('foo', None),  CommandException, 'No commands specified'),
@@ -52,13 +52,13 @@ class TestAskCommandRunner(object):
     def test_format_args_fails(self, command, exception, exception_text):
         with pytest.raises(exception) as excinfo:
             self.acr.format_args(command)
-        assert(exception_text in excinfo.exconly())
+        assert exception_text in excinfo.exconly()
 
     def test_format_args_passes(self):
         comm = Command('ask_password', ['$password', {'prompt': 'foo'}])
         (var, fmtd) = self.acr.format_args(comm)
-        assert(var == 'password')
-        assert(fmtd['prompt'] == 'foo')
+        assert var == 'password'
+        assert fmtd['prompt'] == 'foo'
 
 
 class TestCallCommandRunner(object):
@@ -66,17 +66,17 @@ class TestCallCommandRunner(object):
         self.ccr = CallCommandRunner
 
     def test_matches(self):
-        assert(self.ccr.matches(Command('call', None)))
-        assert(self.ccr.matches(Command('use', None)))
-        assert(not self.ccr.matches(Command('foo', None)))
+        assert self.ccr.matches(Command('call', None))
+        assert self.ccr.matches(Command('use', None))
+        assert not self.ccr.matches(Command('foo', None))
 
     @pytest.mark.parametrize('command', ['self', 'super'])
     def test_is_snippet_call_fails(self, command):
-        assert(not self.ccr.is_snippet_call(command))
-        assert(not self.ccr.is_snippet_call('{0}.foo'.format(command)))
+        assert not self.ccr.is_snippet_call(command)
+        assert not self.ccr.is_snippet_call('{0}.foo'.format(command))
 
     def test_is_snippet_call_passes(self):
-        assert(self.ccr.is_snippet_call('foo'))
+        assert self.ccr.is_snippet_call('foo')
 
     # TODO test other methods
 
@@ -109,7 +109,7 @@ class TestJinja2CommandRunner(object):
         return open(os.path.join(tmpdir.strpath, f)).read()
 
     def test_matches(self):
-        assert(self.jr.matches(Command('jinja_render', None)))
+        assert self.jr.matches(Command('jinja_render', None))
 
     def test_render_tpl_file_default_case_1(self, tmpdir):
         fn = 'jinja_template.py'
@@ -122,7 +122,7 @@ class TestJinja2CommandRunner(object):
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert(self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")')
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_default_case_2(self, tmpdir):
         fn = 'jinja_template.py'
@@ -135,7 +135,7 @@ class TestJinja2CommandRunner(object):
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert(self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")')
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_set_output_case(self, tmpdir):
         # Case 3: set desired output name explicitly
@@ -149,7 +149,7 @@ class TestJinja2CommandRunner(object):
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert(self.is_file_exists(tmp, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")')
+        assert self.is_file_exists(tmp, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
 class TestLogCommandRunner(object):
     pass

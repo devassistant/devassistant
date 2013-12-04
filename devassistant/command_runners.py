@@ -7,6 +7,8 @@ import os
 import jinja2
 import yaml
 
+import devassistant
+
 from devassistant import exceptions
 from devassistant import command
 from devassistant.remote_auth import GitHubAuth
@@ -16,7 +18,6 @@ from devassistant.logger import logger
 from devassistant.package_managers import DependencyInstaller
 from devassistant import settings
 from devassistant import utils
-from devassistant import version
 from devassistant import yaml_snippet_loader
 
 command_runners = []
@@ -289,7 +290,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         for arg in arg_names:
             if arg in kwargs: # only write those that were actually used on invocation
                 original_kwargs[arg] = kwargs[arg]
-        to_write = {'devassistant_version': version.VERSION,
+        to_write = {'devassistant_version': devassistant.__version__,
                     'subassistant_path': path,
                     'original_kwargs': original_kwargs}
         cls.__dot_devassistant_write_struct(directory, to_write)

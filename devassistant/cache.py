@@ -6,8 +6,9 @@ try:
 except ImportError:
     from yaml import Dumper
 
+import devassistant
+
 from devassistant import settings
-from devassistant import version
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
@@ -40,7 +41,7 @@ class Cache(object):
      'prep': {...},
      'task': {...},
      # version of devassistant that cache has been created with
-     'version': VERSION}
+     'version': devassistant.__version__}
     """
 
     def __init__(self, cache_file=settings.CACHE_FILE):
@@ -59,7 +60,7 @@ class Cache(object):
         reset_cache = False
         if os.path.exists(self.cache_file):
             self.cache = yaml_loader.YamlLoader.load_yaml_by_path(cache_file) or {}
-            if self.cache.get('version', '0.0.0') != version.VERSION:
+            if self.cache.get('version', '0.0.0') != devassistant.__version__:
                 reset_cache = True
         else:
             if not os.path.exists(os.path.dirname(cache_file)):
@@ -68,7 +69,7 @@ class Cache(object):
 
         if reset_cache:
             f = open(cache_file, 'w')
-            self.cache = {'version': version.VERSION}
+            self.cache = {'version': devassistant.__version__}
             f.close()
 
     def refresh_role(self, role, file_hierarchy):
