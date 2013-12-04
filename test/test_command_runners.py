@@ -146,7 +146,7 @@ class TestJinja2CommandRunner(object):
         c = Command('jinja_render',
                     {'template': {'source': fntpl},
                      'data': {'what': 'foo'},
-                     'output': {fn},
+                     'output': fn,
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
