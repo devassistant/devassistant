@@ -16,5 +16,4 @@ recursive-include test *.yaml *.py
 recursive-exclude . __pycache__
 
 recursive-include docs *
-exclude docs/developer_documentation/tutorial_creating_assistant.rst
 recursive-exclude docs/_build *
