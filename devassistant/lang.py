@@ -299,7 +299,7 @@ class Interpreter(object):
                 yield s
             else:
                 if not self.in_shell:
-                    raise SyntaxError("Unknown token")
+                    raise SyntaxError("Unknown token: {tok}".format(tok=tok))
                 else:
                     # inside shell, everything is a literal
                     symbol = self.symbol_table["(literal)"]
