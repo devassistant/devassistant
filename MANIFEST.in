@@ -12,7 +12,8 @@ recursive-include devassistant/gui *.glade
 
 exclude da-yaml-gui.py
 
-recursive-include test *.yaml *.py
+recursive-include test *.py
+recursive-include test/fixtures *
 recursive-exclude . __pycache__
 
 recursive-include docs *
