@@ -363,11 +363,15 @@ Syntax and semantics:
 
   - *result* is the first non-empty argument or an empty string
 
-- ``literals - "foo"``
+- ``literals - "foo", 'foo'``
 
   - *logical result* ``True`` for non-empty strings, ``False`` otherwise
 
   - *result* is the string itself, sans quotes
+
+  - *Note: If you use an expression that is formed by just a literal, e.g.* ``"foo"`` *, then
+    DevAssistant will fail, since Yaml parser will strip these. Therefore you have to use*
+    ``'"foo"'`` *.*
 
 - ``$foo in $bar``
 
