@@ -102,6 +102,7 @@ class TestEvaluate(object):
 
     def test_literal(self):
         assert evaluate_expression('"foobar"', self.names) == (True, "foobar")
+        assert evaluate_expression("'foobar'", self.names) == (True, "foobar")
         assert evaluate_expression('""', self.names) == (False, "")
 
     def test_variable_substitution(self):

@@ -291,7 +291,7 @@ class Interpreter(object):
                 s = symbol()
                 s.value = tok[1:]
                 yield s
-            elif tok.startswith('"'):
+            elif tok.startswith('"') or tok.startswith("'"):
                 # literals
                 symbol = self.symbol_table["(literal)"]
                 s = symbol()
@@ -369,8 +369,14 @@ def evaluate_expression(expression, names):
         # value
         for v in reversed(sorted(interpr.names.keys())):
             self.value = self.value.replace("$" + v, str(interpr.names[v]))
+        # if self.value is in double/single quotes, strip them (but only the outer quotes)
+        ret = self.value
+        if ret.startswith('"'):
+            ret = ret.strip('"')
+        elif ret.startswith("'"):
+            ret = ret.strip("'")
 
-        return bool(self.value.strip('"')), self.value.strip('"')
+        return bool(ret), ret
 
     @interpr.method("and")
     def led(self, left):
