@@ -659,7 +659,7 @@ class Jinja2Runner(CommandRunner):
     @classmethod
     def run(cls, c):
         # Transform list of dicts (where keys are unique) into a single dict
-        args = dict([(key, param[key]) for param in c.format_deep(True) for key in param])
+        args = c.format_deep(True)
         logger.debug('args={}'.format(repr(args)))
 
         # Get parameters
