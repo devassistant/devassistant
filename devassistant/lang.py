@@ -231,10 +231,10 @@ class Interpreter(object):
         first = second = None
 
         def nud(self):
-            raise SyntaxError("Syntax error ({}).".format(self.id))
+            raise SyntaxError("Syntax error ({0}).".format(self.id))
 
         def led(self, left):
-            raise SyntaxError("Unknown operator ({}).".format(self.id))
+            raise SyntaxError("Unknown operator ({0}).".format(self.id))
 
     def symbol(self, id, bp=0):
         """
@@ -261,7 +261,7 @@ class Interpreter(object):
         """
 
         if id and self.token.id != id:
-            raise SyntaxError("Expected {}".format(id))
+            raise SyntaxError("Expected {0}".format(id))
         self.token = self.next()
 
     def method(self, symbol_name):

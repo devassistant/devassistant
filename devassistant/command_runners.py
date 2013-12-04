@@ -654,7 +654,7 @@ class Jinja2Runner(CommandRunner):
         data = {}
         if 'data' in args and isinstance(args['data'], dict):
             data = args['data']
-        logger.debug('Template context data: {}'.format(data))
+        logger.debug('Template context data: {0}'.format(data))
 
         return (template, cls._make_output_file_name(args, template), data)
 
@@ -662,13 +662,13 @@ class Jinja2Runner(CommandRunner):
     def run(cls, c):
         # Transform list of dicts (where keys are unique) into a single dict
         args = c.format_deep(True)
-        logger.debug('args={}'.format(repr(args)))
+        logger.debug('args={0}'.format(repr(args)))
 
         # Get parameters
         template, result_filename, data = cls._try_obtain_mandatory_params(args)
 
         # Create an environment!
-        logger.debug('Using templats dir: {}'.format(c.files_dir))
+        logger.debug('Using templats dir: {0}'.format(c.files_dir))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
         env.trim_blocks = True
         env.lstrip_blocks = True
@@ -676,20 +676,20 @@ class Jinja2Runner(CommandRunner):
         # Get a template instance
         tpl = None
         try:
-            logger.debug('Using template file: {}'.format(template))
+            logger.debug('Using template file: {0}'.format(template))
             tpl = env.get_template(template)
         except jinja2.TemplateError as e:
-            raise exceptions.CommandException('Template file failure: {}'.format(e.message))
+            raise exceptions.CommandException('Template file failure: {0}'.format(e.message))
 
         # Check if destination file exists, overwrite if needed
         if os.path.exists(result_filename):
             overwrite = args['overwrite'] if 'overwrite' in args else False
             overwrite = True if overwrite == 'True' or overwrite == 'true' or overwrite == 'yes' else False
             if overwrite:
-                logger.info('Overwriting the destination file {}'.format(result_filename))
+                logger.info('Overwriting the destination file {0}'.format(result_filename))
                 os.remove(result_filename)
             else:
-                raise exceptions.CommandException('The destination file already exists: {}'.format(result_filename))
+                raise exceptions.CommandException('The destination file already exists: {0}'.format(result_filename))
 
         # Generate an output file finally...
         with open(result_filename, 'w') as out:
