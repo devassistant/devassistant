@@ -383,6 +383,80 @@ class NPMPackageManager(PackageManager):
         return "npm package manager"
 
 
+@register_manager
+class EmergePackageManager(PackageManager):
+    """ Package manager class for Gentoo
+
+        ATTENTION Unfortunately in Gentoo it is not so easy to "just install" required
+        dependencies. Partly because before compile anything user may wants to add/remove
+        some USE flags to/from configs or maybe add some overlay to get access to required
+        ebuild(s)... also, compiling from sources could takes a really long time (and a
+        user possible just not ready to waste^W spent it right now).
+        So, this "package" manager class wouldn't install anything!
+        Instead it will just show to a user what packages must be installed...
+    """
+
+    shortcut = 'ebuild'
+
+    @classmethod
+    def install(cls, *args, **kwargs):
+        raise NotImplementedError()
+
+    @classmethod
+    def works(cls, *args, **kwargs):
+        """Returns True if this package manager is usable, False otherwise."""
+        try:
+            import portage.dbapi
+            return True
+        except ImportError:
+            return False
+
+    @classmethod
+    def is_pkg_installed(cls, pkg):
+        """Is a package managed by this manager installed?"""
+        import portage
+        # Get access to installed packages DB
+        vartree = portage.db[portage.root]['vartree']
+        r = vartree.dbapi.match(pkg)
+        logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
+        return bool(r)
+
+
+    @classmethod
+    def resolve(cls, *args, **kwargs):
+        """
+        Return all dependencies which will be installed.
+
+        NOTE Simplified (naive) implementation will show the list of correctly
+        spelled packages to be installed. For example 'firefox' will be resolved
+        to 'www-client/firefox-25.0.1'...
+
+        TODO ... or maybe version part must be stripped?
+        """
+        logger.info('Resolving ebuild dependencies ...')
+        import portage
+        porttree = portage.db[portage.root]['porttree']
+
+        to_install = set()
+        for pkg in args:
+            res = porttree.dep_bestmatch(pkg)
+            logger.debug('{0} resolved to {1}'.format(repr(pkg), repr(res)))
+            if res:
+                to_install.add(res)
+            else:
+                msg = 'Package not found or spec is invalid: {pkg}'.format(pkg=pkg)
+                raise exceptions.DependencyException(msg)
+
+        to_install = ', '.join(list(to_install))
+        raise exceptions.DependencyException(
+            "You must install the following packages before run this command: {0}".format(to_install)
+          )
+
+    @classmethod
+    def get_distro_dependencies(self, smgr_sc):
+        return ['ebuild']
+
+
 class DependencyInstaller(object):
     """Installs all dependencies given to install() like this:
     - Calls _process_dependency for each dependency type, system dependencies always go first

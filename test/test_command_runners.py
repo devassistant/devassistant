@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pytest
 from flexmock import flexmock
@@ -96,22 +97,59 @@ class TestJinja2CommandRunner(object):
         self.jr = Jinja2Runner
         self.filesdir = os.path.join(os.path.dirname(__file__), 'fixtures', 'files')
 
+    def is_file_exists(self, tmpdir, f):
+        return os.path.isfile(os.path.join(tmpdir.strpath, f))
+
+    def make_sure_file_does_not_exists(self, tmpdir, f):
+        fn = os.path.join(tmpdir.strpath, f)
+        if (os.path.exists(fn)):
+            os.remove(fn)
+
     def get_file_contents(self, tmpdir, f):
         return open(os.path.join(tmpdir.strpath, f)).read()
 
     def test_matches(self):
         assert self.jr.matches(Command('jinja_render', None))
 
-    def test_render_tpl_file(self, tmpdir):
+    def test_render_tpl_file_default_case_1(self, tmpdir):
         fn = 'jinja_template.py'
+        # Case 1: template name ends w/ '.tpl'
         fntpl = fn + '.tpl'
+        self.make_sure_file_does_not_exists(tmpdir, fn)
         c = Command('jinja_render',
                     {'template': {'source': fntpl},
                      'data': {'what': 'foo'},
                      'destination': tmpdir.strpath},
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+
+    def test_render_tpl_file_default_case_2(self, tmpdir):
+        fn = 'jinja_template.py'
+        # Case 2: output filename will be the same!
+        fntpl = fn
+        self.make_sure_file_does_not_exists(tmpdir, fn)
+        c = Command('jinja_render',
+                    {'template': {'source': fntpl},
+                     'data': {'what': 'foo'},
+                     'destination': tmpdir.strpath},
+                    kwargs={'__files_dir__': [self.filesdir]})
+        c.run()
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+
+    def test_render_tpl_file_set_output_case(self, tmpdir):
+        # Case 3: set desired output name explicitly
+        fn ='rendered_jinja_template.py'
+        fntpl = 'jinja_template.py.tpl'
+        self.make_sure_file_does_not_exists(tmpdir, fn)
+        c = Command('jinja_render',
+                    {'template': {'source': fntpl},
+                     'data': {'what': 'foo'},
+                     'output': fn,
+                     'destination': tmpdir.strpath},
+                    kwargs={'__files_dir__': [self.filesdir]})
+        c.run()
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
 class TestLogCommandRunner(object):
     pass

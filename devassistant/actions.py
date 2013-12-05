@@ -158,5 +158,5 @@ class VersionAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from devassistant.version import VERSION
-        print('DevAssistant {version}'.format(version=VERSION))
+        from devassistant import __version__
+        print('DevAssistant {version}'.format(version=__version__))

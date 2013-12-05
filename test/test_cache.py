@@ -4,9 +4,10 @@ import time
 
 import yaml
 
+import  devassistant
+
 from devassistant.cache import Cache
 from devassistant import settings
-from devassistant.version import VERSION
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 # the paths in this dicts are truncated to make tests pass in any location
@@ -59,7 +60,7 @@ correct_cache = \
  'mod': {},
  'prep': {},
  'task': {},
- 'version': VERSION}
+ 'version': devassistant.__version__}
 
 class TestCache(object):
     cf = settings.CACHE_FILE
@@ -196,7 +197,7 @@ class TestCache(object):
         assert prev_time < os.path.getctime(self.cch.cache_file)
 
     def test_cache_stays_if_same_version(self):
-        self.create_fake_cache({'version': VERSION})
+        self.create_fake_cache({'version': devassistant.__version__})
         prev_time = os.path.getctime(self.cch.cache_file)
         time.sleep(0.1)
         Cache()
