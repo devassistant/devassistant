@@ -418,7 +418,7 @@ class EmergePackageManager(PackageManager):
         # Get access to installed packages DB
         vartree = portage.db[portage.root]['vartree']
         r = vartree.dbapi.match(pkg)
-        logger.debug('Checking is installed: {} -> {}'.format(pkg, repr(r)))
+        logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
         return bool(r)
 
 
@@ -440,7 +440,7 @@ class EmergePackageManager(PackageManager):
         to_install = set()
         for pkg in args:
             res = porttree.dep_bestmatch(pkg)
-            logger.debug('{} resolved to {}'.format(repr(pkg), repr(res)))
+            logger.debug('{0} resolved to {1}'.format(repr(pkg), repr(res)))
             if res:
                 to_install.add(res)
             else:
