@@ -12,7 +12,7 @@ DevAssistant
 
 DevAssistant - making life easier for developers
 
-DevAssistant project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+DevAssistant (http://devassistant.org) project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
 
 DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can create projects like this:
 
@@ -41,6 +41,10 @@ Last but not least, DevAssistant allows you to perform arbitrary tasks not relat
   $ da task <TODO:NOTHING YET>
 
 For full documentation, see http://doc.devassistant.org/
+
+Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join our G+ community (https://plus.google.com/u/0/communities/112692240128429771916) or follow us on Twitter (https://twitter.com/dev_assistant).
+
+If you want to see where DevAssistant development is going and you want to influence it and send your suggestions and comments, you should *really* join our ML: https://lists.fedoraproject.org/mailman/listinfo/devassistant.
 
 To start developing, do:
 
