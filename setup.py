@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import os
 import subprocess
 
 import devassistant
@@ -24,16 +25,37 @@ class PyTest(Command):
     def finalize_options(self):
         pass
 
+    def runner_exists(self, runner):
+        syspaths = os.getenv('PATH').split(os.pathsep)
+        for p in syspaths:
+            if os.path.exists(os.path.join(p, runner)):
+                return True
+
+        return False
+
     def run(self):
         # only one test runner => just run the tests
         runners = ['py.test-2.7', 'py.test-3.3']
         if self.test_runner:
             runners = [self.test_runner]
 
+        have_runner = False
+        for runner in runners:
+            if self.runner_exists(runner):
+                have_runner = True
+
+        if not have_runner:
+            if self.runner_exists('py.test'):
+                runners = ['py.test']
+            else:
+                print('No py.test runners found, can\'t run tests.')
+                print('Tried: {0}.'.format(', '.join(runners + ['py.test'])))
+                raise SystemExit(100)
+
         for runner in runners:
             if len(runners) > 1:
                 print('\n' * 2)
-                print('Running tests using "{0}":'.format(runner))
+            print('Running tests using "{0}":'.format(runner))
 
             retcode = 0
             cmd = [runner]
