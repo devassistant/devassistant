@@ -1,6 +1,6 @@
 DevAssistant is developer's best friend (right after coffee).
 
-DevAssistant can help you with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc. There are three main types of functionality provided:
+DevAssistant (http://devassistant.org) can help you with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc. There are three main types of functionality provided:
 
 - ``da crt`` - create new project from scratch
 - ``da mod`` - take local project and do something with it (e.g. import it to Eclipse)
@@ -29,3 +29,8 @@ Last but not least, DevAssistant allows you to perform arbitrary tasks not relat
 .. code:: sh
 
   $ da task <TODO:NOTHING YET>
+
+Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our
+mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join
+our G+ community (https://plus.google.com/u/0/communities/112692240128429771916) or follow us on
+Twitter (https://twitter.com/dev_assistant).

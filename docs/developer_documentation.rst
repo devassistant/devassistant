@@ -12,6 +12,11 @@ Developer Documentation
    developer_documentation/common_assistant_behaviour
    developer_documentation/dot_devassistant
 
+Talk to Us!
+-----------
+
+If you want to see where DevAssistant development is going and you want to influence it and send your suggestions and comments, you should *really* join our ML: https://lists.fedoraproject.org/mailman/listinfo/devassistant.
+
 Overall Design
 --------------
 
