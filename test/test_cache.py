@@ -100,7 +100,7 @@ class TestCache(object):
         os.utime(self.datafile_path(path), None)
 
     def assert_cache_newer(self, path):
-        assert os.path.getctime(self.cch.cache_file) > os.path.getctime(self.datafile_path(path))
+        assert os.path.getctime(self.cch.cache_file) >= os.path.getctime(self.datafile_path(path))
 
     def assert_cache_content(self, expected, actual):
         assert len(expected) == len(actual)
