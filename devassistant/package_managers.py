@@ -22,6 +22,7 @@ represent these high-level tools like YUM or Zypper, not RPM itself.
 from __future__ import print_function
 import collections
 import math
+import os
 import sys
 import tempfile
 import threading
@@ -383,6 +384,37 @@ class NPMPackageManager(PackageManager):
         return "npm package manager"
 
 
+def _gentoo_get_current_manager():
+    """ Try to detect a package manager used in Gentoo. """
+    if utils.get_distro_name().find('gentoo') == -1:
+        return None
+    if 'PACKAGE_MANAGER' in os.environ:
+        pm = os.environ['PACKAGE_MANAGER']
+        if pm == 'paludis':
+            # Try to import paludis module
+            try:
+                import paludis
+                return 'paludis'
+            except ImportError:
+                # TODO Environment tells that paludis must be used, but
+                # it seems latter was build w/o USE=python...
+                # Need to report an error!!??
+                return None
+        elif pm == 'portage':
+            # Fallback to default: portage
+            pass
+        else:
+            # ATTENTION Some unknown package manager?! Which one?
+            return None
+
+    # Try to import portage module
+    try:
+        import portage
+        return 'portage'
+    except ImportError:
+        pass
+
+
 @register_manager
 class EmergePackageManager(PackageManager):
     """ Package manager class for Gentoo
@@ -405,11 +437,13 @@ class EmergePackageManager(PackageManager):
     @classmethod
     def works(cls, *args, **kwargs):
         """Returns True if this package manager is usable, False otherwise."""
-        try:
-            import portage.dbapi
-            return True
-        except ImportError:
-            return False
+        if hasattr(cls, 'works_result'):
+            return cls.works_result
+        is_ok = bool(_gentoo_get_current_manager() == 'portage')
+        if is_ok:
+            logger.info('Found package manager: emerge')
+        setattr(cls, 'works_result', is_ok)
+        return is_ok
 
     @classmethod
     def is_pkg_installed(cls, pkg):
@@ -417,13 +451,16 @@ class EmergePackageManager(PackageManager):
         import portage
         # Get access to installed packages DB
         vartree = portage.db[portage.root]['vartree']
-        r = vartree.dbapi.match(pkg)
-        logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
+        try:
+            r = vartree.dbapi.match(pkg)
+            logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
+        except portage.exception.InvalidAtom:
+            raise exceptions.DependencyException('Invalid dependency specification: {0}'.format(pkg))
+        # TODO Compare package version!
         return bool(r)
 
-
     @classmethod
-    def resolve(cls, *args, **kwargs):
+    def resolve(cls, *deps):
         """
         Return all dependencies which will be installed.
 
@@ -433,19 +470,102 @@ class EmergePackageManager(PackageManager):
 
         TODO ... or maybe version part must be stripped?
         """
-        logger.info('Resolving ebuild dependencies ...')
         import portage
-        porttree = portage.db[portage.root]['porttree']
 
+        logger.info('[portage] Resolving ebuild dependencies ...')
+
+        porttree = portage.db[portage.root]['porttree']
         to_install = set()
-        for pkg in args:
-            res = porttree.dep_bestmatch(pkg)
-            logger.debug('{0} resolved to {1}'.format(repr(pkg), repr(res)))
+        for dep in deps:
+            res = porttree.dep_bestmatch(dep)
+            logger.debug('{0} resolved to {1}'.format(repr(dep), repr(res)))
             if res:
                 to_install.add(res)
             else:
-                msg = 'Package not found or spec is invalid: {pkg}'.format(pkg=pkg)
+                msg = 'Package not found or spec is invalid: {pkg}'.format(pkg=dep)
                 raise exceptions.DependencyException(msg)
+
+        to_install = ', '.join(list(to_install))
+        raise exceptions.DependencyException(
+            "You must install the following packages before run this command: {0}".format(to_install)
+          )
+
+    @classmethod
+    def get_distro_dependencies(self, smgr_sc):
+        return ['ebuild']
+
+
+@register_manager
+class PaludisPackageManager(PackageManager):
+    """ Another package manager class for Gentoo (yep, for paludis ;-) """
+
+    shortcut = 'ebuild'
+
+    @classmethod
+    def install(cls, *args, **kwargs):
+        raise NotImplementedError()
+
+    @classmethod
+    def works(cls, *args, **kwargs):
+        """Returns True if this package manager is usable, False otherwise."""
+        if hasattr(cls, 'works_result'):
+            return cls.works_result
+        is_ok = bool(_gentoo_get_current_manager() == 'paludis')
+        if is_ok:
+            logger.info('Found package manager: paludis')
+        setattr(cls, 'works_result', is_ok)
+        return is_ok
+
+    @classmethod
+    def is_pkg_installed(cls, dep):
+        """Is a package managed by this manager installed?"""
+        import paludis
+        env = paludis.EnvironmentFactory.instance.create('')
+        installed = env.fetch_repository('installed')
+        try:
+            pkg = paludis.parse_user_package_dep_spec(dep, env, paludis.UserPackageDepSpecOptions())
+            # TODO Compare package version!
+            r = []
+            for i in installed.package_ids(str(pkg.package), []):
+                r.append(str(i))
+            logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
+            return r
+        except paludis.BaseException as e:
+            msg = 'Dependency specification is invalid [{0}]: {1}'.format(dep, str(e))
+            raise exceptions.DependencyException(msg)
+
+    @classmethod
+    def resolve(cls, *deps):
+        """
+        Return all dependencies which will be installed.
+
+        NOTE Simplified (naive) implementation will show the list of correctly
+        spelled packages to be installed. For example 'firefox' will be resolved
+        to 'www-client/firefox-25.0.1'...
+
+        TODO ... or maybe version part must be stripped?
+        """
+        import paludis
+
+        logger.info('[paludis] Resolving ebuild dependencies ...')
+
+        env = paludis.EnvironmentFactory.instance.create('')
+        fltr = paludis.Filter.And(paludis.Filter.SupportsInstallAction(), paludis.Filter.NotMasked())
+        to_install = set()
+        for dep in deps:
+            ds = paludis.parse_user_package_dep_spec(dep, env, paludis.UserPackageDepSpecOptions())
+            gen = paludis.Generator.Matches(ds,paludis.MatchPackageOptions())
+            fg = paludis.FilteredGenerator(gen, fltr)
+            s = paludis.Selection.BestVersionOnly(fg)
+            _to_install = set()
+            for pkg in env[s]:
+                _to_install.add(str(pkg))
+            if _to_install:
+                to_install += _to_install
+            else:
+                msg = 'Package not found: {pkg}'.format(pkg=dep)
+                raise exceptions.DependencyException(msg)
+
 
         to_install = ', '.join(list(to_install))
         raise exceptions.DependencyException(
@@ -493,7 +613,7 @@ class DependencyInstaller(object):
         else:
             err = 'No working package manager for "{dep_t}" in {mgrs}'.format(dep_t=dep_t,
                                                                               mgrs=mgrs)
-            raise exceptions.PackageManagerOperationalException(err)
+            raise exceptions.NoPackageManagerOperationalException(err)
 
     def _process_dependency(self, dep_t, dep_l):
         """Add dependencies into self.dependencies, possibly also adding system packages
