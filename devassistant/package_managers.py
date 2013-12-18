@@ -490,10 +490,6 @@ class EmergePackageManager(PackageManager):
             "You must install the following packages before run this command: {0}".format(to_install)
           )
 
-    @classmethod
-    def get_distro_dependencies(self, smgr_sc):
-        return ['ebuild']
-
 
 @register_manager
 class PaludisPackageManager(PackageManager):
@@ -571,10 +567,6 @@ class PaludisPackageManager(PackageManager):
         raise exceptions.DependencyException(
             "You must install the following packages before run this command: {0}".format(to_install)
           )
-
-    @classmethod
-    def get_distro_dependencies(self, smgr_sc):
-        return ['ebuild']
 
 
 class DependencyInstaller(object):
