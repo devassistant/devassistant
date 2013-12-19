@@ -392,7 +392,7 @@ class GentooPackageManager:
     PALUDIS = 1
 
     @classmethod
-    def try_get_current_manager(cls):
+    def _try_get_current_manager(cls):
         """ Try to detect a package manager used in a current Gentoo system. """
         if utils.get_distro_name().find('gentoo') == -1:
             return None
@@ -422,6 +422,23 @@ class GentooPackageManager:
         except ImportError:
             pass
 
+    @classmethod
+    def is_current_manager_equals_to(cls, pm):
+        """Returns True if this package manager is usable, False otherwise."""
+        if hasattr(cls, 'works_result'):
+            return cls.works_result
+        is_ok = bool(cls._try_get_current_manager() == pm)
+        setattr(cls, 'works_result', is_ok)
+        return is_ok
+
+    @classmethod
+    def throw_package_list(to_install):
+        assert(isinstance(to_install, list))
+        _list = ', '.join(to_install)
+        raise exceptions.DependencyException(
+            'You must install the following packages before run this command: {0}'.format(_list)
+          )
+
 
 @register_manager
 class EmergePackageManager(PackageManager, GentooPackageManager):
@@ -445,13 +462,7 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
     @classmethod
     def works(cls, *args, **kwargs):
         """Returns True if this package manager is usable, False otherwise."""
-        if hasattr(cls, 'works_result'):
-            return cls.works_result
-        is_ok = bool(cls.try_get_current_manager() == GentooPackageManager.PORTAGE)
-        if is_ok:
-            logger.info('Found package manager: emerge')
-        setattr(cls, 'works_result', is_ok)
-        return is_ok
+        return cls.is_current_manager_equals_to(GentooPackageManager.PORTAGE)
 
     @classmethod
     def is_pkg_installed(cls, pkg):
@@ -480,7 +491,7 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
         """
         import portage
 
-        logger.info('[portage] Resolving ebuild dependencies ...')
+        logger.info('[portage] Resolving dependencies ...')
 
         porttree = portage.db[portage.root]['porttree']
         to_install = set()
@@ -493,10 +504,7 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
                 msg = 'Package not found or spec is invalid: {pkg}'.format(pkg=dep)
                 raise exceptions.DependencyException(msg)
 
-        to_install = ', '.join(list(to_install))
-        raise exceptions.DependencyException(
-            "You must install the following packages before run this command: {0}".format(to_install)
-          )
+        cls.throw_package_list(list(to_install))
 
 
 @register_manager
@@ -519,13 +527,7 @@ class PaludisPackageManager(PackageManager, GentooPackageManager):
     @classmethod
     def works(cls, *args, **kwargs):
         """Returns True if this package manager is usable, False otherwise."""
-        if hasattr(cls, 'works_result'):
-            return cls.works_result
-        is_ok = bool(cls.try_get_current_manager() == GentooPackageManager.PALUDIS)
-        if is_ok:
-            logger.info('Found package manager: paludis')
-        setattr(cls, 'works_result', is_ok)
-        return is_ok
+        return cls.is_current_manager_equals_to(GentooPackageManager.PALUDIS)
 
     @classmethod
     def is_pkg_installed(cls, dep):
@@ -549,16 +551,12 @@ class PaludisPackageManager(PackageManager, GentooPackageManager):
     def resolve(cls, *deps):
         """
         Return all dependencies which will be installed.
-
-        NOTE Simplified (naive) implementation will show the list of correctly
-        spelled packages to be installed. For example 'firefox' will be resolved
-        to 'www-client/firefox-25.0.1'...
-
-        TODO ... or maybe version part must be stripped?
+        Like a portage based implementation it just tries to get
+        the best package available according a given spec.
         """
         import paludis
 
-        logger.info('[paludis] Resolving ebuild dependencies ...')
+        logger.info('[paludis] Resolving dependencies ...')
 
         env = paludis.EnvironmentFactory.instance.create('')
         fltr = paludis.Filter.And(paludis.Filter.SupportsInstallAction(), paludis.Filter.NotMasked())
@@ -577,11 +575,7 @@ class PaludisPackageManager(PackageManager, GentooPackageManager):
                 msg = 'Package not found: {pkg}'.format(pkg=dep)
                 raise exceptions.DependencyException(msg)
 
-
-        to_install = ', '.join(list(to_install))
-        raise exceptions.DependencyException(
-            "You must install the following packages before run this command: {0}".format(to_install)
-          )
+        cls.throw_package_list(list(to_install))
 
 
 class DependencyInstaller(object):
