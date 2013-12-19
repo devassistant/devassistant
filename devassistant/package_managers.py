@@ -432,7 +432,7 @@ class GentooPackageManager:
         return is_ok
 
     @classmethod
-    def throw_package_list(to_install):
+    def throw_package_list(cls, to_install):
         assert(isinstance(to_install, list))
         _list = ', '.join(to_install)
         raise exceptions.DependencyException(
