@@ -384,40 +384,48 @@ class NPMPackageManager(PackageManager):
         return "npm package manager"
 
 
-def _gentoo_get_current_manager():
-    """ Try to detect a package manager used in Gentoo. """
-    if utils.get_distro_name().find('gentoo') == -1:
-        return None
-    if 'PACKAGE_MANAGER' in os.environ:
-        pm = os.environ['PACKAGE_MANAGER']
-        if pm == 'paludis':
-            # Try to import paludis module
-            try:
-                import paludis
-                return 'paludis'
-            except ImportError:
-                # TODO Environment tells that paludis must be used, but
-                # it seems latter was build w/o USE=python...
-                # Need to report an error!!??
-                return None
-        elif pm == 'portage':
-            # Fallback to default: portage
-            pass
-        else:
-            # ATTENTION Some unknown package manager?! Which one?
-            return None
+class GentooPackageManager:
+    """Mix-in class for Gentoo package managers. The only thing it capable to do
+        is to detect current package manager used in a particular Gentoo based system.
+    """
+    PORTAGE = 0
+    PALUDIS = 1
 
-    # Try to import portage module
-    try:
-        import portage
-        return 'portage'
-    except ImportError:
-        pass
+    @classmethod
+    def try_get_current_manager(cls):
+        """ Try to detect a package manager used in a current Gentoo system. """
+        if utils.get_distro_name().find('gentoo') == -1:
+            return None
+        if 'PACKAGE_MANAGER' in os.environ:
+            pm = os.environ['PACKAGE_MANAGER']
+            if pm == 'paludis':
+                # Try to import paludis module
+                try:
+                    import paludis
+                    return GentooPackageManager.PALUDIS
+                except ImportError:
+                    # TODO Environment tells that paludis must be used, but
+                    # it seems latter was build w/o USE=python...
+                    # Need to report an error!!??
+                    return None
+            elif pm == 'portage':
+                # Fallback to default: portage
+                pass
+            else:
+                # ATTENTION Some unknown package manager?! Which one?
+                return None
+
+        # Try to import portage module
+        try:
+            import portage
+            return GentooPackageManager.PORTAGE
+        except ImportError:
+            pass
 
 
 @register_manager
-class EmergePackageManager(PackageManager):
-    """ Package manager class for Gentoo
+class EmergePackageManager(PackageManager, GentooPackageManager):
+    """ Package manager class for Gentoo. It uses `emerge` underneath.
 
         ATTENTION Unfortunately in Gentoo it is not so easy to "just install" required
         dependencies. Partly because before compile anything user may wants to add/remove
@@ -439,7 +447,7 @@ class EmergePackageManager(PackageManager):
         """Returns True if this package manager is usable, False otherwise."""
         if hasattr(cls, 'works_result'):
             return cls.works_result
-        is_ok = bool(_gentoo_get_current_manager() == 'portage')
+        is_ok = bool(cls.try_get_current_manager() == GentooPackageManager.PORTAGE)
         if is_ok:
             logger.info('Found package manager: emerge')
         setattr(cls, 'works_result', is_ok)
@@ -492,8 +500,15 @@ class EmergePackageManager(PackageManager):
 
 
 @register_manager
-class PaludisPackageManager(PackageManager):
-    """ Another package manager class for Gentoo (yep, for paludis ;-) """
+class PaludisPackageManager(PackageManager, GentooPackageManager):
+    """ Another package manager class for Gentoo (yep, for [paludis](http://paludis.exherbo.org/) ;-)
+
+        NOTE Nowadays Paludis has Python2 only API, but Python3 is coming soon (I hope)
+        (upstream bug is here http://paludis.exherbo.org/trac/ticket/1297).
+
+        NOTE Ebuild for paludis w/ Python3 support available here:
+        https://github.com/zaufi/zaufi-overlay/tree/master/sys-apps/paludis
+    """
 
     shortcut = 'ebuild'
 
@@ -506,7 +521,7 @@ class PaludisPackageManager(PackageManager):
         """Returns True if this package manager is usable, False otherwise."""
         if hasattr(cls, 'works_result'):
             return cls.works_result
-        is_ok = bool(_gentoo_get_current_manager() == 'paludis')
+        is_ok = bool(cls.try_get_current_manager() == GentooPackageManager.PALUDIS)
         if is_ok:
             logger.info('Found package manager: paludis')
         setattr(cls, 'works_result', is_ok)
