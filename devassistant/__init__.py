@@ -2,7 +2,7 @@ import signal
 
 from devassistant import package_managers
 
-__version__ = '0.8.0'
+__version__ = '0.9.0.dev1'
 """PEP-396 compliant package version"""
 
 
