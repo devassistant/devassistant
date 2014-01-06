@@ -1,6 +1,5 @@
 import os
 import tarfile
-from . import utils
 
 
 class DapFileError(Exception):
