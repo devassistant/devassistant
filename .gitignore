@@ -9,3 +9,5 @@ build
 sdist
 
 *.sqlite3
+
+__pycache__
