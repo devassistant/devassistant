@@ -24,7 +24,9 @@ class DapInavlid(Exception):
 
 
 class Dap(object):
-    '''Class representing a dap'''
+    '''Class representing a dap
+
+    Everything should be considered read-only. If not, things might blow up.'''
     def __init__(self, dapfile):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid'''
