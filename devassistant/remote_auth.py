@@ -1,4 +1,5 @@
 import getpass
+import glob
 import os
 
 from devassistant import exceptions
@@ -8,6 +9,10 @@ from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.logger import logger
 
 class GitHubAuth(object):
+    """Only use the github_authenticated decorator from the class.
+    The other methods should be consider private; they expect certain order of calling,
+    so calling them ad-hoc may break something.
+    """
     _user = None
     _token = None
     try:
@@ -73,31 +78,50 @@ class GitHubAuth(object):
 
     @classmethod
     def _github_create_ssh_key(cls):
+        """Always (re)creates the key without looking for an old one."""
         try:
             login = cls._user.login
             pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
                                                        keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
-            # create ssh keys here
-            if not os.path.isfile('{pkey_path}.pub'.format(pkey_path=pkey_path)):
-                ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
-                                     -N \"\" -C \"DeveloperAssistant\"'.\
-                                     format(pkey_path=pkey_path))
-                ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
+            # TODO: handle situation where {pkey_path} exists, but it's not registered on GH
+            # generate ssh key
+            ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
+                                 -N \"\" -C \"DevAssistant\"'.\
+                                 format(pkey_path=pkey_path))
+            ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
             public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))
-            # find out if this key is already registered with this user
-            for key in cls._user.get_keys():
-                # don't use "==" because we have comments etc added in public_key
-                if key._key in public_key:
-                    break
-            else:
-                cls._user.create_key("devassistant", public_key)
-            # next, create ~/.ssh/config entry for the key, if system username != GH login
-            cls._github_create_ssh_config_entry()
-        except exceptions.ClException:
-            pass # TODO: determine and log the error
+            cls._user.create_key("devassistant", public_key)
+        except exceptions.ClException as e:
+            msg = 'Couldn\'t create a new ssh key: {e}'.format(e)
+            raise exceptions.CommandException(msg)
 
     @classmethod
-    def _github_create_ssh_config_entry(cls):
+    def _create_ssh_config_entry(cls):
+        # TODO: some duplication with _ssh_key_needs_config_entry, maybe refactor a bit
+        ssh_config = os.path.expanduser('~/.ssh/config')
+        user_github_string = 'github.com-{0}'.format(cls._user.login)
+        fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0o600), 'a')
+        fh.write(settings.GITHUB_SSH_CONFIG.format(
+                 login=cls._user.login,
+                 keyname=settings.GITHUB_SSH_KEYNAME.format(login=cls._user.login)))
+        fh.close()
+
+    @classmethod
+    def _github_ssh_key_exists(cls):
+        remote_keys = map(lambda k: k._key, cls._user.get_keys())
+        found = False
+        pubkey_files = glob.glob(os.path.expanduser('~/.ssh/*.pub'))
+        for rk in remote_keys:
+            for pkf in pubkey_files:
+                local_key = open(pkf).read()
+                # don't use "==" because we have comments etc added in public_key
+                if rk in local_key:
+                    found = True
+                    break
+        return found
+
+    @classmethod
+    def _ssh_key_needs_config_entry(cls):
         if getpass.getuser() != cls._user.login:
             ssh_config = os.path.expanduser('~/.ssh/config')
             user_github_string = 'github.com-{0}'.format(cls._user.login)
@@ -109,12 +133,9 @@ class GitHubAuth(object):
                 if user_github_string in config_content:
                     needs_to_add_config_entry = False
                 fh.close()
-            if needs_to_add_config_entry:
-                fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0o600), 'a')
-                fh.write(settings.GITHUB_SSH_CONFIG.format(
-                            login=cls._user.login,
-                            keyname=settings.GITHUB_SSH_KEYNAME.format(login=cls._user.login)))
-                fh.close()
+            return needs_to_add_config_entry
+        return False
+
 
     @classmethod
     def github_authenticated(cls, func):
@@ -128,8 +149,12 @@ class GitHubAuth(object):
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
                 func_cls._user = cls._get_github_user(kwargs['login'])
-                # create ssh key for pushing
-                cls._github_create_ssh_key()
+                # create an ssh key for pushing if we don't have one
+                if not cls._github_ssh_key_exists():
+                    cls._github_create_ssh_key()
+                # next, create ~/.ssh/config entry for the key, if system username != GH login
+                if cls._ssh_key_needs_config_entry():
+                    cls._create_ssh_config_entry()
             return func(func_cls, *args, **kwargs)
 
         return inner
