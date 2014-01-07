@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 import yaml
 try:
@@ -14,6 +15,11 @@ class DapFileError(Exception):
 
 class DapMetaError(Exception):
     '''Exception that indicates something wrong with dap's metadata'''
+    pass
+
+
+class DapInavlid(Exception):
+    '''Exception that indicates invalid dap'''
     pass
 
 
@@ -55,3 +61,20 @@ class Dap(object):
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
         self.meta = yaml.load(meta.read(), Loader=Loader)
+
+    def _report_problem(self, problem, output, raises):
+        '''Report a given problem'''
+        if raises:
+            raise DapInvalid(problem)
+        if output:
+            output.write(problem)
+
+    def check(self, network=True, output=sys.stderr, raises=False):
+        '''Checks if the dap is valid, reports problems
+
+        Parameters:
+            network -- weather to run checks that requires network connection
+            output -- where to write() problems, might be None
+            raises -- weather to raise an exception immediately after
+                      problem is detected'''
+        o, r = output, raises  # shortcut
