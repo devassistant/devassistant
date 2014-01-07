@@ -26,6 +26,6 @@ class TestDap(object):
     def test_meta_contents(self):
         '''Data from meta.yaml should be in _meta dict'''
         dap = Dap('test/meta_only.dap')
-        assert dap._meta['package_name'] == 'foo'
-        assert dap._meta['version'] == '1.0.0'
-        assert u'Hrončok' in dap._meta['authors'][0]
+        assert dap.meta['package_name'] == 'foo'
+        assert dap.meta['version'] == '1.0.0'
+        assert u'Hrončok' in dap.meta['authors'][0]

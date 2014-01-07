@@ -54,4 +54,4 @@ class Dap(object):
 
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
-        self._meta = yaml.load(meta.read(), Loader=Loader)
+        self.meta = yaml.load(meta.read(), Loader=Loader)
