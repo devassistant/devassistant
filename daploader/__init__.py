@@ -73,6 +73,14 @@ class Dap(object):
         if self._check_output:
             self._check_output.write(self.basename + ': ' + problem + '\n')
 
+    def _valid_name(self, name):
+        '''TODO: Check if the name is valid'''
+        return True
+
+    def _valid_version(self, version):
+        '''TODO: Check if the version is valid'''
+        return True
+
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
 
@@ -84,6 +92,19 @@ class Dap(object):
         self._check_output = output
         self._check_raises = raises
         problem = self._report_problem
+
+        # Check for required metadata first
+        try:
+            if not self._valid_name(self.meta['package_name']):
+                problem(self.meta['package_name'] + ' is not a valid name')
+        except KeyError:
+            problem('Package name is not defined (FATAL)')
+
+        try:
+            if not self._valid_version(self.meta['version']):
+                problem(self.meta['version'] + ' is not a valid version')
+        except KeyError:
+            problem('Version is not defined')
 
         # Everything should be in name-version directory
         dirname = os.path.dirname(self._meta_location)
