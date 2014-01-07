@@ -18,7 +18,7 @@ class DapMetaError(Exception):
     pass
 
 
-class DapInavlid(Exception):
+class DapInvalid(Exception):
     '''Exception that indicates invalid dap'''
     pass
 
@@ -50,7 +50,8 @@ class Dap(object):
         if len(metas) > 1:
             raise DapMetaError('Multiple meta.yaml files found in %s (%s)'
                                % (self.basename, ', '.join(metas)))
-        self._load_meta(self._get_file(metas.pop()))
+        self._meta_location = metas.pop()
+        self._load_meta(self._get_file(self._meta_location))
 
     def _get_file(self, path):
         '''Extracts a file from dap to a file-like object'''
@@ -65,12 +66,12 @@ class Dap(object):
         '''Load data from meta.yaml to a dictionary'''
         self.meta = yaml.load(meta.read(), Loader=Loader)
 
-    def _report_problem(self, problem, output, raises):
+    def _report_problem(self, problem):
         '''Report a given problem'''
-        if raises:
+        if self._check_raises:
             raise DapInvalid(problem)
-        if output:
-            output.write(problem)
+        if self._check_output:
+            self._check_output.write(self.basename + ': ' + problem + '\n')
 
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
@@ -80,4 +81,14 @@ class Dap(object):
             output -- where to write() problems, might be None
             raises -- weather to raise an exception immediately after
                       problem is detected'''
-        o, r = output, raises  # shortcut
+        self._check_output = output
+        self._check_raises = raises
+        problem = self._report_problem
+
+        # Everything should be in name-version directory
+        dirname = os.path.dirname(self._meta_location)
+        if not dirname:
+            problem('mata.yaml is not in top-level directory')
+
+        del self._check_output
+        del self._check_raises
