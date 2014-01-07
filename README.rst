@@ -20,7 +20,7 @@ Structure
 
   * assistants/
 
-    * {crt,mod,prep,tast}/
+    * {crt,mod,prep,task}/
 
       * <package_name>.yaml and optionally <package_name>/*.yaml
 
