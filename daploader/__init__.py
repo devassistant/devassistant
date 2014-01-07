@@ -2,10 +2,27 @@ import os
 import sys
 import tarfile
 import yaml
+import re
 try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
+
+
+_required_meta = set('package_name version license authors summary'.split())
+_optional_meta = set('homepage bugreports description'.split())
+_array_meta = set('authors'.split())
+_meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*'
+                                          r'[a-z0-9]|[a-z])$'),
+               'version':      re.compile(r'^([0-9]|[1-9][0-9]*)'
+                                          r'(\.([0-9]|[1-9][0-9]*))*'
+                                          r'(dev|a|b)?$'),
+               'license':      re.compile(r'^.*$'),  # TODO
+               'summary':      re.compile(r'^.*$'),  # TODO
+               'homepage':     re.compile(r'^.*$'),  # TODO
+               'bugreports':   re.compile(r'^.*$'),  # TODO
+               'description':  re.compile(r'^.*$'),  # TODO
+               'authors':      re.compile(r'^.*$')}  # TODO
 
 
 class DapFileError(Exception):
@@ -27,9 +44,16 @@ class Dap(object):
     '''Class representing a dap
 
     Everything should be considered read-only. If not, things might blow up.'''
-    def __init__(self, dapfile):
+    def __init__(self, dapfile, fake=False):
         '''Constructor, takes dap file location as argument.
-        Loads the dap if at least somehow valid'''
+        Loads the dap if at least somehow valid.
+        If fake is True, it fill not open any files, but creates a fake dap'''
+        if fake:
+            self.basename = 'fake.dap'
+            self.files = []
+            self.meta = {}
+            return
+
         self.basename = os.path.basename(dapfile)
         try:
             self._tar = tarfile.open(dapfile, mode='r:gz')
@@ -73,13 +97,13 @@ class Dap(object):
         if self._check_output:
             self._check_output.write(self.basename + ': ' + problem + '\n')
 
-    def _valid_name(self, name):
-        '''TODO: Check if the name is valid'''
-        return True
-
-    def _valid_version(self, version):
-        '''TODO: Check if the version is valid'''
-        return True
+    def _isvalid(self, datatype, optional=False):
+        '''Checks if the given datatype is valid in meta'''
+        try:
+            return bool(_meta_valid[datatype].match(self.meta[datatype]))
+        except KeyError:
+            self.meta[datatype] = ''
+            return optional
 
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
@@ -94,17 +118,9 @@ class Dap(object):
         problem = self._report_problem
 
         # Check for required metadata first
-        try:
-            if not self._valid_name(self.meta['package_name']):
-                problem(self.meta['package_name'] + ' is not a valid name')
-        except KeyError:
-            problem('Package name is not defined (FATAL)')
-
-        try:
-            if not self._valid_version(self.meta['version']):
-                problem(self.meta['version'] + ' is not a valid version')
-        except KeyError:
-            problem('Version is not defined')
+        for datatype in _required_meta - _array_meta:
+            if not self._isvalid(datatype):
+                problem(datatype + ' is not valid')
 
         # Everything should be in name-version directory
         dirname = os.path.dirname(self._meta_location)
