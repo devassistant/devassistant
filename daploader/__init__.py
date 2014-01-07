@@ -28,12 +28,12 @@ class Dap(object):
     def __init__(self, dapfile):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid'''
-        self._dap_basename = os.path.basename(dapfile)
+        self.basename = os.path.basename(dapfile)
         try:
             self._tar = tarfile.open(dapfile, mode='r:gz')
         except tarfile.ReadError as e:
             raise DapFileError('%s is not a tar.gz archive'
-                               % self._dap_basename)
+                               % self.basename)
         except IOError as e:
             raise DapFileError(e)
         metas = set()
@@ -43,10 +43,10 @@ class Dap(object):
                 metas.add(member.name)
         if not metas:
             raise DapMetaError('Could not find any meta.yaml in %s'
-                               % self._dap_basename)
+                               % self.basename)
         if len(metas) > 1:
             raise DapMetaError('Multiple meta.yaml files found in %s (%s)'
-                               % (self._dap_basename, ', '.join(metas)))
+                               % (self.basename, ', '.join(metas)))
         self._load_meta(self._get_file(metas.pop()))
 
     def _get_file(self, path):
@@ -56,7 +56,7 @@ class Dap(object):
             return extracted
         raise DapFileError('Could not read %s from %s, maybe it\'s a '
                            'directory, bad link or the dap file is corrupted'
-                           % (path, self._dap_basename))
+                           % (path, self.basename))
 
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
