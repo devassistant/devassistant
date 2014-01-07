@@ -12,17 +12,14 @@ except:
 _required_meta = set('package_name version license authors summary'.split())
 _optional_meta = set('homepage bugreports description'.split())
 _array_meta = set('authors'.split())
-_meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*'
-                                          r'[a-z0-9]|[a-z])$'),
-               'version':      re.compile(r'^([0-9]|[1-9][0-9]*)'
-                                          r'(\.([0-9]|[1-9][0-9]*))*'
-                                          r'(dev|a|b)?$'),
-               'license':      re.compile(r'^.*$'),  # TODO
-               'summary':      re.compile(r'^.*$'),  # TODO
-               'homepage':     re.compile(r'^.*$'),  # TODO
-               'bugreports':   re.compile(r'^.*$'),  # TODO
-               'description':  re.compile(r'^.*$'),  # TODO
-               'authors':      re.compile(r'^.*$')}  # TODO
+_meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
+               'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
+               'license': re.compile(r'^.*$'),      # TODO
+               'summary': re.compile(r'^.*$'),      # TODO
+               'homepage': re.compile(r'^.*$'),     # TODO
+               'bugreports': re.compile(r'^.*$'),   # TODO
+               'description': re.compile(r'^.*$'),  # TODO
+               'authors': re.compile(r'^.*$')}      # TODO
 
 
 class DapFileError(Exception):
@@ -58,22 +55,18 @@ class Dap(object):
         try:
             self._tar = tarfile.open(dapfile, mode='r:gz')
         except tarfile.ReadError as e:
-            raise DapFileError('%s is not a tar.gz archive'
-                               % self.basename)
+            raise DapFileError('%s is not a tar.gz archive' % self.basename)
         except IOError as e:
             raise DapFileError(e)
         metas = set()
         self.files = self._tar.getnames()
         for f in self.files:
-            if os.path.basename(f) == 'meta.yaml' \
-               and os.path.dirname(f).count('/') == 0:
+            if os.path.basename(f) == 'meta.yaml' and os.path.dirname(f).count('/') == 0:
                 metas.add(f)
         if not metas:
-            raise DapMetaError('Could not find any meta.yaml in %s'
-                               % self.basename)
+            raise DapMetaError('Could not find any meta.yaml in %s' % self.basename)
         if len(metas) > 1:
-            raise DapMetaError('Multiple meta.yaml files found in %s (%s)'
-                               % (self.basename, ', '.join(metas)))
+            raise DapMetaError('Multiple meta.yaml files found in %s (%s)' % (self.basename, ', '.join(metas)))
         self._meta_location = metas.pop()
         self._load_meta(self._get_file(self._meta_location))
 
@@ -82,9 +75,7 @@ class Dap(object):
         extracted = self._tar.extractfile(path)
         if extracted:
             return extracted
-        raise DapFileError('Could not read %s from %s, maybe it\'s a '
-                           'directory, bad link or the dap file is corrupted'
-                           % (path, self.basename))
+        raise DapFileError('Could not read %s from %s, maybe it\'s a directory, bad link or the dap file is corrupted' % (path, self.basename))
 
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
@@ -111,8 +102,7 @@ class Dap(object):
         Parameters:
             network -- weather to run checks that requires network connection
             output -- where to write() problems, might be None
-            raises -- weather to raise an exception immediately after
-                      problem is detected'''
+            raises -- weather to raise an exception immediately after problem is detected'''
         self._check_output = output
         self._check_raises = raises
         problem = self._report_problem

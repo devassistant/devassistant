@@ -10,9 +10,7 @@ setup(
     name='daploader',
     version='0.0.1',
     description='Dap archives loader and checker',
-    long_description='Module that loads a dap file, check it for '
-                     'sanity/validity and provide access for metadata via'
-                     'a class.',
+    long_description='Module that loads a dap file, check it for  sanity/validity and provide access for metadata via a class.',
     keywords='devassiatnt, lint, dap',
     author='Miro Hrončok',
     author_email='miro@hroncok.cz',
@@ -21,8 +19,7 @@ setup(
     install_requires=['PyYAML'],
     classifiers=['Development Status :: 3 - Alpha',
                  'Intended Audience :: Developers',
-                 'License :: OSI Approved :: '
-                 'GNU General Public License v2 or later (GPLv2+)',
+                 'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
                  'Operating System :: POSIX :: Linux',
                  'Programming Language :: Python',
                  'Programming Language :: Python :: 2',

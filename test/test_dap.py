@@ -34,7 +34,7 @@ class TestDap(object):
         '''Dap should have correct content in meta, basename and files'''
         name = 'meta_only'
         basename = name + '.dap'
-        dap = Dap('test/'+basename)
+        dap = Dap('test/' + basename)
         assert dap.meta['package_name'] == 'foo'
         assert dap.meta['version'] == '1.0.0'
         assert u'Hrončok' in dap.meta['authors'][0]
