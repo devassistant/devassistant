@@ -45,4 +45,5 @@ class TestDap(object):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
         Dap('test/no_toplevel.dap').check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
