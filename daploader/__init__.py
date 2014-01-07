@@ -37,10 +37,11 @@ class Dap(object):
         except IOError as e:
             raise DapFileError(e)
         metas = set()
-        for member in self._tar.getmembers():
-            if os.path.basename(member.name) == 'meta.yaml' \
-               and os.path.dirname(member.name).count('/') == 0:
-                metas.add(member.name)
+        self.files = self._tar.getnames()
+        for f in self.files:
+            if os.path.basename(f) == 'meta.yaml' \
+               and os.path.dirname(f).count('/') == 0:
+                metas.add(f)
         if not metas:
             raise DapMetaError('Could not find any meta.yaml in %s'
                                % self.basename)
