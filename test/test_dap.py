@@ -23,8 +23,8 @@ class TestDap(object):
         with pytest.raises(DapMetaError):
             Dap('test/no_meta.dap')
 
-    def test_file_contents(self):
-        '''Data from meta should be in _meta dict'''
+    def test_meta_contents(self):
+        '''Data from meta.yaml should be in _meta dict'''
         dap = Dap('test/meta_only.dap')
         assert dap._meta['package_name'] == 'foo'
         assert dap._meta['version'] == '1.0.0'
