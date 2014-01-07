@@ -19,14 +19,14 @@ class Dap(object):
         Loads the dap if at least somehow valid'''
         self._dap_basename = os.path.basename(dapfile)
         try:
-            tar = tarfile.open(dapfile, mode='r:gz')
+            self._tar = tarfile.open(dapfile, mode='r:gz')
         except tarfile.ReadError as e:
             raise DapFileError('%s is not a tar.gz archive'
                                % self._dap_basename)
         except IOError as e:
             raise DapFileError(e)
         metas = set()
-        for member in tar.getmembers():
+        for member in self._tar.getmembers():
             if os.path.basename(member.name) == 'meta.yaml' \
                and os.path.dirname(member.name).count('/') == 0:
                 metas.add(member.name)
