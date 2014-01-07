@@ -16,33 +16,33 @@ http://devassistant.org
 Structure
 ~~~~~~~~~
 
-foo is the dap name:
+* <package_name>-<version>/
 
-* /assistants
+  * assistants/
 
-  * {/crt,/mod,/prep,/tast}
+    * {crt,mod,prep,tast}/
 
-    * /foo.yaml and optionally /foo/*.yaml
+      * <package_name>.yaml and optionally <package_name>/*.yaml
 
-* /icons
+  * icons/
 
-  * /foo.{svg,png...}
+    * <package_name>.{svg,png...}
 
-* /snippets
+  * snippets/
 
-  * /foo.yaml and optionally /foo/*.yaml
+    * <package_name>.yaml and optionally <package_name>/*.yaml
 
-* /doc
+  * doc/
 
-  * /foo
+    * <package_name>/
 
-    * LICENSE or COPYING file
-    * README
-    * other documentation
+      * LICENSE or COPYING file
+      * README
+      * other documentation
 
-* meta.yaml
+  * meta.yaml
 
-  * metadata
+    * metadata
 
 Basically only meta.yaml is mandatory, but a dap with meta.yaml only makes no sense. All content is wrapped in tar.gz archive and renamed to <package_name>-<version>.dap. The archive should contain one top level directory named <package_name>-<version>.
 
