@@ -89,6 +89,7 @@ class Dap(object):
 
     def _report_problem(self, problem):
         '''Report a given problem'''
+        self._problematic = True
         if self._check_raises:
             raise DapInvalid(problem)
         if self._check_output:
@@ -111,6 +112,7 @@ class Dap(object):
             raises -- weather to raise an exception immediately after problem is detected'''
         self._check_output = output
         self._check_raises = raises
+        self._problematic = False
         problem = self._report_problem
 
         # Check for non array-like metadata
@@ -125,3 +127,4 @@ class Dap(object):
 
         del self._check_output
         del self._check_raises
+        return self._problematic
