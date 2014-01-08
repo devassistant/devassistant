@@ -12,14 +12,18 @@ except:
 _required_meta = set('package_name version license authors summary'.split())
 _optional_meta = set('homepage bugreports description'.split())
 _array_meta = set('authors'.split())
+
+_url_regexp = re.compile(r'^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*'
+                         r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))'
+                         r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*$')
+_email_regexp = re.compile(r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})')
+
 _meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
                'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
                'license': re.compile(r'^.*$'),      # TODO
                'summary': re.compile(r'^.*$'),      # TODO
-               'homepage': re.compile(r'^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*'
-                                      r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))'
-                                      r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*$'),
-               'bugreports': re.compile(r'^.*$'),   # TODO
+               'homepage': _url_regexp,
+               'bugreports': re.compile(r'^(' + _email_regexp.pattern + '|' + _url_regexp.pattern + ')$'),
                'description': re.compile(r'^.*$'),  # TODO
                'authors': re.compile(r'^.*$')}      # TODO
 

@@ -97,3 +97,27 @@ class TestDap(object):
         for url in urls:
             d.meta['homepage'] = url
             assert not d._isvalid('homepage')
+
+    def test_valid_bugreports(self):
+        '''Test if valid URLs or e-mails are valid'''
+        d = Dap('', fake=True)
+        bugs = ['http://g.com/',
+                'miro@hroncok.cz',
+                '?ouch@devassiatnt.org',
+                'par_at_no.id',
+                'par_at_n@o.id']
+        for bug in bugs:
+            d.meta['bugreports'] = bug
+            assert d._isvalid('bugreports')
+
+    def test_invalid_bugreports(self):
+        '''Test if invalid URLs or e-mails are invalid'''
+        d = Dap('', fake=True)
+        bugs = ['httpr://g.com/',
+                'miro@h@roncok.cz',
+                '?ouchdevassiatnt.org',
+                'par_at_no.iduss',
+                '@o.id']
+        for bug in bugs:
+            d.meta['bugreports'] = bug
+            assert not d._isvalid('bugreports')
