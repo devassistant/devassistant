@@ -112,8 +112,11 @@ class Dap(object):
         except KeyError:
             self.meta[datatype] = []
             return datatype in Dap._optional_meta
-        if not self.meta[datatype] or len(set(self.meta[datatype])) != len(self.meta[datatype]):
+        if not self.meta[datatype]:
             return False, []
+        duplicates = list(set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1]))
+        if duplicates:
+            return False, duplicates
         ret = []
         for item in self.meta[datatype]:
             if not Dap._meta_valid[datatype].match(item):
@@ -142,10 +145,10 @@ class Dap(object):
             ok, bads = self._arevalid(datatype)
             if not ok:
                 if not bad:
-                    problem(datatype + ' is not a valid non-empty list without duplicates')
+                    problem(datatype + ' is not a valid non-empty list')
                 else:
                     for bad in bads:
-                        problem(bad + ' in ' + datatype + ' is not valid')
+                        problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
 
         # Everything should be in name-version directory
         dirname = os.path.dirname(self._meta_location)

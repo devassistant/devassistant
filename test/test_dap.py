@@ -198,8 +198,9 @@ class TestDap(object):
         '''Test if duplicate valid authors are invalid'''
         d = Dap('', fake=True)
         d.meta['authors'] = ['A', 'B', 'A']
-        ok, null = d._arevalid('authors')
+        ok, bads = d._arevalid('authors')
         assert not ok
+        assert bads == ['A']
 
     def test_empty_authors(self):
         '''Test if empty authors list is invalid'''
