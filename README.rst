@@ -70,7 +70,7 @@ meta.yaml
 
 * **authors** is a list of authors with their e-mail addresses (_at_ can be used instead of @)
 
-* **homepage** is an URL to existing webpage that describes the dap or contains the code (such as in example)
+* **homepage** is an URL to existing webpage that describes the dap or contains the code (such as in example), only http(s) or ftp is allowed, no IP addresses
 
 * **summary** and **description** are self-descriptive in the given example
 

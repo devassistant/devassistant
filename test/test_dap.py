@@ -75,3 +75,25 @@ class TestDap(object):
         for version in '00 01 0.00.0 01.0 1c .1 1-2 h č . 1..0 1.0.'.split():
             d.meta['version'] = version
             assert not d._isvalid('version')
+
+    def test_valid_urls(self):
+        '''Test if valid URLs are valid'''
+        d = Dap('', fake=True)
+        urls = ['http://g.com/aa?ff=g&g#f',
+                'ftp://g.aa/',
+                'http://user:password@fee.com',
+                'https://f.f.f.f.f.sk/cgi-bin/?f=Program%20Files']
+        for url in urls:
+            d.meta['homepage'] = url
+            assert d._isvalid('homepage')
+
+    def test_invalid_urls(self):
+        '''Test if invalid URLs are invalid'''
+        d = Dap('', fake=True)
+        urls = ['g.com/a',
+                'mailto:foo@bar.com',
+                'ftp://192.168.1.1/?a',
+                'https://localhost/']
+        for url in urls:
+            d.meta['homepage'] = url
+            assert not d._isvalid('homepage')
