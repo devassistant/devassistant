@@ -114,9 +114,9 @@ class Dap(object):
             return datatype in Dap._optional_meta
         if not self.meta[datatype]:
             return False, []
-        duplicates = list(set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1]))
+        duplicates = set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1])
         if duplicates:
-            return False, duplicates
+            return False, list(duplicates)
         ret = []
         for item in self.meta[datatype]:
             if not Dap._meta_valid[datatype].match(item):
