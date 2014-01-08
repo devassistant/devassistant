@@ -139,3 +139,24 @@ class TestDap(object):
         d = Dap('', fake=True)
         for item in 'package_name version license authors summary'.split():
             assert not d._isvalid(item)
+
+    def test_valid_licenses(self):
+        '''Test if valid licenses are valid'''
+        d = Dap('', fake=True)
+        licenses = ['AGPLv3 with exceptions',
+                    'GPL+ or Artistic',
+                    'LGPLv2+ and LGPLv2 and LGPLv3+ and (GPLv3 or LGPLv2) and (GPLv3+ or LGPLv2) and (CC-BY-SA or LGPLv2+) and (CC-BY-SA or LGPLv2) and CC-BY and BSD and MIT and Public Domain']
+        for license in licenses:
+            d.meta['license'] = license
+            assert d._isvalid('license')
+
+    def test_invalid_licenses(self):
+        '''Test if invalid licenses are invalid'''
+        d = Dap('', fake=True)
+        licenses = ['Redistributable',
+                    'GPLv4',
+                    'LGPLv2+ and (LGPLv2',
+                    'GNU GPL']
+        for license in licenses:
+            d.meta['license'] = license
+            assert not d._isvalid('license')
