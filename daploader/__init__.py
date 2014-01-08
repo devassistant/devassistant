@@ -151,6 +151,13 @@ class Dap(object):
         dirname = os.path.dirname(self._meta_location)
         if not dirname:
             problem('mata.yaml is not in top-level directory')
+        if self.meta['package_name'] and self.meta['version']:
+            desired_dirname = self.meta['package_name'] + '-' + self.meta['version']
+            desired_filename = desired_dirname + '.dap'
+            if dirname and dirname != desired_dirname:
+                problem('Top-level directory with meta.yaml is not named ' + desired_dirname)
+            if self.basename != desired_filename:
+                problem('The dap filename is not ' + desired_filename)
 
         del self._check_output
         del self._check_raises

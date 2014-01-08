@@ -33,19 +33,17 @@ class TestDap(object):
 
     def test_dap_data(self):
         '''Dap should have correct content in meta, basename and files'''
-        name = 'meta_only'
-        basename = name + '.dap'
-        dap = Dap('test/' + basename)
+        dap = Dap('test/meta_only/foo-1.0.0.dap')
         assert dap.meta['package_name'] == 'foo'
         assert dap.meta['version'] == '1.0.0'
         assert u'Hrončok' in dap.meta['authors'][0]
-        assert dap.basename == basename
-        assert dap.files == [name, name + '/meta.yaml']
+        assert dap.basename == 'foo-1.0.0.dap'
+        assert dap.files == ['foo-1.0.0', 'foo-1.0.0/meta.yaml']
 
     def test_no_toplevel(self):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
-        Dap('test/no_toplevel.dap').check(output=out)
+        Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
@@ -212,5 +210,5 @@ class TestDap(object):
 
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test'''
-        dap = Dap('test/meta_only.dap')
-        assert dap.check(raises=True)
+        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        assert dap.check()
