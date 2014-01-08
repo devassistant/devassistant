@@ -46,7 +46,7 @@ class Dap(object):
                    'homepage': re.compile(_url_pattern),
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
-                   'authors': re.compile(r'^.*$')}      # TODO
+                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE)}
 
     def __init__(self, dapfile, fake=False):
         '''Constructor, takes dap file location as argument.
@@ -104,6 +104,22 @@ class Dap(object):
             self.meta[datatype] = ''
             return datatype in Dap._optional_meta
 
+    def _arevalid(self, datatype):
+        '''Checks if the given datatype is valid in meta (for array-like types)'''
+        try:
+            if not isinstance(self.meta[datatype], list):
+                return False, []
+        except KeyError:
+            self.meta[datatype] = []
+            return datatype in Dap._optional_meta
+        if not self.meta[datatype] or len(set(self.meta[datatype])) != len(self.meta[datatype]):
+            return False, []
+        ret = []
+        for item in self.meta[datatype]:
+            if not Dap._meta_valid[datatype].match(item):
+                ret.append(item)
+        return not bool(ret), ret
+
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
 
@@ -120,6 +136,16 @@ class Dap(object):
         for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
             if not self._isvalid(datatype):
                 problem(datatype + ' is not valid')
+
+        # Check for the array-like metadata
+        for datatype in Dap._array_meta:
+            ok, bads = self._arevalid(datatype)
+            if not ok:
+                if not bad:
+                    problem(datatype + ' is not a valid non-empty list without duplicites')
+                else:
+                    for bad in bads:
+                        problem(bad + ' in ' + datatype + ' is not valid')
 
         # Everything should be in name-version directory
         dirname = os.path.dirname(self._meta_location)

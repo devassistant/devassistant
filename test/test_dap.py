@@ -2,6 +2,7 @@
 import pytest
 import sys
 import os
+import itertools
 try:
     from cStringIO import StringIO
 except:
@@ -160,3 +161,51 @@ class TestDap(object):
         for license in licenses:
             d.meta['license'] = license
             assert not d._isvalid('license')
+
+    def test_valid_authors(self):
+        '''Test if valid authors are valid'''
+        d = Dap('', fake=True)
+        pool = [u'Miro Hrončok <miro@hroncok.cz>',
+                u'Miro Hrončok <miro_at_hroncok.cz>',
+                u'Miro Hrončok',
+                u'Dr. Voštěp',
+                u'Никола I Петровић-Његош']
+        for r in range(1, len(pool) + 1):
+            for authors in itertools.combinations(pool, r):
+                d.meta['authors'] = list(authors)
+                ok, bads = d._arevalid('authors')
+                assert ok
+                assert not bads
+
+    def test_invalid_authors(self):
+        '''Test if invalid authors are invalid'''
+        d = Dap('', fake=True)
+        pool = [u'Miro Hrončok ',
+                ' ',
+                u' Miro Hrončok',
+                u'Miro Hrončok miro@hroncok.cz',
+                u'Miro Hrončok <miro@hr@oncok.cz>',
+                '']
+        for r in range(1, len(pool) + 1):
+            for authors in itertools.combinations(pool, r):
+                d.meta['authors'] = list(authors)
+                ok, bads = d._arevalid('authors')
+                assert not ok
+                assert bads == list(authors)
+        d.meta['authors'] = ['OK2 <ok@ok.ok>'] + pool + ['OK <ok@ok.ok>']
+        ok, bads = d._arevalid('authors')
+        assert bads == pool
+
+    def test_duplicate_authors(self):
+        '''Test if duplicate valid authors are invalid'''
+        d = Dap('', fake=True)
+        d.meta['authors'] = ['A', 'B', 'A']
+        ok, null = d._arevalid('authors')
+        assert not ok
+
+    def test_empty_authors(self):
+        '''Test if empty authors list is invalid'''
+        d = Dap('', fake=True)
+        d.meta['authors'] = []
+        ok, null = d._arevalid('authors')
+        assert not ok
