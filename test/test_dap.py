@@ -121,3 +121,15 @@ class TestDap(object):
         for bug in bugs:
             d.meta['bugreports'] = bug
             assert not d._isvalid('bugreports')
+
+    def test_valid_summary(self):
+        '''Test if valid summary is valid'''
+        d = Dap('', fake=True)
+        d.meta['summary'] = 'foo'
+        assert d._isvalid('summary')
+
+    def test_invalid_summary(self):
+        '''Test if invalid summary is invalid'''
+        d = Dap('', fake=True)
+        d.meta['summary'] = 'foo\nbar'
+        assert not d._isvalid('summary')

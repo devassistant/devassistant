@@ -7,7 +7,7 @@ try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
-
+from . import matchers
 
 _required_meta = set('package_name version license authors summary'.split())
 _optional_meta = set('homepage bugreports description'.split())
@@ -21,10 +21,10 @@ _email_regexp = re.compile(r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(mu
 _meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
                'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
                'license': re.compile(r'^.*$'),      # TODO
-               'summary': re.compile(r'^.*$'),      # TODO
+               'summary': re.compile(r'^[^\n]+$'),
                'homepage': _url_regexp,
                'bugreports': re.compile(r'^(' + _email_regexp.pattern + '|' + _url_regexp.pattern + ')$'),
-               'description': re.compile(r'^.*$'),  # TODO
+               'description': matchers.NoCheck(),
                'authors': re.compile(r'^.*$')}      # TODO
 
 
