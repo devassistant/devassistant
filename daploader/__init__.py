@@ -142,7 +142,7 @@ class Dap(object):
             ok, bads = self._arevalid(datatype)
             if not ok:
                 if not bad:
-                    problem(datatype + ' is not a valid non-empty list without duplicites')
+                    problem(datatype + ' is not a valid non-empty list without duplicates')
                 else:
                     for bad in bads:
                         problem(bad + ' in ' + datatype + ' is not valid')
