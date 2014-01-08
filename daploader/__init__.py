@@ -138,7 +138,7 @@ class Dap(object):
         # Check for non array-like metadata
         for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
             if not self._isvalid(datatype):
-                problem(datatype + ' is not valid')
+                problem(datatype + ' is not valid (or required and unspecified)')
 
         # Check for the array-like metadata
         for datatype in Dap._array_meta:
