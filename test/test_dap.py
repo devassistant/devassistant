@@ -43,7 +43,7 @@ class TestDap(object):
     def test_no_toplevel(self):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
-        Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out)
+        assert not Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
@@ -217,7 +217,7 @@ class TestDap(object):
     def test_forgotten_version_in_filename_and_dir(self):
         '''Dap without version in filename and dirname should produce 2 errors'''
         out = StringIO()
-        Dap('test/meta_only/foo.dap').check(output=out)
+        assert not Dap('test/meta_only/foo.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 2
         assert 'Top-level directory with meta.yaml is not named foo-1.0.0' in out.getvalue()
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
@@ -225,6 +225,6 @@ class TestDap(object):
     def test_wrong_dap_filename(self):
         '''Dap with OK dirname, but wrong filename should produce 1 error'''
         out = StringIO()
-        Dap('test/meta_only/bar.dap').check(output=out)
+        assert not Dap('test/meta_only/bar.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
