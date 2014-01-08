@@ -133,3 +133,9 @@ class TestDap(object):
         d = Dap('', fake=True)
         d.meta['summary'] = 'foo\nbar'
         assert not d._isvalid('summary')
+
+    def test_empty_required(self):
+        '''Required metadata should fail when undefined'''
+        d = Dap('', fake=True)
+        for item in 'package_name version license authors summary'.split():
+            assert not d._isvalid(item)
