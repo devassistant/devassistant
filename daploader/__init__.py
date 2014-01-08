@@ -94,13 +94,13 @@ class Dap(object):
         if self._check_output:
             self._check_output.write(self.basename + ': ' + problem + '\n')
 
-    def _isvalid(self, datatype, optional=False):
+    def _isvalid(self, datatype):
         '''Checks if the given datatype is valid in meta'''
         try:
             return bool(_meta_valid[datatype].match(self.meta[datatype]))
         except KeyError:
             self.meta[datatype] = ''
-            return optional
+            return datatype in _optional_meta
 
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
@@ -113,8 +113,8 @@ class Dap(object):
         self._check_raises = raises
         problem = self._report_problem
 
-        # Check for required metadata first
-        for datatype in _required_meta - _array_meta:
+        # Check for non array-like metadata
+        for datatype in (_required_meta | _optional_meta) - _array_meta:
             if not self._isvalid(datatype):
                 problem(datatype + ' is not valid')
 
