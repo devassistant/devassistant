@@ -212,3 +212,18 @@ class TestDap(object):
         '''meta_only.dap should pass the test'''
         dap = Dap('test/meta_only/foo-1.0.0.dap')
         assert dap.check()
+
+    def test_forgotten_version_in_filename_and_dir(self):
+        '''Dap without version in filename and dirname should produce 2 errors'''
+        out = StringIO()
+        Dap('test/meta_only/foo.dap').check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 2
+        assert 'Top-level directory with meta.yaml is not named foo-1.0.0' in out.getvalue()
+        assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
+
+    def test_wrong_dap_filename(self):
+        '''Dap with OK dirname, but wrong filename should produce 1 error'''
+        out = StringIO()
+        Dap('test/meta_only/bar.dap').check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 1
+        assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
