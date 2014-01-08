@@ -154,4 +154,4 @@ class Dap(object):
 
         del self._check_output
         del self._check_raises
-        return self._problematic
+        return not self._problematic

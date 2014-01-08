@@ -209,3 +209,8 @@ class TestDap(object):
         d.meta['authors'] = []
         ok, null = d._arevalid('authors')
         assert not ok
+
+    def test_meta_only_check(self):
+        '''meta_only.dap should pass the test'''
+        dap = Dap('test/meta_only.dap')
+        assert dap.check(raises=True)
