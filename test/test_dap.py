@@ -228,3 +228,10 @@ class TestDap(object):
         assert not Dap('test/meta_only/bar.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
+
+    def test_files_outside_of_toplevel_dir(self):
+        '''Dap with files outside of top-level directory should produce error for each'''
+        out = StringIO()
+        assert not Dap('test/outside_toplevel/foo-1.0.0.dap').check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 3
+        assert 'is outside' in out.getvalue()
