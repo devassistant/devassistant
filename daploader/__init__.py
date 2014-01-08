@@ -9,24 +9,6 @@ except:
     from yaml import Loader
 from . import licenses
 
-_required_meta = set('package_name version license authors summary'.split())
-_optional_meta = set('homepage bugreports description'.split())
-_array_meta = set('authors'.split())
-
-_url_pattern = r'^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
-               r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
-               r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*$'
-_email_pattern = r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})'
-
-_meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
-               'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
-               'license': licenses,
-               'summary': re.compile(r'^[^\n]+$'),
-               'homepage': re.compile(_url_pattern),
-               'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
-               'description': re.compile(r'.+'),
-               'authors': re.compile(r'^.*$')}      # TODO
-
 
 class DapFileError(Exception):
     '''Exception that indicates something wrong with dap file'''
@@ -47,6 +29,25 @@ class Dap(object):
     '''Class representing a dap
 
     Everything should be considered read-only. If not, things might blow up.'''
+
+    _required_meta = set('package_name version license authors summary'.split())
+    _optional_meta = set('homepage bugreports description'.split())
+    _array_meta = set('authors'.split())
+
+    _url_pattern = r'^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
+                   r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
+                   r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*$'
+    _email_pattern = r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})'
+
+    _meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
+                   'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
+                   'license': licenses,
+                   'summary': re.compile(r'^[^\n]+$'),
+                   'homepage': re.compile(_url_pattern),
+                   'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
+                   'description': re.compile(r'.+'),
+                   'authors': re.compile(r'^.*$')}      # TODO
+
     def __init__(self, dapfile, fake=False):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
@@ -98,10 +99,10 @@ class Dap(object):
     def _isvalid(self, datatype):
         '''Checks if the given datatype is valid in meta'''
         try:
-            return bool(_meta_valid[datatype].match(self.meta[datatype]))
+            return bool(Dap._meta_valid[datatype].match(self.meta[datatype]))
         except KeyError:
             self.meta[datatype] = ''
-            return datatype in _optional_meta
+            return datatype in Dap._optional_meta
 
     def check(self, network=True, output=sys.stderr, raises=False):
         '''Checks if the dap is valid, reports problems
@@ -116,7 +117,7 @@ class Dap(object):
         problem = self._report_problem
 
         # Check for non array-like metadata
-        for datatype in (_required_meta | _optional_meta) - _array_meta:
+        for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
             if not self._isvalid(datatype):
                 problem(datatype + ' is not valid')
 
