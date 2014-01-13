@@ -24,6 +24,12 @@ Structure
 
       * <package_name>.yaml and optionally <package_name>/*.yaml
 
+  * files/
+
+    * <package_name>/
+
+      * additional files need by your assistant(s) (scripts, templates, etc.)
+
   * icons/
 
     * <package_name>.{svg,png...}
