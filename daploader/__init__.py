@@ -3,6 +3,7 @@ import sys
 import tarfile
 import yaml
 import re
+import logging
 try:
     from yaml import CLoader as Loader
 except:
@@ -88,13 +89,12 @@ class Dap(object):
         '''Load data from meta.yaml to a dictionary'''
         self.meta = yaml.load(meta.read(), Loader=Loader)
 
-    def _report_problem(self, problem):
+    def _report_problem(self, problem, level=logging.ERROR):
         '''Report a given problem'''
         self._problematic = True
         if self._check_raises:
             raise DapInvalid(problem)
-        if self._check_output:
-            self._check_output.write(self.basename + ': ' + problem + '\n')
+        self._logger.log(level, '%s %s', self.basename, problem)
 
     def _isvalid(self, datatype):
         '''Checks if the given datatype is valid in meta'''
@@ -123,14 +123,18 @@ class Dap(object):
                 ret.append(item)
         return not bool(ret), ret
 
-    def check(self, network=True, output=sys.stderr, raises=False):
+    def check(self, network=True, raises=False, output=sys.stderr):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
             network -- weather to run checks that requires network connection
             output -- where to write() problems, might be None
             raises -- weather to raise an exception immediately after problem is detected'''
-        self._check_output = output
+        self._logger = logging.getLogger(__name__)
+        handler = logging.StreamHandler(output)
+        handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+        handler.setLevel(logging.INFO)
+        self._logger.addHandler(handler)
         self._check_raises = raises
         self._problematic = False
         problem = self._report_problem
@@ -166,6 +170,5 @@ class Dap(object):
             if self.basename != desired_filename:
                 problem('The dap filename is not ' + desired_filename)
 
-        del self._check_output
         del self._check_raises
         return not self._problematic
