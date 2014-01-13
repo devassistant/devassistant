@@ -94,7 +94,7 @@ class Dap(object):
         self._problematic = True
         if self._check_raises:
             raise DapInvalid(problem)
-        self._logger.log(level, '%s %s', self.basename, problem)
+        self._logger.log(level, problem)
 
     def _isvalid(self, datatype):
         '''Checks if the given datatype is valid in meta'''
@@ -130,9 +130,9 @@ class Dap(object):
             network -- weather to run checks that requires network connection
             output -- where to write() problems, might be None
             raises -- weather to raise an exception immediately after problem is detected'''
-        self._logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(self.basename)
         handler = logging.StreamHandler(output)
-        handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+        handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
         handler.setLevel(logging.INFO)
         self._logger.addHandler(handler)
         self._check_raises = raises
