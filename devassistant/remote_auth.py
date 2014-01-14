@@ -78,7 +78,6 @@ class GitHubAuth(object):
 
     @classmethod
     def _github_create_ssh_key(cls):
-        """Always (re)creates the key without looking for an old one."""
         try:
             login = cls._user.login
             pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
