@@ -124,43 +124,40 @@ class Dap(object):
         return not bool(ret), ret
 
     def _check_meta(self):
-        '''Check the meta.yaml in the dap'''
-        self._init_logger()
-        problem = self._report_problem
+        '''Check the meta.yaml in the dap
+        Only call this from check()'''
         # Check for non array-like metadata
         for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
             if not self._isvalid(datatype):
-                problem(datatype + ' is not valid (or required and unspecified)')
+                self._report_problem(datatype + ' is not valid (or required and unspecified)')
 
         # Check for the array-like metadata
         for datatype in Dap._array_meta:
             ok, bads = self._arevalid(datatype)
             if not ok:
                 if not bad:
-                    problem(datatype + ' is not a valid non-empty list')
+                    self._report_problem(datatype + ' is not a valid non-empty list')
                 else:
                     for bad in bads:
-                        problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
+                        self._report_problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
 
     def _check_topdir(self):
-        '''Check that everything is in correct top-level directory'''
-        self._init_logger()
-        problem = self._report_problem
-        # Everything should be in name-version directory
+        '''Check that everything is in correct top-level directory
+         Only call this from check()'''
         dirname = os.path.dirname(self._meta_location)
         if not dirname:
-            problem('mata.yaml is not in top-level directory')
+            self._report_problem('mata.yaml is not in top-level directory')
         else:
             for path in self.files:
                 if not path.startswith(dirname):
-                    problem(path + ' is outside ' + dirname + 'top-level directory')
+                    self._report_problem(path + ' is outside ' + dirname + 'top-level directory')
         if self.meta['package_name'] and self.meta['version']:
             desired_dirname = self.meta['package_name'] + '-' + self.meta['version']
             desired_filename = desired_dirname + '.dap'
             if dirname and dirname != desired_dirname:
-                problem('Top-level directory with meta.yaml is not named ' + desired_dirname)
+                self._report_problem('Top-level directory with meta.yaml is not named ' + desired_dirname)
             if self.basename != desired_filename:
-                problem('The dap filename is not ' + desired_filename)
+                self._report_problem('The dap filename is not ' + desired_filename)
 
     def _init_logger(self):
         '''Initializes the logger'''
@@ -183,10 +180,12 @@ class Dap(object):
         self._check_raises = raises
         self._check_output = output
         self._problematic = False
+        self._init_logger()
 
         self._check_meta()
         self._check_topdir()
 
         del self._check_raises
         del self._check_output
+        del self._logger
         return not self._problematic
