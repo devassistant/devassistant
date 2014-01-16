@@ -175,7 +175,7 @@ class Dap(object):
             handler.setLevel(logging.INFO)
             self._logger.addHandler(handler)
 
-    def check(self, network=True, raises=False, output=sys.stderr):
+    def check(self, network=False, raises=False, output=sys.stderr):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
