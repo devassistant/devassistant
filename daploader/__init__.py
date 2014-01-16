@@ -141,6 +141,11 @@ class Dap(object):
                     for bad in bads:
                         self._report_problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
 
+        # Check that there is no unknown metadata
+        leftovers = set(self.meta.keys()) - (Dap._required_meta | Dap._optional_meta)
+        if leftovers:
+            self._report_problem('Unknown metadata: ' + str(leftovers))
+
     def _check_topdir(self):
         '''Check that everything is in correct top-level directory
          Only call this from check()'''

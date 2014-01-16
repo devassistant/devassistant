@@ -214,6 +214,16 @@ class TestDap(object):
         dap = Dap('test/meta_only/foo-1.0.0.dap')
         assert dap.check()
 
+    def test_unknown_metadata(self):
+        '''meta_only.dap with added value should fail'''
+        out = StringIO()
+        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        dap.meta['foo'] = 'bar'
+        assert not dap.check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 1
+        assert 'Unknown metadata' in out.getvalue()
+        assert 'foo' in out.getvalue()
+
     def test_forgotten_version_in_filename_and_dir(self):
         '''Dap without version in filename and dirname should produce 2 errors'''
         out = StringIO()
