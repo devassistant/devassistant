@@ -123,22 +123,10 @@ class Dap(object):
                 ret.append(item)
         return not bool(ret), ret
 
-    def check(self, network=True, raises=False, output=sys.stderr):
-        '''Checks if the dap is valid, reports problems
-
-        Parameters:
-            network -- weather to run checks that requires network connection
-            output -- where to write() problems, might be None
-            raises -- weather to raise an exception immediately after problem is detected'''
-        self._logger = logging.getLogger(self.basename)
-        handler = logging.StreamHandler(output)
-        handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
-        handler.setLevel(logging.INFO)
-        self._logger.addHandler(handler)
-        self._check_raises = raises
-        self._problematic = False
+    def _check_meta(self):
+        '''Check the meta.yaml in the dap'''
+        self._init_logger()
         problem = self._report_problem
-
         # Check for non array-like metadata
         for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
             if not self._isvalid(datatype):
@@ -154,6 +142,10 @@ class Dap(object):
                     for bad in bads:
                         problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
 
+    def _check_topdir(self):
+        '''Check that everything is in correct top-level directory'''
+        self._init_logger()
+        problem = self._report_problem
         # Everything should be in name-version directory
         dirname = os.path.dirname(self._meta_location)
         if not dirname:
@@ -170,5 +162,31 @@ class Dap(object):
             if self.basename != desired_filename:
                 problem('The dap filename is not ' + desired_filename)
 
+    def _init_logger(self):
+        '''Initializes the logger'''
+        try:
+            self._logger
+        except AttributeError:
+            self._logger = logging.getLogger(self.basename)
+            handler = logging.StreamHandler(self._check_output)
+            handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
+            handler.setLevel(logging.INFO)
+            self._logger.addHandler(handler)
+
+    def check(self, network=True, raises=False, output=sys.stderr):
+        '''Checks if the dap is valid, reports problems
+
+        Parameters:
+            network -- weather to run checks that requires network connection
+            output -- where to write() problems, might be None
+            raises -- weather to raise an exception immediately after problem is detected'''
+        self._check_raises = raises
+        self._check_output = output
+        self._problematic = False
+
+        self._check_meta()
+        self._check_topdir()
+
         del self._check_raises
+        del self._check_output
         return not self._problematic
