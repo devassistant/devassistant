@@ -2,6 +2,7 @@
 import pytest
 import sys
 import os
+import logging
 import itertools
 try:
     from cStringIO import StringIO
@@ -43,7 +44,7 @@ class TestDap(object):
     def test_no_toplevel(self):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
-        assert not Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out)
+        assert not Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
@@ -210,16 +211,24 @@ class TestDap(object):
         assert not ok
 
     def test_meta_only_check(self):
-        '''meta_only.dap should pass the test'''
+        '''meta_only.dap should pass the test (errors only)'''
         dap = Dap('test/meta_only/foo-1.0.0.dap')
-        assert dap.check()
+        assert dap.check(level=logging.ERROR)
+
+    def test_meta_only_warning_check(self):
+        '''meta_only.dap shopuld produce warning'''
+        out = StringIO()
+        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        assert not dap.check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 1
+        assert 'Only meta.yaml in dap' in out.getvalue()
 
     def test_unknown_metadata(self):
         '''meta_only.dap with added value should fail'''
         out = StringIO()
         dap = Dap('test/meta_only/foo-1.0.0.dap')
         dap.meta['foo'] = 'bar'
-        assert not dap.check(output=out)
+        assert not dap.check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'Unknown metadata' in out.getvalue()
         assert 'foo' in out.getvalue()
@@ -227,7 +236,7 @@ class TestDap(object):
     def test_forgotten_version_in_filename_and_dir(self):
         '''Dap without version in filename and dirname should produce 2 errors'''
         out = StringIO()
-        assert not Dap('test/meta_only/foo.dap').check(output=out)
+        assert not Dap('test/meta_only/foo.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 2
         assert 'Top-level directory with meta.yaml is not named foo-1.0.0' in out.getvalue()
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
@@ -235,13 +244,13 @@ class TestDap(object):
     def test_wrong_dap_filename(self):
         '''Dap with OK dirname, but wrong filename should produce 1 error'''
         out = StringIO()
-        assert not Dap('test/meta_only/bar.dap').check(output=out)
+        assert not Dap('test/meta_only/bar.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
 
     def test_files_outside_of_toplevel_dir(self):
         '''Dap with files outside of top-level directory should produce error for each'''
         out = StringIO()
-        assert not Dap('test/outside_toplevel/foo-1.0.0.dap').check(output=out)
+        assert not Dap('test/outside_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert 'is outside' in out.getvalue()

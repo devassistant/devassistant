@@ -91,7 +91,8 @@ class Dap(object):
 
     def _report_problem(self, problem, level=logging.ERROR):
         '''Report a given problem'''
-        self._problematic = True
+        if self._logger.isEnabledFor(level):
+            self._problematic = True
         if self._check_raises:
             raise DapInvalid(problem)
         self._logger.log(level, problem)
@@ -164,7 +165,17 @@ class Dap(object):
             if self.basename != desired_filename:
                 self._report_problem('The dap filename is not ' + desired_filename)
 
-    def _init_logger(self):
+    def _check_files(self):
+        '''Check that there are only those files the standard accepts'''
+        dirname = os.path.dirname(self._meta_location)
+        if dirname:
+            dirname += '/'
+        files = [f for f in self.files if f.startswith(dirname)]
+        if len(files) == 1:
+            self._report_problem('Only meta.yaml in dap', logging.WARNING)
+            return
+
+    def _init_logger(self, level):
         '''Initializes the logger'''
         try:
             self._logger
@@ -172,10 +183,10 @@ class Dap(object):
             self._logger = logging.getLogger(self.basename)
             handler = logging.StreamHandler(self._check_output)
             handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
-            handler.setLevel(logging.INFO)
             self._logger.addHandler(handler)
+            self._logger.setLevel(level)
 
-    def check(self, network=False, raises=False, output=sys.stderr):
+    def check(self, network=False, raises=False, output=sys.stderr, level=logging.INFO):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
@@ -185,10 +196,11 @@ class Dap(object):
         self._check_raises = raises
         self._check_output = output
         self._problematic = False
-        self._init_logger()
+        self._init_logger(level)
 
         self._check_meta()
         self._check_topdir()
+        self._check_files()
 
         del self._check_raises
         del self._check_output
