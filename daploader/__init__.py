@@ -31,20 +31,23 @@ class Dap(object):
 
     Everything should be considered read-only. If not, things might blow up.'''
 
+    _icons = 'svg|png'
+
     _required_meta = set('package_name version license authors summary'.split())
     _optional_meta = set('homepage bugreports description'.split())
     _array_meta = set('authors'.split())
 
-    _url_pattern = r'^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
+    _url_pattern = r'(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
                    r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
-                   r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*$'
+                   r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*'
     _email_pattern = r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})'
+    _name_pattern = r'([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])'
 
-    _meta_valid = {'package_name': re.compile(r'^([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])$'),
+    _meta_valid = {'package_name': re.compile(r'^' + _name_pattern + r'$'),
                    'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
                    'license': licenses,
                    'summary': re.compile(r'^[^\n]+$'),
-                   'homepage': re.compile(_url_pattern),
+                   'homepage': re.compile(r'^' + _url_pattern + r'$'),
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
                    'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE)}
@@ -187,12 +190,15 @@ class Dap(object):
     def _check_files(self):
         '''Check that there are only those files the standard accepts'''
         dirname = os.path.dirname(self._meta_location)
+
         if dirname:
             dirname += '/'
         files = [f for f in self.files if f.startswith(dirname)]
         if len(files) == 1:
             self._report_problem('Only meta.yaml in dap', logging.WARNING)
             return
+
+        files.remove(dirname + 'meta.yaml')
 
         # Report and remove empty directories until no more are found
         emptydirs = self._get_emptydirs(files)
@@ -202,7 +208,32 @@ class Dap(object):
                 files.remove(ed)
             emptydirs = self._get_emptydirs(files)
 
-        files.remove(dirname + 'meta.yaml')
+        if self.meta['package_name']:
+            name = self.meta['package_name']
+
+            dirs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))?|snippets)(/' +
+                              name + ')?|icons(/' + name + ')?|(doc|files)(/' + name + '(/.+)?)?)$')
+            regs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))|snippets)/' +
+                              name + r'(/[^/]+)?\.yaml|icons/' + name + r'(/[^/]+)?\.' +
+                              Dap._icons + '|(doc|files)/' + name + '/.+)$')
+
+            remove = []
+            for f in files:
+                if self._is_dir(f) and not dirs.match(f):
+                    self._report_problem(f + '/ is not allowed directory')
+                    remove.append(f)
+                elif not self._is_dir(f) and not regs.match(f):
+                    self._report_problem(f + ' is not allowed file')
+                    remove.append(f)
+            for r in remove:
+                files.remove(r)
+
+            # Subdir yamls need a chief
+            for directory in ['assistants/' + t for t in 'crt mod prep task'.split()] + ['snippets']:
+                prefix = dirname + directory + '/'
+                for f in files:
+                    if f.startswith(prefix) and self._is_dir(f) and f + '.yaml' not in files:
+                        self._report_problem(f + '/ present, but ' + f + '.yaml missing')
 
     def _init_logger(self, level):
         '''Initializes the logger'''

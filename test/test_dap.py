@@ -261,3 +261,24 @@ class TestDap(object):
         assert not Dap('test/empty_dirs/foo-1.0.0.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert ' is empty directory' in out.getvalue()
+
+    def test_wrong_files(self):
+        '''Dap with wrong files produces errors'''
+        out = StringIO()
+        assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
+        assert len(out.getvalue().rstrip().split('\n')) == 15
+        assert '/files/wrong.txt is not allowed file' in out.getvalue()
+        assert '/files/wrong/ is not allowed directory' in out.getvalue()
+        assert '/files/wrong/a is not allowed file' in out.getvalue()
+        assert '/icons/foo.gif is not allowed file' in out.getvalue()
+        assert '/icons/foo.yaml is not allowed file' in out.getvalue()
+        assert '/icons/foo/a.png is not allowed file' in out.getvalue()
+        assert '/doc/README is not allowed file' in out.getvalue()
+        assert '/snippets/bar/ is not allowed directory' in out.getvalue()
+        assert '/snippets/bar/bar.yaml is not allowed file' in out.getvalue()
+        assert '/assistants/wrong/ is not allowed directory' in out.getvalue()
+        assert '/assistants/wrong/foo.yaml is not allowed file' in out.getvalue()
+        assert '/assistants/task/bar.txt is not allowed file' in out.getvalue()
+        assert '/assistants/task/bar.yaml is not allowed file' in out.getvalue()
+        assert '/assistants/crt/test.yaml is not allowed file' in out.getvalue()
+        assert '/assistants/prep/foo/ present' in out.getvalue()
