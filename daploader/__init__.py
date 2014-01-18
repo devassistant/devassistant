@@ -165,6 +165,25 @@ class Dap(object):
             if self.basename != desired_filename:
                 self._report_problem('The dap filename is not ' + desired_filename)
 
+    def _is_dir(self, f):
+        '''Check if the given in-dap file is a directory'''
+        return self._tar.getmember(f).type == tarfile.DIRTYPE
+
+    def _get_emptydirs(self, files):
+        '''Find empty directories and return them
+        Only works for actual files in dap'''
+        emptydirs = []
+        for f in files:
+            if self._is_dir(f):
+                empty = True
+                for ff in files:
+                    if ff.startswith(f + '/'):
+                        empty = False
+                        break
+                if empty:
+                    emptydirs.append(f)
+        return emptydirs
+
     def _check_files(self):
         '''Check that there are only those files the standard accepts'''
         dirname = os.path.dirname(self._meta_location)
@@ -174,6 +193,16 @@ class Dap(object):
         if len(files) == 1:
             self._report_problem('Only meta.yaml in dap', logging.WARNING)
             return
+
+        # Report and remove empty directories until no more are found
+        emptydirs = self._get_emptydirs(files)
+        while emptydirs:
+            for ed in emptydirs:
+                self._report_problem(ed + ' is empty directory (may be nested)', logging.WARNING)
+                files.remove(ed)
+            emptydirs = self._get_emptydirs(files)
+
+        files.remove(dirname + 'meta.yaml')
 
     def _init_logger(self, level):
         '''Initializes the logger'''

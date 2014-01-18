@@ -254,3 +254,10 @@ class TestDap(object):
         assert not Dap('test/outside_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert 'is outside' in out.getvalue()
+
+    def test_empty_dirs(self):
+        '''Dap with empty dirs produces warning'''
+        out = StringIO()
+        assert not Dap('test/empty_dirs/foo-1.0.0.dap').check(output=out)
+        assert len(out.getvalue().rstrip().split('\n')) == 3
+        assert ' is empty directory' in out.getvalue()
