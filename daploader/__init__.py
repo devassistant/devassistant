@@ -235,6 +235,27 @@ class Dap(object):
                     if f.startswith(prefix) and self._is_dir(f) and f + '.yaml' not in files:
                         self._report_problem(f + '/ present, but ' + f + '.yaml missing')
 
+        # Let's warn about icons
+        icons = []          # we need to report duplicates
+        assistants = set()  # duplicates are fine here
+        for f in files:
+            if not self._is_dir(f):
+                if f.startswith(os.path.join(dirname, 'icons/')):
+                    # name without extension and dirname/icons/
+                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].split('.')[:-1]))
+                for t in ['assistants/' + t for t in 'crt mod prep task'.split()] + ['snippets']:
+                    if f.startswith(os.path.join(dirname, t, '')):
+                        # extension is .yaml only, so we don't need to split
+                        assistants.add(f[len(os.path.join(dirname, t, '')):-len('.yaml')])
+        duplicates = set([x for x in icons if icons.count(x) > 1])
+        for d in duplicates:
+            self._report_problem('Duplicate icon for ' + f, logging.WARNING)
+        icons = set(icons)
+        for i in icons - assistants:
+            self._report_problem('Useless icon for non-exisiting assistant ' + i, logging.WARNING)
+        for a in assistants - icons:
+            self._report_problem('Missing icon for assistant ' + a, logging.WARNING)
+
     def _init_logger(self, level):
         '''Initializes the logger'''
         try:
