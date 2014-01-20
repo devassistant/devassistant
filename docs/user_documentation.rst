@@ -3,6 +3,19 @@
 User Documentation
 ==================
 
+Subtopics
+---------
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 2
+
+   user_documentation/docker
+
+
+A Brief Intro
+-------------
+
 .. include:: brief-intro.txt
 
 .. _cli_interface:
