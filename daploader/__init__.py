@@ -271,9 +271,9 @@ class Dap(object):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
-            network -- weather to run checks that requires network connection
+            network -- whether to run checks that requires network connection
             output -- where to write() problems, might be None
-            raises -- weather to raise an exception immediately after problem is detected'''
+            raises -- whether to raise an exception immediately after problem is detected'''
         self._check_raises = raises
         self._check_output = output
         self._problematic = False
