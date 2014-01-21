@@ -383,6 +383,57 @@ class NPMPackageManager(PackageManager):
     def __str__(self):
         return "npm package manager"
 
+@register_manager
+class GemPackageManager(PackageManager):
+    """ Package manager for managing ruby dependencies from rubygems.org """
+    permission_prompt = "Installing {num} package{plural} from rubygems. Is this ok?"
+    shortcut = 'gem'
+    is_system = False
+
+    c_gem = 'gem'
+
+    @classmethod
+    def install(cls, *args):
+        cmd = [cls.c_gem, 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def works(cls):
+        try:
+            ClHelper.run_command('which gem')
+            return True
+        except exceptions.ClException as e:
+            return False
+
+    @classmethod
+    def is_pkg_installed(cls, dep):
+        logger.info('Checking for presence of {0}...'.format(dep),
+                    extra={'event_type': 'dep_check'})
+        try:
+            ClHelper.run_command(' '.join([cls.c_gem, 'list', '-i', dep]))
+            logger.info('Found {0}'.format(dep), extra={'event_type': 'dep_found'})
+            return True
+        except exceptions.ClException:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+            return False
+
+    @classmethod
+    def resolve(cls, *dep):
+        logger.info('Resolving gem dependencies...')
+        return dep
+
+    @classmethod
+    def get_distro_dependencies(self, smgr_sc):
+        return ['rubygems','ruby-devel']
+
+    def __str__(self):
+        return "gem package manager"
 
 class GentooPackageManager:
     """Mix-in class for Gentoo package managers. The only thing it capable to do
