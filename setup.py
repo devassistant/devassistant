@@ -72,7 +72,7 @@ setup(
     name='daploader',
     version=__version__,
     description='Dap archives loader and checker',
-    long_description='Module that loads a dap file, check it for  sanity/validity and provide access for metadata via a class.',
+    long_description=''.join(open('README.rst').readlines()),
     keywords='devassiatnt, lint, dap',
     author='Miro Hrončok',
     author_email='miro@hroncok.cz',

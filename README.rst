@@ -22,7 +22,7 @@ Structure
 
     * {crt,mod,prep,task}/
 
-      * <package_name>.yaml and optionally <package_name>/*.yaml
+      * <package_name>.yaml and optionally <package_name>/\*.yaml
 
   * files/
 
@@ -36,7 +36,7 @@ Structure
 
   * snippets/
 
-    * <package_name>.yaml and optionally <package_name>/*.yaml
+    * <package_name>.yaml and optionally <package_name>/\*.yaml
 
   * doc/
 
