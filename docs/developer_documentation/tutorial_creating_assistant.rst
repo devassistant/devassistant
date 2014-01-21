@@ -57,7 +57,7 @@ This assistant is a "creator", so we have to put it somewhere into
 ``~/.devassistant/assistants/crt/``. Since the standard DevAssistant
 distribution has a ``python`` assistant, it seems logical to make this new
 assistant a subassistant of ``python``. That means that the assistant file
-will be ``~/.devassistant/assistants/creator/python/argh.yaml``. It doesn't
+will be ``~/.devassistant/assistants/crt/python/argh.yaml``. It doesn't
 matter that the ``python`` assistant actually lives in a different load path,
 DevAssistant will hook the ``argh`` subassistant properly anyway.
 
