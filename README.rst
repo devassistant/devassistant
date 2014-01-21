@@ -50,7 +50,7 @@ Structure
 
     * metadata
 
-Basically only meta.yaml is mandatory, but a dap with meta.yaml only makes no sense. All content is wrapped in tar.gz archive and renamed to <package_name>-<version>.dap. The archive should contain one top level directory named <package_name>-<version>.
+Basically only meta.yaml is mandatory, but a dap with meta.yaml only makes no sense. All content is wrapped in tar.gz archive and renamed to <package_name>-<version>.dap. Both .yaml and icons file extension (currently only .svg and .png) must be lower case. The archive should contain one top level directory named <package_name>-<version>.
 
 meta.yaml
 ~~~~~~~~~
