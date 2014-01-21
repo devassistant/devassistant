@@ -6,9 +6,11 @@ try:
 except:
     from distutils.core import setup, find_packages
 
+from daploader import __version__
+
 setup(
     name='daploader',
-    version='0.0.1',
+    version=__version__,
     description='Dap archives loader and checker',
     long_description='Module that loads a dap file, check it for  sanity/validity and provide access for metadata via a class.',
     keywords='devassiatnt, lint, dap',

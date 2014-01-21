@@ -1,11 +1,12 @@
 from optparse import OptionParser
 import sys
 from . import *
+from . import __version__
 
 
 def lint():
     '''This parses command line arguments and let the user run daplint'''
-    parser = OptionParser(usage='usage: %prog [options] dap_file [dap_file2...]', version='%prog 0.0.1')
+    parser = OptionParser(usage='usage: %prog [options] dap_file [dap_file2...]', version='%prog ' + __version__)
     parser.add_option('-n', '--network', action='store_true', dest='network',
                       default=False, help='perform checks that require Internet connection')
     options, args = parser.parse_args()
