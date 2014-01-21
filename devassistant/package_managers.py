@@ -21,11 +21,13 @@ represent these high-level tools like YUM or Zypper, not RPM itself.
 """
 from __future__ import print_function
 import collections
-import math
 import os
 import sys
 import tempfile
+import time
 import threading
+
+import progress.spinner
 
 from devassistant import current_run
 from devassistant.command_helpers import ClHelper, DialogHelper
@@ -725,7 +727,7 @@ class DependencyInstaller(object):
                         extra={'event_type': 'dep_installation_start'})
             if current_run.UI == 'cli': # TODO: maybe let every manager to decide when to start
                 event = threading.Event()
-                t = FakeProgressThread(event)
+                t = EndlessProgressThread(event)
                 t.start()
             installed = pkg_mgr.install(*to_install)
             if current_run.UI == 'cli':
@@ -768,19 +770,17 @@ class DependencyInstaller(object):
         # just try rpm if unkown (not very nice?)
         return 'rpm'
 
-class FakeProgressThread(threading.Thread):
+class EndlessProgressThread(threading.Thread):
     def __init__(self, finish_event):
-        super(FakeProgressThread, self).__init__()
+        super(EndlessProgressThread, self).__init__()
         self.finish_event = finish_event
+        self.spinner = progress.spinner.Spinner('Installing dependencies ...')
 
     def run(self):
-        wait_for = 1
         while not self.finish_event.isSet():
-            print('.', end='')
-            sys.stdout.flush()
-            wait_for += 1
-            self.finish_event.wait(math.log(wait_for))
-        print()
+            self.spinner.next()
+            time.sleep(1)
+        self.spinner.finish()
 
 
 def main():
