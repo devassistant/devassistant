@@ -266,13 +266,12 @@ class TestDap(object):
         '''Dap with wrong files produces errors'''
         out = StringIO()
         assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
-        assert len(out.getvalue().rstrip().split('\n')) == 15
+        assert len(out.getvalue().rstrip().split('\n')) == 14
         assert '/files/wrong.txt is not allowed file' in out.getvalue()
         assert '/files/wrong/ is not allowed directory' in out.getvalue()
         assert '/files/wrong/a is not allowed file' in out.getvalue()
         assert '/icons/foo.gif is not allowed file' in out.getvalue()
         assert '/icons/foo.yaml is not allowed file' in out.getvalue()
-        assert '/icons/foo/a.png is not allowed file' in out.getvalue()
         assert '/doc/README is not allowed file' in out.getvalue()
         assert '/snippets/bar/ is not allowed directory' in out.getvalue()
         assert '/snippets/bar/bar.yaml is not allowed file' in out.getvalue()

@@ -214,8 +214,8 @@ class Dap(object):
             dirs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))?|snippets)(/' +
                               name + ')?|icons(/' + name + ')?|(doc|files)(/' + name + '(/.+)?)?)$')
             regs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))|snippets)/' +
-                              name + r'(/[^/]+)?\.yaml|icons/' + name + r'(/[^/]+)?\.' +
-                              Dap._icons + '|(doc|files)/' + name + '/.+)$')
+                              name + r'(/[^/]+)?\.yaml|icons/' + name + r'(/[^/]+)?\.(' +
+                              Dap._icons + ')|(doc|files)/' + name + '/.+)$')
 
             remove = []
             for f in files:
