@@ -3,8 +3,10 @@ import functools
 import getpass
 import logging
 import os
+import re
 
 import jinja2
+import progress.bar
 import yaml
 
 import devassistant
@@ -329,7 +331,6 @@ class DotDevassistantCommandRunner(CommandRunner):
                 path = []
                 logger.warning(str(e))
             if path and isinstance(path[-1], yaml_assistant.YamlAssistant):
-                print(dda_content.get('original_kwargs'))
                 struct.extend(path[-1].dependencies(dda_content.get('original_kwargs', {})))
             struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
                                                     kwargs,
@@ -698,3 +699,91 @@ class Jinja2Runner(CommandRunner):
             out.write(result)
 
         return (True, 'success')
+
+@register_command_runner
+class DockerCommandRunner(object):
+    try:
+        _docker_module = utils.import_module('docker')
+    except:
+        _docker_module = None
+    _client = None
+
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type.startswith('docker_')
+
+    @classmethod
+    def get_client(cls, timeout=30):
+        if not cls._client:
+            cls._client = cls._docker_module.Client(timeout=timeout)
+        return cls._client
+
+    @classmethod
+    def run(cls, c):
+        # TODO: decide the format of return values and return according to that in all cases
+        if not cls._docker_module:
+            logger.warning('docker-py not installed, cannot execute docker command.')
+            return [False, '']
+
+        args = c.format_deep()
+
+        if c.comm_type == 'docker_b':
+            # TODO: allow providing another argument - a repository name/tag for the built image
+            return cls._docker_build(args)
+        else:
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+
+    @classmethod
+    def _docker_build(cls, directory):
+        logger.info('Building Docker image ...')
+        client = cls.get_client()
+        stream = client.build(path=directory, stream=True)
+
+        # If there are more images downloaded in paralel, the generator
+        # displays and redisplays their progress bars in random order, not telling us
+        # which progress line it's printing now.
+        # So we rather remember these by download sizes (hopefully different)
+        # and create one common progress bar for all images combined.
+        # Progress is measured by number of "=" + one ">" in the bar
+
+        downloads = {} # maps size of image to percent downloaded
+        downloads_re = re.compile(r'(\[[=> ]+\]).+/([\.0-9]* .B)')
+        pgb = progress.bar.Bar('Downloading Images', fill='=', suffix='%(percent)d %%')
+
+        # 'Pulling repository' isn't excluded intentionally
+        exclude_patterns = ['Download complete', 'Pulling image', 'Pulling dependent layers',
+                            'Pulling metadata', 'Pulling fs layer']
+
+        success = False
+        success_re = re.compile(r'Successfully built ([0-9a-f]+)')
+        final_image = ''
+
+        for line in stream:
+            line = line.strip()
+            download_match = downloads_re.search(line)
+
+            # either progress the progress bar or print the line
+            if download_match:
+                percent = float(download_match.group(1).count('=') + 1) / \
+                          (len(download_match.group(1)) - 2) * 100
+                downloads[download_match.group(2)] = percent
+                pgb.goto(sum(list(downloads.values())) / len(downloads))
+                if percent >= 100:
+                    pgb.finish()
+            else:
+                # Filter unwanted docker output
+                if not filter(line.startswith, exclude_patterns):
+                    logger.info(line.strip())
+
+            # the success line doesn't necesarilly have to be at the very end of output...
+            success_found = success_re.search(line)
+            if success_found:
+                success = True
+                final_image = success_found.group(1)
+
+        pgb.finish()
+        if success:
+            logger.info('Finished building Docker image.')
+        else:
+            logger.info('Failed to build Docker image.')
+        return success, final_image
