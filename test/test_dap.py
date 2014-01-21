@@ -281,3 +281,10 @@ class TestDap(object):
         assert '/assistants/task/bar.yaml is not allowed file' in out.getvalue()
         assert '/assistants/crt/test.yaml is not allowed file' in out.getvalue()
         assert '/assistants/prep/foo/ present' in out.getvalue()
+
+    def test_icon_warnings(self):
+        '''Dap with redundant or missing icons should produce warnings'''
+        out = StringIO()
+        assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out)
+        assert 'Useless icon for non-exisiting assistant foo/a' in out.getvalue()
+        assert 'Missing icon for assistant foo/bar' in out.getvalue()
