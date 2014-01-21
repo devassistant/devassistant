@@ -261,10 +261,11 @@ Render a Jinja2 template.
 - Input: a mapping containing
 
   - ``template`` - a reference to file in ``files`` section
-  - ``destination`` - where to place rendered template
+  - ``destination`` - directory where to place rendered template
   - ``data`` - a mapping of values used to render the template itself
-  - ``overwrite`` (optional) - overwrite the file if it exists?
-  - ``output`` (optional) - specify a filename of the rendered template
+  - ``overwrite`` (optional) - overwrite the file if it exists? (defaults to ``false``)
+  - ``output`` (optional) - specify a filename of the rendered template (see below for
+    information on how the filename is costructed if not provided)
 
 - RES: always ``True``, terminates DevAssistant if something goes wrong
 - LRES: always ``success`` string
