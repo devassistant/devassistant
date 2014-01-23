@@ -258,6 +258,24 @@ class Dap(object):
         for a in assistants - icons:
             self._report_problem('Missing icon for assistant ' + a, logging.WARNING)
 
+        # And also about files
+        folders = set()
+        assistants = set()  # we cannot reuse the one form icons, as we need to record the type as well
+        for f in files:
+            if self._is_dir(f):
+                if f.startswith(os.path.join(dirname, 'files/')):
+                    folders.add(f[len(os.path.join(dirname, 'files/')):])
+            else:
+                for t in 'crt mod prep task'.split():
+                    if f.startswith(os.path.join(dirname, 'assistants', t, '')):
+                        # extension is .yaml only, so we don't need to split
+                        assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
+                if f.startswith(os.path.join(dirname, 'snippets/')):
+                    assistants.add(f[len(os.path.join(dirname, '')):-len('.yaml')])
+        folders -= set('crt mod prep task snippets'.split())
+        for f in folders - assistants:
+            self._report_problem('Useless files for non-exisiting assistant ' + f, logging.WARNING)
+
     def _init_logger(self, level):
         '''Initializes the logger'''
         try:
