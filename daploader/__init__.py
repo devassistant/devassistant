@@ -10,7 +10,7 @@ except:
     from yaml import Loader
 from . import licenses
 
-__version__ = '0.0.1'
+__version__ = '0.0.2dev1'
 
 
 class DapFileError(Exception):
@@ -214,10 +214,10 @@ class Dap(object):
             name = self.meta['package_name']
 
             dirs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))?|snippets)(/' +
-                              name + ')?|icons(/' + name + ')?|(doc|files)(/' + name + '(/.+)?)?)$')
+                              name + ')?|icons(/' + name + ')?|files|(files/(crt|mod|prep|task|snippets)|doc)(/' + name + '(/.+)?)?)$')
             regs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))|snippets)/' +
                               name + r'(/[^/]+)?\.yaml|icons/' + name + r'(/[^/]+)?\.(' +
-                              Dap._icons + ')|(doc|files)/' + name + '/.+)$')
+                              Dap._icons + ')|(files/(crt|mod|prep|task|snippets)|doc)/' + name + '/.+)$')
 
             remove = []
             for f in files:

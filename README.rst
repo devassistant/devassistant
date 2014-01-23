@@ -28,7 +28,9 @@ Structure
 
     * <package_name>/
 
-      * additional files needed by your assistant(s) (scripts, templates, etc.)
+      * {crt,mod,prep,task,snippets}/
+
+        * additional files needed by your assistant(s) (scripts, templates, etc.)
 
   * icons/
 
