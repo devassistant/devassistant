@@ -1,7 +1,7 @@
 import os
 import re
-from devassistant.lang import evaluate_expression, run_section
 
+from devassistant.lang import evaluate_expression, run_section
 
 class TestEvaluate(object):
     def setup_class(self):
@@ -120,6 +120,13 @@ class TestEvaluate(object):
         assert evaluate_expression(['foo', 'bar'], self.names) == (True, ['foo', 'bar'])
         assert evaluate_expression({}, self.names) == (False, {})
         assert evaluate_expression([], self.names) == (False, [])
+
+    def test_special_symbols_in_subshell_invocation(self):
+        # before fixing this, special symbols inside shell invocation were
+        # surrounded by spaces when parsed reconstructed by evaluate_expression
+        # (e.g. backticks and colons), e.g. the below command returned
+        # (True, 'asd : sdf')
+        assert evaluate_expression('$(echo "\`asd:sdf\`")', {}) == (True, '`asd:sdf`')
 
 class TestRunSection(object):
     def test_result(self):
