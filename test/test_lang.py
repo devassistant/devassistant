@@ -128,6 +128,9 @@ class TestEvaluate(object):
         # (True, 'asd : sdf')
         assert evaluate_expression('$(echo "\`asd:sdf\`")', {}) == (True, '`asd:sdf`')
 
+    def test_variables_in_subshell_invocation(self):
+        assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
+
 class TestRunSection(object):
     def test_result(self):
         assert run_section([], {}) == [False, '']

@@ -435,6 +435,10 @@ def evaluate_expression(expression, names):
             while 1:
                 if interpr.token.id == ")":
                     break
+                # if there is (name), tokenizer has already stripped
+                # the "$", but we need to keep it for below substitution
+                if interpr.token.id == "(name)":
+                    interpr.token.value = "$" + interpr.token.value
                 cmd.append(interpr.token.value)
                 interpr.advance()
 
