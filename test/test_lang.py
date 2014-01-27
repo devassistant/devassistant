@@ -130,6 +130,7 @@ class TestEvaluate(object):
 
     def test_variables_in_subshell_invocation(self):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
+        assert evaluate_expression('$(echo ${exists} ${doesnt})', {'exists': 'X'}) == (True, 'X')
 
 class TestRunSection(object):
     def test_result(self):
