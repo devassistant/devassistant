@@ -124,9 +124,9 @@ class TestEvaluate(object):
     def test_special_symbols_in_subshell_invocation(self):
         # before fixing this, special symbols inside shell invocation were
         # surrounded by spaces when parsed reconstructed by evaluate_expression
-        # (e.g. backticks and colons), e.g. the below command returned
-        # (True, 'asd : sdf')
-        assert evaluate_expression('$(echo "\`asd:sdf\`")', {}) == (True, '`asd:sdf`')
+        # (e.g. backticks, colons, equal signs), e.g. the below command returned
+        # (True, '` a : s = d `')
+        assert evaluate_expression('$(echo \`a:s=d\`)', {}) == (True, '`a:s=d`')
 
     def test_variables_in_subshell_invocation(self):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
