@@ -769,10 +769,11 @@ class DependencyInstaller(object):
             self._install_dependencies()
 
     def get_system_deptype_shortcut(self):
-        distro = utils.get_distro_name()
-        for k, v in settings.SYSTEM_DEPTYPES_SHORTCUTS.items():
-            if distro in v:
-                return k
+        local_distro = utils.get_distro_name()
+        for dep_t, distros in settings.SYSTEM_DEPTYPES_SHORTCUTS.items():
+            for distro in distros:
+                if distro in local_distro:
+                    return dep_t
 
         # just try rpm if unkown (not very nice?)
         return 'rpm'
