@@ -22,12 +22,16 @@ class ArgumentParser(argparse.ArgumentParser):
             else:
                 self.exit(1)
         else:
-            self.print_usage(_sys.stderr)
             # python 2 and 3 hooks to grab missing subassistant argument and report it meaningfully
             if message == _('too few arguments') or settings.SUBASSISTANT_N_STRING[:-3] in message:
                 for action in self._get_positional_actions():
                     if isinstance(action, argparse._SubParsersAction):
-                        self.exit(2, _('You have to select a subassistant.\n'))
+                        if message == _('too few arguments') and len(action.choices) == 0:
+                            self.exit(2, _('No subassistants available.\n'))
+                        else:
+                            self.print_usage(_sys.stderr)
+                            self.exit(2, _('You have to select a subassistant.\n'))
+            self.print_usage(_sys.stderr)
             self.exit(1, _('%s: error: %s\n') % (self.prog, message))
 
 class DefaultIffUsedActionFactory(object):

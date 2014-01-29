@@ -27,7 +27,7 @@ DEFAULT_ASSISTANT_ROLE = 'crt'
 
 # system dependency types and package managers for various distros
 # more distros can have the same system deptype, but different manager
-SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora'],
+SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora', 'red hat enterprise linux'],
                              'pacman': ['arch'],
                              # NOTE /etc/os-release has ID=gentoo,
                              # but platform.distribution reports "Gentoo Base System" string

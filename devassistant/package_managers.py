@@ -682,14 +682,21 @@ class DependencyInstaller(object):
             err = 'No package manager for dependency type "{dep_t}"'.format(dep_t=dep_t)
             raise exceptions.NoPackageManagerException(err)
         # try to get list of distros where the dependency type is system type
-        distro = settings.SYSTEM_DEPTYPES_SHORTCUTS.get(dep_t, None)
-        if not distro: # non-distro dependency type
+        distros = settings.SYSTEM_DEPTYPES_SHORTCUTS.get(dep_t, None)
+        if not distros: # non-distro dependency type
             sysdep_t = self.get_system_deptype_shortcut()
             # for now, just take the first manager that can install dep_t and install this manager
             self._process_dependency(sysdep_t,
                                      managers[dep_t][0].get_distro_dependencies(sysdep_t))
-        elif utils.get_distro_name() not in distro: # distro dependency type, but for another distro
-            return
+        else:
+            local_distro = utils.get_distro_name()
+            found = False
+            for distro in distros:
+                if distro in local_distro:
+                    found = True
+                    break
+            if not found: # distro dependency type, but for another distro
+                return
         self.dependencies.setdefault(dep_t, [])
         self.dependencies[dep_t].extend(dep_l)
 
@@ -762,10 +769,11 @@ class DependencyInstaller(object):
             self._install_dependencies()
 
     def get_system_deptype_shortcut(self):
-        distro = utils.get_distro_name()
-        for k, v in settings.SYSTEM_DEPTYPES_SHORTCUTS.items():
-            if distro in v:
-                return k
+        local_distro = utils.get_distro_name()
+        for dep_t, distros in settings.SYSTEM_DEPTYPES_SHORTCUTS.items():
+            for distro in distros:
+                if distro in local_distro:
+                    return dep_t
 
         # just try rpm if unkown (not very nice?)
         return 'rpm'

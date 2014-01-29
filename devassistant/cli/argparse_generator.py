@@ -6,6 +6,7 @@ from devassistant import settings
 class ArgparseGenerator(object):
     subparsers_str = 'subassistants'
     subparsers_desc = '''Following subassistants will help you with setting up your project.'''
+    subparsers_no_avail = '''No subasistants are available. Please install 'assistants' package first.'''
     subactions_str = 'subactions'
     subactions_desc = 'This action has following subactions.'
 
@@ -86,6 +87,10 @@ class ArgparseGenerator(object):
                                           description=cls.subparsers_desc)
             for subas_tuple in sorted(assistant_tuple[1], key=lambda x: x[0].name):
                 cls.add_subassistants_to(subparsers, subas_tuple, level + 1)
+        elif level == 1:
+            subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
+                                          title=cls.subparsers_str,
+                                          description=cls.subparsers_no_avail)
 
     @classmethod
     def add_action_to(cls, parser, action, subactions, level):
