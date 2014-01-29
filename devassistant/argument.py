@@ -36,7 +36,8 @@ class Argument(object):
         if hint == 'type':
             # 'self.kwargs.get('nargs') == 0' is there for default_iff_used, which may
             # have nargs: 0, so that it works similarly to 'store_const'
-            if self.kwargs.get('action') == 'store_true' or self.kwargs.get('nargs') == 0:
+            if self.kwargs.get('action') in ['store_true', 'store_const'] or \
+               self.kwargs.get('nargs') == 0:
                 return 'bool'
             return self.gui_hints.get('type', 'str')
         elif hint == 'default':
