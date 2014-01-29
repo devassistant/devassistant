@@ -737,7 +737,7 @@ class DockerCommandRunner(object):
     def _docker_build(cls, directory):
         logger.info('Building Docker image ...')
         client = cls.get_client()
-        stream = client.build(path=directory, stream=True)
+        stream = client.build(path=directory, rm=True, stream=True)
 
         # If there are more images downloaded in paralel, the generator
         # displays and redisplays their progress bars in random order, not telling us
