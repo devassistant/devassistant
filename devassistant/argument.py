@@ -34,7 +34,9 @@ class Argument(object):
             value of the hint specified in yaml or a sensible default
         """
         if hint == 'type':
-            if self.kwargs.get('action') == 'store_true':
+            # 'self.kwargs.get('nargs') == 0' is there for default_iff_used, which may
+            # have nargs: 0, so that it works similarly to 'store_const'
+            if self.kwargs.get('action') == 'store_true' or self.kwargs.get('nargs') == 0:
                 return 'bool'
             return self.gui_hints.get('type', 'str')
         elif hint == 'default':

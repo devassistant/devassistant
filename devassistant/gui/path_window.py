@@ -224,7 +224,7 @@ class PathWindow(object):
         self.grid.attach(label, 1, row, 1, 1)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
-        if arg.kwargs.get('action') != 'store_true':
+        if arg.get_gui_hint('type') != 'bool':
             new_box = self.gui_helper.create_box(spacing=6)
             entry = self.gui_helper.create_entry(text="")
             align = self.gui_helper.create_alignment()
