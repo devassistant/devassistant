@@ -331,6 +331,10 @@ Syntax and semantics:
 
     - *logical result*: ``False``
     - *result*: empty string
+
+  - *note*: boolean values (e.g. those acquired by argument with ``action: store_true``)
+    always have empty string as a *result* and their value as *logical result*
+
 - ``$(commandline command)`` (yes, that is a command invocation that looks like
   running command in a subshell)
 
