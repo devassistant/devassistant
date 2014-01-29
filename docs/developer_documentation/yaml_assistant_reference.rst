@@ -183,8 +183,8 @@ Available argument attributes:
 ``required``
   one of ``{true,false}`` - is this argument required?
 ``nargs``
-  how many parameters this argument accepts, one of ``{?,*,+}``
-  (e.g. {0 or 1, 0 or more, 1 or more})
+  how many parameters this argument accepts, one of ``{0, ?,*,+}``
+  (e.g. {0, 0 or 1, 0 or more, 1 or more})
 ``default``
   a default value (this will cause the default value to be
   set even if the parameter wasn't used by user)
