@@ -111,10 +111,10 @@ class PathWindow(object):
 
         # Check for non active CheckButtons but with defaults flag
         for not_active in filter(lambda x: not x.get_active(),check_button):
-            lbl = self.gui_helper.get_btn_lower_label(not_active)
+            lbl = self.gui_helper.get_btn_lower_replace(not_active)
             if 'default' in self.button[not_active].kwargs:
                 self.kwargs[lbl]=self.button[not_active].get_gui_hint('default')
-            if self.back_button and not_active in self.kwargs:
+            if self.back_button and lbl in self.kwargs:
                 del self.kwargs[lbl]
 
     def _remove_widget_items(self):
