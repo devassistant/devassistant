@@ -15,6 +15,7 @@ class PathWindow(object):
         self.main_window = main_window
         self.path_window = builder.get_object("pathWindow")
         self.dir_name = builder.get_object("dirName")
+        self.dir_name_browse_btn = builder.get_object("browsePathBtn")
         self.entry_project_name = builder.get_object("entryProjectName")
         self.builder = builder
         self.gui_helper = gui_helper
@@ -38,7 +39,14 @@ class PathWindow(object):
 
     def next_window(self, widget, data=None):
         #print self.parent.data
-        if self.current_main_assistant.name == 'crt':
+        # check whether deps-only is selected
+        deps_only = False
+        for active in filter(lambda x: isinstance(x, Gtk.CheckButton) and x.get_active(), self.button):
+            if self.gui_helper.get_btn_lower_label(active) == "deps-only":
+                deps_only = True
+
+        # check whether project directory and name is properly set
+        if not deps_only and self.current_main_assistant.name == 'crt':
             if self.dir_name.get_text() == "":
                 md=self.gui_helper.create_message_dialog("Specify directory for project")
                 md.run()
@@ -67,8 +75,9 @@ class PathWindow(object):
 
         self._build_flags()
 
-        if self.current_main_assistant.name == 'crt':
+        if not deps_only and self.current_main_assistant.name == 'crt':
             self.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
+
         data = {}
         data['kwargs'] = self.kwargs
         data['top_assistant'] = self.top_assistant
@@ -129,6 +138,8 @@ class PathWindow(object):
             self.kwargs = data.get('kwargs', None)
         text = self.get_user_path()
         self.dir_name.set_text(text)
+        self.dir_name.set_sensitive(True)
+        self.dir_name_browse_btn.set_sensitive(True)
         self._remove_widget_items()
         if self.current_main_assistant.name != 'crt':
             self.box6.remove(self.box_project)
@@ -152,6 +163,7 @@ class PathWindow(object):
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
         self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name','')))
+        self.entry_project_name.set_sensitive(True)
         if 'name' in self.kwargs:
             self.dir_name.set_text(os.path.dirname(self.kwargs.get('name','')))
         for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
@@ -175,6 +187,12 @@ class PathWindow(object):
                 self.entries[widget.get_label()].set_sensitive(False)
                 self.browse_btns[widget.get_label()].set_sensitive(False)
         self.path_window.show_all()
+
+    def _deps_only_toggled(self, widget, data=None):
+        active = widget.get_active()
+        self.dir_name.set_sensitive(not active)
+        self.entry_project_name.set_sensitive(not active)
+        self.dir_name_browse_btn.set_sensitive(not active)
 
     def prev_window(self, widget, data=None):
         self.path_window.hide()
@@ -213,7 +231,10 @@ class PathWindow(object):
             act_btn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
             act_btn.set_alignment(0, 0)
             self.button[act_btn] = arg
-            act_btn.connect("clicked", self._check_box_toggled)
+            if arg.name == "deps_only":
+                act_btn.connect("clicked", self._deps_only_toggled)
+            else:
+                act_btn.connect("clicked", self._check_box_toggled)
             align.add(act_btn)
         if row == 0:
             self.grid.add(align)
