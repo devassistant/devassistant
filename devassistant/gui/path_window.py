@@ -73,7 +73,8 @@ class PathWindow(object):
                     md.destroy()
                     return
 
-        self._build_flags()
+        if not self._build_flags():
+            return
 
         if not deps_only and self.current_main_assistant.name == 'crt':
             self.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
@@ -88,13 +89,13 @@ class PathWindow(object):
     def _build_flags(self):
         for widget in self.button:
             if isinstance(widget, Gtk.Label) or isinstance(widget, Gtk.CheckButton) and widget.get_active():
-                if widget in self.entries and not self.entries[widget.get_label()].get_text():
+                if widget.get_label() in self.entries and not self.entries[widget.get_label()].get_text():
                     md = self.gui_helper.create_message_dialog(
                         "Entry {0} is empty".format(widget.get_label())
                         )
                     md.run()
                     md.destroy()
-                    return
+                    return False
         for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
             self.kwargs[label.get_label().lower()]=self.entries[label.get_label()].get_text()
 
@@ -116,6 +117,7 @@ class PathWindow(object):
                 self.kwargs[lbl]=self.button[not_active].get_gui_hint('default')
             if self.back_button and lbl in self.kwargs:
                 del self.kwargs[lbl]
+        return True
 
     def _remove_widget_items(self):
         self.button=dict()
