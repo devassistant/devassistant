@@ -10,16 +10,16 @@ class Snippet(loaded_yaml.LoadedYaml):
 
     @property
     def args(self):
-        return copy.deepcopy(self.parsed_yaml.get('args', {}))
+        return copy.deepcopy(self.parsed_yaml.get('args') or {})
 
     def get_arg_by_name(self, name):
-        return self.args.get(name, {})
+        return self.args.get(name) or {}
 
     def get_run_section(self, section_name='run'):
-        return copy.deepcopy(self.parsed_yaml.get(section_name, None))
+        return copy.deepcopy(self.parsed_yaml.get(section_name))
 
     def get_files_dir(self):
-        return self.parsed_yaml.get('files_dir', self.default_files_dir_for('snippets'))
+        return self.parsed_yaml.get('files_dir') or self.default_files_dir_for('snippets')
 
     def get_dependencies_section(self, section_name='dependencies'):
         if not section_name in self.parsed_yaml:
@@ -31,4 +31,4 @@ class Snippet(loaded_yaml.LoadedYaml):
         return deps
 
     def get_files_section(self):
-        return copy.deepcopy(self.parsed_yaml.get('files', {}))
+        return copy.deepcopy(self.parsed_yaml.get('files') or {})

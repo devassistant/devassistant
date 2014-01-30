@@ -44,27 +44,32 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
     @parsed_yaml.setter
     def parsed_yaml(self, value):
+        ### Use value.get(...) or <default> for all argument settings,
+        # so that we are sure that <default> replaces "None" if needed
+        # see: https://bugzilla.redhat.com/show_bug.cgi?id=1059305
         self._parsed_yaml = value
 
         # attributes needed for CLI/GUI - cached
-        self.fullname = value.get('fullname', self.name)
-        self.description = value.get('description', '')
-        self.args = self._construct_args(value.get('args', {}))
-        self.icon_path = value.get('icon_path', self.default_icon_path)
+        self.fullname = value.get('fullname') or self.name
+        self.description = value.get('description') or ''
+        self.args = self._construct_args(value.get('args') or {})
+        self.icon_path = value.get('icon_path') or self.default_icon_path
 
         # attributes not needed for CLI/GUI - not cached
-        self.files_dir = value.get('files_dir', self.default_files_dir_for('assistants'))
-        self._files = value.get('files', {})
-        self._logging = value.get('logging', [])
+        self.files_dir = value.get('files_dir') or self.default_files_dir_for('assistants')
+        self._files = value.get('files') or {}
+        self._logging = value.get('logging') or []
         # set _run and _dependencies as empty in case assistant doesn't have them at all
-        self._dependencies = value.get('dependencies', [])
-        self._run = value.get('run', [])
-        # handle more dependencies* and run* sections
+        self._dependencies = value.get('dependencies') or []
+        self._run = value.get('run') or []
+        # handle more dependencies* and run* sections (except 'run' and 'dependencies'),
+        # these two were already handled above
         for k, v in value.items():
-            if k.startswith('run') or k.startswith('dependencies'):
-                setattr(self, '_{0}'.format(k), v)
-        self._pre_run = value.get('pre_run', [])
-        self._post_run = value.get('post_run', [])
+            if k.startswith('run') or k.startswith('dependencies') and \
+               k not in ['run', 'dependencies']:
+                setattr(self, '_{0}'.format(k), v or [])
+        self._pre_run = value.get('pre_run') or []
+        self._post_run = value.get('post_run') or []
 
     @needs_fully_loaded
     def assert_fully_loaded(self):

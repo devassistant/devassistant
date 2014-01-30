@@ -233,6 +233,17 @@ class TestYamlAssistant(object):
         assert ('INFO', 'bar, barval') in self.tlh.msgs
         assert ('INFO', 'spam, spamval') in self.tlh.msgs
 
+    def test_parsed_yaml_None_values(self):
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1059305
+        # if any section was totally empty (e.g. None), devassistant failed
+        self.ya.parsed_yaml = flexmock(get=lambda x: None,
+                                       items=lambda: [('run_foo', None)])
+        test_types = {'fullname': str, 'description': str, 'args': list, 'icon_path': str,
+                      'files_dir': str, '_files': dict, '_logging': list, '_dependencies': list,
+                      '_run': list, '_run_foo': list, '_pre_run': list, '_post_run': list}
+        for k, v in test_types.items():
+            assert isinstance(getattr(self.ya, k), v)
+
 
 class TestExpressions(TestYamlAssistant):
     def test_assign_existing_nonempty_variable(self):
