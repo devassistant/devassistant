@@ -680,6 +680,8 @@ class Jinja2Runner(CommandRunner):
         try:
             logger.debug('Using template file: {0}'.format(template))
             tpl = env.get_template(template)
+        except jinja2.TemplateNotFound as e:
+            raise exceptions.CommandException('Template not found: {0}'.format(e.message))
         except jinja2.TemplateError as e:
             raise exceptions.CommandException('Template file failure: {0}'.format(e.message))
 
