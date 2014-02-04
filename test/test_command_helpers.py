@@ -38,3 +38,16 @@ class TestClHelper(object):
         except ClException as e:
             assert 'script really ran' in e.output
             assert '\n\n' not in e.output
+
+    def test_output_from_process_with_lots_of_output(self):
+        """When a subprocess is fired, we use readline() while it's running and then read() the
+        rest once it finishes (if there is some rest). Previously, DevAssistant didn't put a
+        newline between these two, so it resulted in failures like:
+        https://bugzilla.redhat.com/show_bug.cgi?id=1061207
+        This attempts to test this by running "cat" on very long file, hoping that this situation
+        occurs, but it may not. TODO: make this test stable under any circumstances."""
+        test_file = os.path.join(os.path.dirname(__file__),
+                                 'fixtures',
+                                 'long_cat')
+        out = ClHelper.run_command('cat {0}'.format(test_file))
+        assert 'ba' not in out

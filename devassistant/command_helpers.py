@@ -60,7 +60,9 @@ class ClHelper(object):
                 logger.log(log_level, output, extra={'event_type': 'cmd_out'})
             if output_callback:
                 output_callback(output)
-        stdout = '\n'.join(stdout)
+        # add a newline to the end - if there is more output in output_rest, we'll be appending
+        # it line by line; if there's no more output, we strip anyway
+        stdout = '\n'.join(stdout) + '\n'
         # there may be some remains not read after exiting the previous loop
         output_rest = proc.stdout.read().strip().decode('utf8')
         # we want to log lines separately, not as one big chunk
