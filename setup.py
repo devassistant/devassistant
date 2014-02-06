@@ -88,7 +88,7 @@ setup(
                                        'devassistant=devassistant.cli.cli_runner:CliRunner.run',
                                        'devassistant-gui=devassistant.gui:run_gui']},
     # PyGithub is in fact optional, but let's keep it here
-    install_requires=['PyYaml', 'PyGithub>=1.14.2', 'jinja2'],
+    install_requires=['PyYaml', 'PyGithub>=1.14.2', 'jinja2', 'progress'],
     setup_requires = [],
     classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Console',
