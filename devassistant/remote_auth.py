@@ -114,7 +114,9 @@ class GitHubAuth(object):
             for pkf in pubkey_files:
                 local_key = open(pkf).read()
                 # don't use "==" because we have comments etc added in public_key
-                if rk in local_key:
+                # in PyGithub 1.23.0, remote key is an object, not string
+                rkval = rk if isinstance(rk, str) else rk.value
+                if rkval in local_key:
                     found = True
                     break
         return found
