@@ -5,10 +5,21 @@ from devassistant import utils
 from devassistant import yaml_assistant
 
 class PathRunner(object):
-    def __init__(self, path, override_sys_excepthook=True):
+    def __init__(self, path, override_sys_excepthook=True, override_sigint_handler=True):
         self.path = path
         if override_sys_excepthook:
             import devassistant.excepthook
+        if override_sigint_handler:
+            import signal, sys
+            from devassistant import package_managers
+            def signal_handler(signal, frame):
+                if package_managers.DependencyInstaller.install_lock:
+                    logger.warning('Can\'t interrupt dependency installation!')
+                else:
+                    logger.info('DevAssistant received SIGINT, exiting ...')
+                    sys.exit(0)
+
+            signal.signal(signal.SIGINT, signal_handler)
 
     def _logging(self, parsed_args):
         """Registers a logging handler from the leaf assistant."""
