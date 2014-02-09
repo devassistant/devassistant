@@ -90,7 +90,7 @@ class HelpAction(Action):
                                            just,
                                            format_type))
         text.append(cls.format_action_line('mod',
-                                           'used for modifying existing projects',
+                                           'used for working with existing projects',
                                            just,
                                            format_type))
         text.append(cls.format_action_line('prep',
