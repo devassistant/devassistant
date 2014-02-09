@@ -16,6 +16,7 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
+from devassistant import sigint_handler
 
 def get_iter_last(model):
     itr = model.get_iter_first()
@@ -104,6 +105,7 @@ class RunWindow(object):
         self.current_main_assistant = None
         self.top_assistant = None
         self.close_win = False
+        sigint_handler.override()
 
     def open_window(self, widget, data=None):
         if data != None:

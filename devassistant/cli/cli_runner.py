@@ -9,6 +9,7 @@ from devassistant import current_run
 from devassistant import exceptions
 from devassistant import logger
 from devassistant import path_runner
+from devassistant import sigint_handler
 
 class CliRunner(object):
     cur_handler = None
@@ -35,6 +36,7 @@ class CliRunner(object):
         3. Parses args and decides what to run
         4. Runs a proper assistant or action
         """
+        sigint_handler.override()
         # set current_run.USE_CACHE before constructing parser, since constructing
         # parser requires loaded assistants
         current_run.USE_CACHE = False if '--no-cache' in sys.argv else True
