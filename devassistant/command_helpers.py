@@ -351,6 +351,7 @@ class GtkDialogHelper(object):
         cancel = cls._get_button('Cancel')
         cancel.connect('clicked', cls._cancel_close(win))
         cls.info_btn = cls._get_button('Show packages')
+        cls.show = True
         cls.info_btn.connect('clicked', cls._info_installed_packages(win))
         liststore = Gtk.ListStore(str)
         for pkg in sorted(package_list):
