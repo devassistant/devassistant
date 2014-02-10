@@ -105,7 +105,10 @@ class PathWindow(object):
             lbl = self.gui_helper.get_btn_lower_replace(active)
             btn = self.gui_helper.get_btn_label(active)
             if not btn in self.entries:
-                self.kwargs[lbl]=True
+                if self.button[active].get_gui_hint('type') == 'const':
+                    self.kwargs[lbl] = self.button[active].kwargs['const']
+                else:
+                    self.kwargs[lbl]=True
                 continue
             for entry in filter(lambda x: x == btn, self.entries):
                 self.kwargs[lbl]=self.entries[btn].get_text()
@@ -247,7 +250,7 @@ class PathWindow(object):
         self.grid.attach(label, 1, row, 1, 1)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
-        if arg.get_gui_hint('type') != 'bool':
+        if arg.get_gui_hint('type') not in ['bool', 'const']:
             new_box = self.gui_helper.create_box(spacing=6)
             entry = self.gui_helper.create_entry(text="")
             align = self.gui_helper.create_alignment()

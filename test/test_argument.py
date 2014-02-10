@@ -10,9 +10,14 @@ class TestArgument(object):
                  nargs='?',
                  gui_hints={'type': 'path',
                             'default': '$(pwd)/foo'})
+
     b = Argument('-b', '--boolean',
                  action='store_true',
                  default=True)
+
+    c = Argument('-c', '--const',
+                 action='store_const',
+                 const=42)
 
     def test_argument_returns_correct_gui_hints(self):
         assert self.p.get_gui_hint('type') == 'path'
@@ -21,6 +26,10 @@ class TestArgument(object):
     def test_argument_returns_correct_gui_hints_if_no_hints_specified(self):
         assert self.b.get_gui_hint('type') == 'bool'
         assert self.b.get_gui_hint('default') == True
+
+    def test_const_argument_returns_correct_gui_hints(self):
+        assert self.c.get_gui_hint('type') == 'const'
+        assert self.c.get_gui_hint('default') == None
 
     def test_argument_is_added(self, capsys):
         parser = ArgumentParser()

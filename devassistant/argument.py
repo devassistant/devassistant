@@ -36,9 +36,11 @@ class Argument(object):
         if hint == 'type':
             # 'self.kwargs.get('nargs') == 0' is there for default_iff_used, which may
             # have nargs: 0, so that it works similarly to 'store_const'
-            if self.kwargs.get('action') in ['store_true', 'store_const'] or \
-               self.kwargs.get('nargs') == 0:
+            if self.kwargs.get('action') == 'store_true' or self.kwargs.get('nargs') == 0:
                 return 'bool'
+            # store_const is represented by checkbox, but computes default differently
+            elif self.kwargs.get('action') == 'store_const':
+                return 'const'
             return self.gui_hints.get('type', 'str')
         elif hint == 'default':
             hint_type = self.get_gui_hint('type')
@@ -53,6 +55,8 @@ class Argument(object):
                 return os.path.abspath(os.path.expanduser(default))
             elif hint_type == 'bool':
                 return hint_default or arg_default or False
+            elif hint_type == 'const':
+                return hint_default or arg_default
             else:
                 if hint_default == '$(whoami)':
                     hint_default = os.getlogin()
