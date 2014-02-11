@@ -47,12 +47,12 @@ def dependencies_section(section, kwargs, runner=None):
 
 def run_section(section, kwargs, runner=None):
     skip_else = False
+    retval = [False, '']
 
     for i, command_dict in enumerate(section):
         if getattr(runner, 'stop_flag', False):
             break
         for comm_type, comm in command_dict.items():
-            retval = [False, '']
             if comm_type.startswith('$'):
                 # intentionally pass kwargs as dict, not as keywords
                 retval = assign_variable(comm_type, comm, kwargs)
@@ -84,12 +84,12 @@ def run_section(section, kwargs, runner=None):
                                          comm,
                                          kwargs).run()
 
-            if not isinstance(retval, (list, tuple)):
+            if not isinstance(retval, (list, tuple)) or len(retval) != 2:
                 raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
                         format(ct=comm_type, c=comm, r=retval))
             assign_last_result(kwargs, *retval)
 
-    return [kwargs.get(settings.LAST_LR_VAR, False), kwargs.get(settings.LAST_R_VAR, '')]
+    return retval
 
 def assign_last_result(kwargs, log_res, res):
     kwargs[settings.LAST_LR_VAR] = log_res

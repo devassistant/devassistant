@@ -133,12 +133,16 @@ class TestEvaluate(object):
         assert evaluate_expression('$(echo ${exists} ${doesnt})', {'exists': 'X'}) == (True, 'X')
 
 class TestRunSection(object):
+    def assert_run_section_result(self, actual, expected):
+        # "actual" can possibly be a tuple, not a list, so we need to unify the value
+        assert list(actual) == list(expected)
+
     def test_result(self):
-        assert run_section([], {}) == [False, '']
+        self.assert_run_section_result(run_section([], {}), [False, ''])
 
         rs = [{'$foo': '$(echo asd)'}]
-        assert run_section(rs, {}) == [True, 'asd']
+        self.assert_run_section_result(run_section(rs, {}), [True, 'asd'])
 
         rs = [{'if $foo': [{'$foo': '"bar"'}, {'$foo': '"baz"'}]}]
-        assert run_section(rs, {}) == [False, '']
-        assert run_section(rs, {'foo': 'yes'}) == [True, 'baz']
+        self.assert_run_section_result(run_section(rs, {}), [False, ''])
+        self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'baz'])
