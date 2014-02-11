@@ -174,11 +174,18 @@ class YamlAssistantLoader(object):
         Returns:
             YamlAssistant instance constructed from y with source file source
         """
-        try:
-            name, attrs = y.popitem() # assume only one key and value
-        except AttributeError:
+        # In pre-0.9.0, we required assistant to be a mapping of {name: assistant_attributes}
+        # now we allow that, but we also allow omitting the assistant name and putting
+        # the attributes to top_level, too.
+        name = os.path.splitext(os.path.basename(source))[0]
+        if isinstance(y, dict):
+            if len(y) == 1 and name in y:
+                attrs = y[name]
+            else:
+                attrs = y
+        else:
             logger.warning('File {source} is not formatted properly - no top level mapping.'.\
-                    format(source=source))
+                           format(source=source))
             return None
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,

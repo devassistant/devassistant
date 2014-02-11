@@ -35,7 +35,7 @@ class TestYamlAssistantLoader(object):
         # TODO: probably move testing to yaml_assistants tests, since
         # most of this stuff is done there now (although it's testable here)
         y = self.load_yaml_from_fixture('c')
-        a = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
+        a = self.yl.assistant_from_yaml('c.yaml', y, CreatorAssistant())
 
         assert a.name == 'c'
         assert a.fullname == 'C Language Tool'
@@ -73,7 +73,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_snippet_for_arg')
-        klass = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
+        klass = self.yl.assistant_from_yaml('no_snippet_for_arg.yaml', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
 
     def test_assistant_from_yaml_doesnt_fail_on_missing_arg(self):
@@ -81,7 +81,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
-        a = self.yl.assistant_from_yaml('foo', y, CreatorAssistant())
+        a = self.yl.assistant_from_yaml('no_arg_in_snippet.yaml', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
 
     def test_no_cache(self):
