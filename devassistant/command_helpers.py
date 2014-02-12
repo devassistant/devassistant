@@ -341,7 +341,7 @@ class GtkDialogHelper(object):
         grid.set_column_homogeneous(True)
         grid.set_column_spacing(10)
         grid.set_row_spacing(10)
-        box.remove(box.get_children()[0])
+        #box.remove(box.get_children()[0])
         box.set_margin_left(10)
         box.set_margin_right(10)
 

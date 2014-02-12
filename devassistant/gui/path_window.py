@@ -26,6 +26,8 @@ class PathWindow(object):
         self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,col_homogenous=False, row_homogenous=True)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0,0)
+        self.box_path_main.pack_start(self.title, False, False, 0)
+        self.box_path_main.pack_start(self.grid, False, False, 0)
         self.entries = dict()
         self.browse_btns= dict()
         self.kwargs = {}
@@ -35,6 +37,7 @@ class PathWindow(object):
         self.hseparator = self.builder.get_object("hseparator")
         self.back_button = False
         self.top_assistant = None
+        self.project_name_shown = True
         self.current_main_assistant = None
 
     def next_window(self, widget, data=None):
@@ -146,13 +149,14 @@ class PathWindow(object):
         self.dir_name.set_sensitive(True)
         self.dir_name_browse_btn.set_sensitive(True)
         self._remove_widget_items()
-        if self.current_main_assistant.name != 'crt':
+        if self.current_main_assistant.name != 'crt' and self.project_name_shown:
             self.box6.remove(self.box_project)
-        else:
+            self.project_name_shown = False
+        elif self.current_main_assistant.name == 'crt' and not self.project_name_shown:
             self.box6.remove(self.box_path_main)
             self.box6.pack_start(self.box_project, False, False, 0)
             self.box6.pack_end(self.box_path_main, False, False, 0)
-        self.box_path_main.pack_start(self.title, False, False, 0)
+            self.project_name_shown = True
         caption_text = "Project: "
         row = 0
         # get selectected assistants, but without TopAssistant itself
@@ -164,7 +168,6 @@ class PathWindow(object):
             for arg in sorted(filter(lambda x: not '--name' in x.flags, a.args), key=lambda x: x.flags):
                 row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
         caption_text += ' -> '.join(caption_parts)
-        self.box_path_main.pack_start(self.grid, False, False, 0)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
         self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name','')))
