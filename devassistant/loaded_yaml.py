@@ -42,10 +42,15 @@ class LoadedYaml(object):
             YamlError: (containing a meaningful message) when the loaded Yaml
                 is not well formed
         """
+        if not isinstance(self.parsed_yaml, dict):
+            msg = 'In {0}:\n'.format(self.path)
+            msg += 'Assistants and snippets must be Yaml mappings, not {0}!'.\
+                    format(type(self.parsed_yaml))
+            raise exceptions.YamlTypeError(msg)
         self._check_fullname(self.path)
         self._check_description(self.path)
         self._check_args(self.path)
-        #self._check_dependencies(self.path)
+        self._check_dependencies(self.path)
         #self._check_run(self.path)
 
     def _check_fullname(self, source):
@@ -81,22 +86,31 @@ class LoadedYaml(object):
                 # TODO: maybe check this more thoroughly
                 self._assert_dict(attrval, attrn, path)
 
-    def _check_dependencies(self):
-        pass
+    def _check_dependencies(self, source):
+        path = [source]
+        depsects = filter(lambda a: a[0].startswith('dependencies'), self.parsed_yaml.items())
+        for name, struct in depsects:
+            self._check_one_dependencies_section(path, name, struct)
+
+    def _check_one_dependencies_section(self, path, sectname, struct):
+        self._assert_list(struct, sectname, path)
+        path = path + [sectname]
+        for item in struct:
+            self._assert_dict(item, item, path)
 
     def _check_run(self):
         pass
 
-    def _assert_dict(self, struct, name, path=None):
-        self._assert_struct_type(struct, name, (dict,), path)
+    def _assert_dict(self, struct, name, path=None, extra_info=None):
+        self._assert_struct_type(struct, name, (dict,), path, extra_info)
 
-    def _assert_str(self, struct, name, path=None):
-        self._assert_struct_type(struct, name, six.string_types, path)
+    def _assert_str(self, struct, name, path=None, extra_info=None):
+        self._assert_struct_type(struct, name, six.string_types, path, extra_info)
 
-    def _assert_list(self, struct, name, path=None):
-        self._assert_struct_type(struct, name, (list,), path)
+    def _assert_list(self, struct, name, path=None, extra_info=None):
+        self._assert_struct_type(struct, name, (list,), path, extra_info)
 
-    def _assert_struct_type(self, struct, name, types, path):
+    def _assert_struct_type(self, struct, name, types, path=None, extra_info=None):
         """Asserts that given structure is of any of given types.
 
         Args:
@@ -105,6 +119,7 @@ class LoadedYaml(object):
             types: list/tuple of types that are allowed for given struct
             path: list with a source file as a first element and previous names
                   (as in name argument to this method) as other elements
+            extra_info: extra information to print if error is found (e.g. hint how to fix this)
         Raises:
             YamlTypeError: if given struct is not of any given type; error message contains
                            source file and a "path" (e.g. args -> somearg -> flags) specifying
@@ -119,8 +134,11 @@ class LoadedYaml(object):
             err = []
             if path:
                 err.append('Source file {p}:'.format(p=path[0]))
-                err.append('  Problem in: ' + ' -> '.join(['(top level)'] + path[1:] + [name]))
+                path2print = ['(top level)'] + [str(x) for x in path[1:]] + [str(name)]
+                err.append('  Problem in: ' + ' -> '.join(path2print))
             err.append('"{n}" must be of type {w}, not {a}.'.format(n=name,
                                                                     w=wanted_yaml_typenames,
                                                                     a=actual_yaml_typename))
+            if extra_info:
+                err.append(extra_info)
             raise exceptions.YamlTypeError('\n'.join(err))
