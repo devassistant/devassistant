@@ -19,10 +19,13 @@ class ClException(RunException):
 class CommandException(RunException):
     pass
 
-class YamlTypeError(ExecutionException):
+class YamlError(ExecutionException):
     pass
 
-class YamlSyntaxError(ExecutionException):
+class YamlTypeError(YamlError):
+    pass
+
+class YamlSyntaxError(YamlError):
     pass
 
 class AssistantNotFoundException(ExecutionException):

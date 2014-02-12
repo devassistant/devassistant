@@ -236,7 +236,9 @@ class TestYamlAssistant(object):
     def test_parsed_yaml_None_values(self):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1059305
         # if any section was totally empty (e.g. None), devassistant failed
-        self.ya.parsed_yaml = flexmock(get=lambda x: None,
+        def get(arg, default=None):
+            return default
+        self.ya.parsed_yaml = flexmock(get=get,
                                        items=lambda: [('run_foo', None)])
         test_types = {'fullname': str, 'description': str, 'args': list, 'icon_path': str,
                       'files_dir': str, '_files': dict, '_logging': list, '_dependencies': list,

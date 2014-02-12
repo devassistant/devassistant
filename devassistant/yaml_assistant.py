@@ -48,6 +48,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         # so that we are sure that <default> replaces "None" if needed
         # see: https://bugzilla.redhat.com/show_bug.cgi?id=1059305
         self._parsed_yaml = value
+        self.check()
 
         # attributes needed for CLI/GUI - cached
         self.fullname = value.get('fullname') or self.name
