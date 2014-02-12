@@ -2,6 +2,7 @@ import os
 
 from devassistant import cache
 from devassistant import current_run
+from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import settings
@@ -114,12 +115,13 @@ class YamlAssistantLoader(object):
             if not loaded_yaml: # there was an error parsing yaml
                 logger.warning(warn_msg.format(source=attrs['source']))
                 continue
-            ass = cls.assistant_from_yaml(attrs['source'],
-                                          loaded_yaml,
-                                          superassistant,
-                                          role=role)
-            if not ass: # assistant isn't written properly (misses top-level mapping)
-                logger.warning(warn_msg.format(source=attrs['source']))
+            try:
+                ass = cls.assistant_from_yaml(attrs['source'],
+                                              loaded_yaml,
+                                              superassistant,
+                                              role=role)
+            except exceptions.YamlError as e:
+                logger.warning(e)
                 continue
             ass._subassistants = cls.get_assistants_from_file_hierarchy(attrs['subhierarchy'],
                                                                         ass,
@@ -173,6 +175,8 @@ class YamlAssistantLoader(object):
             superassistant: superassistant of this assistant
         Returns:
             YamlAssistant instance constructed from y with source file source
+        Raises:
+            YamlError: if the assistant is malformed
         """
         # In pre-0.9.0, we required assistant to be a mapping of {name: assistant_attributes}
         # now we allow that, but we also allow omitting the assistant name and putting
@@ -184,9 +188,8 @@ class YamlAssistantLoader(object):
             else:
                 attrs = y
         else:
-            logger.warning('File {source} is not formatted properly - no top level mapping.'.\
-                           format(source=source))
-            return None
+            raise exceptions.YamlError('No top level mapping in file {s}, skipping.'.\
+                    format(s=source))
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,
                                                  source,

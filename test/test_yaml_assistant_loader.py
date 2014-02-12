@@ -5,6 +5,7 @@ import yaml
 
 from devassistant.assistant_base import AssistantBase
 from devassistant import current_run
+from devassistant import exceptions
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 from test.logger import TestLoggingHandler
@@ -115,7 +116,7 @@ class TestYamlAssistantLoader(object):
                                   'assistants_malformed',
                                   'crt',
                                   'a2.yaml')
-        err = 'Failed to load assistant {src}, skipping subassistants.'.format(src=bad_syntax)
+        err = 'No top level mapping in file {src}, skipping.'.format(src=bad_syntax)
         self.yl.assistants_dirs = [os.path.join(os.path.split(bad_syntax[:-2]))]
         res = self.yl.get_assistants_from_file_hierarchy({'a1': {'source': bad_syntax,
                                                                  'subhierarchy': {}}},
@@ -123,8 +124,6 @@ class TestYamlAssistantLoader(object):
         assert ('WARNING', err) in self.tlh.msgs
         assert res == []
 
-    def test_assistant_from_yaml_logs_and_returns_None_on_bad_assistant(self):
-        res = self.yl.assistant_from_yaml('/foo/bar', 'not a mapping', None)
-        assert ('WARNING', 'File /foo/bar is not formatted properly - no top level mapping.') \
-                in self.tlh.msgs
-        assert res == None
+    def test_assistant_from_yaml_raises_on_bad_assistant(self):
+        with pytest.raises(exceptions.YamlError):
+            res = self.yl.assistant_from_yaml('/foo/bar', 'not a mapping', None)
