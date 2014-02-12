@@ -48,6 +48,8 @@ class PathRunner(object):
             if not getattr(e, 'already_logged', False):
                 # this is here primarily because of log_ command, that logs the message itself
                 logger.error(utils.u(e))
+                if isinstance(e, exceptions.YamlError): # if there's a yaml error, just shut down
+                    raise e
             error = e
 
         # in any case, run post_run
