@@ -288,7 +288,7 @@ class PathWindow(object):
                 align_btn.add(self.browse_btn)
                 self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
             elif arg.get_gui_hint('type') == 'str':
-                if isinstance(self.current_main_assistant, CreatorAssistant):
+                if arg.name == 'github' or arg.name == 'github-login':
                     align_btn.add(self.link_button)
                     self.browse_btns[self._check_box_title(arg,number)]=self.link_button
             new_box.pack_start(align_btn, False, False, 6)
