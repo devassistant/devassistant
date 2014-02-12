@@ -220,3 +220,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         """ This function is used for stopping devassistant from GUI
         """
         self.stop_flag = True
+
+    def _check_fullname(self, source):
+        path = [source]
+        self._assert_str(self.parsed_yaml.get('fullname', ''), path)
+
+    def _check_description(self, source):
+        path = [source]
+        self._assert_str(self.parsed_yaml.get('description'), path)
