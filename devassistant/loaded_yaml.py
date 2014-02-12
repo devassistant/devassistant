@@ -95,8 +95,16 @@ class LoadedYaml(object):
     def _check_one_dependencies_section(self, path, sectname, struct):
         self._assert_list(struct, sectname, path)
         path = path + [sectname]
-        for item in struct:
-            self._assert_dict(item, item, path)
+        for comm in struct:
+            self._assert_command_dict(comm, comm, path)
+            command_type, command_input = list(comm.items())[0]
+            self._assert_str(command_type, command_type, path)
+            if command_type == 'use':
+                self._assert_str(command_input, command_type, path)
+            else:
+                self._assert_list(command_input, command_type, path)
+            if command_type.startswith('if ') or command_type.startswith('else '):
+                self._check_one_dependencies_section(path, command_type, command_input)
 
     def _check_run(self):
         pass
@@ -109,6 +117,17 @@ class LoadedYaml(object):
 
     def _assert_list(self, struct, name, path=None, extra_info=None):
         self._assert_struct_type(struct, name, (list,), path, extra_info)
+
+    def _assert_command_dict(self, struct, name, path=None, extra_info=None):
+        """Checks whether struct is a command dict (e.g. it's a dict and has 1 key-value pair."""
+        self._assert_dict(struct, name, path, extra_info)
+        if len(struct) != 1:
+            err = [self._format_error_path(path + [name])]
+            err.append('Commands of run and dependencies sections must be mapping with '
+                       'exactly 1 key-value pair, got {0}: {1}'.format(len(struct), struct))
+            if extra_info:
+                err.append(extra_info)
+            raise exceptions.YamlSyntaxError('\n'.join(err))
 
     def _assert_struct_type(self, struct, name, types, path=None, extra_info=None):
         """Asserts that given structure is of any of given types.
@@ -134,9 +153,11 @@ class LoadedYaml(object):
             err = []
             if path:
                 err.append(self._format_error_path(path + [name]))
-            err.append('"{n}" must be of type {w}, not {a}.'.format(n=name,
-                                                                    w=wanted_yaml_typenames,
-                                                                    a=actual_yaml_typename))
+            err.append('  Expected {w} value for "{n}", got value of type {a}: "{v}"'.\
+                    format(w=wanted_yaml_typenames,
+                           n=name,
+                           a=actual_yaml_typename,
+                           v=struct))
             if extra_info:
                 err.append(extra_info)
             raise exceptions.YamlTypeError('\n'.join(err))
