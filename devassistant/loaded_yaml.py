@@ -79,9 +79,8 @@ class LoadedYaml(object):
         if not isinstance(struct, typ):
             err = []
             if path:
-                err.append('In {p}:'.format(p=path[0]))
-                if len(path) > 1:
-                    err.append(' -> '.join(path[1:]))
+                err.append('Source file {p}:'.format(p=path[0]))
+                err.append('  Problem in: ' + ' -> '.join(['(top level)'] + path[1:] + [name]))
             err.append('"{n}" has to be Yaml {w}, not {a}.'.format(n=name,
                                                                    w=wanted_yaml_typename,
                                                                    a=actual_yaml_typename))
