@@ -97,6 +97,19 @@ class LoadedYaml(object):
         self._assert_struct_type(struct, name, (list,), path)
 
     def _assert_struct_type(self, struct, name, types, path):
+        """Asserts that given structure is of any of given types.
+
+        Args:
+            struct: structure to check
+            name: displayable name of the checked structure (e.g. "run_foo" for section run_foo)
+            types: list/tuple of types that are allowed for given struct
+            path: list with a source file as a first element and previous names
+                  (as in name argument to this method) as other elements
+        Raises:
+            YamlTypeError: if given struct is not of any given type; error message contains
+                           source file and a "path" (e.g. args -> somearg -> flags) specifying
+                           where the problem is
+        """
         wanted_yaml_typenames = set()
         for t in types:
             wanted_yaml_typenames.add(self._yaml_typenames[t])
