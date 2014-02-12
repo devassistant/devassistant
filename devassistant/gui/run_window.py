@@ -100,6 +100,7 @@ class RunWindow(object):
         self.pr = None
         self.link = self.gui_helper.create_button()
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
+        self.info_box.pack_start(self.info_label, False, False, 12)
         self.project_canceled = False
         self.kwargs = {}
         self.current_main_assistant = None
@@ -118,7 +119,6 @@ class RunWindow(object):
         self.debug_logs['logs'] = list()
         self.thread = threading.Thread(target=self.devassistant_start)
         dirname, projectname = self.parent.path_window.get_data()
-        self.info_box.pack_start(self.info_label, False, False, 12)
         if self.kwargs.get('github'):
             self.info_box.remove(self.link)
             self.link = self.gui_helper.create_link_button(
