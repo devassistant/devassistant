@@ -173,7 +173,16 @@ class Cache(object):
         """
         # we need to process assistant in custom way to see unexpanded args, etc.
         loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
-        _, attrs = loaded_ass.popitem()
+        # In pre-0.9.0, we required assistant to be a mapping of {name: assistant_attributes}
+        # now we allow that, but we also allow omitting the assistant name and putting
+        # the attributes to top_level, too. (this code is duplicated from yaml_assistant_loader,
+        # since cache processes assistants differently and needs to do it on its own)
+        name = os.path.splitext(os.path.basename(file_ass['source']))[0]
+        if isinstance(loaded_ass, dict):
+            if len(loaded_ass) == 1 and name in loaded_ass:
+                attrs = loaded_ass[name]
+            else:
+                attrs = loaded_ass
         cached_ass['source'] = file_ass['source']
         cached_ass['ctime'] = os.path.getctime(file_ass['source'])
         cached_ass['attrs'] = {}

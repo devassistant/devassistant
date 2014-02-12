@@ -1,24 +1,24 @@
-c:
-  fullname: C Language Tool
-  description: C Language Tool description...
+# a new style assistant without the top level name-attrs mapping
+fullname: C Language Tool
+description: C Language Tool description...
 
-  dependencies:
-  - default:
-    - rpm: [rpm]
+dependencies:
+- default:
+  - rpm: [rpm]
 
-  args:
-    foo:
-      flags:
-      - -f
-      - --foo
-      help:
-        Help for foo parameter.
+args:
+  foo:
+    flags:
+    - -f
+    - --foo
+    help:
+      Help for foo parameter.
 
-  files:
-    clientc: &clientc
-      source: crt/c/client.c
-    serverc: &serverc
-      source: crt/c/server.c
+files:
+  clientc: &clientc
+    source: crt/c/client.c
+  serverc: &serverc
+    source: crt/c/server.c
 
-  run:
-  - cl: ls foo/bar
+run:
+- cl: ls foo/bar
