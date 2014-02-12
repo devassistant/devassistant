@@ -6,6 +6,7 @@ from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import yaml_loader
 from devassistant import settings
+from devassistant import utils
 from devassistant import yaml_assistant
 
 class YamlAssistantLoader(object):
@@ -182,12 +183,8 @@ class YamlAssistantLoader(object):
         # now we allow that, but we also allow omitting the assistant name and putting
         # the attributes to top_level, too.
         name = os.path.splitext(os.path.basename(source))[0]
-        if isinstance(y, dict):
-            if len(y) == 1 and name in y:
-                attrs = y[name]
-            else:
-                attrs = y
-        else:
+        attrs = utils.get_assistant_attrs_from_dict(y, source)
+        if attrs is None:
             raise exceptions.YamlError('No top level mapping in file {s}, skipping.'.\
                     format(s=source))
         assistant = yaml_assistant.YamlAssistant(name,

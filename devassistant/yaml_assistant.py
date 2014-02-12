@@ -9,9 +9,10 @@ from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import lang
 from devassistant import loaded_yaml
+from devassistant import settings
+from devassistant import utils
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
-from devassistant import settings
 
 def needs_fully_loaded(method):
     """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded
@@ -21,7 +22,8 @@ def needs_fully_loaded(method):
     @functools.wraps(method)
     def inner(self, *args, **kwargs):
         if not self.fully_loaded:
-            self.parsed_yaml = yaml_loader.YamlLoader.load_yaml_by_path(self.path).popitem()[1]
+            loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(self.path)
+            self.parsed_yaml = utils.get_assistant_attrs_from_dict(loaded_yaml, self.path)
             self.fully_loaded = True
         return method(self, *args, **kwargs)
 

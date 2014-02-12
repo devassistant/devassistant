@@ -29,3 +29,17 @@ def get_distro_name():
                 if l.startswith('ID'):
                     distro = l.split('=')[-1].strip()
     return distro
+
+def get_assistant_attrs_from_dict(d, source):
+    # In pre-0.9.0, we required assistant to be a mapping of {name: assistant_attributes}
+    # now we allow that, but we also allow omitting the assistant name and putting
+    # the attributes to top_level, too.
+    # TODO: remove this when we obsolete the old way, perhaps in 0.9.0 final
+    name = os.path.splitext(os.path.basename(source))[0]
+    if isinstance(d, dict):
+        if len(d) == 1 and name in d:
+            return d[name]
+        else:
+            return d
+    else:
+        return None
