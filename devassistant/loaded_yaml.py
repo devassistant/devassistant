@@ -133,12 +133,17 @@ class LoadedYaml(object):
         if not isinstance(struct, types):
             err = []
             if path:
-                err.append('Source file {p}:'.format(p=path[0]))
-                path2print = ['(top level)'] + [str(x) for x in path[1:]] + [str(name)]
-                err.append('  Problem in: ' + ' -> '.join(path2print))
+                err.append(self._format_error_path(path + [name]))
             err.append('"{n}" must be of type {w}, not {a}.'.format(n=name,
                                                                     w=wanted_yaml_typenames,
                                                                     a=actual_yaml_typename))
             if extra_info:
                 err.append(extra_info)
             raise exceptions.YamlTypeError('\n'.join(err))
+
+    def _format_error_path(self, path):
+        err = []
+        err.append('Source file {p}:'.format(p=path[0]))
+        path2print = ['(top level)'] + [str(x) for x in path[1:]]
+        err.append('  Problem in: ' + ' -> '.join(path2print))
+        return '\n'.join(err)
