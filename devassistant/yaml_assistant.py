@@ -227,4 +227,4 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
     def _check_description(self, source):
         path = [source]
-        self._assert_str(self.parsed_yaml.get('description'), path)
+        self._assert_str(self.parsed_yaml.get('description', ''), path)

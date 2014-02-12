@@ -42,8 +42,8 @@ class LoadedYaml(object):
             YamlError: (containing a meaningful message) when the loaded Yaml
                 is not well formed
         """
-        #self._check_fullname(self.path)
-        #self._check_description(self.path)
+        self._check_fullname(self.path)
+        self._check_description(self.path)
         self._check_args(self.path)
         #self._check_dependencies(self.path)
         #self._check_run(self.path)
