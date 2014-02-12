@@ -4,3 +4,4 @@ jinja2
 flexmock
 progress
 pytest
+six

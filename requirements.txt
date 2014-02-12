@@ -2,3 +2,4 @@ PyGithub
 PyYAML
 jinja2
 progress
+six
