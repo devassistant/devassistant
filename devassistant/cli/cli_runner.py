@@ -11,6 +11,7 @@ from devassistant import logger
 from devassistant import path_runner
 from devassistant import sigint_handler
 
+
 class CliRunner(object):
     cur_handler = None
 
@@ -45,7 +46,7 @@ class CliRunner(object):
         top_assistant = bin.TopAssistant()
         tree = top_assistant.get_subassistant_tree()
         argparser = argparse_generator.ArgparseGenerator.\
-                        generate_argument_parser(tree, actions=actions.actions)
+            generate_argument_parser(tree, actions=actions.actions)
         parsed_args = argparser.parse_args()
         if parsed_args.da_debug:
             cls.change_logging_level(logging.DEBUG)

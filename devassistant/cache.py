@@ -13,6 +13,7 @@ from devassistant import utils
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
+
 class Cache(object):
     """Representation of DevAssistant cache file.
     Cache is stored in yaml file between devassistant invocations. Once it is loaded,
@@ -130,10 +131,11 @@ class Cache(object):
             if needs_refresh:
                 self._ass_refresh_attrs(cached_hierarchy[ass], file_hierarchy[ass])
                 was_change = True
-            was_change |= self._refresh_hierarchy_recursive(cached_hierarchy[ass]['subhierarchy'], file_hierarchy[ass]['subhierarchy'])
+            was_change |= self._refresh_hierarchy_recursive(
+                cached_hierarchy[ass]['subhierarchy'],
+                file_hierarchy[ass]['subhierarchy'])
 
         return was_change
-
 
     def _ass_needs_refresh(self, cached_ass, file_ass):
         """Checks if assistant needs refresh.

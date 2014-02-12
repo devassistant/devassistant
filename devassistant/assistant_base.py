@@ -3,6 +3,7 @@ import os
 from devassistant import exceptions
 from devassistant import settings
 
+
 class AssistantBase(object):
     """WARNING: if assigning subassistants in __init__, make sure to override it
     in subclass, so that it doesn't get inherited!"""
@@ -87,12 +88,13 @@ class AssistantBase(object):
                 if sa.name == kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
                     currently_searching = subas_list
                     path.append(sa)
-                    break # sorry if you shed a tear ;)
+                    break  # sorry if you shed a tear ;)
 
             if subas_list == previous_subas_list:
-                raise exceptions.AssistantNotFoundException('No assistant {name} after path {path}.'.format(
-                    name=kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)],
-                    path=path))
+                raise exceptions.AssistantNotFoundException('No assistant {n} after path {p}.'.\
+                    format(
+                        n=kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)],
+                        p=path))
             previous_subas_list = subas_list
 
         return path
@@ -101,7 +103,7 @@ class AssistantBase(object):
         """Returns True if this assistant was run as last in path, False otherwise."""
         # find the last subassistant_N
         i = 0
-        while i < len(kwargs): # len(kwargs) is maximum of subassistant_N keys
+        while i < len(kwargs):  # len(kwargs) is maximum of subassistant_N keys
             if settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
                 leaf_name = kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
             i += 1

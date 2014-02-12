@@ -1,5 +1,6 @@
 import os
 
+
 class Argument(object):
     """Represents assistant argument, that can either be added to argparse parser
     or interpreted otherwise by any frontend."""
@@ -21,7 +22,7 @@ class Argument(object):
             # see documentation of DefaultIffUsedActionFactory to see why this is necessary
             if self.kwargs['action'][0] == 'default_iff_used':
                 self.kwargs['action'] = DefaultIffUsedActionFactory.generate_action(
-                                                                        self.kwargs['action'][1])
+                    self.kwargs['action'][1])
         parser.add_argument(*self.flags, **self.kwargs)
 
     def get_gui_hint(self, hint):
@@ -48,7 +49,7 @@ class Argument(object):
             arg_default = self.kwargs.get('default', None)
 
             if hint_type == 'path':
-                if hint_default != None:
+                if hint_default is not None:
                     default = hint_default.replace('$(pwd)', os.getcwd())
                 else:
                     default = arg_default or '~'

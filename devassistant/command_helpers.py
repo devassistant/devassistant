@@ -11,6 +11,7 @@ from devassistant import current_run
 from devassistant import exceptions
 from devassistant.logger import logger
 
+
 class ClHelper(object):
     @classmethod
     def run_command(cls,
@@ -52,7 +53,7 @@ class ClHelper(object):
                                 shell=True,
                                 preexec_fn=preexec_fn)
         stdout = []
-        while proc.poll() == None:
+        while proc.poll() is None:
             output = proc.stdout.readline().decode('utf8')
             if output:
                 output = output.strip()
@@ -90,13 +91,15 @@ class ClHelper(object):
     @classmethod
     def format_for_scls(cls, cmd_str, scls):
         if scls and not cmd_str.startswith('cd '):
-            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.format(cmd_str=cmd_str,
-                                                                                   scls=' '.join(scls))
+            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.\
+                format(cmd_str=cmd_str,
+                       scls=' '.join(scls))
         return cmd_str
 
     @classmethod
     def ignore_sigint(cls):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 
 class PathHelper(object):
     c_cp = 'cp'
@@ -124,6 +127,7 @@ class PathHelper(object):
         except exceptions.ClException:
             return False
 
+
 class DialogHelper(object):
     """This class is to be used in all places where user interaction is required. It will
     decide on its own which specific helper it is best to use in this place (CommandLine,
@@ -148,7 +152,8 @@ class DialogHelper(object):
         TODO: could this be a security problem?
         """
         # optionally set title, that may be used by some helpers like zenity
-        return cls.get_appropriate_helper().ask_for_password(prompt, title=options.get('title', prompt))
+        return cls.get_appropriate_helper().ask_for_password(prompt,
+                                                             title=options.get('title', prompt))
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt='Do you agree?', message='', **options):
@@ -163,6 +168,7 @@ class DialogHelper(object):
         return cls.get_appropriate_helper().ask_for_package_list_confirm(prompt,
                                                                          package_list,
                                                                          **options)
+
 
 @DialogHelper.register_helper
 class CliDialogHelper(object):
@@ -213,6 +219,7 @@ class CliDialogHelper(object):
                     return choice in cls.yes_list
                 else:
                     print('\n'.join(sorted(package_list)))
+
 
 @DialogHelper.register_helper
 class GtkDialogHelper(object):
@@ -267,7 +274,7 @@ class GtkDialogHelper(object):
             win.ok = False
             win.hide()
         return cancel_close
-        
+
     @classmethod
     def _info_installed_packages(cls, win):
         def info_installed_packages(widget):
@@ -280,11 +287,10 @@ class GtkDialogHelper(object):
                 cls.show = False
                 cls.info_btn.set_label("Hide packages")
         return info_installed_packages
-        
 
     @classmethod
     def is_available(cls):
-        return cls.get_gtk() != None
+        return cls.get_gtk() is not None
 
     @classmethod
     def is_graphical(cls):

@@ -5,6 +5,7 @@ from gettext import gettext as _
 from devassistant import settings
 from devassistant.actions import HelpAction
 
+
 class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
         super(ArgumentParser, self).__init__(*args, **kwargs)
@@ -33,6 +34,7 @@ class ArgumentParser(argparse.ArgumentParser):
                             self.exit(2, _('You have to select a subassistant.\n'))
             self.print_usage(_sys.stderr)
             self.exit(1, _('%s: error: %s\n') % (self.prog, message))
+
 
 class DefaultIffUsedActionFactory(object):
     """Argparse doesn't cover one usecase of default values:

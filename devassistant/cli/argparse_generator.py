@@ -3,10 +3,12 @@ import argparse
 from devassistant.cli import devassistant_argparse
 from devassistant import settings
 
+
 class ArgparseGenerator(object):
     subparsers_str = 'subassistants'
     subparsers_desc = '''Following subassistants will help you with setting up your project.'''
-    subparsers_no_avail = '''No subasistants are available. Please install 'assistants' package first.'''
+    subparsers_no_avail = 'No subasistants are available. Please install ' +\
+        '"assistants" package first.'
     subactions_str = 'subactions'
     subactions_desc = 'This action has following subactions.'
 
@@ -37,11 +39,11 @@ class ArgparseGenerator(object):
             # then add the subassistants as arguments
             subparsers = parser.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format('0'))
             # from Python 3.3, subparsers are optional by default => make them required
-            subparsers.required=True
+            subparsers.required = True
             for subas in sorted(cur_subas, key=lambda x: x[0].name):
                 cls.add_subassistants_to(subparsers, subas, level=1)
 
-            for action, subactions in sorted(actions.items(), key=lambda x:x[0].name):
+            for action, subactions in sorted(actions.items(), key=lambda x: x[0].name):
                 cls.add_action_to(subparsers, action, subactions, level=1)
 
         return parser

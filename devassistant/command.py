@@ -5,6 +5,7 @@ import string
 from devassistant import exceptions
 from devassistant import utils
 
+
 class Command(object):
     _command_runners = None
     _lang = None
@@ -24,11 +25,11 @@ class Command(object):
             type(self)._command_runners = utils.import_module('devassistant.command_runners')
         for cr in type(self)._command_runners.command_runners:
             if cr.matches(self):
-                return cr.run(self) 
+                return cr.run(self)
 
         raise exceptions.CommandException('No runner for command "{ct}: {c}".'.\
-                format(ct=self.comm_type,
-                       c=self.comm))
+            format(ct=self.comm_type,
+                   c=self.comm))
 
     def format_str(self):
         """Formats input of this command as a string."""
@@ -98,15 +99,15 @@ class Command(object):
             new_struct = {}
             for k, v in struct.items():
                 new_struct[self._format_deep_recursive(k, eval_expressions)] =\
-                        self._format_deep_recursive(v, eval_expressions)
+                    self._format_deep_recursive(v, eval_expressions)
         elif isinstance(struct, list):
             new_struct = []
             for i in struct:
                 new_struct.append(self._format_deep_recursive(i, eval_expressions))
         elif type(self)._lang.is_var(struct) and eval_expressions:
             return self._format_deep_recursive(
-                    type(self)._lang.evaluate_expression(struct, self.kwargs)[1],
-                    eval_expressions)
+                type(self)._lang.evaluate_expression(struct, self.kwargs)[1],
+                eval_expressions)
         else:
             new_struct = self._format_str(struct)
 
