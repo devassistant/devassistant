@@ -4,7 +4,6 @@ import os
 
 from devassistant import argument
 from devassistant import assistant_base
-from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import lang

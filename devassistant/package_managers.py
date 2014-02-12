@@ -22,7 +22,6 @@ represent these high-level tools like YUM or Zypper, not RPM itself.
 from __future__ import print_function
 import collections
 import os
-import sys
 import tempfile
 import time
 import threading
@@ -247,9 +246,9 @@ class PacmanPackageManager(PackageManager):
         logger.info('Checking for presence of group {0}...'.format(group))
 
         try:
-            output = ClHelper.run_command('{pacman} -Qg "{group}"'.\
-                                          format(pacman=cls.c_pacman,
-                                                 group=group))
+            ClHelper.run_command('{pacman} -Qg "{group}"'.\
+                                 format(pacman=cls.c_pacman,
+                                        group=group))
             return group
         except exceptions.ClException:
             return False
@@ -355,7 +354,7 @@ class NPMPackageManager(PackageManager):
         try:
             ClHelper.run_command('npm')
             return True
-        except exceptions.ClException as e:
+        except exceptions.ClException:
             return False
 
     @classmethod
@@ -410,7 +409,7 @@ class GemPackageManager(PackageManager):
         try:
             ClHelper.run_command('which gem')
             return True
-        except exceptions.ClException as e:
+        except exceptions.ClException:
             return False
 
     @classmethod
@@ -789,20 +788,3 @@ class EndlessProgressThread(threading.Thread):
             self.spinner.next()
             time.sleep(1)
         self.spinner.finish()
-
-
-def main():
-    """ just for testing """
-    import logging
-    import sys
-    from devassistant import logger as l
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(l.DevassistantClFormatter())
-    console_handler.setLevel(logging.DEBUG)
-    l.logger.addHandler(console_handler)
-
-    di = DependencyInstaller()
-    di.install([{'rpm': ['python-celery']}, {'pip': ['numpy', 'celery']}])
-
-if __name__ == '__main__':
-    main()

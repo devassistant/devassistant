@@ -3,7 +3,6 @@ import re
 import string
 
 from devassistant import exceptions
-from devassistant.logger import logger
 from devassistant import utils
 
 class Command(object):

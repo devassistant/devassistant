@@ -18,7 +18,6 @@ class LoadedYaml(object):
 
     @property
     def load_path(self):
-        lp = ''
         for d in settings.DATA_DIRECTORIES:
             if d == os.path.commonprefix([self.path, d]): break
 
