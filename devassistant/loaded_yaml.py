@@ -50,7 +50,7 @@ class LoadedYaml(object):
         self._check_description(self.path)
         self._check_args(self.path)
         self._check_dependencies(self.path)
-        #self._check_run(self.path)
+        self._check_run(self.path)
 
     def _check_fullname(self, source):
         pass
@@ -105,8 +105,54 @@ class LoadedYaml(object):
             if command_type.startswith('if ') or command_type.startswith('else '):
                 self._check_one_dependencies_section(path, command_type, command_input)
 
-    def _check_run(self):
-        pass
+    def _check_run(self, source):
+        path = [source]
+        runsects = list(filter(lambda a: a[0].startswith('run'), self.parsed_yaml.items()))
+        for s in ['pre_run', 'post_run']:
+            if s in self.parsed_yaml:
+                runsects.append(self.parsed_yaml[s])
+        for name, struct in runsects:
+            self._check_execution_section(path, name, struct)
+
+    def _check_execution_section(self, path, sectname, struct):
+        # TODO: lots of duplicated code with _check_one_dependencies_section - can we improve?
+        extra_info = 'Each "execution section" (for example a run section or a section after ' +\
+            '"command runner" with execution flag ("~")) has to be a list of commands ' +\
+            'or an expression.'
+        self._assert_struct_type(struct,
+                                 sectname,
+                                 (list,) + six.string_types,
+                                 path,
+                                 extra_info)
+        path = path + [sectname]
+        if isinstance(struct, list):
+            for comm in struct:
+                self._assert_command_dict(comm, comm, path)
+                command_type, command_input = list(comm.items())[0]
+                self._assert_str(command_type, command_type, path)
+                if command_type.startswith('if ') or command_type.startswith('else ') or \
+                   command_type.startswith('for ') or command_type.endswith('~'):
+                    self._check_execution_section(path, command_type, command_input)
+                else:
+                    self._check_input_section(path, command_type, command_input)
+        else:  # expression
+            pass  # TODO: check expression syntax here or leave it up for the actual run?
+
+    def _check_input_section(self, path, sectname, struct):
+        # input section can be pretty much anything; we just want to check that when there's
+        # a dict somewhere in the structure  and one of its members ends with execution flag,
+        # we check the execution section assigned to this member
+        path = path + [sectname]
+        if isinstance(struct, list):
+            for item in struct:
+                if isinstance(item, (dict, list)):
+                    self._check_input_section(path, item, item)
+        elif isinstance(struct, dict):
+            for k, v in struct.items():
+                if k.endswith('~'):
+                    self._check_execution_section(path, k, v)
+                else:
+                    self._check_input_section(path, k, v)
 
     def _assert_dict(self, struct, name, path=None, extra_info=None):
         self._assert_struct_type(struct, name, (dict,), path, extra_info)
@@ -158,7 +204,7 @@ class LoadedYaml(object):
                            a=actual_yaml_typename,
                            v=struct))
             if extra_info:
-                err.append(extra_info)
+                err.append('Tip: ' + extra_info)
             raise exceptions.YamlTypeError('\n'.join(err))
 
     def _format_error_path(self, path):
