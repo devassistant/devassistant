@@ -8,6 +8,7 @@ from devassistant import yaml_loader
 from devassistant import settings
 from devassistant import utils
 from devassistant import yaml_assistant
+from devassistant import yaml_checker
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
@@ -184,9 +185,7 @@ class YamlAssistantLoader(object):
         # the attributes to top_level, too.
         name = os.path.splitext(os.path.basename(source))[0]
         attrs = utils.get_assistant_attrs_from_dict(y, source)
-        if attrs is None:
-            raise exceptions.YamlError('No top level mapping in file {s}, skipping.'.\
-                    format(s=source))
+        yaml_checker.check(source, attrs)
         assistant = yaml_assistant.YamlAssistant(name,
                                                  attrs,
                                                  source,

@@ -49,7 +49,6 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         # so that we are sure that <default> replaces "None" if needed
         # see: https://bugzilla.redhat.com/show_bug.cgi?id=1059305
         self._parsed_yaml = value
-        self.check()
 
         # attributes needed for CLI/GUI - cached
         self.fullname = value.get('fullname') or self.name
@@ -221,11 +220,3 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         """ This function is used for stopping devassistant from GUI
         """
         self.stop_flag = True
-
-    def _check_fullname(self, source):
-        path = [source]
-        self._assert_str(self.parsed_yaml.get('fullname', ''), path)
-
-    def _check_description(self, source):
-        path = [source]
-        self._assert_str(self.parsed_yaml.get('description', ''), path)

@@ -7,7 +7,6 @@ class Snippet(loaded_yaml.LoadedYaml):
         self.name = name
         self.parsed_yaml = parsed_yaml
         self.path = path
-        self.check()
 
     @property
     def args(self):

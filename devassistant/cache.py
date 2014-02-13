@@ -10,6 +10,7 @@ import devassistant
 
 from devassistant import settings
 from devassistant import utils
+from devassistant import yaml_checker
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
@@ -176,8 +177,8 @@ class Cache(object):
         """
         # we need to process assistant in custom way to see unexpanded args, etc.
         loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
-        # if the assistant is malformed and we get "None", this method fails, which is ok
         attrs = utils.get_assistant_attrs_from_dict(loaded_ass, file_ass['source'])
+        yaml_checker.check(file_ass['source'], attrs)
         cached_ass['source'] = file_ass['source']
         cached_ass['ctime'] = os.path.getctime(file_ass['source'])
         cached_ass['attrs'] = {}
