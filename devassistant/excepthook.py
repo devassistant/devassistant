@@ -3,6 +3,7 @@ from __future__ import print_function
 import pprint
 import sys
 
+
 class DAPrettyPrinter(pprint.PrettyPrinter):
     def pformat(self, object, indent=1, width=80, depth=None, special=False):
         # we explicitly pass indent=1 because we don't want the dict indented
@@ -19,6 +20,7 @@ class DAPrettyPrinter(pprint.PrettyPrinter):
             res.append(varname + v.__repr__())
         return '\n'.join(res)
 
+
 def is_local_subsection(command_dict):
     """Returns True if command dict is "local subsection", meaning
     that it is "if", "for" or "scl" (not a real call, but calls
@@ -28,14 +30,15 @@ def is_local_subsection(command_dict):
             return True
     return False
 
+
 def excepthook(type, value, traceback):
     print('DevAssistant traceback (most recent call last):')
     curr_tb = traceback
     run_section_frames = []
     while curr_tb:
         if 'lang.py' in curr_tb.tb_frame.f_code.co_filename and \
-           curr_tb.tb_frame.f_code.co_name == 'run_section':
-               run_section_frames.append(curr_tb.tb_frame)
+            curr_tb.tb_frame.f_code.co_name == 'run_section':
+            run_section_frames.append(curr_tb.tb_frame)
 
         curr_tb = curr_tb.tb_next
 

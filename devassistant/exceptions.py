@@ -1,11 +1,14 @@
 class ExecutionException(BaseException):
     pass
 
+
 class DependencyException(ExecutionException):
     pass
 
+
 class RunException(ExecutionException):
     pass
+
 
 class ClException(RunException):
     def __init__(self, command, returncode, output):
@@ -16,20 +19,26 @@ class ClException(RunException):
     def __str__(self):
         return self.output
 
+
 class CommandException(RunException):
     pass
+
 
 class YamlError(ExecutionException):
     pass
 
+
 class YamlTypeError(YamlError):
     pass
+
 
 class YamlSyntaxError(YamlError):
     pass
 
+
 class AssistantNotFoundException(ExecutionException):
     pass
+
 
 class SnippetNotFoundException(ExecutionException):
     pass

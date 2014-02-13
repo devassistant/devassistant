@@ -24,9 +24,11 @@ from devassistant import yaml_snippet_loader
 
 command_runners = []
 
+
 def register_command_runner(command_runner):
     command_runners.append(command_runner)
     return command_runner
+
 
 class CommandRunner(object):
     @classmethod
@@ -58,6 +60,7 @@ class CommandRunner(object):
         """
         raise NotImplementedError()
 
+
 @register_command_runner
 class AskCommandRunner(CommandRunner):
     @classmethod
@@ -85,6 +88,7 @@ class AskCommandRunner(CommandRunner):
         fmtd = c.format_deep()
         return var, fmtd[1]
 
+
 @register_command_runner
 class CallCommandRunner(CommandRunner):
     @classmethod
@@ -103,7 +107,8 @@ class CallCommandRunner(CommandRunner):
 
         if cls.is_snippet_call(c.comm):
             # we're calling a snippet => add files and files_dir to kwargs
-            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(c.comm.split('.')[0])
+            snippet = yaml_snippet_loader.YamlSnippetLoader.\
+                get_snippet_by_name(c.comm.split('.')[0])
 
             c.kwargs['__files__'].append(snippet.get_files_section())
             c.kwargs['__files_dir__'].append(snippet.get_files_dir())
@@ -167,7 +172,7 @@ class CallCommandRunner(CommandRunner):
                     sourcefile = a.path
                     break
                 a = a.superassistant
-        else: # snippet
+        else:  # snippet
             try:
                 snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
                 if section_type == 'run':
@@ -176,9 +181,10 @@ class CallCommandRunner(CommandRunner):
                     section = snippet.get_dependencies_section(section_name) if snippet else None
                 sourcefile = snippet.path
             except exceptions.SnippetNotFoundException:
-                pass # snippet not found => leave section = sourcefile = None
+                pass  # snippet not found => leave section = sourcefile = None
 
         return section, sourcefile
+
 
 @register_command_runner
 class ClCommandRunner(CommandRunner):
@@ -200,6 +206,7 @@ class ClCommandRunner(CommandRunner):
 
         return [True, result]
 
+
 @register_command_runner
 class DependenciesCommandRunner(CommandRunner):
     @classmethod
@@ -216,6 +223,7 @@ class DependenciesCommandRunner(CommandRunner):
         di = DependencyInstaller()
         di.install(struct)
         return [True, struct]
+
 
 @register_command_runner
 class DotDevassistantCommandRunner(CommandRunner):
@@ -290,7 +298,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         original_kwargs = {}
         arg_names = map(lambda arg: arg.name, kwargs['__assistant__'].args)
         for arg in arg_names:
-            if arg in kwargs: # only write those that were actually used on invocation
+            if arg in kwargs:  # only write those that were actually used on invocation
                 original_kwargs[arg] = kwargs[arg]
         to_write = {'devassistant_version': devassistant.__version__,
                     'subassistant_path': path,
@@ -436,7 +444,6 @@ class GitHubCommandRunner(CommandRunner):
         """
         return ctxt.get('github', None) or getpass.getuser()
 
-
     @classmethod
     def _guess_reponame(cls, ctxt):
         """Extracts reponame from 'name' global variable, which is possibly a path.
@@ -488,8 +495,8 @@ class GitHubCommandRunner(CommandRunner):
         dash_login = ''
         if getpass.getuser() != login:
             dash_login = '-' + login
-        ClHelper.run_command("git remote add origin git@github.com{dash_login}:{login}/{reponame}.git".\
-                             format(dash_login=dash_login, login=login, reponame=reponame),
+        ClHelper.run_command("git remote add origin git@github.com{dl}:{l}/{r}.git".\
+                             format(dl=dash_login, l=login, r=reponame),
                              logging.INFO)
 
     @classmethod
@@ -556,8 +563,8 @@ class GitHubCommandRunner(CommandRunner):
             devassistant.exceptions.CommandException on error
         """
         fork_login, fork_reponame = kwargs['repo_url'].split('/')
-        logger.info('Forking {repo} for user {login} on Github ...'.format(login=kwargs['login'],
-                                                                           repo=kwargs['repo_url']))
+        logger.info('Forking {repo} for user {login} on Github ...'.\
+            format(login=kwargs['login'], repo=kwargs['repo_url']))
         try:
             repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
             fork = cls._user.create_fork(repo)
@@ -566,6 +573,7 @@ class GitHubCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
         logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
         return fork.clone_url
+
 
 @register_command_runner
 class LogCommandRunner(CommandRunner):
@@ -587,6 +595,7 @@ class LogCommandRunner(CommandRunner):
 
         return [True, comm]
 
+
 @register_command_runner
 class SCLCommandRunner(CommandRunner):
     @classmethod
@@ -602,6 +611,7 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs['__scls__'].pop()
 
         return retval
+
 
 @register_command_runner
 class Jinja2Runner(CommandRunner):
@@ -689,12 +699,13 @@ class Jinja2Runner(CommandRunner):
         # Check if destination file exists, overwrite if needed
         if os.path.exists(result_filename):
             overwrite = args['overwrite'] if 'overwrite' in args else False
-            overwrite = True if overwrite == 'True' or overwrite == 'true' or overwrite == 'yes' else False
+            overwrite = True if overwrite in ['True', 'true', 'yes'] else False
             if overwrite:
                 logger.info('Overwriting the destination file {0}'.format(result_filename))
                 os.remove(result_filename)
             else:
-                raise exceptions.CommandException('The destination file already exists: {0}'.format(result_filename))
+                raise exceptions.CommandException('The destination file already exists: {0}'.\
+                    format(result_filename))
 
         # Generate an output file finally...
         with open(result_filename, 'w') as out:
@@ -702,6 +713,7 @@ class Jinja2Runner(CommandRunner):
             out.write(result)
 
         return (True, 'success')
+
 
 @register_command_runner
 class DockerCommandRunner(object):
@@ -749,7 +761,7 @@ class DockerCommandRunner(object):
         # and create one common progress bar for all images combined.
         # Progress is measured by number of "=" + one ">" in the bar
 
-        downloads = {} # maps size of image to percent downloaded
+        downloads = {}  # maps size of image to percent downloaded
         downloads_re = re.compile(r'(\[[=> ]+\]).+/([\.0-9]* .B)')
         pgb = progress.bar.Bar('Downloading Images', fill='=', suffix='%(percent)d %%')
 
@@ -768,7 +780,7 @@ class DockerCommandRunner(object):
             # either progress the progress bar or print the line
             if download_match:
                 percent = float(download_match.group(1).count('=') + 1) / \
-                          (len(download_match.group(1)) - 2) * 100
+                    (len(download_match.group(1)) - 2) * 100
                 downloads[download_match.group(2)] = percent
                 pgb.goto(sum(list(downloads.values())) / len(downloads))
                 if percent >= 100:

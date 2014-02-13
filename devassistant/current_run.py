@@ -1,2 +1,2 @@
-UI='cli'
+UI = 'cli'
 USE_CACHE = True
