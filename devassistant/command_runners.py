@@ -728,7 +728,7 @@ class DockerCommandRunner(object):
         return c.comm_type.startswith('docker_')
 
     @classmethod
-    def get_client(cls, timeout=30):
+    def get_client(cls, timeout=None):
         if not cls._client:
             cls._client = cls._docker_module.Client(timeout=timeout)
         return cls._client
