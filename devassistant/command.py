@@ -2,6 +2,14 @@ from devassistant import exceptions
 from devassistant import command_runners
 
 class Command(object):
+    """A class that represents a Yaml command. It has these members:
+
+    - comm_type: type of command
+    - input_log_res: logical result of command input
+    - input_res: result of command input
+    - kwargs: global context taken at point of execution of this command
+    """
+
     def __init__(self, comm_type, input_log_res, input_res, kwargs={}):
         self.comm_type = comm_type
         self.input_log_res = input_log_res
