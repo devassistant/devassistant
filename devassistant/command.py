@@ -12,6 +12,10 @@ class Command(object):
 
     def __init__(self, comm_type, input_log_res, input_res, kwargs={}):
         self.comm_type = comm_type
+        self.had_exec_flag = False
+        if comm_type.endswith('~'):
+            self.comm_type = self.comm_type[:-1]
+            self.had_exec_flag = True
         self.input_log_res = input_log_res
         self.input_res = input_res
         self.files_dir = kwargs.get('__files_dir__', [''])[-1]
