@@ -1,7 +1,10 @@
+import pytest
 import os
 import re
 
-from devassistant.lang import evaluate_expression, run_section
+from devassistant.lang import evaluate_expression, run_section, exceptions, \
+        parse_for
+
 
 class TestEvaluate(object):
     def setup_class(self):
@@ -159,3 +162,23 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section(rs, {'list': '1'}), [True, '1'])
         self.assert_run_section_result(run_section(rs, {'list': '1 2'}), [True, '2'])
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
+
+    @pytest.mark.parametrize('comm', [
+        'for foo',
+        'for $a foo'])
+        # Not sure if 'for $a in $var something' should raise
+    def test_parse_for_malformed(self, comm):
+        with pytest.raises(exceptions.YamlSyntaxError) as e:
+            parse_for(comm)
+
+    @pytest.mark.parametrize(('comm', 'result'), [
+        ('for $a in $foo',          (['a'], '$foo')),
+        ('for $a in $(expr)',       (['a'], '$(expr)')),
+        ('for $a, $b in $foo',      (['a', 'b'], '$foo')),
+        ('for $a, $b in $(expr)',   (['a', 'b'], '$(expr)')),
+        ('for ${a} in $foo',        (['a'], '$foo')),
+        ('for ${a} in $(expr)',     (['a'], '$(expr)')),
+        ('for ${a}, ${b} in $foo',  (['a', 'b'], '$foo')),
+        ('for ${a}, ${b} in $(expr)', (['a', 'b'], '$(expr)'))])
+    def test_parse_for_well_formed(self, comm, result):
+        assert(parse_for(comm) == result)
