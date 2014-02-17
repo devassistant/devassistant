@@ -213,14 +213,13 @@ class DependenciesCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        struct = c.format_deep()
-        if not isinstance(struct, list):
-            msg = 'Dependencies for installation must be list, got {v}.'.format(v=struct)
+        if not isinstance(c.input_res, list):
+            msg = 'Dependencies for installation must be list, got {v}.'.format(v=c.input_res)
             raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
-        di.install(struct)
-        return [True, struct]
+        di.install(c.input_res)
+        return [True, c.input_res]
 
 
 @register_command_runner

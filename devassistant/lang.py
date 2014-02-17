@@ -30,7 +30,8 @@ def dependencies_section(section, kwargs, runner=None):
             if dep_type in ['call', 'use']:
                 deps.extend(command.Command(dep_type, dep_list, kwargs).run())
             elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
-                deps.append({dep_type: dep_list})
+                fmtd = list(map(lambda dep: format_str(dep, kwargs), dep_list))
+                deps.append({dep_type: fmtd})
             elif dep_type.startswith('if'):
                 possible_else = None
                 if len(section) > i + 1: # do we have "else" clause?
