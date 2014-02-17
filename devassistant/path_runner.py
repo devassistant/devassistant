@@ -1,7 +1,8 @@
+import six
+
 from devassistant import command
 from devassistant.logger import logger
 from devassistant import exceptions
-from devassistant import utils
 from devassistant import yaml_assistant
 
 class PathRunner(object):
@@ -47,7 +48,7 @@ class PathRunner(object):
         except exceptions.ExecutionException as e:
             if not getattr(e, 'already_logged', False):
                 # this is here primarily because of log_ command, that logs the message itself
-                logger.error(utils.u(e))
+                logger.error(six.text_type(e))
                 if isinstance(e, exceptions.YamlError): # if there's a yaml error, just shut down
                     raise e
             error = e
@@ -58,7 +59,7 @@ class PathRunner(object):
         except exceptions.ExecutionException as e:
             if not getattr(e, 'already_logged', False):
                 # this is here primarily because of log_ command, that logs the message itself
-                logger.error(utils.u(e))
+                logger.error(six.text_type(e))
             error = e
 
         if error: raise error

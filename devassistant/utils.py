@@ -14,13 +14,6 @@ except ImportError:
 def import_module(module):
     return importlib.import_module(module)
 
-def u(string):
-    try:
-        return unicode(string)
-    except:
-        return string
-
-# ok, if we need one more compat thingie, we _will_ start using six :)
 def get_distro_name():
     distro = platform.linux_distribution()[0].lower()
     if not distro and os.path.exists('/etc/os-release'):
