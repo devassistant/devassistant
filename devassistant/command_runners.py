@@ -581,17 +581,16 @@ class LogCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = c.format_str()
         if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
-            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], comm)
+            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], c.input_res)
             if c.comm_type[-1] in 'ce':
-                e = exceptions.CommandException(comm)
+                e = exceptions.CommandException(c.input_res)
                 e.already_logged = True
                 raise e
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
-        return [True, comm]
+        return [True, c.input_res]
 
 
 @register_command_runner
