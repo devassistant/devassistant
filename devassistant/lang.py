@@ -3,6 +3,7 @@ sections. These functions usually assume that their input has been previously
 checked by `devassistant.yaml_checker.check`."""
 import re
 import shlex
+import string
 import sys
 
 import six
@@ -114,7 +115,7 @@ def eval_input_section(section, kwargs, runner=None):
         if section.startswith('~'):
             retval = eval_exec_section(section[1:], kwargs, runner)
         else:
-            retval = [bool(section), format_str(section)]
+            retval = [bool(section), format_str(section, kwargs)]
     elif isinstance(section, list):
         retlist = []
         for item in section:
@@ -124,7 +125,7 @@ def eval_input_section(section, kwargs, runner=None):
     elif isinstance(section, dict):
         retdict = {}
         for k, v in section:
-            k = format_str(k)
+            k = format_str(k, kwargs)
             # TODO: check for stop flag
             if k.endswith('~'):
                 kwargs[k[:-1]] = eval_exec_section(v, kwargs, runner)
@@ -536,6 +537,15 @@ _command_splitter = re.compile(r'(\s+|\S+)')
 # we want to do homedir expansion in quotes (which bash doesn't)
 _homedir_matcher = re.compile('\\\\*~')
 
+def _homedir_expand(cls, matchobj):
+    # therefore we must hack around this here
+    if len(matchobj.group(0)) % 2 == 0:
+        # even length => odd number of backslashes => eat one and don't expand
+        return matchobj.group(0)[:-2] + '~'
+    else:
+        # odd length => even number of backslashes => expand an
+        return matchobj.group(0)[:-1] + os.path.expanduser('~')
+
 def format_str(s, kwargs):
     files_dir = kwargs.get('__files_dir__', [''])[-1]
     files = kwargs.get('__files__', [{}])[-1]
@@ -569,12 +579,4 @@ def format_str(s, kwargs):
     # substitute cli arguments for their values
     substituted = string.Template(new_comm).safe_substitute(kwargs)
 
-    # therefore we must hack around this here
-    if len(matchobj.group(0)) % 2 == 0:
-        # even length => odd number of backslashes => eat one and don't expand
-        pattern = matchobj.group(0)[:-2] + '~'
-    else:
-        # odd length => even number of backslashes => expand an
-        pattern = matchobj.group(0)[:-1] + os.path.expanduser('~')
-
-    return _homedir_matcher.sub(pattern, substituted)
+    return _homedir_matcher.sub(_homedir_expand, substituted)
