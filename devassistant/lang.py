@@ -1,6 +1,11 @@
+"""This module contains functions that execute assistants' dependencies and run
+sections. These functions usually assume that their input has been previously
+checked by `devassistant.yaml_checker.check`."""
 import re
 import shlex
 import sys
+
+import six
 
 from devassistant import command
 from devassistant import exceptions
@@ -46,17 +51,20 @@ def dependencies_section(section, kwargs, runner=None):
     return deps
 
 def run_section(section, kwargs, runner=None):
+    return eval_exec_section(section, kwargs, runner)
+
+def eval_exec_section(section, kwargs, runner=None):
     skip_else = False
     retval = [False, '']
+
+    if isinstance(section, six.string_types):
+        return evaluate_expression(section, kwargs)
 
     for i, command_dict in enumerate(section):
         if getattr(runner, 'stop_flag', False):
             break
         for comm_type, comm in command_dict.items():
-            if comm_type.startswith('$'):
-                # intentionally pass kwargs as dict, not as keywords
-                retval = assign_variable(comm_type, comm, kwargs)
-            elif comm_type.startswith('if'):
+            if comm_type.startswith('if'):
                 possible_else = None
                 if len(section) > i + 1: # do we have "else" clause?
                     possible_else = list(section[i + 1].items())[0]
@@ -79,15 +87,49 @@ def run_section(section, kwargs, runner=None):
                     else:
                         kwargs[control_vars[0]] = i
                     retval = run_section(comm, kwargs, runner=runner)
+
+            # commands that can have exec flag appended follow
+            if comm_type.endswith('~'):  # on exec flag, eval comm as exec section
+                comm_ret = eval_exec_section(comm, kwargs, runner)
+            else:  # with no exec flag, eval comm as input section
+                comm_ret = eval_input_section(comm, kwargs, runner)
+            # intentionally pass kwargs as dict in following calls, so that it can be changed
+            if comm_type.startswith('$'):
+                retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
             else:
-                retval = command.Command(comm_type,
-                                         comm,
-                                         kwargs).run()
+                retval = command.Command(comm_type, *comm_ret, kwargs=kwargs).run()
 
             if not isinstance(retval, (list, tuple)) or len(retval) != 2:
                 raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
                         format(ct=comm_type, c=comm, r=retval))
             assign_last_result(kwargs, *retval)
+
+    return retval
+
+def eval_input_section(section, kwargs, runner=None):
+    retval = [False, '']
+
+    if isinstance(section, six.string_types):
+        if section.startswith('~'):
+            retval = eval_exec_section(section[1:], kwargs, runner)
+        else: # TODO: format variables in strings
+            retval = [bool(section), section]
+    elif isinstance(section, list):
+        retlist = []
+        for item in section:
+            # TODO: check for stop flag
+            retlist.append(eval_input_section(item))
+        retval = [bool(retlist), retlist]
+    elif isinstance(section, dict):
+        retdict = {}
+        for k, v in section:
+            # TODO: check for stop flag
+            # TODO: if k is a variable, format it
+            if k.endswith('~'):
+                kwargs[k[:-1]] = eval_exec_section(v, kwargs, runner)
+            else:
+                kwargs[k] = eval_input_section(v, kwargs, runner)
+        retval = [bool(retdict), retdict]
 
     return retval
 
@@ -165,31 +207,42 @@ def get_section_from_condition(if_section, else_section, kwargs):
     else:
         return (1, skip, else_section[1]) if skip else (1, skip, None)
 
-def assign_variable(variable, comm, kwargs):
-    """Assigns *result* of expression to variable. If there are two variables separated by
-    comma, the first gets assigned *logical result* and the second the *result*.
-    The variable is then put into kwargs (overwriting original value, if already there).
-    Note, that unlike other methods, this method has to accept kwargs, not **kwargs.
+def assign_variable(variable, log_res, res, kwargs):
+    """Assigns given result (resp. logical result and result) to a variable
+    (resp. to two variables). log_res and res are already computed result
+    of an exec/input section. For example:
 
-    Even if comm has *logical result* == False, output is still stored and
-    this method doesn't fail.
+    $foo~: $spam and $eggs
+    $log_res, $foo~: $spam and $eggs
+
+    $foo:
+      some: struct
+    $log_res, $foo:
+      some:
+        other:
+          struct
 
     Args:
         variable: variable (or two variables separated by ",") to assign to
-        comm: either another variable or command to run
+        log_res: logical result of evaluated section
+        res: result of evaluated section
+
+    Raises:
+        YamlSyntaxError: if there are more than two variables
     """
+    if variable.endswith('~'):
+        variable = variable[:-1]
     comma_count = variable.count(',')
     if comma_count > 1:
         raise exceptions.YamlSyntaxError('Max two variables allowed on left side.')
 
-    res1, res2 = evaluate_expression(comm, kwargs)
     if comma_count == 1:
         var1, var2 = map(lambda v: get_var_name(v), variable.split(','))
-        kwargs[var1] = res1
+        kwargs[var1] = log_res
     else:
         var2 = get_var_name(variable)
-    kwargs[var2] = res2
-    return res1, res2
+    kwargs[var2] = res
+    return log_res, res
 
 def is_var(string):
     return string.startswith('$')
