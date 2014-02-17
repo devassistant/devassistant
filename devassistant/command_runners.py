@@ -12,10 +12,8 @@ import yaml
 import devassistant
 
 from devassistant import exceptions
-from devassistant import command
 from devassistant.remote_auth import GitHubAuth
 from devassistant.command_helpers import ClHelper, DialogHelper
-from devassistant import lang
 from devassistant.logger import logger
 from devassistant.package_managers import DependencyInstaller
 from devassistant import settings
@@ -343,6 +341,7 @@ class DotDevassistantCommandRunner(CommandRunner):
             struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
                                                     kwargs,
                                                     runner=kwargs['__assistant__']))
+        # TODO: import command dynamically here
         command.Command('dependencies', struct, dda_content.get('original_kwargs', {})).run()
 
     @classmethod

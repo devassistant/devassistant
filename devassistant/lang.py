@@ -112,8 +112,8 @@ def eval_input_section(section, kwargs, runner=None):
     if isinstance(section, six.string_types):
         if section.startswith('~'):
             retval = eval_exec_section(section[1:], kwargs, runner)
-        else: # TODO: format variables in strings
-            retval = [bool(section), section]
+        else:
+            retval = [bool(section), format_str(section)]
     elif isinstance(section, list):
         retlist = []
         for item in section:
@@ -123,8 +123,8 @@ def eval_input_section(section, kwargs, runner=None):
     elif isinstance(section, dict):
         retdict = {}
         for k, v in section:
+            k = format_str(k)
             # TODO: check for stop flag
-            # TODO: if k is a variable, format it
             if k.endswith('~'):
                 kwargs[k[:-1]] = eval_exec_section(v, kwargs, runner)
             else:
@@ -528,3 +528,52 @@ def evaluate_expression(expression, names):
 
     # With the language defined, evaluate the expression
     return interpr.parse(expression)
+
+
+# spliting strings by _command_splitter.findall(str) preserves whitespace
+_command_splitter = re.compile(r'(\s+|\S+)')
+# we want to do homedir expansion in quotes (which bash doesn't)
+_homedir_matcher = re.compile('\\\\*~')
+
+def format_str(s, kwargs):
+    files_dir = kwargs.get('__files_dir__', [''])[-1]
+    files = kwargs.get('__files__', [{}])[-1]
+    # If command is false/true in yaml file, it gets converted to False/True
+    # which is bool object => convert
+    if isinstance(s, bool):
+        comm = str(s).lower()
+    else:
+        comm = s
+
+    new_comm = []
+    parts_list = _command_splitter.findall(comm)
+
+    # replace parts that match something from _files (can be either name
+    # if "&" didn't expand in yaml; or the dict if "&" did expand)
+    for c in parts_list:
+        if isinstance(c, dict):
+            # TODO: raise a proper error if c['source'] is not present
+            new_comm.append(os.path.join(files_dir, c['source']))
+        elif c.startswith('*'):
+            c_file = c[1:].strip('{}')
+            if c_file in files:
+                new_comm.append(os.path.join(files_dir, files[c_file]['source']))
+            else:
+                new_comm.append(c)
+        else:
+            new_comm.append(c)
+
+    new_comm = ''.join(new_comm)
+
+    # substitute cli arguments for their values
+    substituted = string.Template(new_comm).safe_substitute(kwargs)
+
+    # therefore we must hack around this here
+    if len(matchobj.group(0)) % 2 == 0:
+        # even length => odd number of backslashes => eat one and don't expand
+        pattern = matchobj.group(0)[:-2] + '~'
+    else:
+        # odd length => even number of backslashes => expand an
+        pattern = matchobj.group(0)[:-1] + os.path.expanduser('~')
+
+    return _homedir_matcher.sub(pattern, substituted)
