@@ -51,7 +51,8 @@ class CommandRunner(object):
 
         Returns:
             Tuple/list [logical_result, result] of the run (e.g. [True, 'output']). Usually,
-            assistant should rather raise an exception than return [False, 'something'].
+            assistant should rather return [False, 'something'] then raise exception, so that
+            execution could continue.
 
         Raises:
             Any exception that's subclass of devassistant.exceptions.CommandException
@@ -67,24 +68,15 @@ class AskCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        var, args = cls.format_args(c)
+        if c.input_res and not isinstance(c.input_res, dict):
+            raise exception.CommandException('{0} needs a mapping as input!'.format(c.comm_type))
         if c.comm_type == 'ask_password':
-            result = [True, DialogHelper.ask_for_password(**args)]
+            res = DialogHelper.ask_for_password(**c.input_res)
         elif c.comm_type == 'ask_confirm':
-            result = [True, DialogHelper.ask_for_confirm_with_message(**args)]
+            res = DialogHelper.ask_for_confirm_with_message(**c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
-        c.kwargs[var] = result[1]
-        return result
-
-    @classmethod
-    def format_args(cls, c):
-        # get variable name before formatting
-        if not c.comm or len(c.comm) < 1:
-            raise exceptions.CommandException('No commands specified')
-        var = lang.get_var_name(c.comm[0])
-        fmtd = c.format_deep()
-        return var, fmtd[1]
+        return bool(res), res
 
 
 @register_command_runner
