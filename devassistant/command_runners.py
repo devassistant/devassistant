@@ -405,7 +405,7 @@ class GitHubCommandRunner(CommandRunner):
 
     @classmethod
     def format_args(cls, c):
-        args = c.format_deep()
+        args = c.input_res
         if isinstance(args, list):
             comm = args[0]
             args_rest = args[1]
