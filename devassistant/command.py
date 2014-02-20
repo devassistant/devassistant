@@ -1,5 +1,5 @@
 from devassistant import exceptions
-from devassistant import command_runners
+from devassistant import utils
 
 class Command(object):
     """A class that represents a Yaml command. It has these members:
@@ -9,6 +9,14 @@ class Command(object):
     - input_res: result of command input
     - kwargs: global context taken at point of execution of this command
     """
+
+    command_runners = None
+
+    @classmethod
+    def load_command_runners(cls):
+        if not cls.command_runners:
+            cls.command_runners = utils.import_module('devassistant.command_runners')
+        return cls.command_runners
 
     def __init__(self, comm_type, input_log_res, input_res, kwargs={}):
         self.comm_type = comm_type
@@ -23,7 +31,7 @@ class Command(object):
         self.kwargs = kwargs
 
     def run(self):
-        for cr in command_runners.command_runners:
+        for cr in type(self).load_command_runners().command_runners:
             if cr.matches(self):
                 return cr.run(self)
 

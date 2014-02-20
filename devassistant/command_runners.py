@@ -14,6 +14,7 @@ import devassistant
 from devassistant import exceptions
 from devassistant.remote_auth import GitHubAuth
 from devassistant.command_helpers import ClHelper, DialogHelper
+from devassistant import lang
 from devassistant.logger import logger
 from devassistant.package_managers import DependencyInstaller
 from devassistant import settings
