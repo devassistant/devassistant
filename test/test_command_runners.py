@@ -158,4 +158,8 @@ class TestSaveProjectCommandRunner(object):
     pass
 
 class TestSCLCommandRunner(object):
-    pass
+    def test_scl_passes_scls_list_to_command_invocation(self):
+        # please don't use $__scls__ in actual assistants :)
+        self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
+        self.ya.run()
+        assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs

@@ -1,6 +1,7 @@
 """This module contains functions that execute assistants' dependencies and run
 sections. These functions usually assume that their input has been previously
 checked by `devassistant.yaml_checker.check`."""
+import os
 import re
 import shlex
 import string

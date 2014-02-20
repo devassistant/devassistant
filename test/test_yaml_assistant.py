@@ -187,12 +187,6 @@ class TestYamlAssistant(object):
         assert('INFO', 'yes, I ran') in self.tlh.msgs
         assert('INFO', 'foo') in self.tlh.msgs
 
-    def test_scl_passes_scls_list_to_command_invocation(self):
-        # please don't use $__scls__ in actual assistants :)
-        self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
-        self.ya.run()
-        assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
-
     def test_snippet_uses_own_files_dir(self):
         self.ya._run = [{'use': 'a.run'}, {'log_i': '*first'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
@@ -263,34 +257,42 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', 'True') in self.tlh.msgs
         assert ('INFO', 'foo') in self.tlh.msgs
 
-    def test_assign_existing_empty_variable(self):
-        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+    @pytest.mark.parametrize('exec_flag, lres, res', [
+        ('', 'True', ''), # no exec flag => evals as literal
+        ('~', 'False', '')
+    ])
+    def test_assign_existing_empty_variable(self, exec_flag, lres, res):
+        self.ya._run = [{'$foo{0}'.format(exec_flag): '$bar'}, {'log_i': '$foo'}]
         self.ya.run(kwargs={'bar': ''})
         assert ('INFO', '') in self.tlh.msgs
 
         # both logical result and result
-        self.ya._run = [{'$success, $val': '$foo'},
+        self.ya._run = [{'$success, $val{0}'.format(exec_flag): '$foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
         self.ya.run(kwargs={'foo': ''})
-        assert ('INFO', 'False') in self.tlh.msgs
-        assert ('INFO', '') in self.tlh.msgs
+        assert ('INFO', lres) in self.tlh.msgs
+        assert ('INFO', res) in self.tlh.msgs
 
-    def test_assign_nonexisting_variable(self):
-        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
+    @pytest.mark.parametrize('exec_flag, lres, res', [
+        ('', 'True', '$bar'), # no exec flag => evals as literal
+        ('~', 'False', '')
+    ])
+    def test_assign_nonexisting_variable_depending_on_exec_flag(self, exec_flag, lres, res):
+        self.ya._run = [{'$foo{0}'.format(exec_flag): '$bar'}, {'log_i': '$foo'}]
         self.ya.run()
-        assert ('INFO', '') in self.tlh.msgs
+        assert ('INFO', res) in self.tlh.msgs
 
         # both logical result and result
-        self.ya._run = [{'$success, $val': '$foo'},
+        self.ya._run = [{'$success, $val{0}'.format(exec_flag): '$bar'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
         self.ya.run()
-        assert ('INFO', 'False') in self.tlh.msgs
-        assert ('INFO', '') in self.tlh.msgs
+        assert ('INFO', lres) in self.tlh.msgs
+        assert ('INFO', res) in self.tlh.msgs
 
     def test_assign_defined_empty_variable(self):
-        self.ya._run = [{'$success, $val': 'defined $foo'},
+        self.ya._run = [{'$success, $val~': 'defined $foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
         self.ya.run(kwargs={'foo': ''})
@@ -298,7 +300,7 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', '') in self.tlh.msgs
 
     def test_assign_defined_variable(self):
-        self.ya._run = [{'$success, $val': 'defined $foo'},
+        self.ya._run = [{'$success, $val~': 'defined $foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
         self.ya.run(kwargs={'foo': 'foo'})
@@ -306,7 +308,7 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', 'foo') in self.tlh.msgs
 
     def test_assign_defined_nonexistent_variable(self):
-        self.ya._run = [{'$success, $val': 'defined $foo'},
+        self.ya._run = [{'$success, $val~': 'defined $foo'},
                         {'log_i': '$success'},
                         {'log_i': '$val'}]
         self.ya.run()
@@ -314,7 +316,7 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', '') in self.tlh.msgs
 
     def test_assign_successful_command(self):
-        self.ya._run = [{'$foo': '$(basename foo/bar)'}, {'log_i': '$foo'}]
+        self.ya._run = [{'$foo~': '$(basename foo/bar)'}, {'log_i': '$foo'}]
         self.ya.run()
         assert ('INFO', 'bar') in self.tlh.msgs
 
@@ -329,12 +331,12 @@ class TestExpressions(TestYamlAssistant):
         assert ('INFO', 'success!') in self.tlh.msgs
 
     def test_assign_unsuccessful_command(self):
-        self.ya._run = [{'$foo': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
+        self.ya._run = [{'$foo~': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
         self.ya.run()
         assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
 
         # both logical result and result
-        self.ya._run = [{'$success, $val': '$(ls spam/spam/spam)'},
+        self.ya._run = [{'$success, $val~': '$(ls spam/spam/spam)'},
                         {'log_i': '$success'},
                         {'log_i': '$val'},
                         {'if $success': [{'log_i': 'oh no, spam found'}]},
