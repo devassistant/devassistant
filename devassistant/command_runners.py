@@ -7,6 +7,7 @@ import re
 
 import jinja2
 import progress.bar
+import six
 import yaml
 
 import devassistant
@@ -222,33 +223,32 @@ class DotDevassistantCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = cls.format_args(c)
+        cls.check_args(c)
         if c.comm_type == 'dda_c':
-            cls._dot_devassistant_create(comm, c.kwargs)
+            cls._dot_devassistant_create(c.input_res, c.kwargs)
         elif c.comm_type == 'dda_r':
-            cls._dot_devassistant_read(comm, c.kwargs)
+            cls._dot_devassistant_read(c.input_res, c.kwargs)
         elif c.comm_type == 'dda_dependencies':
-            cls._dot_devassistant_dependencies(comm, c.kwargs)
+            cls._dot_devassistant_dependencies(c.input_res, c.kwargs)
         elif c.comm_type == 'dda_run':
-            cls._dot_devassistant_run(comm, c.kwargs)
+            cls._dot_devassistant_run(c.input_res, c.kwargs)
         elif c.comm_type == 'dda_w':
-            cls._dot_devassistant_write(comm)
+            cls._dot_devassistant_write(c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return [True, '']
 
     @classmethod
-    def format_args(cls, c):
+    def check_args(cls, c):
         if c.comm_type == 'dda_w':
-            comm = c.format_deep(eval_expressions=False)
-            if not isinstance(comm, list) or len(comm) != 2:
-                msg = 'dda_write expects list with path to .devassistant and mapping to add.'
+            if not isinstance(c.input_res, list) or len(c.input_res) != 2:
+                msg = 'dda_w expects Yaml list with path to .devassistant and mapping to write.'
                 raise exceptions.CommandException(msg)
         else:
-            comm = c.format_str()
-
-        return comm
+            if not isinstance(c.input_res, six.string_types):
+                msg = '{0} expects a string as an argument.'.format(c.comm_type)
+                raise exceptions.CommandException(msg)
 
     @classmethod
     def __dot_devassistant_write_struct(cls, directory, struct):
