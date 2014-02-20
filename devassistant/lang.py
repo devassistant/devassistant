@@ -120,17 +120,17 @@ def eval_input_section(section, kwargs, runner=None):
         retlist = []
         for item in section:
             # TODO: check for stop flag
-            retlist.append(eval_input_section(item))
+            retlist.append(eval_input_section(item, kwargs)[1])
         retval = [bool(retlist), retlist]
     elif isinstance(section, dict):
         retdict = {}
-        for k, v in section:
+        for k, v in section.items():
             k = format_str(k, kwargs)
             # TODO: check for stop flag
             if k.endswith('~'):
-                kwargs[k[:-1]] = eval_exec_section(v, kwargs, runner)
+                retdict[k[:-1]] = eval_exec_section(v, kwargs, runner)[1]
             else:
-                kwargs[k] = eval_input_section(v, kwargs, runner)
+                retdict[k] = eval_input_section(v, kwargs, runner)[1]
         retval = [bool(retdict), retdict]
 
     return retval
