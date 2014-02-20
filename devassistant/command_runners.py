@@ -594,7 +594,7 @@ class SCLCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
-        retval = lang.run_section(c.comm,
+        retval = lang.run_section(c.input_res,
                                   c.kwargs,
                                   runner=c.kwargs['__assistant__'])
         c.kwargs['__scls__'].pop()
