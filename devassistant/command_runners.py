@@ -185,7 +185,6 @@ class ClCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        comm = c.format_str()
         log_level = logging.DEBUG
         if 'i' in c.comm_type:
             log_level = logging.INFO
@@ -193,7 +192,7 @@ class ClCommandRunner(CommandRunner):
         if '__scls__' in c.kwargs:
             scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
         # if there is an exception, just let it bubble up
-        result = ClHelper.run_command(comm, log_level, scls=scls)
+        result = ClHelper.run_command(c.input_res, log_level, scls=scls)
 
         return [True, result]
 

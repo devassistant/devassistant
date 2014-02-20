@@ -506,7 +506,7 @@ def evaluate_expression(expression, names):
 
         success = True
         try:
-            output = command.Command('cl_n', cmd, interpr.names).run()[1]
+            output = command.Command('cl', True, cmd, interpr.names).run()[1]
         except exceptions.RunException as ex:
             success = False
             output = ex.output
