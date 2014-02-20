@@ -29,7 +29,7 @@ def dependencies_section(section, kwargs, runner=None):
             # rpm dependencies (can't handle anything else yet)
             # we don't allow general commands, only "call"/"use" command here
             if dep_type in ['call', 'use']:
-                deps.extend(command.Command(dep_type, dep_list, kwargs).run())
+                deps.extend(command.Command(dep_type, True, dep_list, kwargs).run())
             elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                 fmtd = list(map(lambda dep: format_str(dep, kwargs), dep_list))
                 deps.append({dep_type: fmtd})

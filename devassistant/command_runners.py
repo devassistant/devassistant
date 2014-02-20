@@ -333,7 +333,7 @@ class DotDevassistantCommandRunner(CommandRunner):
                                                     kwargs,
                                                     runner=kwargs['__assistant__']))
         # TODO: import command dynamically here
-        command.Command('dependencies', struct, dda_content.get('original_kwargs', {})).run()
+        command.Command('dependencies', True, struct, dda_content.get('original_kwargs', {})).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
