@@ -71,7 +71,7 @@ class AskCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         if c.input_res and not isinstance(c.input_res, dict):
-            raise exception.CommandException('{0} needs a mapping as input!'.format(c.comm_type))
+            raise exceptions.CommandException('{0} needs a mapping as input!'.format(c.comm_type))
         if c.comm_type == 'ask_password':
             res = DialogHelper.ask_for_password(**c.input_res)
         elif c.comm_type == 'ask_confirm':
@@ -593,6 +593,8 @@ class SCLCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
+        c.kwargs.setdefault('__scls__', [])
+        c.kwargs.setdefault('__assistant__', None)
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
         retval = lang.run_section(c.input_res,
                                   c.kwargs,

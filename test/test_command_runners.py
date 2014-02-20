@@ -9,6 +9,8 @@ from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, CallCommandRunner, Jinja2Runner
 from devassistant.exceptions import CommandException, YamlSyntaxError
 
+from test.logger import TestLoggingHandler
+
 
 class TestAskCommandRunner(object):
     # There is mocking code duplication, because (at least) with flexmock 0.9.6
@@ -18,47 +20,27 @@ class TestAskCommandRunner(object):
         self.acr = AskCommandRunner
 
     def test_matches(self):
-        assert self.acr.matches(Command('ask_foo', []))
-        assert not self.acr.matches(Command('foo', []))
+        assert self.acr.matches(Command('ask_foo', False, []))
+        assert not self.acr.matches(Command('foo', False, []))
 
     def test_run_password(self):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_password').and_return('foobar')
-        comm = Command('ask_password', ['$password', {}])
-        p = self.acr.run(comm)
+        comm = Command('ask_password', False, {})
+        res = self.acr.run(comm)
 
-        assert comm.kwargs['password'] == 'foobar'
-        assert p[0] is True
-        assert p[1] == 'foobar'
+        assert res[0] is True
+        assert res[1] == 'foobar'
 
     @pytest.mark.parametrize('decision', [True, False])
     def test_run_confirm(self, decision):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_confirm_with_message').and_return(decision)
-        comm = Command('ask_confirm', ['$var', {}])
-        p = self.acr.run(comm)
+        comm = Command('ask_confirm', True, {})
+        res = self.acr.run(comm)
 
-        assert comm.kwargs['var'] == decision
-        assert p[0] is True
-        assert p[1] == decision
-
-    @pytest.mark.parametrize(('command', 'exception', 'exception_text'), [
-        (Command('foo', None),  CommandException, 'No commands specified'),
-        (Command('foo', []),    CommandException, 'No commands specified'),
-        (Command('foo', {}),    CommandException, 'No commands specified'),
-        (Command('foo', ''),    CommandException, 'No commands specified'),
-        (Command('foo', 'bar'),   YamlSyntaxError, 'Not a proper variable name: b'),
-        (Command('foo', ['bar']), YamlSyntaxError, 'Not a proper variable name: bar')])
-    def test_format_args_fails(self, command, exception, exception_text):
-        with pytest.raises(exception) as excinfo:
-            self.acr.format_args(command)
-        assert exception_text in excinfo.exconly()
-
-    def test_format_args_passes(self):
-        comm = Command('ask_password', ['$password', {'prompt': 'foo'}])
-        (var, fmtd) = self.acr.format_args(comm)
-        assert var == 'password'
-        assert fmtd['prompt'] == 'foo'
+        assert res[0] is decision
+        assert res[1] == decision
 
 
 class TestCallCommandRunner(object):
@@ -66,9 +48,9 @@ class TestCallCommandRunner(object):
         self.ccr = CallCommandRunner
 
     def test_matches(self):
-        assert self.ccr.matches(Command('call', None))
-        assert self.ccr.matches(Command('use', None))
-        assert not self.ccr.matches(Command('foo', None))
+        assert self.ccr.matches(Command('call', False, None))
+        assert self.ccr.matches(Command('use', False, None))
+        assert not self.ccr.matches(Command('foo', False, None))
 
     @pytest.mark.parametrize('command', ['self', 'super'])
     def test_is_snippet_call_fails(self, command):
@@ -109,7 +91,7 @@ class TestJinja2CommandRunner(object):
         return open(os.path.join(tmpdir.strpath, f)).read()
 
     def test_matches(self):
-        assert self.jr.matches(Command('jinja_render', None))
+        assert self.jr.matches(Command('jinja_render', False, None))
 
     def test_render_tpl_file_default_case_1(self, tmpdir):
         fn = 'jinja_template.py'
@@ -117,6 +99,7 @@ class TestJinja2CommandRunner(object):
         fntpl = fn + '.tpl'
         self.make_sure_file_does_not_exists(tmpdir, fn)
         c = Command('jinja_render',
+                    True,
                     {'template': {'source': fntpl},
                      'data': {'what': 'foo'},
                      'destination': tmpdir.strpath},
@@ -130,6 +113,7 @@ class TestJinja2CommandRunner(object):
         fntpl = fn
         self.make_sure_file_does_not_exists(tmpdir, fn)
         c = Command('jinja_render',
+                    True,
                     {'template': {'source': fntpl},
                      'data': {'what': 'foo'},
                      'destination': tmpdir.strpath},
@@ -143,6 +127,7 @@ class TestJinja2CommandRunner(object):
         fntpl = 'jinja_template.py.tpl'
         self.make_sure_file_does_not_exists(tmpdir, fn)
         c = Command('jinja_render',
+                    True,
                     {'template': {'source': fntpl},
                      'data': {'what': 'foo'},
                      'output': fn,
@@ -158,8 +143,11 @@ class TestSaveProjectCommandRunner(object):
     pass
 
 class TestSCLCommandRunner(object):
+    def setup_method(self, method):
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
     def test_scl_passes_scls_list_to_command_invocation(self):
         # please don't use $__scls__ in actual assistants :)
-        self.ya._run = [{'scl enable foo bar': [{'log_i': '$__scls__'}]}]
-        self.ya.run()
+        c = Command('scl enable foo bar', True, [{'log_i': '$__scls__'}], {})
+        c.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
