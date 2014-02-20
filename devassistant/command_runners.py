@@ -89,16 +89,16 @@ class CallCommandRunner(CommandRunner):
     def run(cls, c):
         sect_type = c.kwargs['__section__']
         assistant = c.kwargs['__assistant__']
-        section, sourcefile = cls.get_section_from_call(c.comm, sect_type, assistant)
+        section, sourcefile = cls.get_section_from_call(c.input_res, sect_type, assistant)
         if not section:
             msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
-                                                             n=c.comm)
+                                                             n=c.input_res)
             raise exceptions.CommandException(msg)
 
-        if cls.is_snippet_call(c.comm):
+        if cls.is_snippet_call(c.input_res):
             # we're calling a snippet => add files and files_dir to kwargs
             snippet = yaml_snippet_loader.YamlSnippetLoader.\
-                get_snippet_by_name(c.comm.split('.')[0])
+                get_snippet_by_name(c.input_res.split('.')[0])
 
             c.kwargs['__files__'].append(snippet.get_files_section())
             c.kwargs['__files_dir__'].append(snippet.get_files_dir())
@@ -111,7 +111,7 @@ class CallCommandRunner(CommandRunner):
                                       copy.deepcopy(c.kwargs),
                                       runner=assistant)
 
-        if cls.is_snippet_call(c.comm):
+        if cls.is_snippet_call(c.input_res):
             c.kwargs['__files__'].pop()
             c.kwargs['__files_dir__'].pop()
             c.kwargs['__sourcefiles__'].pop()
