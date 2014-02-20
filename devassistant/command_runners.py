@@ -729,11 +729,9 @@ class DockerCommandRunner(object):
             logger.warning('docker-py not installed, cannot execute docker command.')
             return [False, '']
 
-        args = c.format_deep()
-
         if c.comm_type == 'docker_b':
             # TODO: allow providing another argument - a repository name/tag for the built image
-            return cls._docker_build(args)
+            return cls._docker_build(c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
