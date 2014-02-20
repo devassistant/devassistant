@@ -89,17 +89,17 @@ def eval_exec_section(section, kwargs, runner=None):
                     else:
                         kwargs[control_vars[0]] = i
                     retval = run_section(comm, kwargs, runner=runner)
-
-            # commands that can have exec flag appended follow
-            if comm_type.endswith('~'):  # on exec flag, eval comm as exec section
-                comm_ret = eval_exec_section(comm, kwargs, runner)
-            else:  # with no exec flag, eval comm as input section
-                comm_ret = eval_input_section(comm, kwargs, runner)
-            # intentionally pass kwargs as dict in following calls, so that it can be changed
-            if comm_type.startswith('$'):
-                retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
             else:
-                retval = command.Command(comm_type, *comm_ret, kwargs=kwargs).run()
+                # commands that can have exec flag appended follow
+                if comm_type.endswith('~'):  # on exec flag, eval comm as exec section
+                    comm_ret = eval_exec_section(comm, kwargs, runner)
+                else:  # with no exec flag, eval comm as input section
+                    comm_ret = eval_input_section(comm, kwargs, runner)
+                # intentionally pass kwargs as dict in following calls, so that it can be changed
+                if comm_type.startswith('$'):
+                    retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
+                else:
+                    retval = command.Command(comm_type, *comm_ret, kwargs=kwargs).run()
 
             if not isinstance(retval, (list, tuple)) or len(retval) != 2:
                 raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
@@ -501,8 +501,7 @@ def evaluate_expression(expression, names):
         cmd = " ".join(cmd)
 
         # Substitute the variables
-        for v in reversed(sorted(interpr.names.keys())):
-            cmd = cmd.replace("$" + v, str(interpr.names[v]))
+        cmd = format_str(cmd, interpr.names)
 
         success = True
         try:

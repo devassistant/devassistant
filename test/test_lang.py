@@ -144,21 +144,25 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section([], {}), [False, ''])
 
     def test_shell_command(self):
-        rs = [{'$foo': '$(echo asd)'}]
+        rs = [{'$foo~': '$(echo asd)'}]
         self.assert_run_section_result(run_section(rs, {}), [True, 'asd'])
 
+    def test_looks_like_shell_command_but_no_exec_flag(self):
+        rs = [{'$foo': '$(echo asd)'}]
+        self.assert_run_section_result(run_section(rs, {}), [True, '$(echo asd)'])
+
     def test_if(self):
-        rs = [{'if $foo': [{'$foo': '"bar"'}, {'$foo': '"baz"'}]}]
+        rs = [{'if $foo': [{'$foo': 'bar'}, {'$foo': 'baz'}]}]
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
         self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'baz'])
 
     def test_else(self):
-        rs = [{'if $foo': [{'$foo': '"bar"'}]}, {'else': [{'$foo': '"baz"'}]}]
+        rs = [{'if $foo': [{'$foo': 'bar'}]}, {'else': [{'$foo': 'baz'}]}]
         self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'bar'])
         self.assert_run_section_result(run_section(rs, {}), [True, 'baz'])
 
     def test_for(self):
-        rs = [{'for $i in $list': [{'$foo': '$(echo $i)'}]}]
+        rs = [{'for $i in $list': [{'$foo~': '$(echo $i)'}]}]
         self.assert_run_section_result(run_section(rs, {'list': '1'}), [True, '1'])
         self.assert_run_section_result(run_section(rs, {'list': '1 2'}), [True, '2'])
         self.assert_run_section_result(run_section(rs, {}), [False, ''])

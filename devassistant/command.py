@@ -36,4 +36,4 @@ class Command(object):
                 return cr.run(self)
 
         raise exceptions.CommandException('No runner for command "{ct}: {c}".'.\
-            format(ct=self.comm_type, c=self.comm))
+            format(ct=self.comm_type, c=self.input_res))
