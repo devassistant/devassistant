@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 class TestYamlSnippetLoader(object):

@@ -1,13 +1,13 @@
 import os
-import sys
 
 import pytest
 from flexmock import flexmock
 
 from devassistant.command import Command
 from devassistant.command_helpers import DialogHelper
-from devassistant.command_runners import AskCommandRunner, CallCommandRunner, Jinja2Runner
-from devassistant.exceptions import CommandException, YamlSyntaxError
+from devassistant.command_runners import AskCommandRunner, CallCommandRunner, ClCommandRunner, \
+    Jinja2Runner, LogCommandRunner
+from devassistant.exceptions import CommandException, RunException
 
 from test.logger import TestLoggingHandler
 
@@ -62,17 +62,41 @@ class TestCallCommandRunner(object):
 
     # TODO test other methods
 
+
 class TestClCommandRunner(object):
-    pass
+    def setup_method(self, method):
+        self.cl = ClCommandRunner
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def test_command_passes(self):
+        self.cl.run(Command('cl', True, 'true'))
+
+    def test_command_fails(self):
+        with pytest.raises(RunException):
+            self.cl.run(Command('cl', True, 'false'))
+
+    def test_run_logs_command_at_debug(self):
+        # previously, this test used 'ls', but that is in different locations on different
+        # distributions (due to Fedora's usrmove), so use something that should be common
+        self.cl.run(Command('cl', True, 'id'))
+        assert ('DEBUG', 'id') in self.tlh.msgs
+
+    def test_run_logs_command_at_info_if_asked(self):
+        self.cl.run(Command('cl_i', True, 'id'))
+        assert ('INFO', 'id') in self.tlh.msgs
+
 
 class TestDependenciesCommandRunner(object):
     pass
 
+
 class TestDotDevassistantCommandRunner(object):
     pass
 
+
 class TestGitHubCommandRunner(object):
     pass
+
 
 class TestJinja2CommandRunner(object):
     def setup_method(self, method):
@@ -136,11 +160,24 @@ class TestJinja2CommandRunner(object):
         c.run()
         assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
+
 class TestLogCommandRunner(object):
-    pass
+    def setup_method(self, method):
+        self.l = LogCommandRunner
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def test_log(self):
+        self.l.run(Command('log_w', True, 'foo!'))
+        assert self.tlh.msgs == [('WARNING', 'foo!')]
+
+    def test_log_wrong_level(self):
+        with pytest.raises(CommandException):
+            self.l.run(Command('log_b', True, 'bar'))
+
 
 class TestSaveProjectCommandRunner(object):
     pass
+
 
 class TestSCLCommandRunner(object):
     def setup_method(self, method):

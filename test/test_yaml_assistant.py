@@ -1,4 +1,3 @@
-import logging
 import os
 
 from flexmock import flexmock
@@ -8,112 +7,56 @@ from devassistant import exceptions
 from devassistant import settings
 from devassistant import yaml_assistant
 from devassistant import snippet
-from devassistant.command_helpers import ClHelper
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 # hook app testing logging
 from test.logger import TestLoggingHandler
 
-# TODO: some of this should probably be tested in command_runners/lang
 
 class TestYamlAssistant(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '', None)
         self.ya.role = 'crt'
         self.ya._files = {'first': {'source': 'f/g'}, 'second': {'source': 's/t'}}
+        self.ya._dependencies = [{'rpm': ['foo']}]
+        self.ya._dependencies_a = [{'rpm': ['bar']}]
+        self.ya._pre_run = [{'log_i': 'pre'}]
+        self.ya._run = [{'log_i': 'run'}]
+        self.ya._post_run = [{'log_i': 'post'}]
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
-        self.ya2 = yaml_assistant.YamlAssistant('ya2', {}, '', None)
-        self.ya2._files = {}
-        self.ya2.role = 'crt'
-        self.ya2._run = [{'if $ide':
-                            [{'if $(test -d /notachance)': [{'log_d': 'ifif'}]},
-                             {'else': [{'log_d': 'ifelse'}]}]},
-                         {'else': [{'log_d': 'else'}]}]
+    def test_default_icon_path(self):
+        self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/b/b.yaml')
+        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0],
+                                                         'icons/crt/b/b.svg')
 
-    # TODO: refactor to also test _dependencies_section alone
-    def test_dependencies(self):
-        self.ya._dependencies = [{'rpm': ['foo', '@bar', 'baz']}]
-        self.ya.dependencies() == self.ya._dependencies
-
-    def test_dependencies_uses_non_default_section_on_param(self):
-        self.ya._dependencies = [{'rpm': ['foo']}]
-        self.ya._dependencies_a = [{'rpm': ['bar']}]
-        assert self.ya._dependencies[0] in self.ya.dependencies(kwargs={'a': True})
-        assert self.ya._dependencies_a[0] in self.ya.dependencies(kwargs={'a': True})
-
-    def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
-        self.ya._dependencies = [{'rpm': ['foo']}]
-        self.ya._dependencies_a = [{'rpm': ['bar']}]
-        assert self.ya.dependencies() == self.ya._dependencies
-
-    def test_dependencies_if(self):
-        self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
-        assert self.ya.dependencies(kwargs={'x': 'x'}) == [{'rpm': ['foo']}]
-
-    def test_dependencies_else(self):
-        self.ya._dependencies = [{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}]
-        assert self.ya.dependencies() == [{'rpm': ['bar']}]
-
-    def test_run_pass(self):
-        self.ya._run = [{'cl': 'true'}, {'cl': 'ls'}]
+    def test_snippet_uses_its_own_files_section(self):
+        self.ya._run = [{'use': 'mysnippet'}, {'log_w': '*first'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('mysnippet').\
+                                    and_return(snippet.Snippet('mysnippet',
+                                                               {'files':
+                                                                   {'first': {'source': 'from/snippet'}},
+                                                                'run': [{'log_i': '*first'}]},
+                                                              'mysnippet.yaml'))
         self.ya.run()
+        assert filter(lambda x: x[0] == 'INFO' and x[1].endswith('from/snippet'), self.tlh.msgs)
+        # make sure that after the snippet ends, we use the old files section
+        assert filter(lambda x: x[0] == 'WARNING' and x[1].endswith('f/g'), self.tlh.msgs)
 
-    def test_run_fail(self):
-        self.ya._run = [{'cl': 'true'}, {'cl': 'false'}]
-        with pytest.raises(exceptions.RunException):
-            self.ya.run()
-
-    def test_run_unkown_command(self):
-        self.ya._run = [{'foo': 'bar'}]
-        with pytest.raises(exceptions.CommandException):
-            self.ya.run()
-
-    def test_run_logs_command_at_debug(self):
-        # previously, this test used 'ls', but that is in different locations on different
-        # distributions (due to Fedora's usrmove), so use something that should be common
-        self.ya._run = [{'cl': 'id'}]
-        self.ya.run(kwargs={'foo':'bar'})
-        assert ('DEBUG', 'id') in self.tlh.msgs
-
-    def test_run_logs_command_at_info_if_asked(self):
-        self.ya._run = [{'cl_i': 'id'}]
-        self.ya.run(kwargs={'foo': 'bar'})
-        assert ('INFO', 'id') in self.tlh.msgs
-
-    def test_log(self):
-        self.ya._run = [{'log_w': 'foo!'}]
+    def test_snippet_uses_own_files_dir(self):
+        self.ya._run = [{'use': 'a.run'}, {'log_i': '*first'}]
+        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
+                                    with_args('a').\
+                                    and_return(snippet.Snippet('mysnippet',
+                                                               {'files_dir': 'foo/bar/baz/spam',
+                                                                'files':
+                                                                    {'first': {'source': 'file'}},
+                                                                'run': [{'log_i': '*first'}]},
+                                                               'mysnippet.yaml'))
         self.ya.run()
-        assert self.tlh.msgs == [('WARNING', 'foo!')]
-
-    def test_log_wrong_level(self):
-        self.ya._run = [{'log_b': 'bar'}]
-        with pytest.raises(exceptions.CommandException):
-            self.ya.run()
-
-    def test_log_formats_message(self):
-        self.ya._run = [{'log_i': 'this is $how cool'}]
-        self.ya.run(kwargs={'how': 'very'})
-        assert self.tlh.msgs == [('INFO', 'this is very cool')]
-
-    def test_run_if_nested_else(self):
-        self.ya2.run(kwargs={'ide': True})
-        assert ('DEBUG', 'ifelse') in self.tlh.msgs
-
-    def test_successful_command_with_no_output_evaluates_to_true(self):
-        self.ya._run = [{'if $(true)': [{'log_i': 'success'}]}]
-        self.ya.run()
-        assert('INFO', 'success') in self.tlh.msgs
-
-    def test_run_else(self):
-        self.ya2.run()
-        assert ('DEBUG', 'else') in self.tlh.msgs
-
-    def test_run_failed_if_doesnt_log_error(self):
-        self.ya._run = [{'if $(test -d /dontlogfailure)': [{'dont': 'runthis'}]}]
-        self.ya.run()
-        assert 'ERROR' not in map(lambda x: x[0], self.tlh.msgs)
-
+        assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
+        assert ('INFO', os.path.join(self.ya.files_dir, 'f/g')) in self.tlh.msgs
 
     def test_run_snippet_missing(self):
         self.ya._run = [{'use': 'foo.bar'}]
@@ -141,6 +84,13 @@ class TestYamlAssistant(object):
         self.ya.run()
         assert ('INFO', 'foo') in self.tlh.msgs
 
+    def test_assign_in_snippet_or_run_doesnt_modify_outer_scope(self):
+        self.ya._run = [{'use': 'self.run_blah'}, {'log_i': '$foo'}]
+        self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
+        self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
+        assert('INFO', 'yes, I ran') in self.tlh.msgs
+        assert('INFO', 'foo') in self.tlh.msgs
+
     def test_dependencies_snippet(self):
         self.ya._dependencies = [{'use': 'mysnippet.dependencies_foo'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
@@ -161,71 +111,23 @@ class TestYamlAssistant(object):
         assert {'rpm': ['bar']} in self.ya.dependencies()
         assert {'rpm': ['spam']} in self.ya.dependencies()
 
-    def test_snippet_uses_its_own_files_section(self):
-        self.ya._run = [{'use': 'mysnippet'}, {'log_w': '*first'}]
-        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
-                                    with_args('mysnippet').\
-                                    and_return(snippet.Snippet('mysnippet',
-                                                               {'files':
-                                                                   {'first': {'source': 'from/snippet'}},
-                                                                'run': [{'log_i': '*first'}]},
-                                                              'mysnippet.yaml'))
-        self.ya.run()
-        assert filter(lambda x: x[0] == 'INFO' and x[1].endswith('from/snippet'), self.tlh.msgs)
-        # make sure that after the snippet ends, we use the old files section
-        assert filter(lambda x: x[0] == 'WARNING' and x[1].endswith('f/g'), self.tlh.msgs)
+    def test_dependencies(self):
+        self.ya.dependencies() == self.ya._dependencies
 
-    def test_assign_in_condition_modifies_outer_scope(self):
-        self.ya._run = [{'if $foo': [{'$foo': '$spam'}]}, {'log_i': '$foo'}]
-        self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
-        assert('INFO', 'spam') in self.tlh.msgs
+    def test_dependencies_uses_non_default_section_on_param(self):
+        assert self.ya._dependencies[0] in self.ya.dependencies(kwargs={'a': True})
+        assert self.ya._dependencies_a[0] in self.ya.dependencies(kwargs={'a': True})
 
-    def test_assign_in_snippet_or_run_doesnt_modify_outer_scope(self):
-        self.ya._run = [{'use': 'self.run_blah'}, {'log_i': '$foo'}]
-        self.ya._run_blah = [{'$foo': '$spam'}, {'log_i': 'yes, I ran'}]
-        self.ya.run(kwargs={'foo': 'foo', 'spam': 'spam'})
-        assert('INFO', 'yes, I ran') in self.tlh.msgs
-        assert('INFO', 'foo') in self.tlh.msgs
+    def test_dependencies_does_not_use_non_default_section_when_param_not_present(self):
+        assert self.ya.dependencies() == self.ya._dependencies
 
-    def test_snippet_uses_own_files_dir(self):
-        self.ya._run = [{'use': 'a.run'}, {'log_i': '*first'}]
-        flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
-                                    with_args('a').\
-                                    and_return(snippet.Snippet('mysnippet',
-                                                               {'files_dir': 'foo/bar/baz/spam',
-                                                                'files':
-                                                                    {'first': {'source': 'file'}},
-                                                                'run': [{'log_i': '*first'}]},
-                                                               'mysnippet.yaml'))
-        self.ya.run()
-        assert ('INFO', 'foo/bar/baz/spam/file') in self.tlh.msgs
-        assert ('INFO', os.path.join(self.ya.files_dir, 'f/g')) in self.tlh.msgs
-
-    def test_default_icon_path(self):
-        self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/bar/baz.yaml')
-        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/crt/bar/baz.svg')
-
-    def test_loop_empty_string(self):
-        self.ya._run = [{'for $i in $(echo "")': [{'log_i': '$i'}]}]
-        self.ya.run()
-        assert 'INFO' not in map(lambda x: x[0], self.tlh.msgs)
-
-    def test_loop_words(self):
-        self.ya._run = [{'for $i in $(echo "foo bar")': [{'log_i': '$i'}]}]
-        self.ya.run()
-        assert ('INFO', 'foo') in self.tlh.msgs
-        assert ('INFO', 'bar') in self.tlh.msgs
-
-    def test_loop_two_control_vars_fails_on_string(self):
-        self.ya._run = [{'for $i, $j in $(echo "foo bar")': [{'log_i': '$i'}]}]
-        with pytest.raises(exceptions.YamlSyntaxError):
-            self.ya.run()
-
-    def test_loop_two_control_vars_fails_on_string(self):
-        self.ya._run = [{'for $i, $j in $foo': [{'log_i': '$i, $j'}]}]
-        self.ya.run(kwargs={'foo': {'bar': 'barval', 'spam': 'spamval'}})
-        assert ('INFO', 'bar, barval') in self.tlh.msgs
-        assert ('INFO', 'spam, spamval') in self.tlh.msgs
+    @pytest.mark.parametrize('stage, result', [
+        ('pre', [True, 'pre']),
+        ('', [True, 'run']),
+        ('post', [True, 'post']),
+    ])
+    def test_run_uses_proper_section(self, stage, result):
+        assert self.ya.run(stage) == result
 
     def test_parsed_yaml_None_values(self):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1059305
@@ -242,109 +144,6 @@ class TestYamlAssistant(object):
         for k, v in test_types.items():
             assert isinstance(getattr(self.ya, k), v)
 
-
-class TestExpressions(TestYamlAssistant):
-    def test_assign_existing_nonempty_variable(self):
-        self.ya._run = [{'$foo': '$bar'}, {'log_i': '$foo'}]
-        self.ya.run(kwargs={'bar': 'bar'})
-        assert ('INFO', 'bar') in self.tlh.msgs
-
-        # both logical result and result
-        self.ya._run = [{'$success, $val': '$foo'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run(kwargs={'foo': 'foo'})
-        assert ('INFO', 'True') in self.tlh.msgs
-        assert ('INFO', 'foo') in self.tlh.msgs
-
-    @pytest.mark.parametrize('exec_flag, lres, res', [
-        ('', 'True', ''), # no exec flag => evals as literal
-        ('~', 'False', '')
-    ])
-    def test_assign_existing_empty_variable(self, exec_flag, lres, res):
-        self.ya._run = [{'$foo{0}'.format(exec_flag): '$bar'}, {'log_i': '$foo'}]
-        self.ya.run(kwargs={'bar': ''})
-        assert ('INFO', '') in self.tlh.msgs
-
-        # both logical result and result
-        self.ya._run = [{'$success, $val{0}'.format(exec_flag): '$foo'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run(kwargs={'foo': ''})
-        assert ('INFO', lres) in self.tlh.msgs
-        assert ('INFO', res) in self.tlh.msgs
-
-    @pytest.mark.parametrize('exec_flag, lres, res', [
-        ('', 'True', '$bar'), # no exec flag => evals as literal
-        ('~', 'False', '')
-    ])
-    def test_assign_nonexisting_variable_depending_on_exec_flag(self, exec_flag, lres, res):
-        self.ya._run = [{'$foo{0}'.format(exec_flag): '$bar'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', res) in self.tlh.msgs
-
-        # both logical result and result
-        self.ya._run = [{'$success, $val{0}'.format(exec_flag): '$bar'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run()
-        assert ('INFO', lres) in self.tlh.msgs
-        assert ('INFO', res) in self.tlh.msgs
-
-    def test_assign_defined_empty_variable(self):
-        self.ya._run = [{'$success, $val~': 'defined $foo'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run(kwargs={'foo': ''})
-        assert ('INFO', 'True') in self.tlh.msgs
-        assert ('INFO', '') in self.tlh.msgs
-
-    def test_assign_defined_variable(self):
-        self.ya._run = [{'$success, $val~': 'defined $foo'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run(kwargs={'foo': 'foo'})
-        assert ('INFO', 'True') in self.tlh.msgs
-        assert ('INFO', 'foo') in self.tlh.msgs
-
-    def test_assign_defined_nonexistent_variable(self):
-        self.ya._run = [{'$success, $val~': 'defined $foo'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'}]
-        self.ya.run()
-        assert ('INFO', 'False') in self.tlh.msgs
-        assert ('INFO', '') in self.tlh.msgs
-
-    def test_assign_successful_command(self):
-        self.ya._run = [{'$foo~': '$(basename foo/bar)'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', 'bar') in self.tlh.msgs
-
-        # both logical result and result
-        self.ya._run = [{'$success, $val': '$(basename foo/bar)'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'},
-                        {'if $success': [{'log_i': 'success!'}]}]
-        self.ya.run()
-        assert ('INFO', 'True') in self.tlh.msgs
-        assert ('INFO', 'bar') in self.tlh.msgs
-        assert ('INFO', 'success!') in self.tlh.msgs
-
-    def test_assign_unsuccessful_command(self):
-        self.ya._run = [{'$foo~': '$(ls spam/spam/spam)'}, {'log_i': '$foo'}]
-        self.ya.run()
-        assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
-
-        # both logical result and result
-        self.ya._run = [{'$success, $val~': '$(ls spam/spam/spam)'},
-                        {'log_i': '$success'},
-                        {'log_i': '$val'},
-                        {'if $success': [{'log_i': 'oh no, spam found'}]},
-                        {'else': [{'log_i': 'good, no spam'}]}]
-        self.ya.run()
-        assert ('INFO', u'ls: cannot access spam/spam/spam: No such file or directory') in self.tlh.msgs
-        assert ('INFO', 'False') in self.tlh.msgs
-        assert ('INFO', 'good, no spam') in self.tlh.msgs
 
 class TestYamlAssistantModifier(object):
     def setup_method(self, method):

@@ -1,9 +1,27 @@
 import pytest
 import os
-import re
 
-from devassistant.lang import evaluate_expression, run_section, exceptions, \
-        parse_for, format_str
+from devassistant.lang import evaluate_expression, exceptions, \
+    dependencies_section, format_str, run_section, parse_for
+
+from test.logger import TestLoggingHandler
+# TODO: some of the test methods may need splitting into separate classes according to methods
+# that they test; also, the classes should be extended to get better coverage of tested methods
+
+
+class TestDependenciesSection(object):
+    @pytest.mark.parametrize('deps, kwargs, result', [
+        # simple case
+        ([{'rpm': ['foo', '@bar', 'baz']}], {}, None),
+        # dependencies in "if" clause apply
+        ([{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}],
+         {'x': 'x'},
+         [{'rpm': ['foo']}]),
+        # dependencies in "else" clause apply
+        ([{'if $x': [{'rpm': ['foo']}]}, {'else': [{'rpm': ['bar']}]}], {}, [{'rpm': ['bar']}])
+    ])
+    def test_dependencies(self, deps, kwargs, result):
+        dependencies_section(deps, kwargs) == deps if result == None else deps
 
 
 class TestEvaluate(object):
@@ -135,13 +153,19 @@ class TestEvaluate(object):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
         assert evaluate_expression('$(echo ${exists} ${doesnt})', {'exists': 'X'}) == (True, 'X')
 
+
 class TestRunSection(object):
     def assert_run_section_result(self, actual, expected):
         # "actual" can possibly be a tuple, not a list, so we need to unify the value
         assert list(actual) == list(expected)
 
     def test_result(self):
-        self.assert_run_section_result(run_section([], {}), [False, ''])
+        self.assert_run_section_result(run_section([]), [False, ''])
+        self.assert_run_section_result(run_section([{'log_i': 'foo'}]), [True, 'foo'])
+
+    def test_run_unkown_command(self):
+        with pytest.raises(exceptions.CommandException):
+            run_section([{'foo': 'bar'}])
 
     def test_shell_command(self):
         rs = [{'$foo~': '$(echo asd)'}]
@@ -156,6 +180,10 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
         self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'baz'])
 
+    def test_nested_condition(self):
+        rs = [{'if $foo': [{'if $bar': 'bar'}, {'else': [{'log_i': 'baz'}]}]}]
+        self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'baz'])
+
     def test_else(self):
         rs = [{'if $foo': [{'$foo': 'bar'}]}, {'else': [{'$foo': 'baz'}]}]
         self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'bar'])
@@ -167,12 +195,28 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section(rs, {'list': '1 2'}), [True, '2'])
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
 
+    def test_for_empty_string(self):
+        kwargs = {}
+        run_section([{'for $i in $(echo "")': [{'$foo': '$i'}]}], kwargs)
+        assert 'foo' not in kwargs
+
+    def test_loop_two_control_vars(self):
+        tlh = TestLoggingHandler.create_fresh_handler()
+        run_section([{'for $i, $j in $foo': [{'log_i': '$i, $j'}]}],
+                    {'foo': {'bar': 'barval', 'spam': 'spamval'}})
+        assert ('INFO', 'bar, barval') in tlh.msgs
+        assert ('INFO', 'spam, spamval') in tlh.msgs
+
+    def test_loop_two_control_vars_fails_on_string(self):
+        with pytest.raises(exceptions.YamlSyntaxError):
+            run_section([{'for $i, $j in $(echo "foo bar")': [{'log_i': '$i'}]}])
+
     @pytest.mark.parametrize('comm', [
         'for foo',
         'for $a foo'])
         # Not sure if 'for $a in $var something' should raise
     def test_parse_for_malformed(self, comm):
-        with pytest.raises(exceptions.YamlSyntaxError) as e:
+        with pytest.raises(exceptions.YamlSyntaxError):
             parse_for(comm)
 
     @pytest.mark.parametrize(('comm', 'result'), [
@@ -186,6 +230,93 @@ class TestRunSection(object):
         ('for ${a}, ${b} in $(expr)', (['a', 'b'], '$(expr)'))])
     def test_parse_for_well_formed(self, comm, result):
         assert(parse_for(comm) == result)
+
+    def test_successful_command_with_no_output_evaluates_to_true(self):
+        kwargs = {}
+        run_section([{'if $(true)': [{'$success': 'success'}]}], kwargs)
+        assert 'success' in kwargs
+
+    def test_assign_in_condition_modifies_outer_scope(self):
+        kwargs={'foo': 'foo', 'spam': 'spam'}
+        run_section([{'if $foo': [{'$foo': '$spam'}]}], kwargs)
+        assert kwargs['foo'] == 'spam'
+
+    def test_assign_existing_nonempty_variable(self):
+        kwargs = {'bar': 'bar'}
+        run_section([{'$foo': '$bar'}], kwargs)
+        assert kwargs['foo'] == 'bar'
+
+        # both logical result and result
+        run_section([{'$success, $val': '$bar'}], kwargs)
+        assert kwargs['success'] == True
+        assert kwargs['val'] == 'bar'
+
+    @pytest.mark.parametrize('exec_flag, lres, res', [
+        ('', True, ''), # no exec flag => evals as literal
+        ('~', False, '')
+    ])
+    def test_assign_existing_empty_variable(self, exec_flag, lres, res):
+        kwargs = {'bar': ''}
+        run_section([{'$foo{0}'.format(exec_flag): '$bar'}], kwargs)
+        assert kwargs['foo'] == res
+
+        # both logical result and result
+        run_section([{'$success, $val{0}'.format(exec_flag): '$foo'}], kwargs)
+        assert kwargs['success'] == lres
+        assert kwargs['val'] == res
+
+    @pytest.mark.parametrize('exec_flag, lres, res', [
+        ('', True, '$bar'), # no exec flag => evals as literal
+        ('~', False, '')
+    ])
+    def test_assign_nonexisting_variable_depending_on_exec_flag(self, exec_flag, lres, res):
+        kwargs = {}
+        run_section([{'$foo{0}'.format(exec_flag): '$bar'}], kwargs)
+        assert kwargs['foo'] == res
+
+        # both logical result and result
+        run_section([{'$success, $val{0}'.format(exec_flag): '$bar'}], kwargs)
+        assert kwargs['success'] == lres
+        assert kwargs['val'] == res
+
+    def test_assign_defined_empty_variable(self):
+        kwargs = {'foo': ''}
+        run_section([{'$success, $val~': 'defined $foo'}], kwargs)
+        assert kwargs['success'] == True
+        assert kwargs['val'] == ''
+
+    def test_assign_defined_variable(self):
+        kwargs = {'foo': 'foo'}
+        run_section([{'$success, $val~': 'defined $foo'}], kwargs)
+        assert kwargs['success'] == True
+        assert kwargs['val'] == 'foo'
+
+    def test_assign_defined_nonexistent_variable(self):
+        kwargs = {}
+        run_section([{'$success, $val~': 'defined $foo'}], kwargs)
+        assert kwargs['success'] == False
+        assert kwargs['val'] == ''
+
+    def test_assign_successful_command(self):
+        kwargs = {}
+        run_section([{'$foo~': '$(basename foo/bar)'}, {'log_i': '$foo'}], kwargs)
+        assert kwargs['foo'] == u'bar'
+
+        # both logical result and result
+        run_section([{'$success, $val~': '$(basename foo/bar)'}], kwargs)
+        assert kwargs['success'] == True
+        assert kwargs['val'] == 'bar'
+
+    def test_assign_unsuccessful_command(self):
+        kwargs = {}
+        run_section([{'$foo~': '$(ls spam/spam/spam)'}], kwargs)
+        assert kwargs['foo'] == u'ls: cannot access spam/spam/spam: No such file or directory'
+
+        # both logical result and result
+        run_section([{'$success, $val~': '$(ls spam/spam/spam)'}], kwargs)
+        assert kwargs['val'] == u'ls: cannot access spam/spam/spam: No such file or directory'
+        assert kwargs['success'] == False
+
 
 class TestFormatStr(object):
     files_dir = '/a/b/c'

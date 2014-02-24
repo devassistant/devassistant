@@ -53,7 +53,8 @@ def dependencies_section(section, kwargs, runner=None):
 
     return deps
 
-def run_section(section, kwargs, runner=None):
+def run_section(section, kwargs=None, runner=None):
+    if kwargs == None: kwargs = {}
     return eval_exec_section(section, kwargs, runner)
 
 def eval_exec_section(section, kwargs, runner=None):

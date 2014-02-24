@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 from devassistant.command_helpers import ClHelper
 from devassistant.exceptions import ClException
 

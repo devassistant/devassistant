@@ -74,7 +74,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_snippet_for_arg')
-        klass = self.yl.assistant_from_yaml('no_snippet_for_arg.yaml', y, CreatorAssistant())
+        self.yl.assistant_from_yaml('no_snippet_for_arg.yaml', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
 
     def test_assistant_from_yaml_doesnt_fail_on_missing_arg(self):
@@ -82,7 +82,7 @@ class TestYamlAssistantLoader(object):
                                                 'fixtures',
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
-        a = self.yl.assistant_from_yaml('no_arg_in_snippet.yaml', y, CreatorAssistant())
+        self.yl.assistant_from_yaml('no_arg_in_snippet.yaml', y, CreatorAssistant())
         assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
 
     def test_no_cache(self):
@@ -127,4 +127,4 @@ class TestYamlAssistantLoader(object):
 
     def test_assistant_from_yaml_raises_on_bad_assistant(self):
         with pytest.raises(exceptions.YamlError):
-            res = self.yl.assistant_from_yaml('/foo/bar', 'not a mapping', None)
+            self.yl.assistant_from_yaml('/foo/bar', 'not a mapping', None)

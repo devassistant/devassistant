@@ -1,6 +1,5 @@
 import pytest
 
-from devassistant.assistant_base import AssistantBase
 from devassistant import exceptions
 from devassistant import settings
 
@@ -73,7 +72,7 @@ class TestAssistantBase(object):
         args_dict = self.args_dict_from_names(path_names)
 
         with pytest.raises(exceptions.AssistantNotFoundException):
-            path = MainA().get_selected_subassistant_path(**args_dict)
+            MainA().get_selected_subassistant_path(**args_dict)
 
     def test_is_run_as_leaf(self):
         path_names = ['python', 'django']
