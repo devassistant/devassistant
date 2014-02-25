@@ -335,8 +335,6 @@ class DotDevassistantCommandRunner(CommandRunner):
         # TODO: import command dynamically here
         command.Command('dependencies',
                         struct,
-                        True,
-                        struct,
                         dda_content.get('original_kwargs', {})).run()
 
     @classmethod

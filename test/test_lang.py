@@ -1,12 +1,24 @@
 import pytest
 import os
 
-from devassistant.lang import evaluate_expression, exceptions, \
+from devassistant.lang import Command, evaluate_expression, exceptions, \
     dependencies_section, format_str, run_section, parse_for
 
 from test.logger import TestLoggingHandler
 # TODO: some of the test methods may need splitting into separate classes according to methods
 # that they test; also, the classes should be extended to get better coverage of tested methods
+
+
+class TestCommand(object):
+    def test_command_doesnt_evaluate_if_not_needed(self):
+        # will raise exception if it tries to evaluate
+        Command('asd', 'sdf')
+
+    def test_command_evaluates_on_input_res_access(self):
+        assert Command('log_i', 'foo').input_log_res == True
+
+    def test_command_evaluates_on_input_log_res_access(self):
+        assert Command('log_i', 'foo').input_res == 'foo'
 
 
 class TestDependenciesSection(object):

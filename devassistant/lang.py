@@ -9,11 +9,71 @@ import sys
 
 import six
 
-from devassistant import command
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import package_managers
 from devassistant import settings
+from devassistant import utils
+
+
+class Command(object):
+    """A class that represents a Yaml command. It has these members:
+
+    - comm_type: type of command
+    - comm: command input as it was specified *literally* (without substitution of vars, etc)
+    - input_log_res: logical result of command input
+    - input_res: result of command input
+    - kwargs: global context taken at point of execution of this command
+    """
+
+    command_runners = None
+
+    @classmethod
+    def load_command_runners(cls):
+        if not cls.command_runners:
+            cls.command_runners = utils.import_module('devassistant.command_runners')
+        return cls.command_runners
+
+    def __init__(self, comm_type, comm, kwargs={}):
+        self.comm_type = comm_type
+        self.comm = comm
+        self.had_exec_flag = False
+        if comm_type.endswith('~'):
+            self.comm_type = self.comm_type[:-1]
+            self.had_exec_flag = True
+        self._input_log_res = None
+        self._input_res = None
+        self.files_dir = kwargs.get('__files_dir__', [''])[-1]
+        self.files = kwargs.get('__files__', [''])[-1]
+        self.kwargs = kwargs
+
+    def run(self):
+        for cr in type(self).load_command_runners().command_runners:
+            if cr.matches(self):
+                return cr.run(self)
+
+        raise exceptions.CommandException('No runner for command "{ct}: {c}".'.\
+            format(ct=self.comm_type, c=self.input_res))
+
+    @property
+    def input_log_res(self):
+        return self._eval_input()[0]
+
+    @property
+    def input_res(self):
+        return self._eval_input()[1]
+
+    def _eval_input(self):
+        if self._input_log_res is None:
+            runner = self.kwargs.get('__assistant__', None)
+            if self.had_exec_flag:
+                method = eval_exec_section
+            else:
+                method = eval_input_section
+            self._input_log_res, self._input_res = method(self.comm, self.kwargs, runner)
+
+        return self._input_log_res, self._input_res
+
 
 def dependencies_section(section, kwargs, runner=None):
     # "deps" is the same structure as gets returned by "dependencies" method
@@ -27,7 +87,7 @@ def dependencies_section(section, kwargs, runner=None):
             # rpm dependencies (can't handle anything else yet)
             # we don't allow general commands, only "call"/"use" command here
             if dep_type in ['call', 'use']:
-                deps.extend(command.Command(dep_type, dep_list, True, dep_list, kwargs).run())
+                deps.extend(Command(dep_type, dep_list, kwargs).run())
             elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                 fmtd = list(map(lambda dep: format_str(dep, kwargs), dep_list))
                 deps.append({dep_type: fmtd})
@@ -88,17 +148,15 @@ def eval_exec_section(section, kwargs, runner=None):
                     else:
                         kwargs[control_vars[0]] = i
                     retval = run_section(comm, kwargs, runner=runner)
-            else:
+            elif comm_type.startswith('$'):
                 # commands that can have exec flag appended follow
                 if comm_type.endswith('~'):  # on exec flag, eval comm as exec section
                     comm_ret = eval_exec_section(comm, kwargs, runner)
                 else:  # with no exec flag, eval comm as input section
                     comm_ret = eval_input_section(comm, kwargs, runner)
-                # intentionally pass kwargs as dict in following calls, so that it can be changed
-                if comm_type.startswith('$'):
-                    retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
-                else:
-                    retval = command.Command(comm_type, comm, *comm_ret, kwargs=kwargs).run()
+                retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
+            else:
+                retval = Command(comm_type, comm, kwargs=kwargs).run()
 
             if not isinstance(retval, (list, tuple)) or len(retval) != 2:
                 raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
@@ -504,7 +562,7 @@ def evaluate_expression(expression, names):
 
         success = True
         try:
-            output = command.Command('cl', cmd, True, formatted_cmd, interpr.names).run()[1]
+            output = Command('cl', cmd, interpr.names).run()[1]
         except exceptions.RunException as ex:
             success = False
             output = ex.output

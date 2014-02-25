@@ -1,6 +1,6 @@
 import six
 
-from devassistant import command
+from devassistant import lang
 from devassistant.logger import logger
 from devassistant import exceptions
 from devassistant import yaml_assistant
@@ -22,7 +22,7 @@ class PathRunner(object):
         """
         deps = self.path[-1].dependencies(parsed_args)
 
-        command.Command('dependencies', True, deps, parsed_args).run()
+        lang.Command('dependencies', deps, parsed_args).run()
 
     def _run_path_run(self, stage, parsed_args):
         """Runs run section with given stage from leaf assistants.
