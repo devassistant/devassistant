@@ -69,7 +69,7 @@ class Command(object):
             if self.had_exec_flag:
                 method = eval_exec_section
             else:
-                method = eval_input_section
+                method = eval_literal_section
             self._input_log_res, self._input_res = method(self.comm, self.kwargs, runner)
 
         return self._input_log_res, self._input_res
@@ -153,7 +153,7 @@ def eval_exec_section(section, kwargs, runner=None):
                 if comm_type.endswith('~'):  # on exec flag, eval comm as exec section
                     comm_ret = eval_exec_section(comm, kwargs, runner)
                 else:  # with no exec flag, eval comm as input section
-                    comm_ret = eval_input_section(comm, kwargs, runner)
+                    comm_ret = eval_literal_section(comm, kwargs, runner)
                 retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
             else:
                 retval = Command(comm_type, comm, kwargs=kwargs).run()
@@ -165,7 +165,7 @@ def eval_exec_section(section, kwargs, runner=None):
 
     return retval
 
-def eval_input_section(section, kwargs, runner=None):
+def eval_literal_section(section, kwargs, runner=None):
     retval = [False, '']
 
     if isinstance(section, six.string_types):
@@ -177,7 +177,7 @@ def eval_input_section(section, kwargs, runner=None):
         retlist = []
         for item in section:
             # TODO: check for stop flag
-            retlist.append(eval_input_section(item, kwargs)[1])
+            retlist.append(eval_literal_section(item, kwargs)[1])
         retval = [bool(retlist), retlist]
     elif isinstance(section, dict):
         retdict = {}
@@ -187,7 +187,7 @@ def eval_input_section(section, kwargs, runner=None):
             if k.endswith('~'):
                 retdict[k[:-1]] = eval_exec_section(v, kwargs, runner)[1]
             else:
-                retdict[k] = eval_input_section(v, kwargs, runner)[1]
+                retdict[k] = eval_literal_section(v, kwargs, runner)[1]
         retval = [bool(retdict), retdict]
 
     return retval
