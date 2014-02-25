@@ -15,9 +15,6 @@ from devassistant.logger import logger
 from devassistant import package_managers
 from devassistant import settings
 
-if sys.version_info[0] > 2:
-    basestring = str
-
 def dependencies_section(section, kwargs, runner=None):
     # "deps" is the same structure as gets returned by "dependencies" method
     skip_else = False
@@ -183,7 +180,7 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
                     format(t=type(eval_expression)))
         else:
             iterval = list(eval_expression.items())
-    elif isinstance(eval_expression, basestring):
+    elif isinstance(eval_expression, six.string_types):
         iterval = eval_expression.split()
     return control_vars, iterval
 
