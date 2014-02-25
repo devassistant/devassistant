@@ -7,6 +7,8 @@ import signal
 import subprocess
 import sys
 
+import six
+
 from devassistant import current_run
 from devassistant import exceptions
 from devassistant.logger import logger
@@ -39,7 +41,7 @@ class ClHelper(object):
                 directory = cmd_str.split()[1].replace('"', '').replace('\'', '')
                 os.chdir(directory)
             except OSError as e:
-                raise exceptions.ClException(cmd_str, 1, str(e))
+                raise exceptions.ClException(cmd_str, 1, six.text_type(e))
             return ''
 
         stdin_pipe = None
@@ -359,7 +361,7 @@ class GtkDialogHelper(object):
         cls.info_btn = cls._get_button('Show packages')
         cls.show = True
         cls.info_btn.connect('clicked', cls._info_installed_packages(win))
-        liststore = Gtk.ListStore(str)
+        liststore = Gtk.ListStore(six.text_type)
         for pkg in sorted(package_list):
             liststore.append([pkg])
         listview = Gtk.TreeView(liststore)

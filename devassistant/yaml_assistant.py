@@ -2,6 +2,8 @@ import functools
 import logging
 import os
 
+import six
+
 from devassistant import argument
 from devassistant import assistant_base
 from devassistant import exceptions
@@ -104,7 +106,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
                     arg_params = dict(snippet.args.pop(arg_name), **arg_params)
                 except exceptions.SnippetNotFoundException as e:
-                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + str(e)
+                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + six.text_type(e)
                 except KeyError as e: # snippet doesn't have the requested argument
                     problem = 'Couldn\'t find argument {arg} in snippet {snip} wanted by assistant {a}.'
 

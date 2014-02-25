@@ -326,7 +326,7 @@ class DotDevassistantCommandRunner(CommandRunner):
                 path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
             except exceptions.AssistantNotFoundException as e:
                 path = []
-                logger.warning(str(e))
+                logger.warning(six.text_type(e))
             if path and isinstance(path[-1], yaml_assistant.YamlAssistant):
                 struct.extend(path[-1].dependencies(dda_content.get('original_kwargs', {})))
             struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
@@ -621,9 +621,9 @@ class Jinja2Runner(CommandRunner):
               by stripping '.tpl' suffix if latter presents, or just used as
               if none given.
         """
-        output = str()
+        output = ''
         if 'output' in args:
-            assert(isinstance(args['output'], str))
+            assert(isinstance(args['output'], six.string_types))
             output = args['output']
         elif template.endswith('.tpl'):
             output = template[:-len('.tpl')]
@@ -647,11 +647,11 @@ class Jinja2Runner(CommandRunner):
             raise exceptions.CommandException('Missed template parameter or wrong type')
         template = args['template']
 
-        if 'source' not in template or not isinstance(template['source'], str):
+        if 'source' not in template or not isinstance(template['source'], six.string_types):
             raise exceptions.CommandException('Missed template parameter or wrong type')
         template = template['source']
 
-        if 'destination' not in args or not isinstance(args['destination'], str):
+        if 'destination' not in args or not isinstance(args['destination'], six.string_types):
             raise exceptions.CommandException('Missed destination parameter or wrong type')
 
         if not os.path.isdir(args['destination']):

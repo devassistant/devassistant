@@ -201,7 +201,7 @@ class YamlChecker(object):
     def _format_error_path(self, path):
         err = []
         err.append('Source file {p}:'.format(p=path[0]))
-        path2print = ['(top level)'] + [str(x) for x in path[1:]]
+        path2print = ['(top level)'] + [six.text_type(x) for x in path[1:]]
         err.append('  Problem in: ' + ' -> '.join(path2print))
         return '\n'.join(err)
 

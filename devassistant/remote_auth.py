@@ -2,6 +2,8 @@ import getpass
 import glob
 import os
 
+import six
+
 from devassistant import exceptions
 from devassistant import settings
 from devassistant import utils
@@ -114,7 +116,7 @@ class GitHubAuth(object):
                 local_key = open(pkf).read()
                 # don't use "==" because we have comments etc added in public_key
                 # in PyGithub 1.23.0, remote key is an object, not string
-                rkval = rk if isinstance(rk, str) else rk.value
+                rkval = rk if isinstance(rk, six.string_types) else rk.value
                 if rkval in local_key:
                     found = True
                     break
