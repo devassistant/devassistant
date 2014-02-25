@@ -18,8 +18,9 @@ class Command(object):
             cls.command_runners = utils.import_module('devassistant.command_runners')
         return cls.command_runners
 
-    def __init__(self, comm_type, input_log_res, input_res, kwargs={}):
+    def __init__(self, comm_type, comm, input_log_res, input_res, kwargs={}):
         self.comm_type = comm_type
+        self.comm = comm
         self.had_exec_flag = False
         if comm_type.endswith('~'):
             self.comm_type = self.comm_type[:-1]

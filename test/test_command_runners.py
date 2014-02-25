@@ -20,13 +20,13 @@ class TestAskCommandRunner(object):
         self.acr = AskCommandRunner
 
     def test_matches(self):
-        assert self.acr.matches(Command('ask_foo', False, []))
-        assert not self.acr.matches(Command('foo', False, []))
+        assert self.acr.matches(Command('ask_foo', [], False, []))
+        assert not self.acr.matches(Command('foo', [], False, []))
 
     def test_run_password(self):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_password').and_return('foobar')
-        comm = Command('ask_password', False, {})
+        comm = Command('ask_password', {}, False, {})
         res = self.acr.run(comm)
 
         assert res[0] is True
@@ -36,7 +36,7 @@ class TestAskCommandRunner(object):
     def test_run_confirm(self, decision):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_confirm_with_message').and_return(decision)
-        comm = Command('ask_confirm', True, {})
+        comm = Command('ask_confirm', {}, True, {})
         res = self.acr.run(comm)
 
         assert res[0] is decision
@@ -48,9 +48,9 @@ class TestCallCommandRunner(object):
         self.ccr = CallCommandRunner
 
     def test_matches(self):
-        assert self.ccr.matches(Command('call', False, None))
-        assert self.ccr.matches(Command('use', False, None))
-        assert not self.ccr.matches(Command('foo', False, None))
+        assert self.ccr.matches(Command('call', None, False, None))
+        assert self.ccr.matches(Command('use', None, False, None))
+        assert not self.ccr.matches(Command('foo', None, False, None))
 
     @pytest.mark.parametrize('command', ['self', 'super'])
     def test_is_snippet_call_fails(self, command):
@@ -69,20 +69,20 @@ class TestClCommandRunner(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_command_passes(self):
-        self.cl.run(Command('cl', True, 'true'))
+        self.cl.run(Command('cl', 'true', True, 'true'))
 
     def test_command_fails(self):
         with pytest.raises(RunException):
-            self.cl.run(Command('cl', True, 'false'))
+            self.cl.run(Command('cl', 'false', True, 'false'))
 
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
         # distributions (due to Fedora's usrmove), so use something that should be common
-        self.cl.run(Command('cl', True, 'id'))
+        self.cl.run(Command('cl', 'id', True, 'id'))
         assert ('DEBUG', 'id') in self.tlh.msgs
 
     def test_run_logs_command_at_info_if_asked(self):
-        self.cl.run(Command('cl_i', True, 'id'))
+        self.cl.run(Command('cl_i', 'id', True, 'id'))
         assert ('INFO', 'id') in self.tlh.msgs
 
 
@@ -115,18 +115,20 @@ class TestJinja2CommandRunner(object):
         return open(os.path.join(tmpdir.strpath, f)).read()
 
     def test_matches(self):
-        assert self.jr.matches(Command('jinja_render', False, None))
+        assert self.jr.matches(Command('jinja_render', None, False, None))
 
     def test_render_tpl_file_default_case_1(self, tmpdir):
         fn = 'jinja_template.py'
         # Case 1: template name ends w/ '.tpl'
         fntpl = fn + '.tpl'
         self.make_sure_file_does_not_exists(tmpdir, fn)
+        inp = {'template': {'source': fntpl},
+               'data': {'what': 'foo'},
+               'destination': tmpdir.strpath}
         c = Command('jinja_render',
+                    inp,
                     True,
-                    {'template': {'source': fntpl},
-                     'data': {'what': 'foo'},
-                     'destination': tmpdir.strpath},
+                    inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
         assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
@@ -136,11 +138,13 @@ class TestJinja2CommandRunner(object):
         # Case 2: output filename will be the same!
         fntpl = fn
         self.make_sure_file_does_not_exists(tmpdir, fn)
+        inp = {'template': {'source': fntpl},
+               'data': {'what': 'foo'},
+               'destination': tmpdir.strpath}
         c = Command('jinja_render',
+                    inp,
                     True,
-                    {'template': {'source': fntpl},
-                     'data': {'what': 'foo'},
-                     'destination': tmpdir.strpath},
+                    inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
         assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
@@ -150,12 +154,14 @@ class TestJinja2CommandRunner(object):
         fn ='rendered_jinja_template.py'
         fntpl = 'jinja_template.py.tpl'
         self.make_sure_file_does_not_exists(tmpdir, fn)
+        inp = {'template': {'source': fntpl},
+               'data': {'what': 'foo'},
+               'output': fn,
+               'destination': tmpdir.strpath}
         c = Command('jinja_render',
+                    inp,
                     True,
-                    {'template': {'source': fntpl},
-                     'data': {'what': 'foo'},
-                     'output': fn,
-                     'destination': tmpdir.strpath},
+                    inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
         assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
@@ -167,12 +173,12 @@ class TestLogCommandRunner(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_log(self):
-        self.l.run(Command('log_w', True, 'foo!'))
+        self.l.run(Command('log_w', 'foo!', True, 'foo!'))
         assert self.tlh.msgs == [('WARNING', 'foo!')]
 
     def test_log_wrong_level(self):
         with pytest.raises(CommandException):
-            self.l.run(Command('log_b', True, 'bar'))
+            self.l.run(Command('log_b', 'bar', True, 'bar'))
 
 
 class TestSaveProjectCommandRunner(object):
@@ -185,6 +191,9 @@ class TestSCLCommandRunner(object):
 
     def test_scl_passes_scls_list_to_command_invocation(self):
         # please don't use $__scls__ in actual assistants :)
-        c = Command('scl enable foo bar', True, [{'log_i': '$__scls__'}], {})
+        # scl runner has to use the unformatted input
+        inp = [{'log_i': '$__scls__'}]
+        fmtd_inp = [{'log_i': 'this should not be used'}]
+        c = Command('scl enable foo bar', inp, True, fmtd_inp, {})
         c.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs

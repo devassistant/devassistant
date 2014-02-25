@@ -30,7 +30,7 @@ def dependencies_section(section, kwargs, runner=None):
             # rpm dependencies (can't handle anything else yet)
             # we don't allow general commands, only "call"/"use" command here
             if dep_type in ['call', 'use']:
-                deps.extend(command.Command(dep_type, True, dep_list, kwargs).run())
+                deps.extend(command.Command(dep_type, dep_list, True, dep_list, kwargs).run())
             elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
                 fmtd = list(map(lambda dep: format_str(dep, kwargs), dep_list))
                 deps.append({dep_type: fmtd})
@@ -101,7 +101,7 @@ def eval_exec_section(section, kwargs, runner=None):
                 if comm_type.startswith('$'):
                     retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
                 else:
-                    retval = command.Command(comm_type, *comm_ret, kwargs=kwargs).run()
+                    retval = command.Command(comm_type, comm, *comm_ret, kwargs=kwargs).run()
 
             if not isinstance(retval, (list, tuple)) or len(retval) != 2:
                 raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
@@ -503,11 +503,11 @@ def evaluate_expression(expression, names):
         cmd = " ".join(cmd)
 
         # Substitute the variables
-        cmd = format_str(cmd, interpr.names)
+        formatted_cmd = format_str(cmd, interpr.names)
 
         success = True
         try:
-            output = command.Command('cl', True, cmd, interpr.names).run()[1]
+            output = command.Command('cl', cmd, True, formatted_cmd, interpr.names).run()[1]
         except exceptions.RunException as ex:
             success = False
             output = ex.output

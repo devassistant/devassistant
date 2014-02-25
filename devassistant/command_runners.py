@@ -333,7 +333,11 @@ class DotDevassistantCommandRunner(CommandRunner):
                                                     kwargs,
                                                     runner=kwargs['__assistant__']))
         # TODO: import command dynamically here
-        command.Command('dependencies', True, struct, dda_content.get('original_kwargs', {})).run()
+        command.Command('dependencies',
+                        struct,
+                        True,
+                        struct,
+                        dda_content.get('original_kwargs', {})).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
@@ -596,7 +600,8 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs.setdefault('__scls__', [])
         c.kwargs.setdefault('__assistant__', None)
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
-        retval = lang.run_section(c.input_res,
+        # use "c.comm", not "c.input_res" - we need unformatted input here
+        retval = lang.run_section(c.comm,
                                   c.kwargs,
                                   runner=c.kwargs['__assistant__'])
         c.kwargs['__scls__'].pop()
