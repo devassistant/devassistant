@@ -3,7 +3,7 @@ There are four assistant roles:
 creator (``crt`` in short)
   creates new projects
 modifier (``mod`` in short)
-  modifies existing projects
+  works with existing projects
 preparer (``prep`` in short)
   prepares environment for development of upstream projects
 task (``task`` in short)

@@ -4,12 +4,12 @@ Command Reference
 =================
 
 This page serves as a reference commands of DevAssistant Yaml DSL.
-Every command consists of **command_type** and **command_input** and sets ``LAST_LRES`` and
-``LAST_RES`` variables. These two should represent (similarly to :ref:`expressions_ref` **logical
-result** and **result**):
+Every command consists of **command_type** and **command_input**. After it gets executed,
+it sets ``LAST_LRES`` and ``LAST_RES`` variables. These are also its return values,
+similar to :ref:`expressions_ref` **logical result** and **result**.
 
-- ``LAST_LRES`` - a logical result of the run - ``True``/``False`` if successful/unsuccessful
-- ``LAST_RES`` - a "return value" - e.g. a computed value
+- ``LAST_LRES`` is a logical result of the run - ``True``/``False`` if successful/unsuccessful
+- ``LAST_RES`` is a "return value" - e.g. a computed value
 
 In the Yaml DSL, commands are called like this::
 
@@ -62,7 +62,7 @@ second *result*.
     - spam
     - spam
     $bar: $baz
-    $success, $list: $(ls "$foo")
+    $success, $list~: $(ls "$foo")
 
 Condition
 ~~~~~~~~~
@@ -74,9 +74,9 @@ stand alone, of course)
 
 - Input: a subsection to run
 - RES: RES of last command in the subsection, if this clause is invoked. If not invoked,
-  there is no RES.
+  RES remains untouched.
 - LRES: LRES of last command in the subsection, if this clause is invoked. If not invoked,
-  there is no LRES.
+  LRES remains untouched.
 - Example::
 
     if defined $foo:
@@ -95,9 +95,9 @@ to get both key and its value.
 
 - Input: a subsection to repeat in loop
 - RES: RES of last command of last iteration in the subsection. If there are no interations,
-  there is no RES.
+  RES is untouched.
 - LRES: LRES of last command of last iteration in the subsection. If there are no interations,
-  there is no RES.
+  RES remains untouched.
 - Example::
 
      for $i in $(ls):
@@ -117,37 +117,30 @@ User interaction commands, let you ask for password and various other input.
 
 ``ask_password``
 
-- Input: list of
-
-  - *variable* that gets assigned the password (empty if user denies)
-  - mapping containing ``prompt`` (short prompt for user)
+- Input: mapping containing ``prompt`` (short prompt for user)
 
 - RES: the password
-- LRES: always ``True``
+- LRES: ``True`` if non-empty password was provided
 - Example::
 
-     ask_password:
-     - $passwd
-     - prompt: "Please provide your password"
-
+     - $passwd:
+       - ask_password:
+           prompt: "Please provide your password"
 
 
 ``ask_confirm``
 
-- Input: list of
+- Input: mapping containing ``prompt`` (short prompt for user) and ``message``
+  (a longer description of what the user should confirm)
 
-  - *variable* that gets assigned the confirmation (``True``/``False``)
-  - mapping containing ``prompt`` (short prompt for user) and ``message`` (a longer description
-    of what the user should confirm
-
-- RES: the confirmation
-- LRES: always ``True``
+- RES: the confirmation (``True`` or ``False``)
+- LRES: same as RES
 - Example::
 
-    ask_confirm:
-    - $confirmed
-    - message: "Do you think DevAssistant is great?"
-      prompt: "Please select yes."
+    - $confirmed:
+      - ask_confirm:
+          message: "Do you think DevAssistant is great?"
+          prompt: "Please select yes."
 
 Command Line Commands
 ---------------------
@@ -165,6 +158,7 @@ therefore visible to user by default)
     cl: mkdir ${name}
     cl: cp *file ${name}/foo
 
+.. _dependencies_command_ref:
 
 Dependencies Command
 --------------------
