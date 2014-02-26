@@ -19,20 +19,18 @@ Common Rules and Gotchas
 
 Some things are common for all assistant types:
 
-- Each assistant is one Yaml file, that must contain exactly one mapping
-  of assistant name to all the assistant contents. E.g::
+- Each assistant is one Yaml file, that must contain exactly one mapping -
+  the so-called assistant attributes::
 
-   assistant:
-     fullname: My Assistant
-     description: This will be part of help for this assistant
-     ...
+   fullname: My Assistant
+   description: This will be part of help for this assistant
+   ...
 
 - You have to place them in a proper place, see :ref:`load_paths` and
   :ref:`assistants_loading_mechanism`.
-- When creating templates (pre-created files used by assistants), they should
-  be placed in the same load dir, e.g. if your assistant is placed at
-  ``~/.devassistant/assistants``, it will look for templates under
-  ``~/.devassistant/templates``.
+- Files (e.g. templates, scripts, etc.) used by assistant should be placed in the same
+  load dir, e.g. if your assistant is placed at ``~/.devassistant/assistants``, DevAssistant
+  will look for files under ``~/.devassistant/files``.
 - As mentioned in :ref:`load_paths`, there are three main load paths in
   standard DevAssistant installation, "system", "local" and "user".
   The "system" dir is used for assistants delivered by your
@@ -66,9 +64,8 @@ Setting it Up
 
 So, let's start writing our assistant by providing some initial metadata::
 
-   argh:
-     fullname: Argh Script Template
-     description: Create a template of simple script that uses argh library
+   fullname: Argh Script Template
+   description: Create a template of simple script that uses argh library
 
 If you now save the file and run ``da crt python argh -h``, you'll see that
 your assistant was already recognized by DevAssistant, although it doesn't
@@ -94,7 +91,7 @@ Files
 
 Since we want the script to always look the same, we will create a file that
 our assistant will copy into proper place. This file should be put into
-into ``crt/python/argh`` subdirectory the template directory
+into ``crt/python/argh`` subdirectory the files directory
 (``~/.devassistant/files/crt/python/argh``). The file will be called
 ``arghscript.py`` and will have this content::
 
@@ -209,16 +206,24 @@ Next, we want to copy our script into the directory. We want to name it the
 same as name of the directory itself. But what if directory is a path, not
 simple name? We have to find out the project name and remember it somehow::
 
-   - $proj_name: $(basename "$name")
+   - $proj_name~: $(basename "$name")
 
 What just happened? We assigned output of command ``basename "$name"`` to
-a new variable ``proj_name`` that we can use from now on. So let's copy
-the script and make it executable::
+a new variable ``proj_name`` that we can use from now on. Note the ``~`` at the end
+of ``$proj_name~``. This is called **execution flag** and it says that the command input
+should be executed as an expression, not taken as a literal. See :ref:`expressions_ref`
+for detailed expressions reference.
+
+*Note: the execution flag makes DevAssistant execute the input as a so-called "execution
+section". The input can either be a string, evaluated as an expression, or a list of commands,
+evaluated as another "run" section.*
+
+So let's copy the script and make it executable::
 
    - cl: cp *arghs ${name}/${proj_name}.py
    - cl: chmod +x ${name}/${proj_name}.py
 
-One thing to note here is, that by using ``*arghs``, we reference a file
+One more thing to note here: by using ``*arghs``, we reference a file
 from the ``files`` section.
 
 Now, we'll use a super-special command::
@@ -227,14 +232,14 @@ Now, we'll use a super-special command::
 
 What is ``dda_c``? The first part, ``dda`` stands for "dot devassistant file",
 the second part, ``_c``, says, that we want to create this file (there are
-more things that can be done with ``.devassistant`` file, see TODO).
+more things that can be done with ``.devassistant`` file, see :ref:`dda_commands_ref`).
 The "command" part of this call just says where the file should be stored,
-which is ``$name`` directory in our case.
+which is directory ``$name`` in our case.
 
 The ``.devassistant`` file serves for storing meta information about the
 project. Amongst other things, it stores information about which assistant was
 invoked. This information can later serve to prepare the environment (e.g.
-install ``python-argh``) on another machine or so. Assuming that we commit the
+install ``python-argh``) on another machine. Assuming that we commit the
 project to a git repository, one just needs to run
 ``da prep custom -u <repo_url>``, and DevAssistant will checkout the project
 from git and use information stored in ``.devassistant`` to reinstall
@@ -247,7 +252,7 @@ place TODO here to document it).)
 assistant. To find out more about the rules of when they're used and how
 run sections can call each other, consult*
 :ref:`dependencies reference <dependencies_ref>` *and*
-:ref:`run reference <run_ref>`.
+:ref:`run reference <run_sections_ref>`.
 
 Something About Snippets
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -286,33 +291,32 @@ The Whole Assistant
 
 ... looks like this::
 
-   argh:
-     fullname: Argh Script Template
-     description: Create a template of simple script that uses argh library
+   fullname: Argh Script Template
+   description: Create a template of simple script that uses argh library
 
-     dependencies:
-     - rpm: [python-argh]
+   dependencies:
+   - rpm: [python-argh]
 
-     files:
-       arghs: &arghs
-         source: arghscript.py
+   files:
+     arghs: &arghs
+       source: arghscript.py
 
-     args:
-       name:
-         use: common_args
+   args:
+     name:
+       use: common_args
 
-     run:
-     - log_i: Hello, I'm Argh assistant and I will create an argh project for you.
-     - if $(test -e "$name"):
-       - log_e: '"$name" already exists, cannot proceed.'
-     - cl: mkdir -p "$name"
-     - $proj_name: $(basename "$name")
-     - cl: cp *arghs ${name}/${proj_name}.py
-     - cl: chmod +x *arghs ${name}/${proj_name}.py
-     - dda_c: "$name"
-     - cl: cd "$name"
-     - use: git_init_add_commit
-     - log_i: Project "$proj_name" has been created in "$name".
+   run:
+   - log_i: Hello, I'm Argh assistant and I will create an argh project for you.
+   - if $(test -e "$name"):
+     - log_e: '"$name" already exists, cannot proceed.'
+   - cl: mkdir -p "$name"
+   - $proj_name~: $(basename "$name")
+   - cl: cp *arghs ${name}/${proj_name}.py
+   - cl: chmod +x *arghs ${name}/${proj_name}.py
+   - dda_c: "$name"
+   - cl: cd "$name"
+   - use: git_init_add_commit
+   - log_i: Project "$proj_name" has been created in "$name".
 
 And can be run like this: ``da crt python argh -n foo/bar``.
 

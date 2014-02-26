@@ -181,6 +181,8 @@ Install dependencies from given **command input**.
     dependencies:
     - rpm: $rpmdeps
 
+.. _dda_commands_ref:
+
 .devassistant Commands
 ----------------------
 
