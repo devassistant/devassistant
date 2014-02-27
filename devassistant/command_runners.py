@@ -710,6 +710,46 @@ class Jinja2Runner(CommandRunner):
 
 
 @register_command_runner
+class SuCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'su' or c.comm_type.startswith('su ')
+
+    @classmethod
+    def get_user_from_comm_type(cls, comm_type):
+        user = None
+        split_type = comm_type.split()
+        if len(split_type) == 1:
+            pass  # no-op
+        elif len(split_type) != 3 or split_type[1] != '-':
+            raise exceptions.CommandExceptions('"su" expects format "su[ - username]".')
+        else:
+            user = split_type[2]
+        return user
+
+    @classmethod
+    def run(cls, c):
+        user = cls.get_user_from_comm_type(c.comm_type)
+        to_run = utils.cl_string_for_da_eval(c.comm, c.kwargs)
+        pkexec_to_run = ['pkexec']
+        if user:
+            pkexec_to_run.extend(['--user', user])
+        pkexec_to_run.append(to_run)
+        pkexec_to_run = ' '.join(pkexec_to_run)
+
+        def sub_da_logger(msg):
+            logger.info(msg, extra={'event_type': 'sub_da'})
+
+        try:
+            out = ClHelper.run_command(pkexec_to_run, output_callback=sub_da_logger)
+            ret = True
+        except exceptions.ClException as e:
+            out = e.output
+            ret = False
+        return [ret, out]
+
+
+@register_command_runner
 class DockerCommandRunner(object):
     try:
         _docker_module = utils.import_module('docker')

@@ -9,7 +9,8 @@ GITHUB_SSH_KEYNAME = 'id_rsa_devassistant_{login}'
 LOG_FORMATS_MAP = {'log_cmd': u'{levelname}: {msg}',
                    'cmd_call': u'[devassistant]$ {msg}',
                    'cmd_out': u'| {msg}',
-                   'cmd_retcode': u'|> retcode: {msg}'}
+                   'cmd_retcode': u'|> retcode: {msg}',
+                   'sub_da': u'{msg}'}
 LOG_LEVELS_MAP = {'d': 'DEBUG', 'i': 'INFO', 'w': 'WARNING', 'e': 'ERROR', 'c': 'CRITICAL'}
 LAST_LR_VAR = 'LAST_LRES'
 LAST_R_VAR = 'LAST_RES'

@@ -72,3 +72,9 @@ class CliRunner(object):
             logger.logger.info('*' * len(msg))
             logger.logger.info(msg)
             logger.logger.info('*' * len(msg))
+
+if __name__ == '__main__':
+    # this is here mainly because of utils.cl_string_from_da_eval
+    # because it's the safest way to invoke DA on commandline
+    # (invoking "da" binary is not safe because we can use os.chdir and so on)
+    CliRunner.run()

@@ -1,5 +1,11 @@
 import os
 import platform
+import sys
+import yaml
+try:
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Dumper
 
 try: # ugly hack for using imp instead of importlib on Python <= 2.6
     import importlib
@@ -36,3 +42,19 @@ def get_assistant_attrs_from_dict(d, source):
             return d
     else:
         return None
+
+def cl_string_for_da_eval(section, context=None):
+    if context is None:
+        context = {}
+    # filter variables that we don't want to pass from context
+    unwanted = ['__assistant__', '__section__']
+    ctxt_to_dump = dict(filter(lambda i: i[0] not in unwanted, context.items()))
+
+    dumped = yaml.dump({'ctxt': ctxt_to_dump, 'run': section}, stream=None, Dumper=Dumper)
+    dumped_in_heredoc = '\n'.join(['\VERY_LONG_RANDOM_EOF', dumped, 'VERY_LONG_RANDOM_EOF'])
+
+    cl_string = ' '.join([sys.executable,
+                          '-m devassistant.cli.cli_runner',
+                          'eval - <<',
+                          dumped_in_heredoc])
+    return cl_string

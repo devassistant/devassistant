@@ -1,3 +1,13 @@
+import sys
+
+import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+
+from devassistant import argument
+from devassistant import lang
 from devassistant import settings
 
 actions = {}
@@ -68,11 +78,27 @@ class Action(object):
 class EvalAction(Action):
     name = 'eval'
     description = 'Evaluate input containing Yaml code and context. Internal use only.'
+    args = [argument.Argument('input', 'input')]
     hidden = True
 
     @classmethod
     def run(cls, **kwargs):
-        pass
+        to_run = cls.gather_input(kwargs['input'])
+        parsed = yaml.load(to_run, Loader=Loader)
+        lang.run_section(parsed.get('run', []), parsed.get('ctxt', {}))
+
+    @classmethod
+    def gather_input(cls, recieved):
+        if recieved == '-':
+            # read from stdin
+            to_run = []
+            for l in sys.stdin.readlines():
+                to_run.append(l)
+            to_run = ''.join(to_run)
+        else:
+            to_run = recieved
+        return to_run
+
 
 @register_action
 class HelpAction(Action):
