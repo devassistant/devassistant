@@ -10,6 +10,7 @@ from devassistant import utils
 from devassistant import yaml_assistant
 from devassistant import yaml_checker
 
+
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
     # mapping of assistant roles to lists of top-level assistant instances
@@ -110,11 +111,11 @@ class YamlAssistantLoader(object):
             references to instances of their subassistants (and their subassistants, ...)
         """
         result = []
-        warn_msg ='Failed to load assistant {source}, skipping subassistants.'
+        warn_msg = 'Failed to load assistant {source}, skipping subassistants.'
 
         for name, attrs in file_hierarchy.items():
             loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(attrs['source'])
-            if not loaded_yaml: # there was an error parsing yaml
+            if not loaded_yaml:  # there was an error parsing yaml
                 logger.warning(warn_msg.format(source=attrs['source']))
                 continue
             try:
@@ -149,9 +150,11 @@ class YamlAssistantLoader(object):
         Returns:
             hierarchy structure that looks like this:
             {'assistant1':
-                {'source': '/path/to/assistant1.yaml', 'subhierarchy': {<hierarchy of subassistants>}},
+                {'source': '/path/to/assistant1.yaml',
+                 'subhierarchy': {<hierarchy of subassistants>}},
              'assistant2':
-                {'source': '/path/to/assistant2.yaml', 'subhierarchy': {<another hieararchy of subassistants}}
+                {'source': '/path/to/assistant2.yaml',
+                 'subhierarchy': {<another hierarchy of subassistants}}
             }
         """
         result = {}
@@ -161,7 +164,8 @@ class YamlAssistantLoader(object):
                 if assistant_name not in result:
                     subas_dirs = [os.path.join(dr, assistant_name) for dr in dirs]
                     result[assistant_name] = {'source': os.path.join(d, f),
-                                              'subhierarchy': cls.get_assistants_file_hierarchy(subas_dirs)}
+                                              'subhierarchy':
+                                              cls.get_assistants_file_hierarchy(subas_dirs)}
 
         return result
 

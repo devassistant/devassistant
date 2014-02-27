@@ -4,6 +4,7 @@ import sys
 from devassistant.logger import logger
 from devassistant import package_managers
 
+
 def override():
     def signal_handler(signal, frame):
         if package_managers.DependencyInstaller.install_lock:

@@ -2,6 +2,7 @@ import copy
 
 from devassistant import loaded_yaml
 
+
 class Snippet(loaded_yaml.LoadedYaml):
     def __init__(self, name, parsed_yaml, path):
         self.name = name

@@ -10,6 +10,7 @@ from devassistant import utils
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.logger import logger
 
+
 class GitHubAuth(object):
     """Only use the github_authenticated decorator from the class.
     The other methods should be consider private; they expect certain order of calling,
@@ -29,7 +30,7 @@ class GitHubAuth(object):
                 cls._token = ClHelper.run_command("git config github.token.{login}".format(
                     login=login))
             except exceptions.ClException:
-                pass # token is not available yet
+                pass  # token is not available yet
 
         return cls._token
 
@@ -48,15 +49,16 @@ class GitHubAuth(object):
                 cls._token = None
                 # login with username/password
                 password = DialogHelper.ask_for_password(
-                        prompt='Github Password for {username}:'.format(username=login))
+                    prompt='Github Password for {username}:'.format(username=login))
                 gh = cls._gh_module.Github(login_or_token=login, password=password)
                 cls._user = gh.get_user()
                 try:
                     cls._user.login
-                    cls._github_create_auth() # create auth for future use
+                    cls._github_create_auth()  # create auth for future use
                 except cls._gh_module.GithubException as e:
                     msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
-                    # reset cls._user to None, so that we don't use it if calling this multiple times
+                    # reset cls._user to None, so that we don't use it
+                    # if calling this multiple times
                     cls._user = None
                     raise exceptions.CommandException(msg)
         return cls._user
@@ -69,7 +71,8 @@ class GitHubAuth(object):
         """
         if not cls._token:
             try:
-                auth = cls._user.create_authorization(scopes=['repo', 'user'], note="DeveloperAssistant")
+                auth = cls._user.create_authorization(scopes=['repo', 'user'],
+                                                      note="DeveloperAssistant")
                 ClHelper.run_command("git config --global github.token.{login} {token}".format(
                     login=cls._user.login,
                     token=auth.token))
@@ -83,7 +86,7 @@ class GitHubAuth(object):
         try:
             login = cls._user.login
             pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
-                                                       keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
+                        keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
             # TODO: handle situation where {pkey_path} exists, but it's not registered on GH
             # generate ssh key
             ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
@@ -100,7 +103,7 @@ class GitHubAuth(object):
     def _create_ssh_config_entry(cls):
         # TODO: some duplication with _ssh_key_needs_config_entry, maybe refactor a bit
         ssh_config = os.path.expanduser('~/.ssh/config')
-        fh = os.fdopen(os.open(ssh_config, os.O_WRONLY|os.O_CREAT|os.O_APPEND, 0o600), 'a')
+        fh = os.fdopen(os.open(ssh_config, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600), 'a')
         fh.write(settings.GITHUB_SSH_CONFIG.format(
                  login=cls._user.login,
                  keyname=settings.GITHUB_SSH_KEYNAME.format(login=cls._user.login)))
@@ -138,7 +141,6 @@ class GitHubAuth(object):
             return needs_to_add_config_entry
         return False
 
-
     @classmethod
     def github_authenticated(cls, func):
         """Does user authentication, creates SSH keys if needed and injects "_user" attribute
@@ -147,7 +149,7 @@ class GitHubAuth(object):
         """
         def inner(func_cls, *args, **kwargs):
             if not cls._gh_module:
-                logger.warning('PyGithub not installed, skipping github authentication procedures.')
+                logger.warning('PyGithub not installed, skipping Github auth procedures.')
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
                 func_cls._user = cls._get_github_user(kwargs['login'])

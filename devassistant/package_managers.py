@@ -40,10 +40,12 @@ from devassistant import settings
 #       'pip': [PIPPackageManager]}
 managers = {}
 
+
 def register_manager(manager):
     managers.setdefault(manager.shortcut, [])
     managers[manager.shortcut].append(manager)
     return manager
+
 
 class PackageManager(object):
     """Abstract class for API definition of package managers."""
@@ -129,7 +131,8 @@ class YUMPackageManager(PackageManager):
 
     @classmethod
     def is_rpm_installed(cls, rpm_name):
-        logger.info('Checking for presence of {0}...'.format(rpm_name), extra={'event_type': 'dep_check'})
+        logger.info('Checking for presence of {0}...'.format(rpm_name),
+            extra={'event_type': 'dep_check'})
 
         found_rpm = cls.rpm_q(rpm_name)
         if found_rpm:
@@ -230,7 +233,8 @@ class PacmanPackageManager(PackageManager):
 
     @classmethod
     def is_pacmanpkg_installed(cls, pkg_name):
-        logger.info('Checking for presence of {0}...'.format(pkg_name), extra={'event_type': 'dep_check'})
+        logger.info('Checking for presence of {0}...'.format(pkg_name),
+            extra={'event_type': 'dep_check'})
 
         try:
             found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.\
@@ -329,6 +333,7 @@ class PIPPackageManager(PackageManager):
     def __str__(self):
         return "pip package manager"
 
+
 @register_manager
 class NPMPackageManager(PackageManager):
     """ Package manager for managing python dependencies from NPM """
@@ -384,6 +389,7 @@ class NPMPackageManager(PackageManager):
     def __str__(self):
         return "npm package manager"
 
+
 @register_manager
 class GemPackageManager(PackageManager):
     """ Package manager for managing ruby dependencies from rubygems.org """
@@ -431,10 +437,11 @@ class GemPackageManager(PackageManager):
 
     @classmethod
     def get_distro_dependencies(self, smgr_sc):
-        return ['rubygems','ruby-devel']
+        return ['rubygems', 'ruby-devel']
 
     def __str__(self):
         return "gem package manager"
+
 
 class GentooPackageManager:
     """Mix-in class for Gentoo package managers. The only thing it capable to do
@@ -489,7 +496,7 @@ class GentooPackageManager:
         _list = ', '.join(to_install)
         raise exceptions.DependencyException(
             'You must install the following packages before run this command: {0}'.format(_list)
-          )
+        )
 
 
 @register_manager
@@ -526,7 +533,8 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
             r = vartree.dbapi.match(pkg)
             logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
         except portage.exception.InvalidAtom:
-            raise exceptions.DependencyException('Invalid dependency specification: {0}'.format(pkg))
+            raise exceptions.DependencyException('Invalid dependency specification: {0}'.\
+                format(pkg))
         # TODO Compare package version!
         return bool(r)
 
@@ -561,13 +569,14 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
 
 @register_manager
 class PaludisPackageManager(PackageManager, GentooPackageManager):
-    """ Another package manager class for Gentoo (yep, for [paludis](http://paludis.exherbo.org/) ;-)
+    """Another package manager class for Gentoo (yep, for
+    [paludis](http://paludis.exherbo.org/) ;-)
 
-        NOTE Nowadays Paludis has Python2 only API, but Python3 is coming soon (I hope)
-        (upstream bug is here http://paludis.exherbo.org/trac/ticket/1297).
+    NOTE Nowadays Paludis has Python2 only API, but Python3 is coming soon (I hope)
+    (upstream bug is here http://paludis.exherbo.org/trac/ticket/1297).
 
-        NOTE Ebuild for paludis w/ Python3 support available here:
-        https://github.com/zaufi/zaufi-overlay/tree/master/sys-apps/paludis
+    NOTE Ebuild for paludis w/ Python3 support available here:
+    https://github.com/zaufi/zaufi-overlay/tree/master/sys-apps/paludis
     """
 
     shortcut = 'ebuild'
@@ -588,7 +597,8 @@ class PaludisPackageManager(PackageManager, GentooPackageManager):
         env = paludis.EnvironmentFactory.instance.create('')
         installed = env.fetch_repository('installed')
         try:
-            pkg = paludis.parse_user_package_dep_spec(dep, env, paludis.UserPackageDepSpecOptions())
+            pkg = paludis.parse_user_package_dep_spec(dep, env,
+                                                      paludis.UserPackageDepSpecOptions())
             # TODO Compare package version!
             r = []
             for i in installed.package_ids(str(pkg.package), []):
@@ -611,11 +621,12 @@ class PaludisPackageManager(PackageManager, GentooPackageManager):
         logger.info('[paludis] Resolving dependencies ...')
 
         env = paludis.EnvironmentFactory.instance.create('')
-        fltr = paludis.Filter.And(paludis.Filter.SupportsInstallAction(), paludis.Filter.NotMasked())
+        fltr = paludis.Filter.And(paludis.Filter.SupportsInstallAction(),
+                                  paludis.Filter.NotMasked())
         to_install = set()
         for dep in deps:
             ds = paludis.parse_user_package_dep_spec(dep, env, paludis.UserPackageDepSpecOptions())
-            gen = paludis.Generator.Matches(ds,paludis.MatchPackageOptions())
+            gen = paludis.Generator.Matches(ds, paludis.MatchPackageOptions())
             fg = paludis.FilteredGenerator(gen, fltr)
             s = paludis.Selection.BestVersionOnly(fg)
             _to_install = set()
@@ -682,7 +693,7 @@ class DependencyInstaller(object):
             raise exceptions.NoPackageManagerException(err)
         # try to get list of distros where the dependency type is system type
         distros = settings.SYSTEM_DEPTYPES_SHORTCUTS.get(dep_t, None)
-        if not distros: # non-distro dependency type
+        if not distros:  # non-distro dependency type
             sysdep_t = self.get_system_deptype_shortcut()
             # for now, just take the first manager that can install dep_t and install this manager
             self._process_dependency(sysdep_t,
@@ -694,7 +705,7 @@ class DependencyInstaller(object):
                 if distro in local_distro:
                     found = True
                     break
-            if not found: # distro dependency type, but for another distro
+            if not found:  # distro dependency type, but for another distro
                 return
         self.dependencies.setdefault(dep_t, [])
         self.dependencies[dep_t].extend(dep_l)
@@ -731,7 +742,7 @@ class DependencyInstaller(object):
             # TODO: we should do this more systematically (send signal to cl/gui?)
             logger.info('Installing dependencies, sit back and relax ...',
                         extra={'event_type': 'dep_installation_start'})
-            if current_run.UI == 'cli': # TODO: maybe let every manager to decide when to start
+            if current_run.UI == 'cli':  # TODO: maybe let every manager to decide when to start
                 event = threading.Event()
                 t = EndlessProgressThread(event)
                 t.start()
@@ -776,6 +787,7 @@ class DependencyInstaller(object):
 
         # just try rpm if unkown (not very nice?)
         return 'rpm'
+
 
 class EndlessProgressThread(threading.Thread):
     def __init__(self, finish_event):

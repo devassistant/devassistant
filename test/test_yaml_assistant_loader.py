@@ -83,7 +83,7 @@ class TestYamlAssistantLoader(object):
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
         self.yl.assistant_from_yaml('no_arg_in_snippet.yaml', y, CreatorAssistant())
-        assert ('WARNING', 'Couldn\'t find argument bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
+        assert ('WARNING', 'Couldn\'t find arg bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
 
     def test_no_cache(self):
         current_run.USE_CACHE = False

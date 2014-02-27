@@ -88,14 +88,16 @@ def dependencies_section(section, kwargs, runner=None):
             # we don't allow general commands, only "call"/"use" command here
             if dep_type in ['call', 'use']:
                 deps.extend(Command(dep_type, dep_list, kwargs).run())
-            elif dep_type in package_managers.managers.keys(): # handle known types of deps the same, just by appending to "deps" list
+            # handle known types of deps the same, just by appending to "deps" list
+            elif dep_type in package_managers.managers.keys():
                 fmtd = list(map(lambda dep: format_str(dep, kwargs), dep_list))
                 deps.append({dep_type: fmtd})
             elif dep_type.startswith('if'):
                 possible_else = None
-                if len(section) > i + 1: # do we have "else" clause?
+                if len(section) > i + 1:  # do we have "else" clause?
                     possible_else = list(section[i + 1].items())[0]
-                _, skip_else, to_run = get_section_from_condition((dep_type, dep_list), possible_else, kwargs)
+                _, skip_else, to_run = get_section_from_condition((dep_type, dep_list),
+                                                                  possible_else, kwargs)
                 if to_run:
                     deps.extend(dependencies_section(to_run, kwargs, runner=runner))
             elif dep_type == 'else':
@@ -110,9 +112,12 @@ def dependencies_section(section, kwargs, runner=None):
 
     return deps
 
+
 def run_section(section, kwargs=None, runner=None):
-    if kwargs == None: kwargs = {}
+    if kwargs is None:
+        kwargs = {}
     return eval_exec_section(section, kwargs, runner)
+
 
 def eval_exec_section(section, kwargs, runner=None):
     skip_else = False
@@ -127,9 +132,10 @@ def eval_exec_section(section, kwargs, runner=None):
         for comm_type, comm in command_dict.items():
             if comm_type.startswith('if'):
                 possible_else = None
-                if len(section) > i + 1: # do we have "else" clause?
+                if len(section) > i + 1:  # do we have "else" clause?
                     possible_else = list(section[i + 1].items())[0]
-                _, skip_else, to_run = get_section_from_condition((comm_type, comm), possible_else, kwargs)
+                _, skip_else, to_run = get_section_from_condition((comm_type, comm),
+                                                                  possible_else, kwargs)
                 # run with original kwargs, so that they might be changed for code after this
                 if to_run:
                     retval = run_section(to_run, kwargs, runner=runner)
@@ -140,7 +146,8 @@ def eval_exec_section(section, kwargs, runner=None):
                 skip_else = False
             elif comm_type.startswith('for'):
                 # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
-                control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type, kwargs)
+                control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type,
+                                                                                  kwargs)
                 for i in eval_expression:
                     if len(control_vars) == 2:
                         kwargs[control_vars[0]] = i[0]
@@ -164,6 +171,7 @@ def eval_exec_section(section, kwargs, runner=None):
             assign_last_result(kwargs, *retval)
 
     return retval
+
 
 def eval_literal_section(section, kwargs, runner=None):
     retval = [False, '']
@@ -192,9 +200,11 @@ def eval_literal_section(section, kwargs, runner=None):
 
     return retval
 
+
 def assign_last_result(kwargs, log_res, res):
     kwargs[settings.LAST_LR_VAR] = log_res
     kwargs[settings.LAST_R_VAR] = res
+
 
 def parse_for(control_line):
     """Returns name of loop control variable(s) and expression to iterate on.
@@ -219,6 +229,7 @@ def parse_for(control_line):
 
     return (control_vars, expr)
 
+
 def get_for_control_var_and_eval_expr(comm_type, kwargs):
     """Returns tuple that consists of control variable name and iterable that is result
     of evaluated expression of given for loop.
@@ -241,6 +252,7 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
     elif isinstance(eval_expression, six.string_types):
         iterval = eval_expression.split()
     return control_vars, iterval
+
 
 def get_section_from_condition(if_section, else_section, kwargs):
     """Returns section that should be used from given if/else sections by evaluating given
@@ -265,6 +277,7 @@ def get_section_from_condition(if_section, else_section, kwargs):
         return (0, skip, if_section[1])
     else:
         return (1, skip, else_section[1]) if skip else (1, skip, None)
+
 
 def assign_variable(variable, log_res, res, kwargs):
     """Assigns given result (resp. logical result and result) to a variable
@@ -303,16 +316,19 @@ def assign_variable(variable, log_res, res, kwargs):
     kwargs[var2] = res
     return log_res, res
 
+
 def is_var(string):
     return string.startswith('$')
+
 
 def get_var_name(dolar_variable):
     name = dolar_variable.strip()
     name = name.strip('"\'')
     if not name.startswith('$'):
         raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dolar_variable)
-    name = name[1:] # strip the dollar
+    name = name[1:]  # strip the dollar
     return name.strip('{}')
+
 
 ### Expression evaluation
 class Interpreter(object):
@@ -593,6 +609,7 @@ _command_splitter = re.compile(r'(\s+|\S+)')
 # we want to do homedir expansion in quotes (which bash doesn't)
 _homedir_matcher = re.compile('\\\\*~')
 
+
 def _homedir_expand(cls, matchobj):
     # therefore we must hack around this here
     if len(matchobj.group(0)) % 2 == 0:
@@ -601,6 +618,7 @@ def _homedir_expand(cls, matchobj):
     else:
         # odd length => even number of backslashes => expand an
         return matchobj.group(0)[:-1] + os.path.expanduser('~')
+
 
 def format_str(s, kwargs):
     files_dir = kwargs.get('__files_dir__', [''])[-1]

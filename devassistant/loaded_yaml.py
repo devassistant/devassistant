@@ -3,11 +3,13 @@ import os
 from devassistant import exceptions
 from devassistant import settings
 
+
 class LoadedYaml(object):
     @property
     def load_path(self):
         for d in settings.DATA_DIRECTORIES:
-            if d == os.path.commonprefix([self.path, d]): break
+            if d == os.path.commonprefix([self.path, d]):
+                break
 
         return d
 

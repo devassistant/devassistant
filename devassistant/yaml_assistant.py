@@ -15,6 +15,7 @@ from devassistant import utils
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader
 
+
 def needs_fully_loaded(method):
     """Wraps all publicly callable methods of YamlAssistant. If the assistant was loaded
     from cache, this decorator will fully load it first time a publicly callable method
@@ -29,6 +30,7 @@ def needs_fully_loaded(method):
         return method(self, *args, **kwargs)
 
     return inner
+
 
 class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def __init__(self, name, parsed_yaml, path, superassistant, fully_loaded=True,
@@ -103,12 +105,14 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 # it with current arg_params, if any
                 try:
                     problem = None
-                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(use_snippet)
+                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(
+                        use_snippet)
                     arg_params = dict(snippet.args.pop(arg_name), **arg_params)
                 except exceptions.SnippetNotFoundException as e:
-                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + six.text_type(e)
-                except KeyError as e: # snippet doesn't have the requested argument
-                    problem = 'Couldn\'t find argument {arg} in snippet {snip} wanted by assistant {a}.'
+                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + \
+                        six.text_type(e)
+                except KeyError as e:  # snippet doesn't have the requested argument
+                    problem = 'Couldn\'t find arg {arg} in snippet {snip} wanted by assistant {a}.'
 
                 if problem:
                     logger.warning(problem.format(snip=use_snippet,
@@ -153,7 +157,8 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                     os.makedirs(os.path.dirname(expanded_lfile))
                 # add handler and formatter
                 handler = logging.FileHandler(expanded_lfile, 'a+')
-                formatter = logging.Formatter('%(asctime)-15s [%(event_type)] %(levelname)s - %(message)s')
+                formatter = logging.Formatter(
+                    '%(asctime)-15s [%(event_type)] %(levelname)s - %(message)s')
                 handler.setFormatter(formatter)
                 handler.setLevel(getattr(logging, level.upper()))
                 # register handler with the global logger
@@ -172,7 +177,8 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         """
         # we can't use {} as a default for kwargs, as that initializes the dict only once in Python
         # and uses the same dict in all subsequent calls of this method
-        if not kwargs: kwargs = {}
+        if not kwargs:
+            kwargs = {}
 
         self.proper_kwargs('dependencies', kwargs)
         sections = [getattr(self, '_dependencies', [])]
@@ -180,7 +186,8 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             # if subassistant_path is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
             for i in range(1, len(kwargs.get('subassistant_path', [])) + 1):
-                possible_dep_section = '_dependencies_{0}'.format('_'.join(kwargs['subassistant_path'][:i]))
+                possible_dep_section = '_dependencies_{0}'.\
+                    format('_'.join(kwargs['subassistant_path'][:i]))
                 if possible_dep_section in dir(self):
                     sections.append(getattr(self, possible_dep_section))
         # install these dependencies in any case
@@ -199,15 +206,16 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def run(self, stage='', kwargs=None):
         # we can't use {} as a default for kwargs, as that initializes the dict only once in Python
         # and uses the same dict in all subsequent calls of this method
-        if not kwargs: kwargs = {}
+        if not kwargs:
+            kwargs = {}
 
         self.proper_kwargs('run', kwargs)
         to_run = '_run'
-        if stage: # if we have stage, always use that
+        if stage:  # if we have stage, always use that
             to_run = '_' + stage + '_run'
         elif self.role == 'mod':
-            # try to get a section to run from the most specialized one to the least specialized one
-            # e.g. first run_python_django, then run_python and then just run
+            # try to get a section to run from the most specialized one to the least
+            # specialized one, e.g. first run_python_django, then run_python and then just run
             sa_path = kwargs.get('subassistant_path', [])
             for i in range(len(sa_path), -1, -1):
                 possible_run = '_'.join(['_run'] + sa_path[:i])

@@ -2,6 +2,7 @@ import six
 
 from devassistant import exceptions
 
+
 class YamlChecker(object):
     _yaml_typenames = {dict: 'mapping',
                        list: 'list',
@@ -33,7 +34,7 @@ class YamlChecker(object):
         if not isinstance(self.parsed_yaml, dict):
             msg = 'In {0}:\n'.format(self.sourcefile)
             msg += 'Assistants and snippets must be Yaml mappings, not "{0}"!'.\
-                    format(self.parsed_yaml)
+                format(self.parsed_yaml)
             raise exceptions.YamlTypeError(msg)
         self._check_fullname(self.sourcefile)
         self._check_description(self.sourcefile)
@@ -44,7 +45,7 @@ class YamlChecker(object):
     def _check_fullname(self, source):
         path = [source]
         self._assert_str(self.parsed_yaml.get('fullname', ''), path)
- 
+
     def _check_description(self, source):
         path = [source]
         self._assert_str(self.parsed_yaml.get('description', ''), path)
