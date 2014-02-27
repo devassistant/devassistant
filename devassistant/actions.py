@@ -48,6 +48,7 @@ class Action(object):
     name = 'action'
     description = 'Action description'
     args = []
+    hidden = False
 
     @classmethod
     def get_subactions(cls):
@@ -62,6 +63,16 @@ class Action(object):
         """
         raise NotImplementedError()
 
+
+@register_action
+class EvalAction(Action):
+    name = 'eval'
+    description = 'Evaluate input containing Yaml code and context. Internal use only.'
+    hidden = True
+
+    @classmethod
+    def run(cls, **kwargs):
+        pass
 
 @register_action
 class HelpAction(Action):
@@ -81,10 +92,11 @@ class HelpAction(Action):
         Args:
             format_type: type of formatting for nice output, see format_text for possible values
         """
+        top_visible_actions = list(filter(lambda a: not a.hidden, actions))
         # we will justify the action names (and assistant types) to the same width
         just = max(
             max(*map(lambda x: len(x), settings.ASSISTANT_ROLES)),
-            max(*map(lambda x: len(x.name), actions.keys()))
+            max(*map(lambda x: len(x.name), top_visible_actions))
         ) + 2
         text = ['You can either run assistants with:']
         text.append(cls.format_text('da [--debug] {crt,mod,prep,task} [ASSISTANT [ARGUMENTS]] ...',
@@ -116,7 +128,7 @@ class HelpAction(Action):
                                     format_type))
         text.append('')
         text.append('Available actions:')
-        for action in sorted(actions.keys(), key=lambda x: x.name):
+        for action in sorted(top_visible_actions, key=lambda x: x.name):
             text.append(cls.format_action_line(action.name,
                                                action.description,
                                                just,
