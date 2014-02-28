@@ -67,12 +67,20 @@ class GitHubAuth(object):
     def _github_create_auth(cls):
         """ Store token into ~/.gitconfig.
 
+        Note: this uses cls._user.get_authorizations(), which only works if cls._user
+        was authorized by login/password, doesn't work for token auth (TODO: why?).
         If token is not defined then store it into ~/.gitconfig file
         """
         if not cls._token:
             try:
-                auth = cls._user.create_authorization(scopes=['repo', 'user'],
-                                                      note="DeveloperAssistant")
+                auth = None
+                for a in cls._user.get_authorizations():
+                    if a.note == 'DevAssistant':
+                        auth = a
+                if not auth:
+                    auth = cls._user.create_authorization(
+                        scopes=['repo', 'user', 'admin:public_key'],
+                        note="DevAssistant")
                 ClHelper.run_command("git config --global github.token.{login} {token}".format(
                     login=cls._user.login,
                     token=auth.token))
@@ -83,18 +91,19 @@ class GitHubAuth(object):
 
     @classmethod
     def _github_create_ssh_key(cls):
+        """Creates a local ssh key, if it doesn't exist already, and uploads it to Github."""
         try:
             login = cls._user.login
             pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
                         keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
-            # TODO: handle situation where {pkey_path} exists, but it's not registered on GH
-            # generate ssh key
-            ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
-                                 -N \"\" -C \"DevAssistant\"'.\
-                                 format(pkey_path=pkey_path))
+            # generate ssh key only if it doesn't exist
+            if not os.path.exists(pkey_path):
+                ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
+                                     -N \"\" -C \"DevAssistant\"'.\
+                                     format(pkey_path=pkey_path))
             ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
             public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))
-            cls._user.create_key("devassistant", public_key)
+            cls._user.create_key("DevAssistant", public_key)
         except exceptions.ClException as e:
             msg = 'Couldn\'t create a new ssh key: {e}'.format(e)
             raise exceptions.CommandException(msg)
@@ -111,15 +120,16 @@ class GitHubAuth(object):
 
     @classmethod
     def _github_ssh_key_exists(cls):
+        """Returns True if any key on Github matches a local key, else False."""
         remote_keys = map(lambda k: k._key, cls._user.get_keys())
         found = False
         pubkey_files = glob.glob(os.path.expanduser('~/.ssh/*.pub'))
         for rk in remote_keys:
             for pkf in pubkey_files:
                 local_key = open(pkf).read()
-                # don't use "==" because we have comments etc added in public_key
                 # in PyGithub 1.23.0, remote key is an object, not string
                 rkval = rk if isinstance(rk, six.string_types) else rk.value
+                # don't use "==" because we have comments etc added in public_key
                 if rkval in local_key:
                     found = True
                     break
