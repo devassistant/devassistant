@@ -468,6 +468,8 @@ class GitHubCommandRunner(CommandRunner):
                                                argument given and there is no "url" variable.')
 
         url = url[:-4] if url.endswith('.git') else url
+        # if using git@github:username/reponame.git, strip the stuff before ":"
+        url = url.split(':')[-1]
         return '/'.join(url.split('/')[-2:])
 
     @classmethod
