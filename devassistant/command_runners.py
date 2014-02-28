@@ -418,15 +418,14 @@ class GitHubCommandRunner(CommandRunner):
         kwargs = {}
         req_kwargs = cls._required_yaml_args.get(comm, cls._required_yaml_args['default'])
         for k in req_kwargs:
-            kwargs[k] = getattr(cls, '_guess_' + k)(c.kwargs)
-            if k in args_rest and not kwargs[k]:
-                kwargs[k] = args_rest[k]
+            kwargs[k] = getattr(cls, '_guess_' + k)(args_rest.get(k), c.kwargs)
 
         return comm, kwargs
 
     @classmethod
-    def _guess_login(cls, ctxt):
-        """Get github login, either from 'github' global variable or from local username.
+    def _guess_login(cls, explicit, ctxt):
+        """Get github login, either from explicitly given string or 'github' global variable
+        or from local username.
 
         Args:
             ctxt: global context
@@ -434,11 +433,12 @@ class GitHubCommandRunner(CommandRunner):
         Returns:
             guessed github login
         """
-        return ctxt.get('github', None) or getpass.getuser()
+        return explicit or ctxt.get('github', None) or getpass.getuser()
 
     @classmethod
-    def _guess_reponame(cls, ctxt):
-        """Extracts reponame from 'name' global variable, which is possibly a path.
+    def _guess_reponame(cls, explicit, ctxt):
+        """Extract reponame, either from explicitly given string or from 'name' global variable,
+        which is possibly a path.
 
         Args:
             ctxt: global context
@@ -449,11 +449,12 @@ class GitHubCommandRunner(CommandRunner):
         if not 'name' in ctxt:
             raise exceptions.CommandException('Cannot guess Github reponame - no argument given\
                                                and there is no "name" variable.')
-        return os.path.basename(ctxt['name'])
+        return explicit or os.path.basename(ctxt['name'])
 
     @classmethod
-    def _guess_repo_url(cls, ctxt):
-        """Get repo to fork in form of '<login>/<reponame>' from global variable 'url'.
+    def _guess_repo_url(cls, explicit, ctxt):
+        """Get repo to fork in form of '<login>/<reponame>' from explicitly given string or
+        global variable 'url'.
 
         Args:
             ctxt: global context
@@ -461,11 +462,12 @@ class GitHubCommandRunner(CommandRunner):
         Returns:
             guessed fork reponame
         """
-        if not 'url' in ctxt:
+        url = explicit or ctxt.get('url')
+        if not url:
             raise exceptions.CommandException('Cannot guess name of Github repo to fork - no\
                                                argument given and there is no "url" variable.')
 
-        url = ctxt['url'][:-4] if ctxt['url'].endswith('.git') else ctxt['url']
+        url = url[:-4] if url.endswith('.git') else url
         return '/'.join(url.split('/')[-2:])
 
     @classmethod
