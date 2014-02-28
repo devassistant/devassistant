@@ -188,15 +188,14 @@ class PathWindow(object):
     def _check_box_toggled(self, widget, data=None):
         active = widget.get_active()
         label = widget.get_label()
-        for entry in filter( lambda x: x == label, self.entries):
-            entry = self.entries[label]
-            browse_btn = self.browse_btns.get(label)
-            if active:
-                entry.set_sensitive(True)
-                if browse_btn: browse_btn.set_sensitive(True)
-            else:
-                entry.set_sensitive(False)
-                if browse_btn: browse_btn.set_sensitive(False)
+
+        browse_btn = self.browse_btns.get(label)
+        if browse_btn:
+            browse_btn.set_sensitive(active)
+
+        for _, entry in filter(lambda x: x[0] == label, self.entries.items()):
+            entry.set_sensitive(active)
+
         self.path_window.show_all()
 
     def _deps_only_toggled(self, widget, data=None):
