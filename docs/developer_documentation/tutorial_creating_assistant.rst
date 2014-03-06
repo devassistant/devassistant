@@ -66,10 +66,12 @@ So, let's start writing our assistant by providing some initial metadata::
 
    fullname: Argh Script Template
    description: Create a template of simple script that uses argh library
+   project_type: [python]
 
 If you now save the file and run ``da crt python argh -h``, you'll see that
 your assistant was already recognized by DevAssistant, although it doesn't
-provide any functionality yet.
+provide any functionality yet. (Including project type in your Creator assistant
+is not necessary, but it may bring some benefits - see :ref:`project_types_ref`.
 
 Dependencies
 ~~~~~~~~~~~~
@@ -293,6 +295,7 @@ The Whole Assistant
 
    fullname: Argh Script Template
    description: Create a template of simple script that uses argh library
+   project_type: [python]
 
    dependencies:
    - rpm: [python-argh]

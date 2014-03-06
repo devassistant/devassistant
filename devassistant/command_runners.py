@@ -279,6 +279,7 @@ class DotDevassistantCommandRunner(CommandRunner):
                 original_kwargs[arg] = kwargs[arg]
         to_write = {'devassistant_version': devassistant.__version__,
                     'original_kwargs': original_kwargs,
+                    'project_type': kwargs['__assistant__'].project_type,
                     'dependencies': kwargs['__assistant__'].\
                         dependencies(kwargs=copy.deepcopy(original_kwargs), expand_only=True)}
         cls.__dot_devassistant_write_struct(directory, to_write)

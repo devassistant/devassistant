@@ -15,6 +15,7 @@ class AssistantBase(object):
     superassistant = None
     role = settings.DEFAULT_ASSISTANT_ROLE
     args = []
+    project_type = []
     source_file = ''
 
     files_dir = os.path.join(os.path.dirname(__file__), 'data', 'files')

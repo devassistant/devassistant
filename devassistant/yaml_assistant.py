@@ -63,6 +63,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         # attributes not needed for CLI/GUI - not cached
         self.files_dir = value.get('files_dir') or self.default_files_dir_for('assistants')
         self._files = value.get('files') or {}
+        self._project_type = value.get('project_type') or []
         self._logging = value.get('logging') or []
         # set _run and _dependencies as empty in case assistant doesn't have them at all
         self._dependencies = value.get('dependencies') or []
@@ -79,6 +80,16 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     @needs_fully_loaded
     def assert_fully_loaded(self):
         return True
+
+    @property
+    @needs_fully_loaded
+    def project_type(self):
+        pt = self._project_type
+        if not pt:
+            pt = [self.name]
+            if self.superassistant:
+                pt = self.superassistant.project_type + pt
+        return pt
 
     @property
     def default_icon_path(self):
@@ -170,11 +181,11 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def _get_dependency_sections_to_use(self, kwargs):
         sections = [getattr(self, '_dependencies', [])]
         if self.role == 'mod':
-            # if subassistant_path is "foo bar baz", then search for dependency sections
+            proj_type = kwargs.get('project_type', [])
+            # if project_type is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
-            for i in range(1, len(kwargs.get('subassistant_path', [])) + 1):
-                possible_dep_section = '_dependencies_{0}'.\
-                    format('_'.join(kwargs['subassistant_path'][:i]))
+            for i in range(1, len(proj_type) + 1):
+                possible_dep_section = '_dependencies_{0}'.format('_'.join(proj_type[:i]))
                 if possible_dep_section in dir(self):
                     sections.append(getattr(self, possible_dep_section))
         # install these dependencies in any case
@@ -227,9 +238,9 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         elif self.role == 'mod':
             # try to get a section to run from the most specialized one to the least
             # specialized one, e.g. first run_python_django, then run_python and then just run
-            sa_path = kwargs.get('subassistant_path', [])
-            for i in range(len(sa_path), -1, -1):
-                possible_run = '_'.join(['_run'] + sa_path[:i])
+            proj_type = kwargs.get('project_type', [])
+            for i in range(len(proj_type), -1, -1):
+                possible_run = '_'.join(['_run'] + proj_type[:i])
                 if hasattr(self, possible_run):
                     to_run = possible_run
                     break

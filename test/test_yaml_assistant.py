@@ -151,9 +151,9 @@ class TestYamlAssistantModifier(object):
         self.ya.role = 'mod'
         self.ya._files = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
-        self.dda = {'subassistant_path': ['foo', 'bar', 'baz']}
+        self.dda = {'project_type': ['foo', 'bar', 'baz']}
 
-    def test_dependencies_install_dependencies_for_subassistant_path(self):
+    def test_dependencies_install_dependencies_for_project_type(self):
         flexmock(self.ya).should_receive('proper_kwargs').and_return(self.dda)
         self.ya._dependencies = [{'rpm': ['spam']}]
         self.ya._dependencies_foo = [{'rpm': ['beans']}]
