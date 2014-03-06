@@ -271,18 +271,6 @@ class DotDevassistantCommandRunner(CommandRunner):
 
     @classmethod
     def _dot_devassistant_create(cls, directory, kwargs):
-        # write path to this subassistant
-        path = []
-        i = 0
-        while settings.SUBASSISTANT_N_STRING.format(i) in kwargs:
-            path.append(kwargs[settings.SUBASSISTANT_N_STRING.format(i)])
-            # delete the dict member so that we don't write it out with other kwargs again
-            del kwargs[settings.SUBASSISTANT_N_STRING.format(i)]
-            i += 1
-
-        if path and path[0] in settings.ASSISTANT_ROLES:
-            path = path[1:]
-
         # we will only write original cli/gui args, other kwargs are "private" for this run
         original_kwargs = {}
         arg_names = map(lambda arg: arg.name, kwargs['__assistant__'].args)
@@ -290,8 +278,9 @@ class DotDevassistantCommandRunner(CommandRunner):
             if arg in kwargs:  # only write those that were actually used on invocation
                 original_kwargs[arg] = kwargs[arg]
         to_write = {'devassistant_version': devassistant.__version__,
-                    'subassistant_path': path,
-                    'original_kwargs': original_kwargs}
+                    'original_kwargs': original_kwargs,
+                    'dependencies': kwargs['__assistant__'].\
+                        dependencies(kwargs=copy.deepcopy(original_kwargs), expand_only=True)}
         cls.__dot_devassistant_write_struct(directory, to_write)
 
     @classmethod
@@ -314,28 +303,13 @@ class DotDevassistantCommandRunner(CommandRunner):
     def _dot_devassistant_dependencies(cls, comm, kwargs):
         struct = []
         dda_content = cls.__dot_devassistant_read_exact(comm)
-        original_assistant_path = dda_content.get('subassistant_path', [])
-        if original_assistant_path:
-            # if we have an original path, try to get original assistant
-            original_path_as_dict = {}
-            for i, subas in enumerate(original_assistant_path):
-                original_path_as_dict[settings.SUBASSISTANT_N_STRING.format(i)] = subas
-            from devassistant.bin import CreatorAssistant
-            from devassistant import yaml_assistant
-            try:
-                path = CreatorAssistant().get_selected_subassistant_path(**original_path_as_dict)
-            except exceptions.AssistantNotFoundException as e:
-                path = []
-                logger.warning(six.text_type(e))
-            if path and isinstance(path[-1], yaml_assistant.YamlAssistant):
-                struct.extend(path[-1].dependencies(dda_content.get('original_kwargs', {})))
-            struct.extend(lang.dependencies_section(dda_content.get('dependencies', []),
-                                                    kwargs,
-                                                    runner=kwargs['__assistant__']))
-        # TODO: import command dynamically here
-        command.Command('dependencies',
-                        struct,
-                        dda_content.get('original_kwargs', {})).run()
+        original_kwargs = dda_content.get('original_kwargs', {})
+        mixed_kwargs = copy.deepcopy(original_kwargs)
+        mixed_kwargs.update(kwargs)
+        struct = lang.dependencies_section(dda_content.get('dependencies', []),
+                                           mixed_kwargs,
+                                           runner=kwargs.get('__assistant__'))
+        lang.Command('dependencies', struct, mixed_kwargs).run()
 
     @classmethod
     def _dot_devassistant_run(cls, comm, kwargs):
@@ -343,11 +317,12 @@ class DotDevassistantCommandRunner(CommandRunner):
         # TODO: we should really create devassistant.util.expand_path to not use
         # abspath + expanduser everywhere all the time...
         dda_fullpath = os.path.join(os.path.abspath(os.path.expanduser(comm)), '.devassistant')
+        kwargs.setdefault('__sourcefiles__', [])
         kwargs['__sourcefiles__'].append(dda_fullpath)
         lang.run_section(dda_content.get('run', []),
                          kwargs,
-                         runner=kwargs['__assistant__'])
-        kwargs.pop()
+                         runner=kwargs.get('__assistant__'))
+        kwargs['__sourcefiles__'].pop()
 
     @classmethod
     def _dot_devassistant_write(cls, comm):
@@ -446,10 +421,11 @@ class GitHubCommandRunner(CommandRunner):
         Returns:
             guessed reponame
         """
-        if not 'name' in ctxt:
-            raise exceptions.CommandException('Cannot guess Github reponame - no argument given\
-                                               and there is no "name" variable.')
-        return explicit or os.path.basename(ctxt['name'])
+        name = explicit or ctxt.get('name')
+        if not name:
+            raise exceptions.CommandException('Cannot guess Github reponame - no argument given'
+                                              'and there is no "name" variable.')
+        return name
 
     @classmethod
     def _guess_repo_url(cls, explicit, ctxt):
@@ -464,8 +440,8 @@ class GitHubCommandRunner(CommandRunner):
         """
         url = explicit or ctxt.get('url')
         if not url:
-            raise exceptions.CommandException('Cannot guess name of Github repo to fork - no\
-                                               argument given and there is no "url" variable.')
+            raise exceptions.CommandException('Cannot guess name of Github repo to fork - no'
+                                              'argument given and there is no "url" variable.')
 
         url = url[:-4] if url.endswith('.git') else url
         # if using git@github:username/reponame.git, strip the stuff before ":"
