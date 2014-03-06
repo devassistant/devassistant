@@ -38,17 +38,26 @@ class YamlChecker(object):
             raise exceptions.YamlTypeError(msg)
         self._check_fullname(self.sourcefile)
         self._check_description(self.sourcefile)
+        self._check_project_type(self.sourcefile)
         self._check_args(self.sourcefile)
         self._check_dependencies(self.sourcefile)
         self._check_run(self.sourcefile)
 
     def _check_fullname(self, source):
         path = [source]
-        self._assert_str(self.parsed_yaml.get('fullname', ''), path)
+        self._assert_str(self.parsed_yaml.get('fullname', ''), 'fullname', path)
 
     def _check_description(self, source):
         path = [source]
-        self._assert_str(self.parsed_yaml.get('description', ''), path)
+        self._assert_str(self.parsed_yaml.get('description', ''), 'description', path)
+
+    def _check_project_type(self, source):
+        path = [source]
+        pt = self.parsed_yaml.get('project_type', [])
+        self._assert_list(pt, 'project_type', path)
+        path.append('project_type')
+        for i in pt:
+            self._assert_str(i, i, path)
 
     def _check_args(self, source):
         path = [source]
