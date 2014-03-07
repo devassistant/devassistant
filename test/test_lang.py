@@ -265,7 +265,7 @@ class TestRunSection(object):
         assert kwargs['val'] == 'bar'
 
     @pytest.mark.parametrize('exec_flag, lres, res', [
-        ('', True, ''), # no exec flag => evals as literal
+        ('', False, ''), # no exec flag => evals as literal
         ('~', False, '')
     ])
     def test_assign_existing_empty_variable(self, exec_flag, lres, res):

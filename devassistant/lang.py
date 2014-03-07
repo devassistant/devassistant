@@ -191,19 +191,26 @@ def eval_exec_section(section, kwargs, runner=None):
 
 
 def eval_literal_section(section, kwargs, runner=None):
-    retval = [False, '']
+    retval = (False, '')
 
     if isinstance(section, six.string_types):
         if section.startswith('~'):
             retval = eval_exec_section(section[1:], kwargs, runner)
+        elif is_var(section):
+            # if it is a defined variable, return it as it is, not necessarily as string
+            # if it is a variable, but not defined, return it's name
+            varname = get_var_name(section)
+            res = kwargs.get(varname, section)
+            retval = (bool(res), res)
         else:
-            retval = [bool(section), format_str(section, kwargs)]
+            res = format_str(section, kwargs)
+            retval = (bool(res), res)
     elif isinstance(section, list):
         retlist = []
         for item in section:
             # TODO: check for stop flag
             retlist.append(eval_literal_section(item, kwargs)[1])
-        retval = [bool(retlist), retlist]
+        retval = (bool(retlist), retlist)
     elif isinstance(section, dict):
         retdict = {}
         for k, v in section.items():
@@ -213,7 +220,7 @@ def eval_literal_section(section, kwargs, runner=None):
                 retdict[k[:-1]] = eval_exec_section(v, kwargs, runner)[1]
             else:
                 retdict[k] = eval_literal_section(v, kwargs, runner)[1]
-        retval = [bool(retdict), retdict]
+        retval = (bool(retdict), retdict)
 
     return retval
 
