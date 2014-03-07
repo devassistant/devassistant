@@ -334,17 +334,19 @@ def assign_variable(variable, log_res, res, kwargs):
     return log_res, res
 
 
+_var_matcher = re.compile(r'^\s*\$\{?([\w]+)\}?\s*$')
+
+
 def is_var(string):
-    return string.startswith('$')
+    return bool(_var_matcher.match(string))
 
 
-def get_var_name(dolar_variable):
-    name = dolar_variable.strip()
-    name = name.strip('"\'')
-    if not name.startswith('$'):
-        raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dolar_variable)
-    name = name[1:]  # strip the dollar
-    return name.strip('{}')
+def get_var_name(dollar_variable):
+    name = dollar_variable.strip('"\'')
+    matched = _var_matcher.match(name)
+    if not matched:
+        raise exceptions.YamlSyntaxError('Not a proper variable name: ' + dollar_variable)
+    return matched.group(1)
 
 
 ### Expression evaluation

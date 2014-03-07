@@ -1,8 +1,9 @@
 import pytest
 import os
 
+from devassistant.exceptions import YamlSyntaxError
 from devassistant.lang import Command, evaluate_expression, exceptions, \
-    dependencies_section, format_str, run_section, parse_for
+    dependencies_section, format_str, get_var_name,is_var, run_section, parse_for
 
 from test.logger import TestLoggingHandler
 # TODO: some of the test methods may need splitting into separate classes according to methods
@@ -328,6 +329,38 @@ class TestRunSection(object):
         run_section([{'$success, $val~': '$(ls spam/spam/spam)'}], kwargs)
         assert kwargs['val'] == u'ls: cannot access spam/spam/spam: No such file or directory'
         assert kwargs['success'] == False
+
+
+class TestIsVar(object):
+    @pytest.mark.parametrize(('tested', 'expected'), [
+        ('$normal', True),
+        ('${curly}', True),
+        ('  $whitespace_around  ', True),
+        ('$CAPS', True),
+        ('$___', True),
+        ('no_dolar', False),
+        ('$whitespace in var', False),
+    ])
+    def test_is_var(self, tested, expected):
+        assert is_var(tested) == expected
+
+
+class TestGetVarName(object):
+    @pytest.mark.parametrize(('tested', 'expected'), [
+        ('$normal', 'normal'),
+        ('${curly}', 'curly'),
+        ('  $whitespace_around  ', 'whitespace_around'),
+        ('$CAPS', 'CAPS'),
+        ('$___', '___'),
+        ('no_dolar', None),
+        ('$whitespace in var', None),
+    ])
+    def test_get_var_name(self, tested, expected):
+        if expected is None:
+            with pytest.raises(YamlSyntaxError):
+                get_var_name(tested)
+        else:
+            assert get_var_name(tested) == expected
 
 
 class TestFormatStr(object):
