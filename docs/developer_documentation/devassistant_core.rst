@@ -106,10 +106,10 @@ Each command must be a class with two classmethods::
 
        @classmethod
        def run(cls, c):
-           formatted = c.format_str()
+           input = c.input_res
            logger.info('MyCommandRunner was invoked: {ct}: {ci}'.format(ct=c.comm_type,
-                                                                        ci=formatted))
-           return [True, len(formatted)]
+                                                                        ci=input))
+           return (True, len(input))
 
 This command runner will run all commands with command type ``mycomm``.
 For example if your assistant contains::
@@ -122,18 +122,31 @@ than DevAssistant will print out something like::
 
    INFO: MyCommandRunner was invoked: mycomm: You are using DevAssistant!
 
-After this command is run, ``LAST_LRES`` will be set to ``True`` and ``LAST_RES`` to length
-of the printed string.
+When run, this command returns a tuple with *logical result* and *result*. This means
+you can assign the length of string to variable like this::
+
+   run:
+   $thiswillbetrue, $length~:
+   - mycomm: Some string.
+
+(Also, ``LAST_LRES`` will be set to ``True`` and ``LAST_RES`` to length of the input string.)
 
 Generally, the ``matches`` method should just decide (True/False) whether given
 command is runnable or not and the ``run`` method should actually run it.
-The ``run`` method should use devassistant.logger.logger object to log any
+The ``run`` method should use ``devassistant.logger.logger`` object to log any
 messages and it can also raise any exception that's subclass of
 ``devassistant.exceptions.ExecutionException``.
 
-The ``c`` argument of both methods is a ``devassistant.command.Command``
-object. You can access the **command type** via ``c.comm_type`` and raw
-**command input** via ``c.comm``. If you want to get input as a formatted
-string, where variables are substituted for their values, use
-``c.format_str()``. You can also access (and change - use this wisely!)
-the global mapping of variables via ``c.kwargs``.
+The ``c`` argument of both methods is a ``devassistant.lang.Command``
+object. You can use various attributes of ``Command``:
+
+- **comm_type** - command type, e.g. ``mycomm``
+  (this will always be stripped of exec flag ``~``).
+- **comm** - raw command input. The input is raw in the sense that it is uninterpreted.
+  It's literally the same as what's written in assistant yaml file.
+- **had_exec_flag** - ``True`` if the command type had exec flag, ``False`` otherwise.
+- **input_log_res** and **input_res** - return values of input, see :ref:`section_results_ref`.
+
+*Note: input only gets evaluated one time - at time of using input_log_res or input_res. This
+means, among other things, that if exec flag is used, the command runner still has to access
+input_log_res or input_res to actually execute the input.*

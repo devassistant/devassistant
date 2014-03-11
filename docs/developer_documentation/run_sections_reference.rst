@@ -10,7 +10,7 @@ is always invoked, :ref:`modifier_assistants_ref` may invoke different sections
 based on metadata in ``.devassistant`` file.
 
 Note, that ``pre_run`` and ``post_run`` follow the same rules as ``run`` sections.
-See :ref:`assistants_invocation_ref` to find out how these sections are invoked.
+See :ref:`assistants_invocation_ref` to find out how and when these sections are invoked.
 
 Every section is a sequence of various **commands**, mostly invocations
 of commandline. Each command is a mapping of **command type** to **command input**::
@@ -87,16 +87,35 @@ DevAssistant distinguishes two different section types: **input sections** and
 - ``if``, ``else`` subsections
 - ``for`` subsections
 
-Execution section is either:
+Generally, execution sections can be either:
 
-- **expression** (e.g. a Yaml string that gets interpreted as an expression)
+- :ref:`expression <expressions_ref>` (e.g. a Yaml string that gets interpreted as an expression)
 
 or
 
 - section (sequence of **commands**)
 
-Everything else is a literal section - e.g. values assigned to variables and
-passed to command runners. Some examples follow::
+Literal section can be any valid Yaml structure - string, list or mapping.
+
+.. _section_results_ref:
+
+Section Results
+~~~~~~~~~~~~~~~
+
+Similarly to :ref:`expressions <expressions_ref>`, sections return *logical result* and *result*:
+
+- literal section
+
+  - *result* is a string/list/mapping with variables substituted for their values
+  - *logical result* is False if the structure is empty (empty string, list or mapping),
+    True otherwise
+
+- execution sections
+
+  - *result* is the result of last command of given section
+  - *logical result* is the logical result of last command of given section
+
+Some examples follow::
 
    run:
    # now we're inherently in execution section
@@ -123,9 +142,7 @@ a command runner, you need to use the **execution flag**: ``~``::
        - cr: ci
        - cr2: ci2
 
-Result of execution section is the result of expression (in case it's the expression) or result
-of last command (in case it's a section). Each command specifies return value in a different way,
-see :ref:`command_ref`.
+Each command specifies return value in a different way, see :ref:`command_ref`.
 
 Variables Explained
 -------------------
@@ -180,7 +197,7 @@ Syntax and semantics:
 
   - if ``$foo`` is defined:
 
-    - *logical result*: ``True`` **iff** value is not empty and it is not
+    - *logical result*: ``True`` *iff* value is not empty and it is not
       ``False``
     - *result*: value of ``$foo``
   - otherwise:
