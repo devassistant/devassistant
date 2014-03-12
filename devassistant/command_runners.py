@@ -1,6 +1,7 @@
 import copy
 import functools
 import getpass
+import grp
 import logging
 import os
 import re
@@ -732,86 +733,205 @@ class SuCommandRunner(CommandRunner):
 
 @register_command_runner
 class DockerCommandRunner(object):
-    try:
-        _docker_module = utils.import_module('docker')
-    except:
-        _docker_module = None
-    _client = None
+    _has_docker_group = None
 
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('docker_')
 
     @classmethod
-    def get_client(cls, timeout=None):
-        if not cls._client:
-            cls._client = cls._docker_module.Client(timeout=timeout)
-        return cls._client
+    def _docker_group_active(cls):
+        if cls._has_docker_group is None:
+            logger.debug('Determining if current user has active "docker" group ...')
+            # we have to run cl command, too see if the user has already re-logged
+            # after being added to docker group, so that he can effectively use it
+            if 'docker' in ClHelper.run_command('groups').split():
+                logger.debug('Current user is in "docker" group.')
+                cls._has_docker_group = True
+            else:
+                logger.debug('Current user is not in "docker" group.')
+                cls._has_docker_group = False
+        return cls._has_docker_group
+
+    @classmethod
+    def _docker_group_added(cls):
+        username = getpass.getuser()
+        return username in grp.getgrnam('docker').gr_mem
+
+    @classmethod
+    def _docker_group_add(cls):
+        username = getpass.getuser()
+        try:
+            ClHelper.run_command('pkexec usermod -a -G docker {0}'.format(username))
+        except exceptions.ClException as e:
+            msg = 'Failed to add user to "docker" group: {0}'.format(e.output)
+            raise exceptions.CommandException(msg)
+
+    @classmethod
+    def _cmd_for_newgrp(cls, command):
+        """This formats given command to run under docker group, assuming that user has
+        been added to it without logging out. If user has already re-logged, it doesn't
+        alter the command.
+        It uses double newgrp call (the first one adds user to docker group, but also
+        sets docker to primary group, so we need to set the primary group back using
+        another newgrp call.
+        """
+        if cls._docker_group_active():
+            return command
+
+        curgrp = grp.getgrgid(os.getegid()).gr_name
+        template = [
+            'cat << DA_DOCKER_OUTER_EOF | newgrp docker',
+            'cat << DA_DOCKER_INNER_EOF | newgrp {curgrp}',
+            '{command}',
+            'DA_DOCKER_INNER_EOF',
+            'DA_DOCKER_OUTER_EOF',
+        ]
+        return '\n'.join(template).format(curgrp=curgrp, command=command)
+
+    @classmethod
+    def _docker_service_running(cls):
+        try:
+            ClHelper.run_command('systemctl status docker')
+            return True
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def _docker_service_enable_and_run(cls):
+        # TODO: add some conditionals for various platforms
+        try:
+            logging.info('Enabling and running docker service ...')
+            cmd_str = 'pkexec bash -c "systemctl enable docker && systemctl start docker"'
+            ClHelper.run_command(cmd_str)
+        except exceptions.ClException:
+            raise exceptions.CommandException('Failed to enable and run docker service.')
 
     @classmethod
     def run(cls, c):
-        # TODO: decide the format of return values and return according to that in all cases
-        if not cls._docker_module:
-            logger.warning('docker-py not installed, cannot execute docker command.')
-            return [False, '']
+        """Only users in "docker" group can use docker; there are three possible situations:
+        1) user is not added to docker group => we need to add him there and then go to 2)
+        2) user has been added to docker group, but would need to log out for it to
+           take effect => use "newgrp" (_cmd_for_newgrp) for all docker commands
+        3) user has been added to docker group in a previous login session => all ok
+        """
+        if not cls._docker_group_active() and not cls._docker_group_added():
+            # situation 1
+            cls._docker_group_add()
+        # else situation 3
 
-        if c.comm_type == 'docker_b':
+        if not cls._docker_service_running():
+            cls._docker_service_enable_and_run()
+
+        if c.comm_type == 'docker_build':
             # TODO: allow providing another argument - a repository name/tag for the built image
-            return cls._docker_build(c.input_res)
+            ret = cls._docker_build(c.input_res)
+        elif c.comm_type == 'docker_run':
+            ret = cls._docker_run(c.input_res)
+        elif c.comm_type == 'docker_attach':
+            ret = cls._docker_attach(c.input_res)
+        elif c.comm_type == 'docker_find_img':
+            ret = cls._docker_find_image(c.input_res)
+        elif c.comm_type == 'docker_container_ip':
+            ret = cls._docker_get_container_attr('{{.NetworkSettings.IPAddress}}', c.input_res)
+        elif c.comm_type == 'docker_container_name':
+            ret = cls._docker_get_container_attr('{{.Name}}', c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
+        return ret
+
     @classmethod
     def _docker_build(cls, directory):
-        logger.info('Building Docker image ...')
-        client = cls.get_client()
-        stream = client.build(path=directory, rm=True, stream=True)
-
-        # If there are more images downloaded in paralel, the generator
-        # displays and redisplays their progress bars in random order, not telling us
-        # which progress line it's printing now.
-        # So we rather remember these by download sizes (hopefully different)
-        # and create one common progress bar for all images combined.
-        # Progress is measured by number of "=" + one ">" in the bar
-
-        downloads = {}  # maps size of image to percent downloaded
-        downloads_re = re.compile(r'(\[[=> ]+\]).+/([\.0-9]* .B)')
-        pgb = progress.bar.Bar('Downloading Images', fill='=', suffix='%(percent)d %%')
-
-        # 'Pulling repository' isn't excluded intentionally
-        exclude_patterns = ['Download complete', 'Pulling image', 'Pulling dependent layers',
-                            'Pulling metadata', 'Pulling fs layer']
-
-        success = False
-        success_re = re.compile(r'Successfully built ([0-9a-f]+)')
+        logger.info('Building Docker image, this may take a while ...')
+        logres = False
         final_image = ''
 
-        for line in stream:
-            line = line.strip()
-            download_match = downloads_re.search(line)
+        cmd_str = cls._cmd_for_newgrp('docker build --rm {0}'.format(directory))
+        try:
+            result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
 
-            # either progress the progress bar or print the line
-            if download_match:
-                percent = float(download_match.group(1).count('=') + 1) / \
-                    (len(download_match.group(1)) - 2) * 100
-                downloads[download_match.group(2)] = percent
-                pgb.goto(sum(list(downloads.values())) / len(downloads))
-                if percent >= 100:
-                    pgb.finish()
-            else:
-                # Filter unwanted docker output
-                if not filter(line.startswith, exclude_patterns):
-                    logger.info(line.strip())
-
-            # the success line doesn't necesarilly have to be at the very end of output...
-            success_found = success_re.search(line)
+            success_re = re.compile(r'Successfully built ([0-9a-f]+)')
+            success_found = success_re.search(result)
             if success_found:
-                success = True
+                logres = True
                 final_image = success_found.group(1)
+        except exceptions.ClException:
+            pass  # no-op
 
-        pgb.finish()
-        if success:
-            logger.info('Finished building Docker image.')
-        else:
-            logger.info('Failed to build Docker image.')
-        return success, final_image
+        return (logres, final_image)
+
+    @classmethod
+    def _get_docker_run_args(cls, inp):
+        if not isinstance(inp, dict):
+            raise exceptions.CommandException('docker_r expects mapping as input.')
+        if not 'image' in inp:
+            raise exceptions.CommandException('docker_r requires "image" argument.')
+
+        return {'image': inp['image'], 'args': inp.get('args', '')}
+
+    @classmethod
+    def _docker_run(cls, inp):
+        # TODO: we need to register the container for shutdown at DA exit, if run as daemon
+        run_args = cls._get_docker_run_args(inp)
+        logres = False
+        res = ''
+
+        cmd_str = cls._cmd_for_newgrp('docker run {args} {image}'.format(**run_args))
+        try:
+            res = ClHelper.run_command(cmd_str)
+            logres = True
+        except exceptions.ClException:
+            pass  # no-op
+
+        return (logres, res)
+
+    @classmethod
+    def _docker_attach(cls, container_hash):
+        result = ''
+        logres = False
+
+        cmd_str = cls._cmd_for_newgrp('docker attach {0}'.format(container_hash))
+        try:
+            result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
+            logres = True
+        except exceptions.ClException as e:
+            # even if there is error, return container output
+            result = e.output
+
+        return (logres, result)
+
+    @classmethod
+    def _docker_find_image(cls, hash_start):
+        found_hashes = []
+
+        cmd_str = cls._cmd_for_newgrp('docker images -q --no-trunc')
+        try:
+            result = ClHelper.run_command(cmd_str)
+
+            for line in result.splitlines():
+                if line.startswith(hash_start):
+                    found_hashes.append(line.strip())
+        except exceptions.ClException:
+            pass  # no-op
+
+        found_hash = ' '.join(found_hashes)
+        # return True if there was precisely one hash found
+        logres = ' ' not in found_hash and found_hash
+        return (logres, found_hash)
+
+    @classmethod
+    def _docker_get_container_attr(cls, attr, container_hash):
+        logres = False
+        res = ''
+
+        cmd_str = "docker inspect -format='{attr}' {cont}".format(attr=attr,
+                                                                  cont=container_hash)
+        cmd_str = cls._cmd_for_newgrp(cmd_str)
+        try:
+            res = ClHelper.run_command(cmd_str)
+            logres = True
+        except exceptions.ClException:
+            pass  # no-op
+
+        return (logres, res)
