@@ -5,6 +5,7 @@ import grp
 import logging
 import os
 import re
+import time
 
 import jinja2
 import progress.bar
@@ -762,7 +763,8 @@ class DockerCommandRunner(object):
     def _docker_group_add(cls):
         username = getpass.getuser()
         try:
-            ClHelper.run_command('pkexec usermod -a -G docker {0}'.format(username))
+            logger.info('Adding {0} to group docker ...'.format(username))
+            ClHelper.run_command('pkexec bash -c "usermod -a -G docker {0}"'.format(username))
         except exceptions.ClException as e:
             msg = 'Failed to add user to "docker" group: {0}'.format(e.output)
             raise exceptions.CommandException(msg)
@@ -800,12 +802,28 @@ class DockerCommandRunner(object):
     @classmethod
     def _docker_service_enable_and_run(cls):
         # TODO: add some conditionals for various platforms
+        logger.info('Enabling and running docker service ...')
         try:
-            logging.info('Enabling and running docker service ...')
             cmd_str = 'pkexec bash -c "systemctl enable docker && systemctl start docker"'
             ClHelper.run_command(cmd_str)
         except exceptions.ClException:
             raise exceptions.CommandException('Failed to enable and run docker service.')
+
+        # we need to wait until /var/run/docker.sock is created
+        # let's wait for 30 seconds
+        logger.info('Waiting for /var/run/docker.sock to be created (max 15 seconds) ...')
+        success = False
+        for i in range(0, 30):
+            time.sleep(i * 0.5)
+            try:
+                ClHelper.run_command('ls /var/run/docker.sock')
+                success = True
+                break
+            except exceptions.ClException:
+                pass
+
+        if not success:
+            logger.warning('/var/run/docker.sock doesn\'t exist, docker will likely not work!')
 
     @classmethod
     def run(cls, c):
