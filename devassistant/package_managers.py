@@ -800,3 +800,5 @@ class EndlessProgressThread(threading.Thread):
             self.spinner.next()
             time.sleep(1)
         self.spinner.finish()
+        # print newline to workaround https://github.com/verigak/progress/issues/12
+        print()
