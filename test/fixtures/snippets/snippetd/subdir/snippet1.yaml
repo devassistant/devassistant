@@ -1,0 +1,2 @@
+dependencies:
+- rpm: [foo]

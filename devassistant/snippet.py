@@ -4,8 +4,9 @@ from devassistant import loaded_yaml
 
 
 class Snippet(loaded_yaml.LoadedYaml):
-    def __init__(self, name, parsed_yaml, path):
-        self.name = name
+    def __init__(self, dotted_name, parsed_yaml, path):
+        self.name = dotted_name.split('.')[-1]
+        self.dotted_name = dotted_name
         self.parsed_yaml = parsed_yaml
         self.path = path
 
