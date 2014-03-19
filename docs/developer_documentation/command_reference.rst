@@ -355,4 +355,4 @@ This can be used to run:
 
     use: self.run_foo
     use: super.run
-    use: a_snippet: run_spam
+    use: a_snippet.run_spam

@@ -270,7 +270,7 @@ since there is a snippet called ``git_init_add_commit``, which does exactly
 what we need. We'll use it like this::
 
    - cl: cd "$name"
-   - use: git_init_add_commit
+   - use: git_init_add_commit.run
 
 This calls section ``run`` from snippet ``git_init_add_commit`` in this place.
 Note, that all variables are "global" and the snippet will have access to them
@@ -318,7 +318,7 @@ The Whole Assistant
    - cl: chmod +x *arghs ${name}/${proj_name}.py
    - dda_c: "$name"
    - cl: cd "$name"
-   - use: git_init_add_commit
+   - use: git_init_add_commit.run
    - log_i: Project "$proj_name" has been created in "$name".
 
 And can be run like this: ``da crt python argh -n foo/bar``.

@@ -144,7 +144,7 @@ they will be traversed and installed one by one. Supported dependency types:
   section of superassistant. For example::
 
    dependencies:
-   - use: foo # will install dependencies from snippet "foo", section "dependencies"
+   - use: foo.dependencies
    - use: foo.dependencies_bar # will install dependencies from snippet "foo", section "bar"
    - use: self.dependencies_baz # will install dependencies from section "dependencies_baz" of this assistant
    - use: super.dependencies # will install dependencies from "dependencies" section of first superassistant that has such section

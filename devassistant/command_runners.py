@@ -91,11 +91,16 @@ class CallCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        sect_type = c.kwargs['__section__']
         assistant = c.kwargs['__assistant__']
-        section, sourcefile = cls.get_section_from_call(c.input_res, sect_type, assistant)
+        call_parts = c.input_res.rsplit('.', 1)
+        if len(call_parts) < 2:
+            raise exceptions.CommandException('"call" command expects "use: what.which_section".')
+        section_name = call_parts[1] # TODO: check dependencies/run
+        called = call_parts[0]
+        section, sourcefile = cls.get_section_from_call(called, section_name, assistant)
+
         if not section:
-            msg = 'Couldn\'t find {t} section "{n}".'.format(t=c.kwargs['__section__'],
+            msg = 'Couldn\'t find {t} section "{n}".'.format(t=section,
                                                              n=c.input_res)
             raise exceptions.CommandException(msg)
 
@@ -108,13 +113,12 @@ class CallCommandRunner(CommandRunner):
             c.kwargs['__files_dir__'].append(snippet.get_files_dir())
             c.kwargs['__sourcefiles__'].append(snippet.path)
 
-        if sect_type == 'dependencies':
+        if section_name.startswith('dependencies'):
             result = lang.dependencies_section(section, copy.deepcopy(c.kwargs), runner=assistant)
         else:
             result = lang.run_section(section,
                                       copy.deepcopy(c.kwargs),
                                       runner=assistant)
-
         if cls.is_snippet_call(c.input_res):
             c.kwargs['__files__'].pop()
             c.kwargs['__files_dir__'].pop()
@@ -124,11 +128,10 @@ class CallCommandRunner(CommandRunner):
 
     @classmethod
     def is_snippet_call(cls, cmd_call):
-        return not ((cmd_call == 'self' or cmd_call.startswith('self.')) or
-                    (cmd_call == 'super' or cmd_call.startswith('super.')))
+        return not (cmd_call.startswith('self.') or cmd_call.startswith('super.'))
 
     @classmethod
-    def get_section_from_call(cls, cmd_call, section_type, assistant):
+    def get_section_from_call(cls, called, section_name, assistant):
         """Returns a section and source file from call command.
 
         Examples:
@@ -139,24 +142,20 @@ class CallCommandRunner(CommandRunner):
         If the part after dot is omitted, "section_type" is used instead
 
         Args:
-            cmd_call - a string with the call, e.g. "eclipse.run_python"
-            section_type - either "dependencies" or "run"
+            called - what was called, e.g. "super", "self" or snippet name
+            section_name - name of the section, e.g. dependencies or run_foo
             assistant - current assistant for the possibility of trying to use "self" or "super"
 
         Returns:
             section to call (list), None if not found
             sourcefile, None if not found
         """
-        section = None
-        call_parts = cmd_call.split('.')
-        section_name = call_parts[1] if len(call_parts) > 1 else section_type
-
         section = sourcefile = None
 
-        if call_parts[0] == 'self':
+        if called == 'self':
             section = getattr(assistant, '_' + section_name, None)
             sourcefile = assistant.path
-        elif call_parts[0] == 'super':
+        elif called == 'super':
             a = assistant.superassistant
             while a:
                 if hasattr(a, 'assert_fully_loaded'):
@@ -168,8 +167,8 @@ class CallCommandRunner(CommandRunner):
                 a = a.superassistant
         else:  # snippet
             try:
-                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(call_parts[0])
-                if section_type == 'run':
+                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(called)
+                if section_name.startswith('run'):
                     section = snippet.get_run_section(section_name) if snippet else None
                 else:
                     section = snippet.get_dependencies_section(section_name) if snippet else None

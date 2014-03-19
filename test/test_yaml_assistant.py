@@ -31,7 +31,7 @@ class TestYamlAssistant(object):
                                                          'icons/crt/b/b.svg')
 
     def test_snippet_uses_its_own_files_section(self):
-        self.ya._run = [{'use': 'mysnippet'}, {'log_w': '*first'}]
+        self.ya._run = [{'use': 'mysnippet.run'}, {'log_w': '*first'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',
@@ -64,7 +64,7 @@ class TestYamlAssistant(object):
             self.ya.run()
 
     def test_run_snippet(self):
-        self.ya._run = [{'use': 'mysnippet'}]
+        self.ya._run = [{'use': 'mysnippet.run'}]
         flexmock(YamlSnippetLoader).should_receive('get_snippet_by_name').\
                                     with_args('mysnippet').\
                                     and_return(snippet.Snippet('mysnippet',

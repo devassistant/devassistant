@@ -52,13 +52,13 @@ class TestCallCommandRunner(object):
         assert self.ccr.matches(Command('use', None))
         assert not self.ccr.matches(Command('foo', None))
 
-    @pytest.mark.parametrize('command', ['self', 'super'])
+    @pytest.mark.parametrize('command', ['self.run', 'super.run'])
     def test_is_snippet_call_fails(self, command):
         assert not self.ccr.is_snippet_call(command)
         assert not self.ccr.is_snippet_call('{0}.foo'.format(command))
 
     def test_is_snippet_call_passes(self):
-        assert self.ccr.is_snippet_call('foo')
+        assert self.ccr.is_snippet_call('foo.run')
 
     # TODO test other methods
 
