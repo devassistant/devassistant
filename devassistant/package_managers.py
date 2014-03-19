@@ -46,6 +46,17 @@ def register_manager(manager):
     managers[manager.shortcut].append(manager)
     return manager
 
+class Dependency(object):
+    """Dependency with version specified"""
+
+    def __init__(self, name, **args):
+        self.name = name
+        self.versions = args['versions'] if 'versions' in args else list()
+        self.spec = args['spec'] if 'spec' in args else None
+
+    def __str__(self):
+        return '{0} {1}'.format(self.name, ' '.join(self.versions))
+
 
 class PackageManager(object):
     """Abstract class for API definition of package managers."""
@@ -190,15 +201,20 @@ class YUMPackageManager(PackageManager):
         import yum
         y = yum.YumBase()
         y.setCacheDir(tempfile.mkdtemp())
-        for pkg in args:
-            if pkg.startswith('@'):
-                y.selectGroup(pkg[1:])
+        for dep in args:
+            if dep.name.startswith('@'):
+                y.selectGroup(dep.name[1:])
             else:
                 try:
-                    y.install(y.returnPackageByDep(pkg))
-                except yum.Errors.YumBaseError:
-                    msg = 'Package not found: {pkg}'.format(pkg=pkg)
-                    raise exceptions.DependencyException(msg)
+                    if dep.versions:
+                        to_resolve = cls._return_pkg_by_version_range(y, dep.name, dep.versions)
+                    else:
+                        to_resolve = y.returnPackageByDep(dep.name)
+
+                    y.install(to_resolve)
+                except (yum.Errors.YumBaseError, yum.Errors.InstallError):
+                    msg = 'Package not found: {dep}'.format(dep=dep)
+                    raise exceptions.DependencyException(dep)
         y.resolveDeps()
         logger.debug('Installing/Updating:')
         to_install = []
@@ -207,6 +223,21 @@ class YUMPackageManager(PackageManager):
             logger.debug(pkg.po.ui_envra)
 
         return to_install
+
+    @classmethod
+    def _return_pkg_by_version_range(cls, yumbase_instance, pkg_name, versions):
+        """For each version in versions, get a set of packages matching that
+        specification. Returns the first element of the intersection of these
+        sets or None if the sets are disjoint."""
+        matches = list()
+        for spec in ['{} {}'.format(pkg_name, ver) for ver in versions]:
+            matches.append(set([yumbase_instance.returnPackageByDep(spec)]))
+
+        result = list(set.intersection(*matches))
+        if result:
+            return result[0]
+        else:
+            return None
 
     def __str__(self):
         return "rpm package manager"
