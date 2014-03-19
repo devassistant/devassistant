@@ -115,7 +115,7 @@ class YamlAssistantLoader(object):
 
         for name, attrs in file_hierarchy.items():
             loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(attrs['source'])
-            if not loaded_yaml:  # there was an error parsing yaml
+            if loaded_yaml is None:  # there was an error parsing yaml
                 logger.warning(warn_msg.format(source=attrs['source']))
                 continue
             try:

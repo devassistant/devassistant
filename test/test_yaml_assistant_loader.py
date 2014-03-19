@@ -96,6 +96,15 @@ class TestYamlAssistantLoader(object):
         assert set(['c', 'f']) == set(map(lambda x: x.name, ass))
         self.yl.get_assistants_from_cache_hierarchy = oldm
 
+    def test_get_assistants_from_file_hierarchy_with_empty_assistant(self):
+        empty = os.path.join(os.path.dirname(__file__),
+                             'fixtures',
+                             'empty.yaml')
+        res = self.yl.get_assistants_from_file_hierarchy({'empty': {'source': empty,
+                                                                    'subhierarchy': {}}},
+                                                         None)
+        assert len(res) == 1
+
     def test_get_assistants_from_file_hierarchy_with_bad_syntax(self):
         bad_syntax = os.path.join(os.path.dirname(__file__),
                                   'fixtures',

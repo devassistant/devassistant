@@ -60,7 +60,7 @@ class YamlLoader(object):
     def load_yaml_by_path(cls, path):
         """Load a yaml file that is at given path"""
         try:
-            return yaml.load(open(path, 'r'), Loader=Loader)
+            return yaml.load(open(path, 'r'), Loader=Loader) or {}
         except yaml.scanner.ScannerError as e:
             logger.warning('Yaml error in {path} (line {ln}, column {col}): {err}'.\
                 format(path=path,
