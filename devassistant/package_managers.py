@@ -22,6 +22,7 @@ represent these high-level tools like YUM or Zypper, not RPM itself.
 from __future__ import print_function
 import collections
 import os
+import re
 import tempfile
 import time
 import threading
@@ -40,6 +41,7 @@ from devassistant import settings
 #       'pip': [PIPPackageManager]}
 managers = {}
 
+VERSION_SPECIFIER_REGEX = r'[<>=!]'
 
 def register_manager(manager):
     managers.setdefault(manager.shortcut, [])
@@ -51,7 +53,9 @@ class Dependency(object):
 
     def __init__(self, name, **args):
         self.name = name
-        self.versions = args['versions'] if 'versions' in args else list()
+        self.versions = list()
+        if 'versions' in args and isinstance(args['versions'], list):
+            self.versions += args['versions']
         self.spec = args['spec'] if 'spec' in args else None
 
     def __str__(self):
@@ -230,7 +234,7 @@ class YUMPackageManager(PackageManager):
         specification. Returns the first element of the intersection of these
         sets or None if the sets are disjoint."""
         matches = list()
-        for spec in ['{} {}'.format(pkg_name, ver) for ver in versions]:
+        for spec in [cls.format_dep(pkg_name, ver) for ver in versions]:
             matches.append(set([yumbase_instance.returnPackageByDep(spec)]))
 
         result = list(set.intersection(*matches))
@@ -238,6 +242,13 @@ class YUMPackageManager(PackageManager):
             return result[0]
         else:
             return None
+
+    @classmethod
+    def format_dep(cls, name, version):
+        if not re.findall(VERSION_SPECIFIER_REGEX, version):
+            return '{0} == {1}'.format(name, version)
+        else:
+            return '{0} {1}'.format(name, version)
 
     def __str__(self):
         return "rpm package manager"
@@ -739,7 +750,41 @@ class DependencyInstaller(object):
             if not found:  # distro dependency type, but for another distro
                 return
         self.dependencies.setdefault(dep_t, [])
+        deps = list()
+        for dep in dep_l:
+            deps.extend(self._parse_dep(dep))
         self.dependencies[dep_t].extend(dep_l)
+
+    def _parse_dep(self, dep):
+        """Transform a string or dict into a Dependency instance"""
+        if isinstance(dep, str):
+            regexp = re.compile(r'(?P<name>\S+)\s*(?P<version>[<>=!]+\s*\S+)?').match(dep).groupdict()
+            return Dependency(regexp['name'], versions=[regexp['version']])
+
+        elif isinstance(dep, dict):
+            # TODO Helpful error messages
+            if len(dep) != 1:
+                raise exceptions.YamlSyntaxError()
+            if not isinstance(dep.values()[0], dict):
+                raise exceptions.YamlSyntaxError()
+
+            name = dep.keys()[0]
+            properties = dep.values()[0]
+            versions = self._parse_versions(properties['version']) if 'version' in properties else None
+            spec = properties['spec'] if 'spec' in properties else None
+            return Dependency(name, versions=versions, spec=spec)
+
+        else:
+            raise exceptions.YamlSyntaxError()
+
+    def _parse_versions(self, value):
+        """Return either"""
+        if isinstance(value, str):
+            return [value]
+        elif isinstance(value, list):
+            return value
+        else:
+            raise exceptions.YamlSyntaxError()
 
     def _ask_to_confirm(self, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
