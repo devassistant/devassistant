@@ -145,11 +145,11 @@ class YUMPackageManager(PackageManager):
             return False
 
     @classmethod
-    def is_rpm_installed(cls, rpm_name):
-        logger.info('Checking for presence of {0}...'.format(rpm_name),
+    def is_rpm_installed(cls, dep):
+        logger.info('Checking for presence of {0}...'.format(dep.name),
             extra={'event_type': 'dep_check'})
 
-        found_rpm = cls.rpm_q(rpm_name)
+        found_rpm = cls.rpm_q(dep.name)
         if found_rpm:
             logger.info('Found {0}'.format(found_rpm), extra={'event_type': 'dep_found'})
         else:
@@ -196,8 +196,8 @@ class YUMPackageManager(PackageManager):
             return False
 
     @classmethod
-    def is_pkg_installed(cls, pkg):
-        return cls.is_group_installed(pkg) if pkg.startswith('@') else cls.is_rpm_installed(pkg)
+    def is_pkg_installed(cls, dep):
+        return cls.is_group_installed(dep) if dep.name.startswith('@') else cls.is_rpm_installed(dep)
 
     @classmethod
     def resolve(cls, *args):
@@ -750,10 +750,8 @@ class DependencyInstaller(object):
             if not found:  # distro dependency type, but for another distro
                 return
         self.dependencies.setdefault(dep_t, [])
-        deps = list()
-        for dep in dep_l:
-            deps.extend(self._parse_dep(dep))
-        self.dependencies[dep_t].extend(dep_l)
+        deps = map(self._parse_dep, dep_l)
+        self.dependencies[dep_t].extend(deps)
 
     def _parse_dep(self, dep):
         """Transform a string or dict into a Dependency instance"""
