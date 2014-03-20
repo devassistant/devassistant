@@ -13,7 +13,6 @@ from devassistant import loaded_yaml
 from devassistant import settings
 from devassistant import utils
 from devassistant import yaml_loader
-from devassistant import yaml_snippet_loader
 
 
 def needs_fully_loaded(method):
@@ -110,32 +109,12 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     def _construct_args(self, struct):
         args = []
         for arg_name, arg_params in struct.items():
-            use_snippet = arg_params.pop('use', None) or arg_params.pop('snippet', None)
-            if use_snippet:
-                # if snippet is used, take this parameter from snippet and update
-                # it with current arg_params, if any
-                try:
-                    problem = None
-                    snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(
-                        use_snippet)
-                    arg_params = dict(snippet.args.pop(arg_name), **arg_params)
-                except exceptions.SnippetNotFoundException as e:
-                    problem = 'Couldn\'t expand argument {arg} in assistant {a}: ' + \
-                        six.text_type(e)
-                except KeyError as e:  # snippet doesn't have the requested argument
-                    problem = 'Couldn\'t find arg {arg} in snippet {snip} wanted by assistant {a}.'
-
-                if problem:
-                    logger.warning(problem.format(snip=use_snippet,
-                                                  arg=arg_name,
-                                                  a=self.name))
-                    continue
-
-                # this works much like snippet.args.pop(arg_name).update(arg_params),
-                # but unlike it, this actually returns the updated dict
-
-            arg = argument.Argument(arg_name, *arg_params.pop('flags'), **arg_params)
-            args.append(arg)
+            try:
+                args.append(argument.Argument.construct_arg(arg_name, arg_params))
+            except exceptions.ExecutionException as e:
+                msg = 'Problem when constructing argument {arg} in assistant {a}: {e}'.\
+                    format(arg=arg_name, a=self.name, e=six.text_type(e))
+                logger.warning(msg)
         return args
 
     def get_subassistants(self):

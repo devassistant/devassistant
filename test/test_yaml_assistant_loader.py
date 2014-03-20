@@ -75,7 +75,10 @@ class TestYamlAssistantLoader(object):
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_snippet_for_arg')
         self.yl.assistant_from_yaml('no_snippet_for_arg.yaml', y, CreatorAssistant())
-        assert ('WARNING', 'Couldn\'t expand argument bar in assistant no_snippet_for_arg: no such snippet: doesnt_exist') in self.tlh.msgs
+        assert ('WARNING',
+                'Problem when constructing argument bar in assistant no_snippet_for_arg: ' + \
+                'no such snippet: doesnt_exist') \
+            in self.tlh.msgs
 
     def test_assistant_from_yaml_doesnt_fail_on_missing_arg(self):
         self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__),
@@ -83,7 +86,10 @@ class TestYamlAssistantLoader(object):
                                                 'assistants_with_snippet_problems')]
         y = self.load_yaml_from_fixture('no_arg_in_snippet')
         self.yl.assistant_from_yaml('no_arg_in_snippet.yaml', y, CreatorAssistant())
-        assert ('WARNING', 'Couldn\'t find arg bar in snippet snippet1 wanted by assistant no_arg_in_snippet.') in self.tlh.msgs
+        assert ('WARNING',
+                'Problem when constructing argument bar in assistant no_arg_in_snippet: ' + \
+                'Couldn\'t find arg bar in snippet snippet1.') \
+            in self.tlh.msgs
 
     def test_no_cache(self):
         current_run.USE_CACHE = False
