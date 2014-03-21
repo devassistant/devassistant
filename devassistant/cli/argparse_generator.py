@@ -93,9 +93,6 @@ class ArgparseGenerator(object):
             subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
                                           title=cls.subparsers_str,
                                           description=cls.subparsers_no_avail)
-        else:
-            # add argparse.REMAINDER to parse rest of the args for appendable snippets
-            p.add_argument('appendables_args', nargs='*')
 
     @classmethod
     def add_action_to(cls, parser, action, subactions, level):
