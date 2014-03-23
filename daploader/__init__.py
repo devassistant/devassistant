@@ -10,7 +10,7 @@ except:
     from yaml import Loader
 from . import licenses
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 class DapFileError(Exception):
