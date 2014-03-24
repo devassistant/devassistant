@@ -317,6 +317,9 @@ because it might vary)
       - cl_i: python --version 
       - cl_i: pgsql --version
 
+Note: currently, this command can't be nested, e.g. you can't run ``scl enable`` in another
+``scl enable``.
+
 Running Commands as Another User
 --------------------------------
 

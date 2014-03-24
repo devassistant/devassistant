@@ -193,11 +193,8 @@ class ClCommandRunner(CommandRunner):
             log_level = logging.INFO
         if 'r' in c.comm_type:
             as_user = 'root'
-        scls = []
-        if '__scls__' in c.kwargs:
-            scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
         # if there is an exception, just let it bubble up
-        result = ClHelper.run_command(c.input_res, log_level, scls=scls, as_user=as_user)
+        result = ClHelper.run_command(c.input_res, log_level, as_user=as_user)
 
         return [True, result]
 
@@ -583,12 +580,23 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs.setdefault('__scls__', [])
         c.kwargs.setdefault('__assistant__', None)
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
+
+        def scl_command_processor(cmd_str):
+            scls = []
+            scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
+            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.\
+                format(cmd_str=cmd_str,
+                       scls=' '.join(scls))
+            return cmd_str
+
+        ClHelper.command_processors['scl_command_processor'] = scl_command_processor
+
         # use "c.comm", not "c.input_res" - we need unformatted input here
         retval = lang.run_section(c.comm,
                                   c.kwargs,
                                   runner=c.kwargs['__assistant__'])
-        c.kwargs['__scls__'].pop()
 
+        ClHelper.command_processors.pop('scl_command_processor')
         return retval
 
 

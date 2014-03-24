@@ -15,11 +15,12 @@ from devassistant.logger import logger
 
 
 class ClHelper(object):
+    command_processors = {}
+
     @classmethod
     def run_command(cls,
                     cmd_str,
                     log_level=logging.DEBUG,
-                    scls=[],
                     ignore_sigint=False,
                     output_callback=None,
                     as_user=None):
@@ -27,14 +28,14 @@ class ClHelper(object):
         Args:
             cmd_str: the command to run as string
             log_level: level at which to log command output (DEBUG by default)
-            scls: list of ['enable', 'foo', 'bar'] (scriptlet name + arbitrary number of scl names)
             ignore_sigint: should we ignore sigint during this command (False by default)
             output_callback: function that gets called with every line of output as argument
             as_user: run as specified user (the best way to do this will be deduced by DA)
                 runs as current user if as_user == None
         """
-        # format for scl execution if needed
-        cmd_str = cls.format_for_scls(cmd_str, scls)
+        # run format processors on cmd_str
+        for name, cmd_proc in cls.command_processors.items():
+            cmd_str = cmd_proc(cmd_str)
 
         # TODO: how to do cd with as_user?
         if as_user and not cmd_str.startswith('cd '):
@@ -96,14 +97,6 @@ class ClHelper(object):
             raise exceptions.ClException(cmd_str,
                                          proc.returncode,
                                          stdout)
-
-    @classmethod
-    def format_for_scls(cls, cmd_str, scls):
-        if scls and not cmd_str.startswith('cd '):
-            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.\
-                format(cmd_str=cmd_str,
-                       scls=' '.join(scls))
-        return cmd_str
 
     @classmethod
     def format_for_another_user(cls, cmd_str, as_user):
