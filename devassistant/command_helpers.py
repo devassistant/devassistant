@@ -33,11 +33,12 @@ class ClHelper(object):
             as_user: run as specified user (the best way to do this will be deduced by DA)
                 runs as current user if as_user == None
         """
+        # format for scl execution if needed
+        cmd_str = cls.format_for_scls(cmd_str, scls)
+
         # TODO: how to do cd with as_user?
         if as_user and not cmd_str.startswith('cd '):
             cmd_str = cls.format_for_another_user(cmd_str, as_user)
-        # format for scl execution if needed
-        cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
 
         if cmd_str.startswith('cd '):
