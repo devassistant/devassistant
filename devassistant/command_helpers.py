@@ -22,7 +22,7 @@ class ClHelper(object):
                     scls=[],
                     ignore_sigint=False,
                     output_callback=None,
-                    as_root=False):
+                    as_user=None):
         """Runs a command from string, e.g. "cp foo bar"
         Args:
             cmd_str: the command to run as string
@@ -30,11 +30,12 @@ class ClHelper(object):
             scls: list of ['enable', 'foo', 'bar'] (scriptlet name + arbitrary number of scl names)
             ignore_sigint: should we ignore sigint during this command (False by default)
             output_callback: function that gets called with every line of output as argument
-            as_root: run as root (the best way to do this will be deduced by DA)
+            as_user: run as specified user (the best way to do this will be deduced by DA)
+                runs as current user if as_user == None
         """
-        # TODO: how to do cd with as_root?
-        if as_root and not cmd_str.startswith('cd '):
-            cmd_str = cls.format_for_root(cmd_str)
+        # TODO: how to do cd with as_user?
+        if as_user and not cmd_str.startswith('cd '):
+            cmd_str = cls.format_for_another_user(cmd_str, as_user)
         # format for scl execution if needed
         cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
@@ -104,9 +105,13 @@ class ClHelper(object):
         return cmd_str
 
     @classmethod
-    def format_for_root(cls, cmd_str):
+    def format_for_another_user(cls, cmd_str, as_user):
         # TODO: implement the best way based on platform/other circumstances
-        return = 'pkexec ' + cmd_str
+        cmd = ['pkexec']
+        if as_user != 'root':
+            cmd.extend(['--user ', as_user])
+        cmd.append(cmd_str)
+        return ' '.join(cmd)
 
     @classmethod
     def ignore_sigint(cls):
