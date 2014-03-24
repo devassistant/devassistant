@@ -21,7 +21,8 @@ class ClHelper(object):
                     log_level=logging.DEBUG,
                     scls=[],
                     ignore_sigint=False,
-                    output_callback=None):
+                    output_callback=None,
+                    as_root=False):
         """Runs a command from string, e.g. "cp foo bar"
         Args:
             cmd_str: the command to run as string
@@ -29,7 +30,11 @@ class ClHelper(object):
             scls: list of ['enable', 'foo', 'bar'] (scriptlet name + arbitrary number of scl names)
             ignore_sigint: should we ignore sigint during this command (False by default)
             output_callback: function that gets called with every line of output as argument
+            as_root: run as root (the best way to do this will be deduced by DA)
         """
+        # TODO: how to do cd with as_root?
+        if as_root and not cmd_str.startswith('cd '):
+            cmd_str = cls.format_for_root(cmd_str)
         # format for scl execution if needed
         cmd_str = cls.format_for_scls(cmd_str, scls)
         logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
@@ -97,6 +102,11 @@ class ClHelper(object):
                 format(cmd_str=cmd_str,
                        scls=' '.join(scls))
         return cmd_str
+
+    @classmethod
+    def format_for_root(cls, cmd_str):
+        # TODO: implement the best way based on platform/other circumstances
+        return = 'pkexec ' + cmd_str
 
     @classmethod
     def ignore_sigint(cls):
