@@ -107,11 +107,16 @@ class ClHelper(object):
     @classmethod
     def format_for_another_user(cls, cmd_str, as_user):
         # TODO: implement the best way based on platform/other circumstances
-        cmd = ['pkexec']
+        delimiter = 'DA_AS_USER_{0}'.format(as_user.upper())
+        heredoc_firstline = ['cat << {delim} | pkexec'.format(delim=delimiter)]
         if as_user != 'root':
-            cmd.extend(['--user ', as_user])
-        cmd.append(cmd_str)
-        return ' '.join(cmd)
+            heredoc_firstline.extend(['--user',  as_user])
+        heredoc_firstline.append('bash')
+        cmd = '\n'.join([' '.join(heredoc_firstline),
+                         cmd_str,
+                         delimiter
+        ])
+        return cmd
 
     @classmethod
     def ignore_sigint(cls):
