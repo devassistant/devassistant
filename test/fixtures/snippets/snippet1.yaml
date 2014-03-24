@@ -1,5 +1,7 @@
 args:
   some_arg:
     flags: [-s, --some-arg]
+    gui_hints:
+        default: $(whoami)
 run:
 - log_i: this is snippet1!

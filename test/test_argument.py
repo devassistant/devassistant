@@ -1,6 +1,8 @@
+import pytest
 import os
 import re
 
+from devassistant import exceptions
 from devassistant.argument import Argument
 from devassistant.cli.devassistant_argparse import ArgumentParser
 
@@ -37,3 +39,22 @@ class TestArgument(object):
         parser.print_help()
         output = capsys.readouterr()[0] # captured stdout
         assert re.compile('-p.*helptext').search(output)
+
+    def test_argument_whoami_gui_hint(self):
+        a = Argument.construct_arg('some_arg',{'use':'snippet1'})
+        assert a.get_gui_hint('default') == os.getlogin()
+
+    @pytest.mark.parametrize(('name', 'params'), [
+                             ('some_arg',{'use':'snippet1'}),])
+    def test_construct_arg(self, name, params):
+        a = Argument.construct_arg(name, params)
+        assert a.name == name
+        assert a.flags == ('-s', '--some-arg')
+
+    @pytest.mark.parametrize(('name', 'params', 'exception'), [
+                             ('bar',{'use':'doesnt_exist'},exceptions.SnippetNotFoundException),
+                             ('some_arg',{'use':'snippet2'},exceptions.ExecutionException),
+                             ('some_arg',{'use':'snippet3'},exceptions.ExecutionException)])
+    def test_construct_arg_exceptions(self, name, params, exception):
+        with pytest.raises(exception):
+            Argument.construct_arg(name, params)
