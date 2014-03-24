@@ -163,11 +163,11 @@ class YUMPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cmd = ['pkexec', cls.c_yum, '-y', 'install']
+        cmd = [cls.c_yum, '-y', 'install']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True, as_user='root')
             return args
         except exceptions.ClException:
             return False
@@ -222,11 +222,11 @@ class PacmanPackageManager(PackageManager):
 
     @classmethod
     def install(cls, *args):
-        cmd = ['pkexec', cls.c_pacman, '-S', '--noconfirm']
+        cmd = [cls.c_pacman, '-S', '--noconfirm']
         quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
         cmd.extend(quoted_pkgs)
         try:
-            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True, as_user='root')
             return args
         except exceptions.ClException:
             return False

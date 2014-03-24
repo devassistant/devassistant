@@ -188,13 +188,16 @@ class ClCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         log_level = logging.DEBUG
+        as_user = None
         if 'i' in c.comm_type:
             log_level = logging.INFO
+        if 'r' in c.comm_type:
+            as_user = 'root'
         scls = []
         if '__scls__' in c.kwargs:
             scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
         # if there is an exception, just let it bubble up
-        result = ClHelper.run_command(c.input_res, log_level, scls=scls)
+        result = ClHelper.run_command(c.input_res, log_level, scls=scls, as_user=as_user)
 
         return [True, result]
 
@@ -692,38 +695,28 @@ class Jinja2Runner(CommandRunner):
 
 
 @register_command_runner
-class SuCommandRunner(CommandRunner):
+class AsUserCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
-        return c.comm_type == 'su' or c.comm_type.startswith('su ')
+        return c.comm_type.startswith('as ')
 
     @classmethod
     def get_user_from_comm_type(cls, comm_type):
-        user = None
         split_type = comm_type.split()
-        if len(split_type) == 1:
-            pass  # no-op
-        elif len(split_type) != 3 or split_type[1] != '-':
-            raise exceptions.CommandExceptions('"su" expects format "su[ - username]".')
-        else:
-            user = split_type[2]
+        if len(split_type) != 2:
+            raise exceptions.CommandExceptions('"as" expects format "as <username>".')
+        user = split_type[1]
         return user
 
     @classmethod
     def run(cls, c):
         user = cls.get_user_from_comm_type(c.comm_type)
         to_run = utils.cl_string_for_da_eval(c.comm, c.kwargs)
-        pkexec_to_run = ['pkexec']
-        if user:
-            pkexec_to_run.extend(['--user', user])
-        pkexec_to_run.append(to_run)
-        pkexec_to_run = ' '.join(pkexec_to_run)
-
         def sub_da_logger(msg):
             logger.info(msg, extra={'event_type': 'sub_da'})
 
         try:
-            out = ClHelper.run_command(pkexec_to_run, output_callback=sub_da_logger)
+            out = ClHelper.run_command(to_run, output_callback=sub_da_logger, as_user=user)
             ret = True
         except exceptions.ClException as e:
             out = e.output
@@ -763,7 +756,8 @@ class DockerCommandRunner(object):
         username = getpass.getuser()
         try:
             logger.info('Adding {0} to group docker ...'.format(username))
-            ClHelper.run_command('pkexec bash -c "usermod -a -G docker {0}"'.format(username))
+            ClHelper.run_command('bash -c "usermod -a -G docker {0}"'.format(username),
+                                 as_user='root')
         except exceptions.ClException as e:
             msg = 'Failed to add user to "docker" group: {0}'.format(e.output)
             raise exceptions.CommandException(msg)
@@ -803,8 +797,8 @@ class DockerCommandRunner(object):
         # TODO: add some conditionals for various platforms
         logger.info('Enabling and running docker service ...')
         try:
-            cmd_str = 'pkexec bash -c "systemctl enable docker && systemctl start docker"'
-            ClHelper.run_command(cmd_str)
+            cmd_str = 'bash -c "systemctl enable docker && systemctl start docker"'
+            ClHelper.run_command(cmd_str, as_user='root')
         except exceptions.ClException:
             raise exceptions.CommandException('Failed to enable and run docker service.')
 

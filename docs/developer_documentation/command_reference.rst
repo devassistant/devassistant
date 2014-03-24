@@ -147,8 +147,8 @@ Command Line Commands
 
 Run commands in subprocesses and receive their output.
 
-``cl``, ``cl_i`` (these do the same, but the second version logs the command output on INFO level,
-therefore visible to user by default)
+``cl``, ``cl_[i,r]`` (these do the same, but appending ``i`` logs the command output on INFO level
+and appending ``r`` runs command as root)
 
 - Input: a string, possibly containing variables and references to files
 - RES: stdout + stdin interleaved as they were returned by the executed process
@@ -157,6 +157,9 @@ therefore visible to user by default)
 
     cl: mkdir ${name}
     cl: cp *file ${name}/foo
+    cl_i: echo "Hey!"
+    cl_ir: echo "Echoing this as root"
+    cl_r: mkdir /var/lib/foo
 
 .. _dependencies_command_ref:
 
@@ -314,20 +317,21 @@ because it might vary)
       - cl_i: python --version 
       - cl_i: pgsql --version
 
-Su Command
-----------
-Run subsection as a different user (it doesn't necessarily use ``su`` in underlying shell,
-but that's considered an implementation detail).
-``su[ - username]`` (note: if you use just ``su``, subsection will be run under root)
+Running Commands as Another User
+--------------------------------
+
+Run subsection as a different user (how this command runner does this is considered
+an implementation detail).
+``as <username>`` (note: use ``as root``, to run subsection under superuser)
 
 - Input: a subsection
 - RES: output of **the whole** subsection
 - LRES: LRES of the last command in the given section
 - Example::
 
-    - su:
+    - as root:
       - cl: ls /root
-    - su - joe
+    - as joe:
       - log_i~: $(echo "this is run as joe")
 
 Note: This command invokes DevAssistant under another user and passes the whole section to it.
