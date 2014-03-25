@@ -202,10 +202,16 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section(rs, {'foo': 'yes'}), [True, 'bar'])
         self.assert_run_section_result(run_section(rs, {}), [True, 'baz'])
 
-    def test_for(self):
+    def test_for_in_string(self):
         rs = [{'for $i in $list': [{'$foo~': '$(echo $i)'}]}]
-        self.assert_run_section_result(run_section(rs, {'list': '1'}), [True, '1'])
-        self.assert_run_section_result(run_section(rs, {'list': '1 2'}), [True, '2'])
+        self.assert_run_section_result(run_section(rs, {'list': 'fo'}), [True, 'o'])
+        self.assert_run_section_result(run_section(rs, {'list': 'fo ba'}), [True, 'a'])
+        self.assert_run_section_result(run_section(rs, {}), [False, ''])
+
+    def test_for_word_in_string(self):
+        rs = [{'for $i word_in $list': [{'$foo~': '$(echo $i)'}]}]
+        self.assert_run_section_result(run_section(rs, {'list': 'fo'}), [True, 'fo'])
+        self.assert_run_section_result(run_section(rs, {'list': 'fo ba'}), [True, 'ba'])
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
 
     def test_for_empty_string(self):
@@ -213,16 +219,27 @@ class TestRunSection(object):
         run_section([{'for $i in $(echo "")': [{'$foo': '$i'}]}], kwargs)
         assert 'foo' not in kwargs
 
-    def test_loop_two_control_vars(self):
+    @pytest.mark.parametrize('iter_type', [
+        'in',
+        'word_in'
+    ])
+    def test_loop_two_control_vars(self, iter_type):
+        # this should work the same for both iteration types
         tlh = TestLoggingHandler.create_fresh_handler()
-        run_section([{'for $i, $j in $foo': [{'log_i': '$i, $j'}]}],
+        run_section([{'for $i, $j {0} $foo'.format(iter_type): [{'log_i': '$i, $j'}]}],
                     {'foo': {'bar': 'barval', 'spam': 'spamval'}})
         assert ('INFO', 'bar, barval') in tlh.msgs
         assert ('INFO', 'spam, spamval') in tlh.msgs
 
-    def test_loop_two_control_vars_fails_on_string(self):
+    @pytest.mark.parametrize('iter_type', [
+        'in',
+        'word_in'
+    ])
+    def test_loop_two_control_vars_fails_on_string(self, iter_type):
+        # this should work the same for both iteration types
         with pytest.raises(exceptions.YamlSyntaxError):
-            run_section([{'for $i, $j in $(echo "foo bar")': [{'log_i': '$i'}]}])
+            run_section([{'for $i, $j {0} $(echo "foo bar")'.format(iter_type):
+                            [{'log_i': '$i'}]}])
 
     @pytest.mark.parametrize('comm', [
         'for foo',
@@ -233,14 +250,21 @@ class TestRunSection(object):
             parse_for(comm)
 
     @pytest.mark.parametrize(('comm', 'result'), [
-        ('for $a in $foo',          (['a'], '$foo')),
-        ('for $a in $(expr)',       (['a'], '$(expr)')),
-        ('for $a, $b in $foo',      (['a', 'b'], '$foo')),
-        ('for $a, $b in $(expr)',   (['a', 'b'], '$(expr)')),
-        ('for ${a} in $foo',        (['a'], '$foo')),
-        ('for ${a} in $(expr)',     (['a'], '$(expr)')),
-        ('for ${a}, ${b} in $foo',  (['a', 'b'], '$foo')),
-        ('for ${a}, ${b} in $(expr)', (['a', 'b'], '$(expr)'))])
+        ('for $a in $foo',          (['a'], 'in', '$foo')),
+        ('for $a in $(expr)',       (['a'], 'in', '$(expr)')),
+        ('for $a, $b in $foo',      (['a', 'b'], 'in', '$foo')),
+        ('for $a, $b in $(expr)',   (['a', 'b'], 'in', '$(expr)')),
+        ('for ${a} in $foo',        (['a'], 'in', '$foo')),
+        ('for ${a} in $(expr)',     (['a'], 'in', '$(expr)')),
+        ('for ${a}, ${b} in $foo',  (['a', 'b'], 'in', '$foo')),
+        ('for ${a}, ${b} in $(expr)', (['a', 'b'], 'in', '$(expr)')),
+        # also test "word_in for few simple cases"
+        ('for $a word_in $foo',     (['a'], 'word_in', '$foo')),
+        ('for $a, $b word_in $foo', (['a', 'b'], 'word_in', '$foo')),
+        ('for ${a} word_in $foo',   (['a'], 'word_in', '$foo')),
+        ('for ${a}, ${b} word_in $foo', (['a', 'b'], 'word_in', '$foo')),
+
+    ])
     def test_parse_for_well_formed(self, comm, result):
         assert(parse_for(comm) == result)
 

@@ -89,9 +89,11 @@ Loop
 
 A simple for loop.
 
-``for <var>[, <var>] in <expression>`` - loop over result of the expression (strings are
-split in whitespaces). When iterating over mapping, two control variables may be provided
-to get both key and its value.
+``for <var>[, <var>] [word_in,in] <expression>`` - loop over result of the expression. If
+``word_in`` is used and ``<expression>`` is a string, it will be split on whitespaces and
+iterated over; with ``in``, string will be split to single characters and iterated over.
+For iterations over lists and mappings, ``word_in`` and ``in`` behave the same. When iterating
+over mapping, two control variables may be provided to get both key and its value.
 
 - Input: a subsection to repeat in loop
 - RES: RES of last command of last iteration in the subsection. If there are no interations,
@@ -100,8 +102,8 @@ to get both key and its value.
   RES remains untouched.
 - Example::
 
-     for $i in $(ls):
-     - log_i: $i
+     for $i word_in $(ls):
+     - log_i: File: $i
 
      $foo:
        1: one

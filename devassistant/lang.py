@@ -161,7 +161,7 @@ def eval_exec_section(section, kwargs, runner=None):
                     msg = 'Yaml error: encountered "else" with no associated "if", skipping.'
                     raise exceptions.YamlSyntaxError(msg)
                 skip_else = False
-            elif comm_type.startswith('for'):
+            elif comm_type.startswith('for '):
                 # syntax: "for $i in $x: <section> or "for $i in cl_command: <section>"
                 control_vars, eval_expression = get_for_control_var_and_eval_expr(comm_type,
                                                                                   kwargs)
@@ -231,7 +231,8 @@ def assign_last_result(kwargs, log_res, res):
 
 
 def parse_for(control_line):
-    """Returns name of loop control variable(s) and expression to iterate on.
+    """Returns name of loop control variable(s), iteration type (in/word_in) and
+    expression to iterate on.
 
     For example:
     - given "for $i in $foo", returns (['i'], '$foo')
@@ -239,7 +240,7 @@ def parse_for(control_line):
     - given "for $k, $v in $foo", returns (['k', 'v'], '$foo')
     """
     error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
-    regex = re.compile(r'for\s+(\${?\S}?)(?:\s*,\s+(\${?\S}?))?\s+in\s+(\S.+)')
+    regex = re.compile(r'for\s+(\${?\S}?)(?:\s*,\s+(\${?\S}?))?\s+(in|word_in)\s+(\S.+)')
     res = regex.match(control_line)
     if not res:
         raise exceptions.YamlSyntaxError(error)
@@ -249,9 +250,10 @@ def parse_for(control_line):
     control_vars.append(get_var_name(groups[0]))
     if groups[1]:
         control_vars.append(get_var_name(groups[1]))
-    expr = groups[2]
+    iter_type = groups[2]
+    expr = groups[3]
 
-    return (control_vars, expr)
+    return (control_vars, iter_type, expr)
 
 
 def get_for_control_var_and_eval_expr(comm_type, kwargs):
@@ -263,7 +265,7 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
     - given 'for $i, $j in $foo' it returns (['i', 'j'], [('foo', 'bar')])
     """
     # let possible exceptions bubble up
-    control_vars, expression = parse_for(comm_type)
+    control_vars, iter_type, expression = parse_for(comm_type)
     eval_expression = evaluate_expression(expression, kwargs)[1]
 
     iterval = []
@@ -274,7 +276,10 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
         else:
             iterval = list(eval_expression.items())
     elif isinstance(eval_expression, six.string_types):
-        iterval = eval_expression.split()
+        if iter_type == 'word_in':
+            iterval = eval_expression.split()
+        else:
+            iterval = eval_expression
     return control_vars, iterval
 
 

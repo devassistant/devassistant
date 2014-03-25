@@ -60,12 +60,14 @@ the basic usage of the most important commands here. Note, that when you use var
 
 - loops::
 
-     - for $i in $(ls):
+     - for $i word_in $(ls):
        - log_i: Found file $i.
 
   Loops probably also work as you'd expect - they've got the control variable and an "iterator".
-  Loop iterators are **expressions**, see :ref:`expressions_ref`. The subsection gets executed
-  for every word (whitespace-separated substring) of the expression result.
+  Loop iterators are **expressions**, see :ref:`expressions_ref`. Note, that you can use two
+  forms of for loop. If you use ``word_in``, DevAssistant will split given expression on
+  whitespaces and then iterate over that, while if you use ``in``, DevAssistant will iterate
+  over single characters of the string.
 
 - variable assignment::
 
