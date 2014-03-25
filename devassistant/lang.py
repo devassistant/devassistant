@@ -379,6 +379,7 @@ class Interpreter(object):
 
         # The tokenizer considers all tokens in "$()" to be literals
         self.in_shell = False
+        self.as_root = False
 
     class symbol_base(object):
         id = None
@@ -436,7 +437,7 @@ class Interpreter(object):
         lexer.wordchars += "$-/\\.:`={}"
 
         for tok in lexer:
-            if tok in ["and", "or", "not", "defined", "(", ")", "in", "$"]:
+            if tok in ["and", "or", "not", "defined", "(", ")", "in", "$", "as_root"]:
                 # operators
                 symbol = self.symbol_table.get(tok)
                 yield symbol()
@@ -499,6 +500,7 @@ def evaluate_expression(expression, names):
     interpr.symbol("in", 10)
     interpr.symbol("defined", 10)
     interpr.symbol("$", 10)
+    interpr.symbol("as_root", 10)
     interpr.symbol("(name)")
     interpr.symbol("(literal)")
     interpr.symbol("(end)")
@@ -603,14 +605,27 @@ def evaluate_expression(expression, names):
         formatted_cmd = format_str(cmd, interpr.names)
 
         success = True
+        exec_mode = 'cl_r' if interpr.as_root else 'cl'
         try:
-            output = Command('cl', cmd, interpr.names).run()[1]
+            output = Command(exec_mode, cmd, interpr.names).run()[1]
         except exceptions.RunException as ex:
             success = False
             output = ex.output
 
         interpr.advance(")")
         interpr.in_shell = False
+        interpr.as_root = False
+
+        return success, output
+
+    @interpr.method("as_root")
+    def nud(self):
+        interpr.as_root = True
+        right = interpr.expression(10)
+        interpr.as_root = False
+
+        success = bool(right[0])
+        output = right[1]
 
         return success, output
 
