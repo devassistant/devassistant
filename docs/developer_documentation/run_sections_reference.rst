@@ -224,6 +224,10 @@ Syntax and semantics:
   - regardless of *logical result*, *result* always contains both stdout
     and stderr lines in the order they were printed by ``commandline command``
 
+- ``as_root $(commandline command)`` runs ``commandline command`` as superuser; DevAssistant
+  may achieve this differently on different platforms, so the actual way how this is done
+  is considered to be an implementation detail
+
 - ``defined $foo`` - works exactly as ``$foo``, but has *logical result*
   ``True`` even if the value is empty or ``False``
 

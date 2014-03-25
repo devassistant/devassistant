@@ -163,6 +163,9 @@ and appending ``r`` runs command as root)
     cl_ir: echo "Echoing this as root"
     cl_r: mkdir /var/lib/foo
 
+Note: when using ``r``, it's job of DevAssistant core to figure out what to use as authentication
+method. Consider this an implementation detail.
+
 .. _dependencies_command_ref:
 
 Dependencies Command
