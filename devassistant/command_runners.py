@@ -582,6 +582,8 @@ class SCLCommandRunner(CommandRunner):
         c.kwargs['__scls__'].append(c.comm_type.split()[1:])
 
         def scl_command_processor(cmd_str):
+            if cmd_str.startswith('cd '):
+                return cmd_str
             scls = []
             scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
             cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.\
