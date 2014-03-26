@@ -260,16 +260,19 @@ Jinja2 Render Command
 
 Render a Jinja2 template.
 
-``jinja_render``
+``jinja_render``, ``jinja_render_dir`` - render a single template or a directory containing
+more templates
 
 - Input: a mapping containing
 
-  - ``template`` - a reference to file in ``files`` section
-  - ``destination`` - directory where to place rendered template
+  - ``template`` - a reference to file (or a directory if using ``jinja_render_dir``)
+    in ``files`` section
+  - ``destination`` - directory where to place rendered template (or rendered directory)
   - ``data`` - a mapping of values used to render the template itself
   - ``overwrite`` (optional) - overwrite the file if it exists? (defaults to ``false``)
   - ``output`` (optional) - specify a filename of the rendered template (see below for
-    information on how the filename is costructed if not provided)
+    information on how the filename is costructed if not provided), not used with
+    ``jinja_render_dir``
 
 - RES: always ``True``, terminates DevAssistant if something goes wrong
 - LRES: always ``success`` string
@@ -284,11 +287,21 @@ Render a Jinja2 template.
         foo: bar
         spam: spam
 
-The filename of the rendered template is created in this way:
+    jinja_render_dir:
+      template: *somedir
+      destination: ${dest}/somedir
+      data:
+        foo: foo!
+        spam: my_spam
+
+The filename of the rendered template is created in this way (the first step is omitted
+with ``jinja_render_dir``:
 
 - if ``output`` is provided, use that as the filename
 - else if name of the template endswith ``.tpl``, strip ``.tpl`` and use it
 - else use the template name
+
+For template syntax reference, see `Jinja2 documentation <http://jinja.pocoo.org/docs/>`.
 
 Logging Commands
 ----------------

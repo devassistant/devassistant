@@ -606,74 +606,100 @@ class SCLCommandRunner(CommandRunner):
 class Jinja2Runner(CommandRunner):
     @classmethod
     def matches(cls, c):
-        return c.comm_type == 'jinja_render'
+        return c.comm_type in ['jinja_render', 'jinja_render_dir']
 
     @classmethod
-    def _make_output_file_name(cls, args, template):
-        """ Form an output filename:
-            - if 'output' is specified among `args`, just use it!
-            - otherwise, output file name produced from the source template name
-              by stripping '.tpl' suffix if latter presents, or just used as
-              if none given.
+    def _make_output_file_name(cls, outdir, template, output_override=None):
+        """ Form an output filename by joining outdir and filename:
+            - if 'output_override' is not empty string or None, just use it for filename
+            - otherwise, use filename produced according to these rulse:
+              - if template has '.tpl' suffix, strip it and use the stripped name
+              - else just use given template name
         """
+
         output = ''
-        if 'output' in args:
-            assert(isinstance(args['output'], six.string_types))
-            output = args['output']
+        if output_override:
+            output = output_override
         elif template.endswith('.tpl'):
             output = template[:-len('.tpl')]
         else:
             output = template
 
-        # Form a destination file
-        result_filename = os.path.join(args['destination'], output)
-        return result_filename
+        return os.path.join(outdir, output)
 
     @classmethod
-    def _try_obtain_mandatory_params(cls, args):
-        """ Retrieve required parameters from `args` dict:
-         - 'template'    template descriptor from `files' section. it consist of
+    def _try_obtain_common_params(cls, comm):
+        """ Retrieve parameters common for all jinja_render* actions from Command instance.
+        These are mandatory:
+        - 'template'    template descriptor from `files' section. it consist of
                          the only `source' key -- a name of template to use
-         - 'data'        dict of parameters to use when rendering
-         - 'destination' path for output files
+        - 'data'        dict of parameters to use when rendering
+        - 'destination' path for output files
+        These are optional:
+        - 'overwrite'   overwrite file(s) if it (they) exist(s)
         """
+        args = comm.input_res
+        ct = comm.comm_type
+
+        wrong_tpl_msg = '{0} requires a "template" argument which must point to a file'.format(ct)
+        wrong_tpl_msg += ' in "files" section. Got: {0}'.format(args.get('template', None))
 
         if 'template' not in args or not isinstance(args['template'], dict):
-            raise exceptions.CommandException('Missed template parameter or wrong type')
+            raise exceptions.CommandException(wrong_tpl_msg)
         template = args['template']
 
         if 'source' not in template or not isinstance(template['source'], six.string_types):
-            raise exceptions.CommandException('Missed template parameter or wrong type')
+            raise exceptions.CommandException(wrong_tpl_msg)
         template = template['source']
 
         if 'destination' not in args or not isinstance(args['destination'], six.string_types):
-            raise exceptions.CommandException('Missed destination parameter or wrong type')
+            msg = '{0} requires a string "destination" argument. Got: {1}'.\
+                format(ct, args.get('destination'))
+            raise exceptions.CommandException(msg)
+        destination = args['destination']
 
-        if not os.path.isdir(args['destination']):
-            raise exceptions.CommandException("Destination directory doesn't exists")
+        if not os.path.isdir(destination):
+            msg = '{0}: Specified "destination" directory "{1}" doesn\'t exist!'.\
+                format(ct, destination)
+            raise exceptions.CommandException(msg)
 
         data = {}
         if 'data' in args and isinstance(args['data'], dict):
             data = args['data']
         logger.debug('Template context data: {0}'.format(data))
 
-        return (template, cls._make_output_file_name(args, template), data)
+        overwrite = args.get('overwrite', False)
+        overwrite = True if str(overwrite).lower() in ['true', 'yes'] else False
+
+        return (template, destination, data, overwrite)
 
     @classmethod
     def run(cls, c):
         # Transform list of dicts (where keys are unique) into a single dict
         args = c.input_res
-        logger.debug('args={0}'.format(repr(args)))
+        logger.debug('Jinja2Runner args={0}'.format(repr(args)))
 
-        # Get parameters
-        template, result_filename, data = cls._try_obtain_mandatory_params(args)
-
-        # Create an environment!
-        logger.debug('Using templats dir: {0}'.format(c.files_dir))
+        # Create a jinja environment
+        logger.debug('Using templates dir: {0}'.format(c.files_dir))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
         env.trim_blocks = True
         env.lstrip_blocks = True
+        template, destination, data, overwrite = cls._try_obtain_common_params(c)
 
+        if c.comm_type == 'jinja_render':
+            given_output = args.get('output', '')
+            if not isinstance(given_output, six.string_types):
+                raise exceptions.CommandException('Jinja2Runner: output must be string, got {0}'.\
+                    format(given_output))
+            result_fn = cls._make_output_file_name(destination, template, given_output)
+            cls._render_one_template(env, template, result_fn, data, overwrite)
+        elif c.comm_type == 'jinja_render_dir':
+            cls._render_dir(env, template, destination, data, overwrite)
+
+        return (True, 'success')
+
+    @classmethod
+    def _render_one_template(cls, env, template, result_filename, data, overwrite):
         # Get a template instance
         tpl = None
         try:
@@ -681,14 +707,12 @@ class Jinja2Runner(CommandRunner):
             tpl = env.get_template(template)
         except jinja2.TemplateNotFound as e:
             raise exceptions.CommandException('Template {t} not found in path {p}.'.\
-                    format(t=template, p=c.files_dir))
+                    format(t=template, p=env.loader.searchpath))
         except jinja2.TemplateError as e:
             raise exceptions.CommandException('Template file failure: {0}'.format(e.message))
 
         # Check if destination file exists, overwrite if needed
         if os.path.exists(result_filename):
-            overwrite = args['overwrite'] if 'overwrite' in args else False
-            overwrite = True if overwrite in ['True', 'true', 'yes'] else False
             if overwrite:
                 logger.info('Overwriting the destination file {0}'.format(result_filename))
                 os.remove(result_filename)
@@ -702,6 +726,30 @@ class Jinja2Runner(CommandRunner):
             out.write(result)
 
         return (True, 'success')
+
+    @classmethod
+    def _render_dir(cls, env, template_dir, destination, data, overwrite):
+        template_basedir = env.loader.searchpath[0]
+        to_walk = os.path.join(template_basedir, template_dir)
+        for dirpath, dirnames, filenames in os.walk(to_walk):
+            for f in filenames:
+                # get filename of template relative to template_dir
+                tpl_name = cls._strip_dir_prefix(template_basedir, os.path.join(dirpath, f))
+                dest_name = cls._make_output_file_name(destination,
+                                         cls._strip_dir_prefix(template_dir, tpl_name))
+                # if needed, create the dir that will contain the template
+                dest_dir = os.path.dirname(dest_name)
+                if not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir)
+
+                cls._render_one_template(env, tpl_name, dest_name, data, overwrite)
+
+    @classmethod
+    def _strip_dir_prefix(cls, prefix, path):
+        """Strips given prefix from given path, e.g.:
+        if prefix == '/foo/bar/' and path == '/foo/bar/baz/spam', this returns 'baz/spam'
+        """
+        return path[len(prefix):].strip(os.path.sep)
 
 
 @register_command_runner

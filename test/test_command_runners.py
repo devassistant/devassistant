@@ -160,6 +160,34 @@ class TestJinja2CommandRunner(object):
         c.run()
         assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
+    def test_render_with_tpl_in_file_subdir(self, tmpdir):
+        # if we get a template with source e.g. dirwithmoretemplates/foo.tpl,
+        #  we should still get just foo.tpl without the subdir as a result
+        fn = 'asd'
+        fntpl = 'dirwithmoretemplates/asd.tpl'
+        self.make_sure_file_does_not_exists(tmpdir, fn)
+        inp = {'template': {'source': fntpl},
+               'data': {'foo': 'foo'},
+               'output': fn,
+               'destination': tmpdir.strpath}
+        c = Command('jinja_render',
+                    inp,
+                    kwargs={'__files_dir__': [self.filesdir]})
+        c.run()
+        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'foo'
+
+    def test_render_dir(self, tmpdir):
+        dr = 'dirwithmoretemplates'
+        self.make_sure_file_does_not_exists(tmpdir, dr)
+        inp = {'template': {'source': dr},
+               'data': {'foo': 'foo', 'bar': 'bar'},
+               'destination': tmpdir.strpath}
+        c = Command('jinja_render_dir',
+                    inp,
+                    kwargs={'__files_dir__': [self.filesdir]})
+        c.run()
+        assert self.is_file_exists(tmpdir, 'asd') and self.get_file_contents(tmpdir, 'asd') == 'foo'
+        assert self.is_file_exists(tmpdir, 'foo/sdf') and self.get_file_contents(tmpdir, 'foo/sdf') == 'bar'
 
 class TestLogCommandRunner(object):
     def setup_method(self, method):
