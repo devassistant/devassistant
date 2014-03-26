@@ -383,7 +383,7 @@ class GitHubCommandRunner(CommandRunner):
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
-        return [True, ret or '']
+        return ret
 
     @classmethod
     def format_args(cls, c):
@@ -459,11 +459,13 @@ class GitHubCommandRunner(CommandRunner):
 
     @classmethod
     def _github_push(cls):
-        ClHelper.run_command("git push -u origin master", logging.INFO)
-
-    @classmethod
-    def _github_remote_show_origin(cls):
-        ClHelper.run_command("git remote show origin")
+        try:
+            ret = ClHelper.run_command("git push -u origin master")
+            logger.info('Source code was successfully pushed.')
+            return (True, ret)
+        except exceptions.ClException as e:
+            logger.warning('Problem pushing source code: {0}'.format(e.output))
+            return (False, e.output)
 
     @classmethod
     @GitHubAuth.github_authenticated
@@ -476,9 +478,15 @@ class GitHubCommandRunner(CommandRunner):
         dash_login = ''
         if getpass.getuser() != login:
             dash_login = '-' + login
-        ClHelper.run_command("git remote add origin git@github.com{dl}:{l}/{r}.git".\
-                             format(dl=dash_login, l=login, r=reponame),
-                             logging.INFO)
+        try:
+            logger.info('Adding Github repo as git remote ...')
+            ret = ClHelper.run_command("git remote add origin git@github.com{dl}:{l}/{r}.git".\
+                format(dl=dash_login, l=login, r=reponame))
+            logger.info('Successfully added Github repo as git remote.')
+            return (True, ret)
+        except exceptions.ClException as e:
+            logger.warning('Problem adding Github repo as git remote: {0}.'.format(e.output))
+            return (False, e.output)
 
     @classmethod
     @GitHubAuth.github_authenticated
@@ -494,11 +502,17 @@ class GitHubCommandRunner(CommandRunner):
         reponame = kwargs['reponame']
 
         if reponame in map(lambda x: x.name, cls._user.get_repos()):
-            msg = 'Repository already exists on GitHub'
-            raise exceptions.CommandException(msg)
+            msg = 'Failed to create Github repo: {0}/{1} alread exists.'.\
+                format(cls._user.login, reponame)
+            logger.warning(msg)
+            return (False, msg)
         else:
+            msg = ''
+            success = False
             try:
                 new_repo = cls._user.create_repo(reponame, private=kwargs['private'])
+                msg = new_repo.clone_url
+                success = True
             except cls._gh_module.GithubException as e:
                 gh_errs = e.data.get('errors', [])
                 gh_errs = '; '.join(map(lambda err: err.get('message', ''), gh_errs))
@@ -506,23 +520,29 @@ class GitHubCommandRunner(CommandRunner):
                 msg += 'a repo and then you want to create the same one immediately. Wait '
                 msg += 'for few minutes and then try again.\n'
                 msg += 'Github errors: ' + gh_errs
-                raise exceptions.CommandException(msg)
-            logger.info('Your new repository: {0}'.format(new_repo.html_url))
+            except BaseException as e:
+                msg = 'Failed to create Github repo: {0}'.\
+                    format(getattr(e, 'message', 'Unknown error'))
 
-        return new_repo.clone_url
+            if success:
+                logger.info('Your new repository: {0}'.format(new_repo.html_url))
+            else:
+                logger.warning(msg)
+
+        return (success, msg)
 
     @classmethod
     @GitHubAuth.github_authenticated
     def _github_add_remote_and_push(cls, **kwargs):
-        """Add a remote and push to GitHub.
+        """Add a remote and push to GitHub. As this is not a callable subcommand of this
+        command runner, it doesn't emit any informative logging messages on its own, only messages
+        emitted by called methods.
         Note: the kwargs are not the global context here, but what cls.format_args returns.
-
-        Raises:
-            devassistant.exceptions.CommandException on error
         """
-        cls._github_add_remote_origin(**kwargs)
-        cls._github_remote_show_origin()
-        cls._github_push()
+        ret = cls._github_add_remote_origin(**kwargs)
+        if ret[0]:
+            ret = cls._github_push()
+        return ret
 
     @classmethod
     @GitHubAuth.github_authenticated
@@ -532,10 +552,10 @@ class GitHubCommandRunner(CommandRunner):
         logger.info('Registering your project on GitHub as {0}/{1}...'.\
                 format(kwargs['login'],
                        kwargs['reponame']))
-        cls._github_create_repo(**kwargs)
-        logger.info('Pushing your project to the new GitHub repository...')
-        cls._github_add_remote_and_push(**kwargs)
-        logger.info('GitHub repository was created and source code pushed.')
+        ret = cls._github_create_repo(**kwargs)
+        if ret[0]:  # on success push the sources
+            ret = cls._github_add_remote_and_push(**kwargs)
+        return ret
 
     @classmethod
     @GitHubAuth.github_authenticated
@@ -549,14 +569,25 @@ class GitHubCommandRunner(CommandRunner):
         fork_login, fork_reponame = kwargs['repo_url'].split('/')
         logger.info('Forking {repo} for user {login} on Github ...'.\
             format(login=kwargs['login'], repo=kwargs['repo_url']))
+        sucess = False
+        msg = ''
         try:
             repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
             fork = cls._user.create_fork(repo)
+            success = True
+            msg = fork.clone_url
         except cls._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
-            raise exceptions.CommandException(msg)
-        logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
-        return fork.clone_url
+        except BaseException as e:
+            msg = 'Exception while forking GH repo: {0}'.\
+                format(getattr(e, 'message', 'Unknown error'))
+
+        if success:
+            logger.info('Fork is ready at {url}.'.format(url=fork.html_url))
+        else:
+            logger.warning(msg)
+
+        return (success, msg)
 
 
 @register_command_runner
