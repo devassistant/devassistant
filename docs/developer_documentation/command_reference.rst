@@ -255,6 +255,51 @@ creator.
 
     dda_run: ${path}/to/project
 
+Github Command
+--------------
+
+Manipulate Github repositories.
+
+Github command (``github``) has many "subcommands". Subcommands are part of the command input,
+see below.
+
+- Input: a string with a subcommand or a two item list, where the first item is a subcommand
+  and the second item is a mapping that explicitly specifies parameters for the subcommand.
+- RES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: either a string with URL of a manipulated repo or an empty string
+- Example::
+
+    github: create_repo
+
+    github:
+    - create_and_push
+    - login: bkabrda
+      reponame: devassistant
+
+    github: push
+
+    github: create_fork
+
+Explanation of individual subcommands follows. Each subcommand takes defined arguments,
+whose default values are taken from global context. E.g. ``create_and_push`` takes an argument
+``login``. If it is not specified, assistant variable ``github`` is used.
+
+``create_repo``
+  Creates a repo with given ``reponame`` (defaults to var ``name``) for a user with
+  given login (defaults to var ``github``). Optionally accepts ``private`` argument
+  to create repo as private (defaults to var ``github_private``).
+
+``create_and_push``
+  Same as ``create_repo``, but it also adds a proper git remote to repository in current
+  working dir and pushes to Github.
+
+``push``
+  Just does ``git push -u origin master``, no arguments needed.
+
+``create_fork``
+  Creates a fork of repo at given ``repo_url`` (defaults ot var ``url``) under user specified
+  by ``login`` (defaults to var ``github``).
+
 Jinja2 Render Command
 ---------------------
 
