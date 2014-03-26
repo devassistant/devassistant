@@ -343,7 +343,8 @@ class GitHubCommandRunner(CommandRunner):
     _required_yaml_args = {'default': ['login', 'reponame'],
                            'create_repo': ['login', 'reponame', 'private'],
                            'create_and_push': ['login', 'reponame', 'private'],
-                           'create_fork': ['login', 'repo_url']}
+                           'create_fork': ['login', 'repo_url'],
+                           'push': []}
 
     @classmethod
     def matches(cls, c):
