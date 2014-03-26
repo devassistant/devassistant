@@ -417,3 +417,7 @@ class TestFormatStr(object):
     def test_format_str_preserves_whitespace(self):
         c = "  eggs   spam    beans  "
         assert format_str(c, {}) == c
+
+    def test_format_str_with_homedir(self):
+        c = "~/foo"
+        assert format_str(c, {}) == os.path.expanduser('~/foo')

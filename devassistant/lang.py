@@ -664,7 +664,7 @@ _command_splitter = re.compile(r'(\s+|\S+)')
 _homedir_matcher = re.compile('\\\\*~')
 
 
-def _homedir_expand(cls, matchobj):
+def _homedir_expand(matchobj):
     # therefore we must hack around this here
     if len(matchobj.group(0)) % 2 == 0:
         # even length => odd number of backslashes => eat one and don't expand
