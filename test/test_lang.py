@@ -354,6 +354,11 @@ class TestRunSection(object):
         assert kwargs['val'] == u'ls: cannot access spam/spam/spam: No such file or directory'
         assert kwargs['success'] == False
 
+    def test_assing_string_with_escaped_exec_flag(self):
+        kwargs = {}
+        run_section([{'$foo': '~~/asd'}], kwargs)
+        assert kwargs['foo'] == os.path.expanduser('~/asd')
+
 
 class TestIsVar(object):
     @pytest.mark.parametrize(('tested', 'expected'), [

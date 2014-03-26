@@ -144,6 +144,14 @@ a command runner, you need to use the **execution flag**: ``~``::
        - cr: ci
        - cr2: ci2
 
+Note, that a string starting with execution flag is also executed as an expression. If you
+want to create a literal that starts with ``~``, just use the escape value for it (``~~``)::
+
+   run:
+   - $foo: ~$(ls) and $bar
+   - $bar: ~~/some_dir_in_users_home
+   - log_i: The tilde character (~) only needs to be escaped when starting a string.
+
 Each command specifies return value in a different way, see :ref:`command_ref`.
 
 Variables Explained

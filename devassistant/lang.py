@@ -194,7 +194,15 @@ def eval_literal_section(section, kwargs, runner=None):
     retval = (False, '')
 
     if isinstance(section, six.string_types):
-        if section.startswith('~'):
+        # two ~~ are an escape sequence (we want to start the string by "~", not
+        #  eval it exec section
+        eval_exec = False
+        if section.startswith('~~'):
+            section = section[1:]
+        elif section.startswith('~'):
+            eval_exec = True
+
+        if eval_exec:
             retval = eval_exec_section(section[1:], kwargs, runner)
         elif is_var(section):
             # if it is a defined variable, return it as it is, not necessarily as string
