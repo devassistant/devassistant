@@ -177,8 +177,8 @@ Install dependencies from given **command input**.
 
 - Input: list of mappings, similar to :ref:`Dependencies section <dependencies_ref>`, but without
   conditions and usage of sections from snippets etc.
-- RES: always ``True`` (terminates DevAssistant if dependency installation fails)
-- LRES: **command input**, but with expanded variables
+- RES: **command input**, but with expanded variables
+- LRES: always ``True`` (terminates DevAssistant if dependency installation fails)
 - Example::
 
     if $foo:
@@ -211,8 +211,8 @@ used when the project was created) - these are also made available with ``dda__`
 that's double underscore).
 
 - Input: directory where the file is supposed to be
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: always empty string
+- RES: always empty string
+- LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
     dda_r: ${path}/to/project
@@ -222,8 +222,8 @@ that's double underscore).
 - Input: list with directory with ``.devassistant`` file as a first item and the mapping
   to write as the second item. Variables in the mapping will be substituted, you have to use
   ``$$foo`` (two dollars instead of one) to get them as variables in ``.devassistant``.
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: always empty string
+- RES: always empty string
+- LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
     dda_w:
@@ -238,8 +238,8 @@ plus dependencies from ``dependencies`` section, if present (this section is eva
 context of current assistant, not the creator).
 
 - Input: directory where the file is supposed to be
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: always empty string
+- RES: always empty string
+- LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
     dda_dependencies: ${path}/to/project
@@ -249,8 +249,8 @@ preparer assistants. This section is evaluated in the context of current assista
 creator.
 
 - Input: directory where the file is supposed to be
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: always empty string
+- RES: always empty string
+- LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
     dda_run: ${path}/to/project
@@ -265,8 +265,10 @@ see below.
 
 - Input: a string with a subcommand or a two item list, where the first item is a subcommand
   and the second item is a mapping that explicitly specifies parameters for the subcommand.
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: either a string with URL of a manipulated repo or an empty string
+- RES: if command succeeds, either a string with URL of manipulated repo or empty string is
+  returned (depends on subcommand), else a string with problem description (it is already logged
+  at WARNING level)
+- LRES: ``True`` if the Github operation succeeds, ``False`` otherwise
 - Example::
 
     github: create_repo
@@ -319,8 +321,8 @@ more templates
     information on how the filename is costructed if not provided), not used with
     ``jinja_render_dir``
 
-- RES: always ``True``, terminates DevAssistant if something goes wrong
-- LRES: always ``success`` string
+- RES: always ``success`` string
+- LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
     jinja_render:
