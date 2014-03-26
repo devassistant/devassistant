@@ -341,6 +341,8 @@ class GitHubCommandRunner(CommandRunner):
     except:
         _gh_module = None
     _required_yaml_args = {'default': ['login', 'reponame'],
+                           'create_repo': ['login', 'reponame', 'private'],
+                           'create_and_push': ['login', 'reponame', 'private'],
                            'create_fork': ['login', 'repo_url']}
 
     @classmethod
@@ -451,6 +453,10 @@ class GitHubCommandRunner(CommandRunner):
         return '/'.join(url.split('/')[-2:])
 
     @classmethod
+    def _guess_private(cls, explicit, ctxt):
+        return bool(explicit or ctxt.get('github_private') or False)
+
+    @classmethod
     def _github_push(cls):
         ClHelper.run_command("git push -u origin master", logging.INFO)
 
@@ -491,11 +497,14 @@ class GitHubCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
         else:
             try:
-                new_repo = cls._user.create_repo(reponame)
-            except cls._gh_module.GithubException:
+                new_repo = cls._user.create_repo(reponame, private=kwargs['private'])
+            except cls._gh_module.GithubException as e:
+                gh_errs = e.data.get('errors', [])
+                gh_errs = '; '.join(map(lambda err: err.get('message', ''), gh_errs))
                 msg = 'Failed to create GitHub repo. This sometime happens when you delete '
                 msg += 'a repo and then you want to create the same one immediately. Wait '
-                msg += 'for few minutes and then try again.'
+                msg += 'for few minutes and then try again.\n'
+                msg += 'Github errors: ' + gh_errs
                 raise exceptions.CommandException(msg)
             logger.info('Your new repository: {0}'.format(new_repo.html_url))
 
