@@ -229,6 +229,8 @@ def eval_literal_section(section, kwargs, runner=None):
             else:
                 retdict[k] = eval_literal_section(v, kwargs, runner)[1]
         retval = (bool(retdict), retdict)
+    elif isinstance(section, bool):
+        retval = (section, section)
 
     return retval
 

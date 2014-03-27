@@ -359,6 +359,10 @@ class TestRunSection(object):
         run_section([{'$foo': '~~/asd'}], kwargs)
         assert kwargs['foo'] == os.path.expanduser('~/asd')
 
+    def test_bool_literal_section(self):
+        kwargs = {}
+        run_section([{'$foo': True}], kwargs)
+        assert kwargs['foo'] == True
 
 class TestIsVar(object):
     @pytest.mark.parametrize(('tested', 'expected'), [
