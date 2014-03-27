@@ -517,8 +517,8 @@ class GitHubCommandRunner(CommandRunner):
                 gh_errs = e.data.get('errors', [])
                 gh_errs = '; '.join(map(lambda err: err.get('message', ''), gh_errs))
                 msg = 'Failed to create GitHub repo. This sometime happens when you delete '
-                msg += 'a repo and then you want to create the same one immediately. Wait '
-                msg += 'for few minutes and then try again.\n'
+                msg += 'a repo and then you want to create the same one immediately. If that\'s '
+                msg += 'the case, wait for few minutes and then try again.\n'
                 msg += 'Github errors: ' + gh_errs
             except BaseException as e:
                 msg = 'Failed to create Github repo: {0}'.\
@@ -549,9 +549,10 @@ class GitHubCommandRunner(CommandRunner):
     def _github_create_and_push(cls, **kwargs):
         """Note: the kwargs are not the global context here, but what cls.format_args returns."""
         # we assume we're in the project directory
-        logger.info('Registering your project on GitHub as {0}/{1}...'.\
-                format(kwargs['login'],
-                       kwargs['reponame']))
+        logger.info('Registering your {priv}project on GitHub as {login}/{repo}...'.\
+                format(priv='private ' if kwargs['private'] else '',
+                       login=kwargs['login'],
+                       repo=kwargs['reponame']))
         ret = cls._github_create_repo(**kwargs)
         if ret[0]:  # on success push the sources
             ret = cls._github_add_remote_and_push(**kwargs)
