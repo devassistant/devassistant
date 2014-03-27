@@ -188,6 +188,19 @@ quoted in the places where they are used for bash execution. That
 includes ``cl*`` commands, conditions that use bash return values and
 variable assignment that uses bash.
 
+Global Variables
+~~~~~~~~~~~~~~~~
+
+In all assistants, few useful global variables are available. These include:
+
+- ``$__system_name__`` - name of the system, e.g. "linux"
+- ``$__system_version__`` - version of the system, e.g. "3.13.3-201.fc20.x86_64"
+- ``$__distro_name__`` - name of Linux distro, e.g. "fedora"
+- ``$__distro_version__`` - version of Linux distro, e.g. "20"
+
+Note: if any of these information is not available, the corresponding variable will be empty.
+Also note, that you can also rely on all the variables having lowercase content.
+
 .. _expressions_ref:
 
 Expressions

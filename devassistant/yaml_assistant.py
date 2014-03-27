@@ -132,6 +132,13 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         kwargs['__files_dir__'] = [self.files_dir]
         kwargs['__scls__'] = []
         kwargs['__sourcefiles__'] = [self.path]
+        # if any of the following fails, DA should keep running
+        for i in ['system_name', 'system_version', 'distro_name', 'distro_version']:
+            try:
+                val = getattr(utils, 'get_' + i)()
+            except:
+                val = ''
+            kwargs['__' + i + '__'] = val
 
     @needs_fully_loaded
     def logging(self, kwargs):

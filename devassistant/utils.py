@@ -23,14 +23,32 @@ def import_module(module):
     return importlib.import_module(module)
 
 
+def get_system_name():
+    return platform.system().lower()
+
+
+def get_system_version():
+    return platform.release().lower()
+
+
 def get_distro_name():
-    distro = platform.linux_distribution()[0].lower()
-    if not distro and os.path.exists('/etc/os-release'):
-        with open('/etc/os-release') as osrel:
-            for l in osrel.readlines():
-                if l.startswith('ID'):
-                    distro = l.split('=')[-1].strip()
-    return distro
+    return platform.linux_distribution()[0].lower() or _get_os_release_content('ID')
+
+
+def get_distro_version():
+    return platform.linux_distribution()[1].lower() or _get_os_release_content('VERSION_ID')
+
+
+def _get_os_release_content(line_start):
+    os_release = '/etc/os-release'
+    if not os.path.exists(os_release):
+        return ''
+
+    with open(os_release) as osrel:
+        for l in osrel.readlines():
+            if l.startswith(line_start):
+                found = l.split('=')[-1].strip()
+    return found.lower()
 
 
 def get_assistant_attrs_from_dict(d, source):
