@@ -1036,8 +1036,8 @@ class DockerCommandRunner(object):
         logres = False
         res = ''
 
-        cmd_str = "docker inspect -format='{attr}' {cont}".format(attr=attr,
-                                                                  cont=container_hash)
+        cmd_str = "docker inspect --format='{attr}' {cont}".format(attr=attr,
+                                                                   cont=container_hash)
         cmd_str = cls._cmd_for_newgrp(cmd_str)
         try:
             res = ClHelper.run_command(cmd_str)
