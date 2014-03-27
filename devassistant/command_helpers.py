@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import atexit
 import getpass
 import logging
 import os
@@ -16,6 +17,8 @@ from devassistant.logger import logger
 
 class ClHelper(object):
     command_processors = {}
+    # register all invoked subprocesses
+    subprocesses = {}
 
     @classmethod
     def run_command(cls,
@@ -62,6 +65,9 @@ class ClHelper(object):
                                 stderr=stderr_pipe,
                                 shell=True,
                                 preexec_fn=preexec_fn)
+        # register process to cls.subprocesses
+        cls.subprocesses[proc.pid] = proc
+
         stdout = []
         while proc.poll() is None:
             output = proc.stdout.readline().decode('utf8')
@@ -71,6 +77,10 @@ class ClHelper(object):
                 logger.log(log_level, output, extra={'event_type': 'cmd_out'})
             if output_callback:
                 output_callback(output)
+
+        # remove process from cls.subprocesses
+        cls.subprocesses.pop(proc.pid)
+
         # add a newline to the end - if there is more output in output_rest, we'll be appending
         # it line by line; if there's no more output, we strip anyway
         stdout = '\n'.join(stdout) + '\n'
@@ -115,6 +125,15 @@ class ClHelper(object):
     @classmethod
     def ignore_sigint(cls):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+    @classmethod
+    def kill_subprocesses(cls):
+        for pid, proc in cls.subprocesses.items():
+            logger.info('Killing still running process {pid} ...'.format(pid=pid))
+            proc.kill()
+
+
+atexit.register(ClHelper.kill_subprocesses)
 
 
 class PathHelper(object):
