@@ -163,9 +163,8 @@ class DialogHelper(object):
 
     @classmethod
     def ask_for_password(cls, prompt='Provide your password:', **options):
-        """Returns the password typed by user as a string
-
-        TODO: could this be a security problem?
+        """Returns the password typed by user as a string or None if user cancels the request
+        (e.g. presses Ctrl + D on commandline or presses Cancel in GUI.
         """
         # optionally set title, that may be used by some helpers like zenity
         return cls.get_appropriate_helper().ask_for_password(prompt,
@@ -207,7 +206,10 @@ class CliDialogHelper(object):
 
     @classmethod
     def ask_for_password(cls, prompt, **options):
-        return getpass.getpass(prompt=prompt + ' ')
+        try:
+            return getpass.getpass(prompt=prompt + ' ')
+        except EOFError:
+            return None
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
@@ -341,7 +343,7 @@ class GtkDialogHelper(object):
         win.show_all()
         win.run()
         Gdk.threads_leave()
-        return False if not win.ok else pwd.get_text()
+        return pwd.get_text() if win.ok else None
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):

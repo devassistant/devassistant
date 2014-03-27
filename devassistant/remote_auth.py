@@ -47,21 +47,37 @@ class GitHubAuth(object):
             except cls._gh_module.GithubException:
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
-                # login with username/password
-                password = DialogHelper.ask_for_password(
-                    prompt='Github Password for {username}:'.format(username=login))
-                gh = cls._gh_module.Github(login_or_token=login, password=password)
-                cls._user = gh.get_user()
-                try:
-                    cls._user.login
+                # try login with username/password 3 times
+                cls._user = cls._try_login_with_password_ntimes(login, 3)
+                if cls._user is not None:
                     cls._github_create_auth()  # create auth for future use
-                except cls._gh_module.GithubException as e:
-                    msg = 'Wrong username or password\nGitHub exception: {0}'.format(e)
-                    # reset cls._user to None, so that we don't use it
-                    # if calling this multiple times
-                    cls._user = None
-                    raise exceptions.CommandException(msg)
         return cls._user
+
+    @classmethod
+    def _try_login_with_password_ntimes(cls, login, ntimes):
+        user = None
+
+        for i in range(0, ntimes):
+            password = DialogHelper.ask_for_password(
+                prompt='Github Password for {username}:'.format(username=login))
+
+            # user pressed Ctrl + D
+            if password is None:
+                break
+
+            gh = cls._gh_module.Github(login_or_token=login, password=password)
+            user = gh.get_user()
+            try:
+                user.login
+                break  # if user.login doesn't raise, authentication has been successful
+            except cls._gh_module.GithubException as e:
+                user = None
+                msg = 'Wrong Github username or password; message from Github: {0}\n'.\
+                    format(e.data.get('message', 'Unknown authentication error'))
+                msg += 'Try again or press Ctrl + D to abort.'
+                logger.warning(msg)
+
+        return user
 
     @classmethod
     def _github_create_auth(cls):
@@ -163,6 +179,10 @@ class GitHubAuth(object):
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
                 func_cls._user = cls._get_github_user(kwargs['login'])
+                if func_cls._user is None:
+                    msg = 'Github authentication failed, skipping Github command.'
+                    logger.warning(msg)
+                    return (False, msg)
                 # create an ssh key for pushing if we don't have one
                 if not cls._github_ssh_key_exists():
                     cls._github_create_ssh_key()
