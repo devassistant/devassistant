@@ -13,17 +13,22 @@ from . import licenses
 __version__ = '0.0.4'
 
 
-class DapFileError(Exception):
+class DapError(Exception):
+    '''Mother of all dap related exceptions'''
+    pass
+
+
+class DapFileError(DapError):
     '''Exception that indicates something wrong with dap file'''
     pass
 
 
-class DapMetaError(Exception):
+class DapMetaError(DapError):
     '''Exception that indicates something wrong with dap's metadata'''
     pass
 
 
-class DapInvalid(Exception):
+class DapInvalid(DapError):
     '''Exception that indicates invalid dap'''
     pass
 
