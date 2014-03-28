@@ -20,7 +20,6 @@ on other platforms, e.g. Zypper on OpenSuse. PackageManager subclasses should al
 represent these high-level tools like YUM or Zypper, not RPM itself.
 """
 from __future__ import print_function
-import collections
 import os
 import tempfile
 import time
@@ -660,10 +659,22 @@ class DependencyInstaller(object):
 
     """Class for installing dependencies """
     def __init__(self):
-        # {package_manager_shorcut: ['list', 'of', 'dependencies']}
-        # we're using ordered dict to preserve the order that is used in
-        # assistants; we also want system dependencies to always go first
-        self.dependencies = collections.OrderedDict()
+        # self.dependencies has form [(package_manager_shorcut, ['list', 'of', 'dependencies'])]
+        #  previously, we used OrderedDict, but that's not in Python 2.6,
+        #  so now we're using list of tuples
+        #  we need to preserve the order that is used in assistants;
+        #  we also want system dependencies to always go first
+        self.dependencies = []
+
+    def __add_dependencies(self, dep_t, dep_l):
+        found = False
+        for dt, dl in self.dependencies:
+            if dep_t == dt:
+                dl.extend(dep_l)
+                found = True
+
+        if not found:
+            self.dependencies.append((dep_t, dep_l))
 
     def get_package_manager(self, dep_t):
         """Choose proper package manager and return it."""
@@ -707,8 +718,7 @@ class DependencyInstaller(object):
                     break
             if not found:  # distro dependency type, but for another distro
                 return
-        self.dependencies.setdefault(dep_t, [])
-        self.dependencies[dep_t].extend(dep_l)
+        self.__add_dependencies(dep_t, dep_l)
 
     def _ask_to_confirm(self, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
@@ -720,7 +730,7 @@ class DependencyInstaller(object):
 
     def _install_dependencies(self):
         """Install missing dependencies"""
-        for dep_t, dep_l in self.dependencies.items():
+        for dep_t, dep_l in self.dependencies:
             if not dep_l:
                 continue
             pkg_mgr = self.get_package_manager(dep_t)
@@ -771,7 +781,7 @@ class DependencyInstaller(object):
         structure)
         """
         # the system dependencies should always go first
-        self.dependencies.setdefault(self.get_system_deptype_shortcut(), [])
+        self.__add_dependencies(self.get_system_deptype_shortcut(), [])
         for dep_dict in struct:
             for dep_t, dep_l in dep_dict.items():
                 self._process_dependency(dep_t, dep_l)
