@@ -248,6 +248,14 @@ class TestDap(object):
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
 
+    def test_wrong_dap_filename_mimicked_to_be_ok(self):
+        '''Dap with wrong filename, mimicked to be OK, should produce no error'''
+        assert Dap('test/meta_only/bar.dap', mimic_filename='foo-1.0.0.dap').check(level=logging.ERROR)
+
+    def test_good_dap_filename_mimicked_to_be_wrong(self):
+        '''Error passing dap, should fail with wrong mimicked filename'''
+        assert not Dap('test/meta_only/foo-1.0.0.dap', mimic_filename='wrong').check(level=logging.ERROR)
+
     def test_files_outside_of_toplevel_dir(self):
         '''Dap with files outside of top-level directory should produce error for each'''
         out = StringIO()

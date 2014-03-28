@@ -54,17 +54,24 @@ class Dap(object):
                    'description': re.compile(r'.+'),
                    'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE)}
 
-    def __init__(self, dapfile, fake=False):
+    def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
         If fake is True, it fill not open any files, but creates a fake dap'''
         if fake:
-            self.basename = 'fake.dap'
+            if mimic_filename:
+                self.basename = mimic_filename
+            else:
+                self.basename = 'fake.dap'
             self.files = []
             self.meta = {}
             return
 
-        self.basename = os.path.basename(dapfile)
+        if mimic_filename:
+            self.basename = mimic_filename
+        else:
+            self.basename = os.path.basename(dapfile)
+
         try:
             self._tar = tarfile.open(dapfile, mode='r:gz')
         except tarfile.ReadError as e:
