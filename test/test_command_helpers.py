@@ -1,6 +1,9 @@
 import os
+import pytest
+import sys
+from io import StringIO
 
-from devassistant.command_helpers import ClHelper
+from devassistant.command_helpers import ClHelper, CliDialogHelper
 from devassistant.exceptions import ClException
 
 from test.logger import TestLoggingHandler
@@ -45,3 +48,42 @@ class TestClHelper(object):
                                  'long_cat')
         out = ClHelper.run_command('cat {0}'.format(test_file))
         assert 'ba' not in out
+
+class TestCliDialogHelper(object):
+    def setup_method(self, method):
+        self.tlh = TestLoggingHandler()
+
+    def teardown_method(self, method):
+        sys.stdin = sys.__stdin__
+
+    @pytest.mark.parametrize((u'choice', u'expected'),[(u'y', True), (u'n', False),
+                             (u'yes', True), (u'no', False), (u'Yes', True),
+                             (u'No', False), (u'yEs', True), (u'nO', False)])
+    def test_ask_confirm_with_message_result(self, choice, expected):
+        sys.stdin = StringIO(choice)
+        assert CliDialogHelper.ask_for_confirm_with_message('foo', 'bar') is expected
+
+    def test_ask_confirm_with_message_output(self, capsys):
+        sys.stdin = StringIO(u'y')
+        CliDialogHelper.ask_for_confirm_with_message('foo', 'bar')
+        stdout, stderr = capsys.readouterr()
+        assert 'foo' in stdout
+        assert 'bar' in stdout
+
+    def test_ask_confirm_with_message_wrong_output(self, capsys):
+        sys.stdin = StringIO(u'foo\nyes')
+        assert CliDialogHelper.ask_for_confirm_with_message('bar', 'baz') is True
+        assert 'You have to choose' in capsys.readouterr()[0] #stdout
+
+    @pytest.mark.parametrize((u'choice', u'expected'),[(u'y', True), (u'n', False),
+                             (u'yes', True), (u'no', False), (u'Yes', True),
+                             (u'No', False), (u'yEs', True), (u'nO', False)])
+    def test_ask_for_package_list_confirm_correct(self, choice, expected):
+        sys.stdin = StringIO(choice)
+        assert CliDialogHelper.ask_for_package_list_confirm(u'foo', [u'bar']) is expected
+
+    def test_ask_for_package_list_confirm_list(self, capsys):
+        sys.stdin = StringIO(u's\ny')
+        CliDialogHelper.ask_for_package_list_confirm(u'foo', [u'bar'])
+        stdout, stderr = capsys.readouterr()
+        assert u'bar' in stdout
