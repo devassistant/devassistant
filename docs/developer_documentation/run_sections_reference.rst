@@ -172,10 +172,8 @@ The variable scope works as follows:
 - When invoking a different ``run`` section (from the current assistant or snippet),
   the variables get passed by value (e.g. they don't get modified for the
   remainder of this scope).
-- As you would probably expect, variables that get modified in ``if`` and
-  ``else`` sections are modified until the end of the current scope.
-- Variables defined in subsections (conditions and loops) continue to be available
-  even outside of the subsections.
+- Variables defined in subsections (``if``, ``else``, ``for``) continue to be available
+  until end of the current ``run`` section.
 
 All variables are global in the sense that if you call a snippet or another
 section, it can see all the arguments that are defined.
