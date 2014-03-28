@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+import tempfile
 from io import StringIO
 
 from devassistant.command_helpers import ClHelper, CliDialogHelper
@@ -48,6 +49,17 @@ class TestClHelper(object):
                                  'long_cat')
         out = ClHelper.run_command('cat {0}'.format(test_file))
         assert 'ba' not in out
+
+    def test_run_command_cd(self):
+        cwd = os.getcwd()
+        try:
+            tmpdir = tempfile.gettempdir()
+            out = ClHelper.run_command('cd {}'.format(tmpdir))
+            assert out == ''
+            assert os.getcwd() == tmpdir
+        finally:
+            os.chdir(cwd)
+
 
 class TestCliDialogHelper(object):
     def setup_method(self, method):
