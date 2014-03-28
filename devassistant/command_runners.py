@@ -6,6 +6,8 @@ import logging
 import os
 import re
 import time
+import string
+import sys
 
 import jinja2
 import progress.bar
@@ -1046,3 +1048,31 @@ class DockerCommandRunner(object):
             pass  # no-op
 
         return (logres, res)
+
+
+@register_command_runner
+class NormalizeCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'normalize'
+
+    @classmethod
+    def run(cls, c):
+        """Normalizes c.input_res (string):
+
+        - removes digit from start
+        - replaces dashes and whitespaces with underscores
+        """
+        to_norm = c.input_res
+        if not isinstance(to_norm, six.string_types):
+            raise exceptions.CommandException('"normalize" expects string input, got {0}'.\
+                format(to_norm))
+
+        normalized = to_norm.lstrip('0123456789')
+        badchars = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
+        if sys.version_info[0] < 3:
+            tt = string.maketrans(badchars, '_' * len(badchars))
+        else:
+            tt = str.maketrans(badchars, '_' * len(badchars))
+        normalized = normalized.translate(tt)
+        return (True, normalized)

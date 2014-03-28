@@ -5,7 +5,7 @@ from flexmock import flexmock
 
 from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
-    Jinja2Runner, LogCommandRunner, UseCommandRunner
+    Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 
@@ -202,8 +202,16 @@ class TestLogCommandRunner(object):
             self.l.run(Command('log_b', 'bar'))
 
 
-class TestSaveProjectCommandRunner(object):
-    pass
+class TestNormalizeCommandRunner(object):
+    def setup_method(self, method):
+        self.n = NormalizeCommandRunner()
+
+    def test_strips_digits_at_start(self):
+        self.n.run(Command('normalize', '42blah')) == (True, 'blah')
+
+    def test_replaces_bad_chars_with_underscores(self):
+        bad_string = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
+        self.n.run(Command('normalize', bad_string)) == (True, '_' * len(bad_string))
 
 
 class TestSCLCommandRunner(object):
