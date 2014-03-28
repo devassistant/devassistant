@@ -198,7 +198,11 @@ class YUMPackageManager(PackageManager):
                 except yum.Errors.YumBaseError:
                     msg = 'Package not found: {pkg}'.format(pkg=pkg)
                     raise exceptions.DependencyException(msg)
-        y.resolveDeps()
+        try:
+            y.resolveDeps()
+        except yum.Errors.PackageSackError as e: # Resolution of Issue 154
+            raise exceptions.DependencyException('Error resolving RPM dependencies: {}'.format(str(e)))
+
         logger.debug('Installing/Updating:')
         to_install = []
         for pkg in y.tsInfo.getMembers():
