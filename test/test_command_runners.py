@@ -4,8 +4,8 @@ import pytest
 from flexmock import flexmock
 
 from devassistant.command_helpers import DialogHelper
-from devassistant.command_runners import AskCommandRunner, CallCommandRunner, ClCommandRunner, \
-    Jinja2Runner, LogCommandRunner
+from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
+    Jinja2Runner, LogCommandRunner, UseCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 
@@ -43,12 +43,11 @@ class TestAskCommandRunner(object):
         assert res[1] == decision
 
 
-class TestCallCommandRunner(object):
+class TestUseCommandRunner(object):
     def setup_method(self, method):
-        self.ccr = CallCommandRunner
+        self.ccr = UseCommandRunner
 
     def test_matches(self):
-        assert self.ccr.matches(Command('call', None))
         assert self.ccr.matches(Command('use', None))
         assert not self.ccr.matches(Command('foo', None))
 

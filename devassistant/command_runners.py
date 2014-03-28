@@ -84,17 +84,17 @@ class AskCommandRunner(CommandRunner):
 
 
 @register_command_runner
-class CallCommandRunner(CommandRunner):
+class UseCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
-        return c.comm_type == 'call' or c.comm_type == 'use'
+        return c.comm_type == 'use'
 
     @classmethod
     def run(cls, c):
         assistant = c.kwargs['__assistant__']
         call_parts = c.input_res.rsplit('.', 1)
         if len(call_parts) < 2:
-            raise exceptions.CommandException('"call" command expects "use: what.which_section".')
+            raise exceptions.CommandException('"use" command expects "use: what.which_section".')
         section_name = call_parts[1] # TODO: check dependencies/run
         called = call_parts[0]
         section, sourcefile = cls.get_section_from_call(called, section_name, assistant)
