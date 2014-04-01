@@ -4,14 +4,14 @@ DevAssistant and Docker.io
 *Note: this document is under construction. The described features are not yet implemented
 in DevAssistant and might change significantly before version 0.9.0 is released.*
 
-`Docker.io <http://docker.io>`_ is "an open source project to pack, ship and run any application
+`Docker <http://docker.io>`_ is "an open source project to pack, ship and run any application
 as a lightweight container".
 
 A container is basically a lightweight virtual machine, that has all the
 dependency installation and system setup done inside it, so they don't
 affect your system.
 
-This page summarizes Docker.io usage workflow during project development/deployment,
+This page summarizes Docker usage workflow during project development/deployment,
 as well as instructions on how to make the steps painless through DevAssistant.
 
 Why Docker?
@@ -41,8 +41,8 @@ a different set of filesystem changes. When a container is run, Docker "squashes
 creating a single read-only filesystem for the container. All changes done in the container
 are recorded into a new image, that can be saved when container shuts down.
 
-Docker.io Development/Deployment Workflow
------------------------------------------
+Docker Development/Deployment Workflow
+--------------------------------------
 
 This section summarizes development and deployment workflows for projects using Docker.
 
@@ -91,7 +91,28 @@ This roughly translates to (if pushing to `Docker index <https://index.docker.io
   docker commit <container_id> myname/myapp
   docker push myname/myapp
 
-Implementaion in DevAssistant
------------------------------
+Implementation in DevAssistant
+------------------------------
 
-TODO
+DevAssistant 0.9.0 comes with support for building Docker images and running Docker containers.
+Currently, the only assistant that supports creating new projects with Dockerfile is
+``crt python django``::
+
+  da crt python django -n foo --docker
+
+but we also have ``mod docker develop`` assistant, which is generally usable for any type of
+project that ships a Dockerfile. Use it like this::
+
+  da mod docker develop [-m MOUNTPOINT] [-i REUSE_IMAGE] [-p PATH]
+
+If used with no arguments, this assistant searches for Dockerfile in current directory,
+builds a Docker image, mounts source code (the directory that contains Dockerfile) into it
+(mount point is determined based on first found ``ADD`` instruction in Dockerfile), runs
+a container and attaches to its output, so that you can develop and see the messages from
+process running inside the container.
+
+By using the mentioned options, you can:
+
+- override the directory where your sourcecode should be mounted (``-m``) in the container
+- provide an image to use, if you've already built one (``-i``)
+- specify path to your project if it's not in your current directory (``-p``)
