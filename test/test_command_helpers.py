@@ -64,9 +64,14 @@ class TestClHelper(object):
 class TestCliDialogHelper(object):
     def setup_method(self, method):
         self.tlh = TestLoggingHandler()
+        self.oldinp = CliDialogHelper.inp
 
     def teardown_method(self, method):
         sys.stdin = sys.__stdin__
+        CliDialogHelper.inp = self.oldinp
+
+    def eofraiser(self):
+        raise EOFError
 
     @pytest.mark.parametrize((u'choice', u'expected'),[(u'y', True), (u'n', False),
                              (u'yes', True), (u'no', False), (u'Yes', True),
@@ -87,6 +92,11 @@ class TestCliDialogHelper(object):
         assert CliDialogHelper.ask_for_confirm_with_message('bar', 'baz') is True
         assert 'You have to choose' in capsys.readouterr()[0] #stdout
 
+    def test_ask_confirm_eof_error(self):
+        CliDialogHelper.inp = self.eofraiser
+        assert CliDialogHelper.ask_for_confirm_with_message('bar', 'baz') is None
+
+
     @pytest.mark.parametrize((u'choice', u'expected'),[(u'y', True), (u'n', False),
                              (u'yes', True), (u'no', False), (u'Yes', True),
                              (u'No', False), (u'yEs', True), (u'nO', False)])
@@ -99,3 +109,7 @@ class TestCliDialogHelper(object):
         CliDialogHelper.ask_for_package_list_confirm(u'foo', [u'bar'])
         stdout, stderr = capsys.readouterr()
         assert u'bar' in stdout
+
+    def test_ask_for_package_list_confirm_eof_error(self):
+        CliDialogHelper.inp = self.eofraiser
+        assert CliDialogHelper.ask_for_package_list_confirm('asd', ['sdf']) is None

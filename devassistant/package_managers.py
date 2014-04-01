@@ -730,7 +730,7 @@ class DependencyInstaller(object):
             prompt=pac_man.get_perm_prompt(to_install),
             package_list=to_install,
         )
-        return False if ret is False else True
+        return bool(ret)
 
     def _install_dependencies(self):
         """Install missing dependencies"""

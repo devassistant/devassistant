@@ -231,13 +231,24 @@ class CliDialogHelper(object):
             return None
 
     @classmethod
+    def _read_inp(cls):
+        try:
+            return cls.inp()
+        except EOFError:
+            return None
+
+    @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
         print(prompt + '\n')
         print(message)
         prompt += ' [y/n]'
         while True:
             print(prompt)
-            choice = cls.inp().lower()
+            choice = cls._read_inp()
+            if choice is None:
+                return None
+            else:
+                choice = choice.lower()
             if choice not in cls.yesno_list:
                 print('You have to choose one of y/n.')
             else:
@@ -248,7 +259,11 @@ class CliDialogHelper(object):
         prompt += ' [y(es)/n(o)/s(how)]: '
         while True:
             print(prompt, end='')
-            choice = cls.inp().lower()
+            choice = cls._read_inp()
+            if choice is None:
+                return None
+            else:
+                choice = choice.lower()
             if choice not in cls.yesno_list + ['s', 'show']:
                 print('You have to choose one of y/n/s.')
             else:
@@ -424,4 +439,4 @@ class GtkDialogHelper(object):
         cls.scrollwin.hide()
         win.run()
         Gdk.threads_leave()
-        return win.ok
+        return win.ok or None
