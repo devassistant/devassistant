@@ -1,6 +1,8 @@
-import pytest
+import getpass
 import os
 import re
+
+import pytest
 
 from devassistant import exceptions
 from devassistant.argument import Argument
@@ -42,7 +44,7 @@ class TestArgument(object):
 
     def test_argument_whoami_gui_hint(self):
         a = Argument.construct_arg('some_arg',{'use':'snippet1'})
-        assert a.get_gui_hint('default') == os.getlogin()
+        assert a.get_gui_hint('default') == getpass.getuser()
 
     @pytest.mark.parametrize(('name', 'params'), [
                              ('some_arg',{'use':'snippet1'}),])

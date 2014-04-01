@@ -1,3 +1,4 @@
+import getpass
 import os
 
 from devassistant import exceptions
@@ -63,7 +64,7 @@ class Argument(object):
                 return hint_default or arg_default
             else:
                 if hint_default == '$(whoami)':
-                    hint_default = os.getlogin()
+                    hint_default = getpass.getuser()
                 return hint_default or arg_default or ''
 
     @classmethod
