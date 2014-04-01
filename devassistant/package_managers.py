@@ -201,7 +201,8 @@ class YUMPackageManager(PackageManager):
         try:
             y.resolveDeps()
         except yum.Errors.PackageSackError as e: # Resolution of Issue 154
-            raise exceptions.DependencyException('Error resolving RPM dependencies: {}'.format(str(e)))
+            raise exceptions.DependencyException('Error resolving RPM dependencies: {0}'.\
+                format(str(e)))
 
         logger.debug('Installing/Updating:')
         to_install = []

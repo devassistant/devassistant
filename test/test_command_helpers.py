@@ -54,7 +54,7 @@ class TestClHelper(object):
         cwd = os.getcwd()
         try:
             tmpdir = tempfile.gettempdir()
-            out = ClHelper.run_command('cd {}'.format(tmpdir))
+            out = ClHelper.run_command('cd {0}'.format(tmpdir))
             assert out == ''
             assert os.getcwd() == tmpdir
         finally:
