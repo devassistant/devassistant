@@ -411,7 +411,7 @@ class GtkDialogHelper(object):
         cls.info_btn = cls._get_button('Show packages')
         cls.show = True
         cls.info_btn.connect('clicked', cls._info_installed_packages(win))
-        liststore = Gtk.ListStore(six.text_type)
+        liststore = Gtk.ListStore(str)
         for pkg in sorted(package_list):
             liststore.append([pkg])
         listview = Gtk.TreeView(liststore)
