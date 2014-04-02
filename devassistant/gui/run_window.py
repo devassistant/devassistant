@@ -26,14 +26,10 @@ def get_iter_last(model):
         itr = model.iter_next(itr)
     return last
 
+
 def add_row(record, tree_store, last_row):
-    if record.levelname == "INFO":
-        # Create a new root tree element
-        tree_store.append(None, [record.getMessage()])
-    else:
-        # Append a new element in tree element
-        if not record.getMessage().startswith("|"):
-            tree_store.append(last_row, [record.getMessage()])
+    tree_store.append(None, [record.getMessage()])
+
 
 class RunLoggingHandler(logging.Handler):
     def __init__(self, parent, treeview):
@@ -41,13 +37,11 @@ class RunLoggingHandler(logging.Handler):
         self.treeview = treeview
         self.parent = parent
 
-
     def utf8conv(self,x):
         try:
             return unicode(x,'utf8')
         except:
             return x
-
 
     def emit(self, record):
         msg = record.getMessage()
@@ -59,8 +53,10 @@ class RunLoggingHandler(logging.Handler):
             pass
         else:
             self.parent.debug_logs['logs'].append(record)
-            if record.levelname != 'DEBUG':
-                if getattr(record,'event_type',''):
+            # During execution if level is bigger then DEBUG
+            # then GUI shows the message.
+            if int(record.levelno) > 10:
+                if getattr(record, 'event_type', ''):
                     if record.event_type == 'dep_installation_start':
                         watch = Gdk.Cursor(Gdk.CursorType.WATCH)
                         window = self.parent.run_window.get_root_window()
@@ -69,11 +65,9 @@ class RunLoggingHandler(logging.Handler):
                         arrow = Gdk.Cursor(Gdk.CursorType.ARROW)
                         window = self.parent.run_window.get_root_window()
                         window.set_cursor(arrow)
-                    if not record.event_type.startswith("dep_"):
-                        add_row(record, tree_store, last_row)
-                else:
-                    add_row(record, tree_store, last_row)
+                add_row(record, tree_store, last_row)
         Gdk.threads_leave()
+
 
 class RunWindow(object):
     def __init__(self,  parent, builder, gui_helper):
@@ -110,7 +104,7 @@ class RunWindow(object):
         sigint_handler.override()
 
     def open_window(self, widget, data=None):
-        if data != None:
+        if data is not None:
             self.kwargs = data.get('kwargs', None)
             self.top_assistant = data.get('top_assistant', None)
             self.current_main_assistant = data.get('current_main_assistant', None)
@@ -219,20 +213,11 @@ class RunWindow(object):
         for record in self.debug_logs['logs']:
             last_row = get_iter_last(self.store)
             if self.debugging:
-                if record.levelname == "INFO":
-                    # Create a new root tree element
-                    self.store.append(None, [record.getMessage()])
-                else:
-                    # Append a new element in tree element
-                    if not record.getMessage().startswith("|"):
-                        self.store.append(last_row, [record.getMessage()])
+                # Create a new root tree element
+                self.store.append(None, [record.getMessage()])
             else:
-                if record.levelname != 'DEBUG':
-                    if getattr(record,'event_type',''):
-                        if not record.event_type.startswith("dep_"):
-                            add_row(record, self.store, last_row)
-                    else:
-                        add_row(record, self.store, last_row)
+                if int(record.levelno) > 10:
+                    add_row(record, self.store, last_row)
 
     def clipboard_btn_clicked(self, widget, data=None):
         _clipboard_text=list()
@@ -240,7 +225,7 @@ class RunWindow(object):
             if self.debugging:
                 _clipboard_text.append(record.getMessage())
             else:
-                if record.levelname != 'DEBUG':
+                if int(record.levelno) > 10:
                     if getattr(record,'event_type',''):
                         if not record.event_type.startswith("dep_"):
                             _clipboard_text.append(record.getMessage())
