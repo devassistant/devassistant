@@ -578,7 +578,7 @@ class GitHubCommandRunner(CommandRunner):
             repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
             fork = cls._user.create_fork(repo)
             success = True
-            msg = fork.clone_url
+            msg = fork.ssh_url
         except cls._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
         except BaseException as e:
