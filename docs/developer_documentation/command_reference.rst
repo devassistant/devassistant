@@ -166,6 +166,12 @@ and appending ``r`` runs command as root)
 Note: when using ``r``, it's job of DevAssistant core to figure out what to use as authentication
 method. Consider this an implementation detail.
 
+*A note on changing current working directory: Due to the way Python interpreter works,
+DevAssistant has to specialcase "cd <dir>" command, since it needs to call a special Python
+method for changing current working directory of the running interpreter. Therefore you
+must always use "cd <dir>" as a single command (do not use "ls foo && cd foo");
+also, using pushd/popd is not supported for now.*
+
 .. _dependencies_command_ref:
 
 Dependencies Command
