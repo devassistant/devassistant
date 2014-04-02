@@ -93,6 +93,7 @@ class RunWindow(object):
         logger.setLevel(logging.DEBUG)
         self.store = Gtk.TreeStore(str)
         renderer = Gtk.CellRendererText()
+        renderer.set_property('font', 'Liberation Mono')
         column = Gtk.TreeViewColumn("Log from current process", renderer, text=0)
         self.run_tree_view.append_column(column)
         self.run_tree_view.set_model(self.store)
