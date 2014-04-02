@@ -1,3 +1,19 @@
+- Yaml DSL got a major facelift; check the documentation for more details
+  on changes.
+- Improved Github integration - better authentication, better return
+  values of command runners, more error prone and user friendly.
+- Support for manipulating Docker containers was added to core.
+- A simple mechanism for checking Yaml assistant sanity was implemented.
+- Project types were introduced.
+- All project dependencies are now listed explicitly in .devassistant files.
+- Global variables with system (e.g. linux) and distribution (e.g. fedora)
+  name and version are now globally available.
+- A platform independent way of running commands as root has been introduced.
+- Semantics of "in" for loops has been changed to iterate over characters;
+  use "word_in" to achieve previous behaviour.
+- Tons of minor bugfixes and documentation improvements.
+
+0.8.0
 - DevAssistant can now install dependencies by Pacman on ArchLinux.
 - Added appdata for Gnome Software Center.
 - Added task assistants, whose aim is to carry out custom tasks not related
