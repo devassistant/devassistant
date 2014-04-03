@@ -40,6 +40,7 @@ class YamlChecker(object):
         self._check_description(self.sourcefile)
         self._check_project_type(self.sourcefile)
         self._check_args(self.sourcefile)
+        self._check_files(self.sourcefile)
         self._check_dependencies(self.sourcefile)
         self._check_run(self.sourcefile)
 
@@ -85,6 +86,20 @@ class YamlChecker(object):
             elif attrn == 'gui_hints':
                 # TODO: maybe check this more thoroughly
                 self._assert_dict(attrval, attrn, path)
+
+    def _check_files(self, source):
+        path = [source]
+        files = self.parsed_yaml.get('files', {})
+        self._assert_dict(files, 'files', path)
+        path.append('files')
+        for fname, fattrs in files.items():
+            self._check_one_file(path, fname, fattrs)
+
+    def _check_one_file(self, path, fname, fattrs):
+        self._assert_dict(fattrs, fname, path)
+        self._assert_key_in('source', fattrs, fname, path,
+                            extra_info='Every file in "files" section must have "source" defined.')
+        self._assert_str(fattrs.get('source', ''), fname, path + [fname])
 
     def _check_dependencies(self, source):
         path = [source]
@@ -174,6 +189,16 @@ class YamlChecker(object):
             if extra_info:
                 err.append(extra_info)
             raise exceptions.YamlSyntaxError('\n'.join(err))
+
+    def _assert_key_in(self, key, struct, name, path=None, extra_info=None):
+        if not key in struct:
+            err = []
+            if path:
+                err.append(self._format_error_path(path + [name]))
+            err.append('  Missing mandatory key "{k}" in mapping {n}.'.format(k=key, n=name))
+            if extra_info:
+                err.append('Tip: ' + extra_info)
+            raise exceptions.YamlTypeError('\n'.join(err))
 
     def _assert_struct_type(self, struct, name, types, path=None, extra_info=None):
         """Asserts that given structure is of any of given types.
