@@ -10,7 +10,6 @@ import string
 import sys
 
 import jinja2
-import progress.bar
 import six
 import yaml
 
@@ -572,7 +571,7 @@ class GitHubCommandRunner(CommandRunner):
         fork_login, fork_reponame = kwargs['repo_url'].split('/')
         logger.info('Forking {repo} for user {login} on Github ...'.\
             format(login=kwargs['login'], repo=kwargs['repo_url']))
-        sucess = False
+        success = False
         msg = ''
         try:
             repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)

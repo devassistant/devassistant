@@ -1,6 +1,5 @@
 import os
 
-from devassistant import exceptions
 from devassistant import settings
 
 
