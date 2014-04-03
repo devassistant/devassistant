@@ -135,11 +135,11 @@ class YamlChecker(object):
                    command_type.startswith('for ') or command_type.endswith('~'):
                     self._check_execution_section(path, command_type, command_input)
                 else:
-                    self._check_input_section(path, command_type, command_input)
+                    self._check_literal_section(path, command_type, command_input)
         else:  # expression
             pass  # TODO: check expression syntax here or leave it up for the actual run?
 
-    def _check_input_section(self, path, sectname, struct):
+    def _check_literal_section(self, path, sectname, struct):
         # input section can be pretty much anything; we just want to check that when there's
         # a dict somewhere in the structure  and one of its members ends with execution flag,
         # we check the execution section assigned to this member
@@ -147,13 +147,13 @@ class YamlChecker(object):
         if isinstance(struct, list):
             for item in struct:
                 if isinstance(item, (dict, list)):
-                    self._check_input_section(path, item, item)
+                    self._check_literal_section(path, item, item)
         elif isinstance(struct, dict):
             for k, v in struct.items():
                 if k.endswith('~'):
                     self._check_execution_section(path, k, v)
                 else:
-                    self._check_input_section(path, k, v)
+                    self._check_literal_section(path, k, v)
 
     def _assert_dict(self, struct, name, path=None, extra_info=None):
         self._assert_struct_type(struct, name, (dict,), path, extra_info)
