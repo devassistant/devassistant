@@ -125,20 +125,21 @@ class HelpAction(Action):
             max(*map(lambda x: len(x.name), top_visible_actions))
         ) + 2
         text = ['You can either run assistants with:']
-        text.append(cls.format_text('da [--debug] {crt,mod,prep,task} [ASSISTANT [ARGUMENTS]] ...',
+        text.append(cls.format_text('da [--debug] {create,modify,prepare,task} ' +\
+                                    '[ASSISTANT [ARGUMENTS]] ...',
                                     'bold',
                                     format_type))
         text.append('')
         text.append('Where:')
-        text.append(cls.format_action_line('crt',
+        text.append(cls.format_action_line('create',
                                            'used for creating new projects',
                                            just,
                                            format_type))
-        text.append(cls.format_action_line('mod',
+        text.append(cls.format_action_line('modify',
                                            'used for working with existing projects',
                                            just,
                                            format_type))
-        text.append(cls.format_action_line('prep',
+        text.append(cls.format_action_line('prepare',
                                            'used for preparing environment for upstream projects',
                                             just,
                                             format_type))
@@ -147,6 +148,7 @@ class HelpAction(Action):
                                            'specific project',
                                             just,
                                             format_type))
+        text.append('You can shorten "create" to "crt", "modify" to "mod" and "prepare" to "prep".')
         text.append('')
         text.append('Or you can run a custom action:')
         text.append(cls.format_text('da [--debug] [ACTION] [ARGUMENTS]',

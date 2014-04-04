@@ -5,6 +5,7 @@ from devassistant import yaml_assistant_loader
 
 
 class ExecutableAssistant(assistant_base.AssistantBase):
+    aliases = []
     args = [argument.Argument('deps_only',
                               settings.DEPS_ONLY_FLAG,
                               help='Only install dependencies',
@@ -18,6 +19,7 @@ class CreatorAssistant(ExecutableAssistant):
         return sa
 
     name = 'crt'
+    aliases = ['create']
     fullname = 'Create Project'
     description = 'Kickstart new projects easily with DevAssistant.'
 
@@ -28,6 +30,7 @@ class ModifierAssistant(ExecutableAssistant):
         return sa
 
     name = 'mod'
+    aliases = ['modify']
     fullname = 'Modify Project'
     description = 'Modify existing projects with DevAssistant.'
 
@@ -38,6 +41,7 @@ class PreparerAssistant(ExecutableAssistant):
         return sa
 
     name = 'prep'
+    aliases = ['prepare']
     fullname = 'Prepare Environment'
     description = 'Prepare environment for upstream projects with DevAssistant.'
 

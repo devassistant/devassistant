@@ -66,7 +66,7 @@ Each assistant can optionally define arguments that it accepts (either
 on commandline, or from GUI). For example, you can run
 the leftmost path with::
 
-   $ da crt python [python assistant arguments] django [django assistant arguments]
+   $ da create python [python assistant arguments] django [django assistant arguments]
 
 If an assistant has any subassistants, one of them **must** be used. E.g.
 in the example above, you can't use just Python assistant, you have to
@@ -94,7 +94,7 @@ improving documentation, ...), please use our Github repo:
 - issue tracker: https://github.com/bkabrda/devassistant/issues
 
 If you have DevAssistant installed (version 0.8.0 or newer), there is a fair chance that you have
-``devassistant`` preparer. Just run ``da prep devassistant`` and it will
+``devassistant`` preparer. Just run ``da prepare devassistant`` and it will
 checkout our sources and do all the boring stuff that you'd have to do
 without DevAssistant.
 
@@ -114,4 +114,4 @@ to write and run tests (you should!), install dependencies from ``requirements-d
 
 On top of that, you'll need ``polkit`` for requesting root privileges for dependency installation
 etc. If you want to play around with GUI, you have to install ``pygobject``, too (see how
-hard this is compared to ``da prep devassistant``?)
+hard this is compared to ``da prepare devassistant``?)

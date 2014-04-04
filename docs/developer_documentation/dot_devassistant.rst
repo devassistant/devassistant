@@ -26,7 +26,7 @@ Generally, there are two use cases for ``.devassistant``:
   do with this type of project (by choosing a proper ``run`` section to
   execute and proper ``dependencies`` section, see :ref:`modifier_assistants_ref`).
 - When you use the ``custom`` preparer with URL to this project
-  (``da prep custom -u <url>``), DevAssistant will checkout the project,
+  (``da prepare custom -u <url>``), DevAssistant will checkout the project,
   read the data from ``.devassistant`` and do few things:
 
   - It will install any dependendencies that it finds in ``.devassistant``. These

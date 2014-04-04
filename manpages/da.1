@@ -2,7 +2,7 @@
 .\"
 .\" This page is distributed under GPL.
 .\"
-.TH DA 1 2013-03-12 "" "Linux User's Manual"
+.TH DA 1 2014-04-04 "" "Linux User's Manual"
 .SH NAME
 da \- setup development environment and create basic projects in various
 languages
@@ -25,15 +25,17 @@ makes DevAssistant read all individual assistants and completely ignore cache
 
 .SH DESCRIPTION - ASSISTANT_TYPE
 DevAssistant can help you with various tasks during development. The tasks
-are carried out by so called "assistants" - there are three types of assistants:
+are carried out by so called "assistants" - there are four types of assistants:
 
-\fBcrt\fP - create new projects, install dependencies and setup environment
+\fBcreate\fP - create new projects, install dependencies and setup environment
 .br
-\fBmod\fP - modify previously created projects (e.g. import them to Eclipse)
+\fBmodify\fP - modify previously created projects (e.g. import them to Eclipse)
 .br
-\fBprep\fP - prepare development environment for an upstream project
+\fBprepare\fP - prepare development environment for an upstream project
 .br
 \fBtask\fP - carry out a custom task not related to a specific project
+
+You can shorten "create" to "crt", "modify" to "mod" and "prepare" to "prep".
 
 Each assistant type can have many associated assistants (e.g. python, ruby)
 and each assistant can have many associated subassistants (e.g. django, flask).

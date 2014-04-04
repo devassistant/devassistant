@@ -9,6 +9,7 @@ from devassistant import current_run
 from devassistant import exceptions
 from devassistant import logger
 from devassistant import path_runner
+from devassistant import settings
 from devassistant import sigint_handler
 
 
@@ -47,16 +48,17 @@ class CliRunner(object):
         tree = top_assistant.get_subassistant_tree()
         argparser = argparse_generator.ArgparseGenerator.\
             generate_argument_parser(tree, actions=actions.actions)
-        parsed_args = argparser.parse_args()
-        if parsed_args.da_debug:
+        parsed_args = vars(argparser.parse_args())
+        if 'da_debug' in parsed_args:
             cls.change_logging_level(logging.DEBUG)
-        if actions.is_action_run(**vars(parsed_args)):
-            to_run = actions.get_action_to_run(**vars(parsed_args))
+        if actions.is_action_run(**parsed_args):
+            to_run = actions.get_action_to_run(**parsed_args)
         else:
-            path = top_assistant.get_selected_subassistant_path(**vars(parsed_args))
-            to_run = path_runner.PathRunner(path, vars(parsed_args))
+            parsed_args = cls.transform_executable_assistant_alias(parsed_args)
+            path = top_assistant.get_selected_subassistant_path(**parsed_args)
+            to_run = path_runner.PathRunner(path, parsed_args)
         try:
-            to_run.run(**vars(parsed_args))
+            to_run.run(**parsed_args)
         except exceptions.ExecutionException:
             # error is already logged, just catch it and silently exit here
             sys.exit(1)
@@ -72,6 +74,16 @@ class CliRunner(object):
             logger.logger.info('*' * len(msg))
             logger.logger.info(msg)
             logger.logger.info('*' * len(msg))
+
+    @classmethod
+    def transform_executable_assistant_alias(cls, parsed_args):
+        key = settings.SUBASSISTANT_N_STRING.format(0)
+        for assistant in [bin.CreatorAssistant, bin.ModifierAssistant,
+                          bin.PreparerAssistant, bin.TaskAssistant]:
+            if parsed_args[key] in assistant.aliases:
+                parsed_args[key] = assistant.name
+        return parsed_args
+
 
 if __name__ == '__main__':
     # this is here mainly because of utils.cl_string_from_da_eval

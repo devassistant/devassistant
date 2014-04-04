@@ -2,7 +2,7 @@
 .\"
 .\" This page is distributed under GPL.
 .\"
-.TH DA 1 2013-03-12 "" "Linux User's Manual"
+.TH DA 1 2014-04-04 "" "Linux User's Manual"
 .SH NAME
 devassistant \- setup development environment and create basic projects in various
 languages
@@ -15,20 +15,29 @@ Please note that \fBda\fP binary is the recommended way of running DevAssistant
 
 .SH DESCRIPTION
 \fBdevassistant\fP is the main binary of DevAssistant. It is responsible for
-dispatching commandline calls to assistants or actions. It accepts an optional
-\fB--debug\fP flag, which makes DevAssistant log lots of debugging information,
-including all called CLI commands and their output.
+dispatching commandline calls to assistants or actions. It accepts some
+optional flags:
+
+.TP
+.B --debug
+makes DevAssistant log lots of debugging information
+.TP
+.B --no-cache
+makes DevAssistant read all individual assistants and completely ignore cache
 
 .SH DESCRIPTION - ASSISTANT_TYPE
 DevAssistant can help you with various tasks during development. The tasks
-are carried out by so called "assistants" - there are three types of assistants:
+are carried out by so called "assistants" - there are four types of assistants:
 
-\fBcrt\fP - create new projects, install dependencies and setup environment
+\fBcreate\fP - create new projects, install dependencies and setup environment
 .br
-\fBmod\fP - modify previously created projects (e.g. import them to Eclipse)
+\fBmodify\fP - modify previously created projects (e.g. import them to Eclipse)
 .br
-\fBprep\fP - prepare development environment for an upstream project or for
-a custom development task
+\fBprepare\fP - prepare development environment for an upstream project
+.br
+\fBtask\fP - carry out a custom task not related to a specific project
+
+You can shorten "create" to "crt", "modify" to "mod" and "prepare" to "prep".
 
 Each assistant type can have many associated assistants (e.g. python, ruby)
 and each assistant can have many associated subassistants (e.g. django, flask).
@@ -78,6 +87,12 @@ generate a SPEC file, SRPM and mock-build RPM.
 .B \-v --vim
 install vim settings specific for this language (backs up your original vim settings)
 .TP
+
+.SH ENVIRONMENT VARIABLES
+DevAssistant uses DEVASSISTANT_PATH environment variable. When specified, this has to
+be list of paths delimited by colon. These paths are traversed first, therefore if
+there is assistant "foo" in path from DEVASSISTANT_PATH and assistant with the same name
+is in standard paths, the one from DEVASSISTANT_PATH will be loaded.
 
 .SH "SEE ALSO"
 .BR da (1)

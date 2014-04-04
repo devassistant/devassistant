@@ -68,7 +68,7 @@ So, let's start writing our assistant by providing some initial metadata::
    description: Create a template of simple script that uses argh library
    project_type: [python]
 
-If you now save the file and run ``da crt python argh -h``, you'll see that
+If you now save the file and run ``da create python argh -h``, you'll see that
 your assistant was already recognized by DevAssistant, although it doesn't
 provide any functionality yet. (Including project type in your Creator assistant
 is not necessary, but it may bring some benefits - see :ref:`project_types_ref`.
@@ -83,7 +83,7 @@ package is called e.g. on Fedora). You can do this just by adding::
    - rpm: [python-argh]
 
 Now, if you save the file and actually try to run your assistant with
-``da crt python argh``, it will install ``python-argh``! (Well, assuming
+``da create python argh``, it will install ``python-argh``! (Well, assuming
 it's not already installed, in which case it will do nothing.) This is
 really super-cool, but the assistant still doesn't do any project setup,
 so let's get on with it.
@@ -156,7 +156,7 @@ This means that this assistant will have one argument called ``name``. On
 commandline, it will expect ``-n foo`` or ``--name foo`` and since the
 argument is required, it will refuse to run without it.
 
-You can now try running ``da crt python argh -h`` and you'll see that the
+You can now try running ``da create python argh -h`` and you'll see that the
 argument is printed out in commandline help.
 
 Since there are some common arguments, the standard installation of
@@ -243,7 +243,7 @@ project. Amongst other things, it stores information about which assistant was
 invoked. This information can later serve to prepare the environment (e.g.
 install ``python-argh``) on another machine. Assuming that we commit the
 project to a git repository, one just needs to run
-``da prep custom -u <repo_url>``, and DevAssistant will checkout the project
+``da prepare custom -u <repo_url>``, and DevAssistant will checkout the project
 from git and use information stored in ``.devassistant`` to reinstall
 dependencies. (There is more to this, you can for example add a custom
 ``run`` section to ``.devassistant`` file or add custom dependencies,
@@ -321,7 +321,7 @@ The Whole Assistant
    - use: git_init_add_commit.run
    - log_i: Project "$proj_name" has been created in "$name".
 
-And can be run like this: ``da crt python argh -n foo/bar``.
+And can be run like this: ``da create python argh -n foo/bar``.
 
 
 Creating a Modifier

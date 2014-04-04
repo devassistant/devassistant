@@ -53,7 +53,7 @@ Creating New Projects
 DevAssistant can help you create (that's the ``crt`` in the below command) your
 projects with one line in terminal. For example::
 
-   $ da crt python django -n foo -e -g
+   $ da create python django -n foo -e -g
 
 ``da`` is short form of ``devassistant``. You can use any of them, but ``da`` is preferred.
 
@@ -80,9 +80,9 @@ Modifying Existing Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 DevAssistant allows you to work with previously created projects. You can do
-this by using ``da mod``, as opposed to ``da crt`` for creating::
+this by using ``da modify``, as opposed to ``da create`` for creating::
 
-   $ da mod eclipse
+   $ da modify eclipse
 
 This will import previously created project into Eclipse (and possibly install
 Eclipse and other dependencies implied by the project language). Optionally,
@@ -100,7 +100,7 @@ in a remote SCM (e.g. Github). For custom projects you can use the ``custom`` as
 Note that for projects that don't have ``.devassistant`` file, this will just checkout
 the sources::
 
-   $ da prep custom -u scm_url
+   $ da prepare custom -u scm_url
 
 **Warning:** The ``custom`` assistant executes custom pieces of code from ``.devassistant`` file,
 so use this only for projects whose upstreams you trust.
@@ -109,7 +109,7 @@ The plan is to also include assistants for well known and largely developed proj
 (that, of course, don't contain ``.devassistant`` file). So in future you should be
 able to do something like::
 
-   $ da prep openstack
+   $ da prepare openstack
 
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...

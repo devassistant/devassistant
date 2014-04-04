@@ -41,7 +41,8 @@ class ArgparseGenerator(object):
             # from Python 3.3, subparsers are optional by default => make them required
             subparsers.required = True
             for subas in sorted(cur_subas, key=lambda x: x[0].name):
-                cls.add_subassistants_to(subparsers, subas, level=1)
+                for alias in [subas[0].name] + getattr(subas[0], 'aliases', []):
+                    cls.add_subassistants_to(subparsers, subas, level=1, alias=alias)
 
             for action, subactions in sorted(actions.items(), key=lambda x: x[0].name):
                 cls.add_action_to(subparsers, action, subactions, level=1)
@@ -68,7 +69,7 @@ class ArgparseGenerator(object):
                             default=False)
 
     @classmethod
-    def add_subassistants_to(cls, parser, assistant_tuple, level):
+    def add_subassistants_to(cls, parser, assistant_tuple, level, alias=None):
         """Adds assistant from given part of assistant tree and all its subassistants to
         a given argument parser.
 
@@ -77,7 +78,8 @@ class ArgparseGenerator(object):
             assistant_tuple: part of assistant tree (see generate_argument_parser doc)
             level: level of subassistants that given assistant is at
         """
-        p = parser.add_parser(assistant_tuple[0].name,
+        name = alias or assistant_tuple[0].name
+        p = parser.add_parser(name,
                               description=assistant_tuple[0].description,
                               argument_default=argparse.SUPPRESS)
         for arg in assistant_tuple[0].args:

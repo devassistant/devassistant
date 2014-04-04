@@ -1,34 +1,43 @@
 DevAssistant is developer's best friend (right after coffee).
 
-DevAssistant (http://devassistant.org) can help you with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc. There are three main types of functionality provided:
+DevAssistant (http://devassistant.org) can help you with creating and setting up basic projects
+in various languages, installing dependencies, setting up environment etc. There are four main
+types of functionality provided:
 
-- ``da crt`` - create new project from scratch
-- ``da mod`` - take local project and do something with it (e.g. import it to Eclipse)
-- ``da prep`` - prepare development environment for an upstream project or a custom task
+- ``da create`` - create new project from scratch
+- ``da modify`` - take local project and do something with it (e.g. import it to Eclipse)
+- ``da prepare`` - prepare development environment for an upstream project or a custom task
+- ``da task`` - perform a custom task not related to a specific project
 
-DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can run::
+The first three of these have shortcuts for faster use: "create" can be shortened as "crt",
+"modify" as "mod" and "prepare" as "prep".
 
-   $ da crt python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-   $ da crt python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-   $ da crt ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical
+structure. E.g. you can run::
 
-DevAssistant also allows you to work with a previously created project, for example import it to Eclipse::
+   $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+   $ da create python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
+   $ da create ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
-   $ da mod eclipse # run in project dir or use -p to specify path
+DevAssistant also allows you to work with a previously created project, for example
+import it to Eclipse::
 
-With DevAssistant, you can also prepare environment for developing upstream projects - either using project-specific assistants or using "custom" assistant for arbitrary projects (even those not created by DevAssistant)::
+   $ da modify eclipse # run in project dir or use -p to specify path
 
-   $ da prep custom custom -u scm_url
+With DevAssistant, you can also prepare environment for developing upstream projects -
+either using project-specific assistants or using "custom" assistant for arbitrary projects
+(even those not created by DevAssistant)::
+
+   $ da prepare custom custom -u scm_url
 
 **Warning:** The ``custom`` assistant executes custom pieces of code from
 ``.devassistant`` file of the project. Therefore you have to be extra careful
 and use this **only with projects whose authors you trust**.
 
-Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific project:
+Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific
+project::
 
-.. code:: sh
-
-  $ da task <TODO:NOTHING YET>
+   $ da task <TODO:NOTHING YET>
 
 Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our
 mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join

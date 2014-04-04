@@ -98,12 +98,12 @@ DevAssistant 0.9.0 comes with support for building Docker images and running Doc
 Currently, the only assistant that supports creating new projects with Dockerfile is
 ``crt python django``::
 
-  da crt python django -n foo --docker
+  da create python django -n foo --docker
 
 but we also have ``mod docker develop`` assistant, which is generally usable for any type of
 project that ships a Dockerfile. Use it like this::
 
-  da mod docker develop [-m MOUNTPOINT] [-i REUSE_IMAGE] [-p PATH]
+  da modify docker develop [-m MOUNTPOINT] [-i REUSE_IMAGE] [-p PATH]
 
 If used with no arguments, this assistant searches for Dockerfile in current directory,
 builds a Docker image, mounts source code (the directory that contains Dockerfile) into it

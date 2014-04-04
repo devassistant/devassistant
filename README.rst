@@ -18,21 +18,21 @@ DevAssistant is based on idea of per-{language/framework/...} "assistants" with 
 
 .. code:: sh
 
-  $ da crt python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-  $ da crt python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-  $ da crt ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+  $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+  $ da create python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
+  $ da create ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
 
 DevAssistant also allows you to work with a previously created project, for example import it to Eclipse:
 
 .. code:: sh
 
-  $ da mod eclipse # run in project dir or use -p to specify path
+  $ da modify eclipse # run in project dir or use -p to specify path
 
 With DevAssistant, you can also prepare environment for developing upstream projects - either using project-specific assistants or using "custom" assistant for arbitrary projects (even those not created by DevAssistant):
 
 .. code:: sh
 
-  $ da prep custom -u scm_url -p directory_to_save_to
+  $ da prepare custom -u scm_url -p directory_to_save_to
 
 Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific project:
 
@@ -67,7 +67,7 @@ Or, assuming that you have DevAssistant version 0.8.0 or higher installed, you j
 
 .. code:: sh
 
-  da prep devassistant
+  da prepare devassistant
 
 DevAssistant works on Python 2.6, 2.7 and >= 3.3.
 
