@@ -12,6 +12,8 @@
 - Semantics of "in" for loops has been changed to iterate over characters;
   use "word_in" to achieve previous behaviour.
 - Tons of minor bugfixes and documentation improvements.
+- "crt", "mod" and "prep" got aliases "create", "modify" and "prepare" on
+  command line. Users can now use whichever suits them best.
 
 0.8.0
 - DevAssistant can now install dependencies by Pacman on ArchLinux.
