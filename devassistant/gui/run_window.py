@@ -118,7 +118,7 @@ class RunWindow(object):
             self.info_box.remove(self.link)
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
-                    "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'),projectname))
+                    "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'), projectname))
             self.link.set_border_width(6)
             self.link.set_sensitive(False)
             self.info_box.pack_start(self.link, False, False, 12)
@@ -193,14 +193,17 @@ class RunWindow(object):
                 message = '<span color="#FF0000">Failed</span>'
                 link = False
                 back = True
-            self.allow_buttons(message=message,link=link,back=back)
+            self.allow_buttons(message=message, link=link, back=back)
             Gdk.threads_leave()
         except exceptions.ClException as cl:
-            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format(cl.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.
+                               format(cl.message))
         except exceptions.ExecutionException as ee:
-            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.
+                               format((ee.message[:50]+'...') if len(ee.message) > 50 else ee.message))
         except IOError as ie:
-            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
+            self.allow_buttons(back=True, link=False, message='<span color="#FF0000">Failed: {0}</span>'.
+                               format((ie.message[:50]+'...') if len(ie.message) > 50 else ie.message))
 
     def debug_btn_clicked(self, widget, data=None):
         self.store.clear()
@@ -220,13 +223,13 @@ class RunWindow(object):
                     add_row(record, self.store, last_row)
 
     def clipboard_btn_clicked(self, widget, data=None):
-        _clipboard_text=list()
+        _clipboard_text = list()
         for record in self.debug_logs['logs']:
             if self.debugging:
                 _clipboard_text.append(record.getMessage())
             else:
                 if int(record.levelno) > 10:
-                    if getattr(record,'event_type',''):
+                    if getattr(record, 'event_type', ''):
                         if not record.event_type.startswith("dep_"):
                             _clipboard_text.append(record.getMessage())
                     else:
