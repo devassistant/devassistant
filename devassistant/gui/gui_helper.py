@@ -19,7 +19,7 @@ class GuiHelper(object):
         frame.set_shadow_type(Gtk.ShadowType.IN)
         return frame
     def create_box(self, orientation=Gtk.Orientation.HORIZONTAL, spacing=0):
-        hbox=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=0)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         hbox.set_homogeneous(False)
         return hbox
 
@@ -27,7 +27,7 @@ class GuiHelper(object):
         btn = self.create_button()
         label = self.create_label(description)
         if assistants != None:
-            hbox=self.create_box(orientation=Gtk.Orientation.VERTICAL)
+            hbox = self.create_box(orientation=Gtk.Orientation.VERTICAL)
             hbox.pack_start(label, False, False, 0)
             labelass = self.create_label(assistants, justify=Gtk.Justification.LEFT)
             labelass.set_alignment(0,0)
@@ -45,7 +45,7 @@ class GuiHelper(object):
     def button_with_image(self, description, image=None, sensitive=True):
         btn = self.create_button()
         btn.set_sensitive(sensitive)
-        hbox=self.create_box()
+        hbox = self.create_box()
         img = self.create_image(image_name=image)
         hbox.pack_start(img, False, False, 12)
         label = self.create_label(description)
@@ -106,7 +106,7 @@ class GuiHelper(object):
         The function is used for creating lable with HTML text
         """
         label = Gtk.Label()
-        name = name.replace('|','\n')
+        name = name.replace('|', '\n')
         label.set_markup(name)
         label.set_justify(justify)
         label.set_line_wrap(wrap)
@@ -127,7 +127,7 @@ class GuiHelper(object):
         if not os.path.exists(image_name):
             btn = self.button_with_label("<b>"+ass[0].fullname+"</b>")
         else:
-            btn = self.button_with_image("<b>"+ass[0].fullname+"</b>",image=ass[0].icon_path)
+            btn = self.button_with_image("<b>"+ass[0].fullname+"</b>", image=ass[0].icon_path)
         #print "Dependencies button",ass[0]._dependencies
         if ass[0].description:
             btn.set_has_tooltip(True)
@@ -154,13 +154,13 @@ class GuiHelper(object):
         cnt=0
         for sub in sorted(assistant[1], key=lambda y: y[0].fullname.lower()):
             if cnt != 0:
-                text+="|"
-            cnt+=1
-            text+="- "+sub[0].fullname
+                text += "|"
+            cnt += 1
+            text += "- "+sub[0].fullname
             if not os.path.exists(sub[0].icon_path):
                 menu_item = self.create_menu_item(sub[0].fullname)
             else:
-                menu_item = self.create_imagemenu_item(sub[0].fullname,sub[0].icon_path)
+                menu_item = self.create_imagemenu_item(sub[0].fullname, sub[0].icon_path)
             if sub[0].description:
                 menu_item.set_has_tooltip(True)
                 menu_item.connect("query-tooltip",
@@ -174,12 +174,12 @@ class GuiHelper(object):
             item.append(sub[0].name)
             menu_item.connect("activate", self.parent.submenu_activate, item)
         menu.show_all()
-        text = text.replace('|','\n')
+        text = text.replace('|', '\n')
         image_name = assistant[0].icon_path
         if not os.path.exists(image_name):
             btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>")
         else:
-            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>",image=image_name)
+            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>", image=image_name)
         btn.set_has_tooltip(True)
         if assistant[0].description:
             description = self.get_formated_description(assistant[0].description)+"\n\n"
@@ -217,7 +217,7 @@ class GuiHelper(object):
         scrolled_window.set_policy(horizontal, vertical)
         return scrolled_window
 
-    def create_gtk_grid(self, row_spacing=6, col_spacing=6, row_homogenous=False,col_homogenous=True):
+    def create_gtk_grid(self, row_spacing=6, col_spacing=6, row_homogenous=False, col_homogenous=True):
         grid_lang = Gtk.Grid()
         grid_lang.set_column_spacing(row_spacing)
         grid_lang.set_row_spacing(col_spacing)
@@ -239,6 +239,12 @@ class GuiHelper(object):
                              buttons,
                              text)
         return dialog
+
+    def execute_dialog(self, title):
+        md = self.create_message_dialog(title)
+        md.run()
+        md.destroy()
+        return
 
     def create_file_chooser_dialog(self, text, cls, name=Gtk.STOCK_OPEN):
         text = None
@@ -289,7 +295,7 @@ class GuiHelper(object):
         if function:
             renderer_combo.connect("edited", function)
         renderer_combo.set_property("text-column", 0)
-        renderer_combo.set_property("has-entry",False)
+        renderer_combo.set_property("has-entry", False)
         column = Gtk.TreeViewColumn(title, renderer_combo, text=assign)
         tree_view.append_column(column)
 
