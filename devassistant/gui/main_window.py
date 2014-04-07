@@ -14,9 +14,6 @@ from devassistant.gui import path_window
 from devassistant.gui import run_window
 from devassistant.gui import gui_helper
 
-#GLib.threads_init()
-#Gdk.threads_init()
-
 gladefile = os.path.join(os.path.dirname(__file__), 'devel-assistant.glade')
 
 class MainWindow(object):
@@ -74,6 +71,10 @@ class MainWindow(object):
         # End used for debugging
 
         self.main_win.show_all()
+        # Thread should be defined here
+        # because of timeout and threads sharing.
+        GLib.threads_init()
+        Gdk.threads_init()
         Gdk.threads_enter()
         Gtk.main()
         Gdk.threads_leave()
