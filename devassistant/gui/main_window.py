@@ -14,8 +14,8 @@ from devassistant.gui import path_window
 from devassistant.gui import run_window
 from devassistant.gui import gui_helper
 
-GLib.threads_init()
-Gdk.threads_init()
+#GLib.threads_init()
+#Gdk.threads_init()
 
 gladefile = os.path.join(os.path.dirname(__file__), 'devel-assistant.glade')
 
@@ -41,6 +41,7 @@ class MainWindow(object):
                 "on_clipboardBtn_clicked": self.run_window.clipboard_btn_clicked,
                 "on_backBtn_clicked": self.run_window.back_btn_clicked,
                 "on_mainBtn_clicked": self.run_window.main_btn_clicked,
+                "on_entryProjectName_changed": self.path_window.project_name_changed,
                     }
         self.builder.connect_signals(self.mainhandlers)
         self.label_main_window = self.builder.get_object("sublabel")
