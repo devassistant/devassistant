@@ -427,7 +427,9 @@ class GitHubCommandRunner(CommandRunner):
         Returns:
             guessed reponame
         """
-        name = explicit or ctxt.get('name')
+        name = explicit
+        if not name:
+            name = os.path.basename(ctxt.get('name', ''))
         if not name:
             raise exceptions.CommandException('Cannot guess Github reponame - no argument given'
                                               'and there is no "name" variable.')
