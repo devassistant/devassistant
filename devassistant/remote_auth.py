@@ -4,6 +4,7 @@ import os
 
 import six
 
+from devassistant import current_run
 from devassistant import exceptions
 from devassistant import settings
 from devassistant import utils
@@ -74,7 +75,11 @@ class GitHubAuth(object):
                 user = None
                 msg = 'Wrong Github username or password; message from Github: {0}\n'.\
                     format(e.data.get('message', 'Unknown authentication error'))
-                msg += 'Try again or press Ctrl + D to abort.'
+                msg += 'Try again or press {0} to abort.'
+                if current_run.UI == 'cli':
+                    msg = msg.format('Ctrl + D')
+                else:
+                    msg = msg.format('"Cancel"')
                 logger.warning(msg)
 
         return user
