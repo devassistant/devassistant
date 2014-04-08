@@ -22,10 +22,11 @@ class PathWindow(object):
         self.box_path_main = builder.get_object("boxPathMain")
         self.box_project = builder.get_object("boxProject")
         self.box6 = builder.get_object("box6")
+        self.run_btn = builder.get_object("nextPathBtn")
         self.button = dict()
-        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,col_homogenous=False, row_homogenous=True)
+        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0, col_homogenous=False, row_homogenous=True)
         self.title = self.gui_helper.create_label("Available options:")
-        self.title.set_alignment(0,0)
+        self.title.set_alignment(0, 0)
         self.box_path_main.pack_start(self.title, False, False, 0)
         self.box_path_main.pack_start(self.grid, False, False, 0)
         self.entries = dict()
@@ -51,36 +52,24 @@ class PathWindow(object):
         # check whether project directory and name is properly set
         if not deps_only and self.current_main_assistant.name == 'crt':
             if self.dir_name.get_text() == "":
-                md=self.gui_helper.create_message_dialog("Specify directory for project")
-                md.run()
-                md.destroy()
-                return
-            elif self.entry_project_name.get_text() == "":
-                md=self.gui_helper.create_message_dialog("Specify project name")
-                md.run()
-                md.destroy()
-                return
+                return self.gui_helper.execute_dialog("Specify directory for project")
             else:
                 # check whether directory is existing
-                if os.path.isdir(self.dir_name.get_text()) == False:
-                    md=self.gui_helper.create_message_dialog(
-                        "Directory {0} does not exists".format(self.dir_name.get_text()))
-                    md.run()
-                    md.destroy()
-                    return
-                elif os.path.isdir(self.dir_name.get_text()+"/"+self.entry_project_name.get_text()) == True:
-                    md=self.gui_helper.create_message_dialog(
-                            "Directory {0} already exists".format(self.dir_name.get_text()+
-                            "/"+self.entry_project_name.get_text()))
-                    md.run()
-                    md.destroy()
-                    return
+                if not os.path.isdir(self.dir_name.get_text()):
+                    return self.gui_helper.execute_dialog(
+                                    "Directory {0} does not exists".format(self.dir_name.get_text())
+                                )
+                elif os.path.isdir(os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())):
+                    return self.gui_helper.execute_dialog(
+                                    "Directory {0} already exists".format(
+                                os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text()))
+                                )
 
         if not self._build_flags():
             return
 
         if not deps_only and self.current_main_assistant.name == 'crt':
-            self.kwargs['name']=self.dir_name.get_text()+"/"+self.entry_project_name.get_text()
+            self.kwargs['name'] = os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())
 
         data = {}
         data['kwargs'] = self.kwargs
@@ -93,40 +82,38 @@ class PathWindow(object):
         for widget in self.button:
             if isinstance(widget, Gtk.Label) or isinstance(widget, Gtk.CheckButton) and widget.get_active():
                 if widget.get_label() in self.entries and not self.entries[widget.get_label()].get_text():
-                    md = self.gui_helper.create_message_dialog(
+                    self.gui_helper.execute_dialog(
                         "Entry {0} is empty".format(widget.get_label())
                         )
-                    md.run()
-                    md.destroy()
                     return False
         for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
-            self.kwargs[label.get_label().lower()]=self.entries[label.get_label()].get_text()
+            self.kwargs[label.get_label().lower()] = self.entries[label.get_label()].get_text()
 
         check_button = filter(lambda x: isinstance(x, Gtk.CheckButton), self.button)
         # Check for active CheckButtons
-        for active in filter(lambda x: x.get_active(),check_button):
+        for active in filter(lambda x: x.get_active(), check_button):
             lbl = self.gui_helper.get_btn_lower_replace(active)
             btn = self.gui_helper.get_btn_label(active)
             if not btn in self.entries:
                 if self.button[active].get_gui_hint('type') == 'const':
                     self.kwargs[lbl] = self.button[active].kwargs['const']
                 else:
-                    self.kwargs[lbl]=True
+                    self.kwargs[lbl] = True
                 continue
             for entry in filter(lambda x: x == btn, self.entries):
-                self.kwargs[lbl]=self.entries[btn].get_text()
+                self.kwargs[lbl] = self.entries[btn].get_text()
 
         # Check for non active CheckButtons but with defaults flag
-        for not_active in filter(lambda x: not x.get_active(),check_button):
+        for not_active in filter(lambda x: not x.get_active(), check_button):
             lbl = self.gui_helper.get_btn_lower_replace(not_active)
             if 'default' in self.button[not_active].kwargs:
-                self.kwargs[lbl]=self.button[not_active].get_gui_hint('default')
+                self.kwargs[lbl] = self.button[not_active].get_gui_hint('default')
             if self.back_button and lbl in self.kwargs:
                 del self.kwargs[lbl]
         return True
 
     def _remove_widget_items(self):
-        self.button=dict()
+        self.button = dict()
         for btn in self.grid:
             self.grid.remove(btn)
 
@@ -170,16 +157,19 @@ class PathWindow(object):
         caption_text += ' -> '.join(caption_parts)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
-        self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name','')))
+        self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name', '')))
         self.entry_project_name.set_sensitive(True)
+        if self.entry_project_name.get_text() == "":
+            self.run_btn.set_sensitive(False)
         if 'name' in self.kwargs:
-            self.dir_name.set_text(os.path.dirname(self.kwargs.get('name','')))
+            self.dir_name.set_text(os.path.dirname(self.kwargs.get('name', '')))
         for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
             self.entries[arg.title()].set_text(self.kwargs.get(arg))
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
-            if btn.get_label().lower().replace('-','_') in self.kwargs:
+            lbl = self.gui_helper.get_btn_lower_replace(btn)
+            if lbl in self.kwargs:
                 btn.set_active(True)
-                if btn.get_label().lower().replace('-','_') in self.browse_btns:
+                if lbl in self.browse_btns:
                     self.browse_btns[btn.get_label()].set_sensitive(True)
             else:
                 btn.set_active(False)
@@ -209,7 +199,7 @@ class PathWindow(object):
         self.parent.open_window(widget, data)
 
     def get_data(self):
-        return (self.dir_name.get_text(), self.entry_project_name.get_text())
+        return self.dir_name.get_text(), self.entry_project_name.get_text()
 
     def browse_path(self, window):
         text = self.gui_helper.create_file_chooser_dialog("Choose project directory", self.path_window, name="Select")
@@ -235,7 +225,7 @@ class PathWindow(object):
             box.pack_start(star_label, False, False, 6)
             box.pack_start(label, False, False, 6)
             align.add(box)
-            self.button[label]=arg
+            self.button[label] = arg
             star_flag = True
         else:
             act_btn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
@@ -249,7 +239,7 @@ class PathWindow(object):
         if row == 0:
             self.grid.add(align)
         else:
-            self.grid.attach(align, 0, row , 1, 1)
+            self.grid.attach(align, 0, row, 1, 1)
         label = self.gui_helper.create_label(arg.kwargs['help'],justify=Gtk.Justification.LEFT)
         label.set_alignment(0, 0.1)
         self.grid.attach(label, 1, row, 1, 1)
@@ -260,7 +250,7 @@ class PathWindow(object):
             entry = self.gui_helper.create_entry(text="")
             align = self.gui_helper.create_alignment()
             align.add(entry)
-            new_box.pack_start(align,False,False,6)
+            new_box.pack_start(align, False, False, 6)
             align_btn = self.gui_helper.create_alignment()
             ''' If a button is needed please add there and in function
                 _check_box_toggled
@@ -271,7 +261,8 @@ class PathWindow(object):
             '''
             self.browse_btn = self.gui_helper.button_with_label("Browse")
             self.browse_btn.connect("clicked", self.browse_clicked, entry)
-            self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage", uri="https://www.github.com")
+            self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage",
+                                                                  uri="https://www.github.com")
             self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
             if arg.kwargs.get('required'):
@@ -288,11 +279,11 @@ class PathWindow(object):
                 act_btn.set_active(False)
             if arg.get_gui_hint('type') == 'path':
                 align_btn.add(self.browse_btn)
-                self.browse_btns[self._check_box_title(arg,number)]=self.browse_btn
+                self.browse_btns[self._check_box_title(arg, number)] = self.browse_btn
             elif arg.get_gui_hint('type') == 'str':
                 if arg.name == 'github' or arg.name == 'github-login':
                     align_btn.add(self.link_button)
-                    self.browse_btns[self._check_box_title(arg,number)]=self.link_button
+                    self.browse_btns[self._check_box_title(arg, number)] = self.link_button
             new_box.pack_start(align_btn, False, False, 6)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
@@ -303,3 +294,9 @@ class PathWindow(object):
         text = self.gui_helper.create_file_chooser_dialog("Please select directory", self.path_window)
         if text is not None:
             data.set_text(text)
+
+    def project_name_changed(self, widget, data=None):
+        if widget.get_text() != "":
+            self.run_btn.set_sensitive(True)
+        else:
+            self.run_btn.set_sensitive(False)
