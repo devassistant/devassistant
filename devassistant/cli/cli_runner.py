@@ -49,7 +49,7 @@ class CliRunner(object):
         argparser = argparse_generator.ArgparseGenerator.\
             generate_argument_parser(tree, actions=actions.actions)
         parsed_args = vars(argparser.parse_args())
-        if 'da_debug' in parsed_args:
+        if parsed_args.get('da_debug'):
             cls.change_logging_level(logging.DEBUG)
         if actions.is_action_run(**parsed_args):
             to_run = actions.get_action_to_run(**parsed_args)
