@@ -10,6 +10,7 @@ import logging
 import threading, thread
 import time
 import locale
+import re
 from devassistant.logger import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -30,6 +31,7 @@ def get_iter_last(model):
 def add_row(record, tree_store, last_row):
     tree_store.append(None, [record.getMessage()])
 
+urlfinder = re.compile("(https?://[^\s<>\"]+|www\.[^\s<>\"]+)")
 
 class RunLoggingHandler(logging.Handler):
     def __init__(self, parent, treeview):
@@ -52,6 +54,9 @@ class RunLoggingHandler(logging.Handler):
             # Message is empty and is not add to tree
             pass
         else:
+            # Underline URLs in the record message 
+            msg = record.getMessage().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+	    record.msg = urlfinder.sub(r'<u>\1</u>', msg)
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
             # then GUI shows the message.
@@ -88,9 +93,10 @@ class RunWindow(object):
         self.store = Gtk.TreeStore(str)
         renderer = Gtk.CellRendererText()
         renderer.set_property('font', 'Liberation Mono')
-        column = Gtk.TreeViewColumn("Log from current process", renderer, text=0)
+        column = Gtk.TreeViewColumn("Log from current process", renderer, markup=0)
         self.run_tree_view.append_column(column)
         self.run_tree_view.set_model(self.store)
+        self.run_tree_view.connect('row-activated', self.treeview_row_clicked)
         self.stop = threading.Event()
         self.pr = None
         self.link = self.gui_helper.create_button()
@@ -249,3 +255,12 @@ class RunWindow(object):
     def main_btn_clicked(self, widget, data=None):
         self.run_window.hide()
         self.parent.open_window(widget,data)
+
+    def treeview_row_clicked(self, treeview, path, view_column):
+        model = treeview.get_model()
+        text = model[path][0]
+        match = urlfinder.search(text)
+        if match is not None:
+            url = match.group(1)
+            import webbrowser
+            webbrowser.open(url)
