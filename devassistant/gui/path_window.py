@@ -159,8 +159,7 @@ class PathWindow(object):
         self.path_window.show_all()
         self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name', '')))
         self.entry_project_name.set_sensitive(True)
-        if self.entry_project_name.get_text() == "":
-            self.run_btn.set_sensitive(False)
+        self.run_btn.set_sensitive(not self.project_name_shown or self.entry_project_name.get_text() != "")
         if 'name' in self.kwargs:
             self.dir_name.set_text(os.path.dirname(self.kwargs.get('name', '')))
         for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
@@ -193,6 +192,7 @@ class PathWindow(object):
         self.dir_name.set_sensitive(not active)
         self.entry_project_name.set_sensitive(not active)
         self.dir_name_browse_btn.set_sensitive(not active)
+        self.run_btn.set_sensitive(active or not self.project_name_shown or self.entry_project_name.get_text() != "")
 
     def prev_window(self, widget, data=None):
         self.path_window.hide()
