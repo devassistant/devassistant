@@ -19,6 +19,7 @@ from devassistant import path_runner
 from devassistant import exceptions
 from devassistant import sigint_handler
 
+
 def get_iter_last(model):
     itr = model.get_iter_first()
     last = None
@@ -33,15 +34,20 @@ def add_row(record, tree_store, last_row):
 
 urlfinder = re.compile("(https?://[^\s<>\"]+|www\.[^\s<>\"]+)")
 
+def switch_cursor(cursor_type, parent_window):
+    watch = Gdk.Cursor(cursor_type)
+    window = parent_window.get_root_window()
+    window.set_cursor(watch)
+
 class RunLoggingHandler(logging.Handler):
     def __init__(self, parent, treeview):
         logging.Handler.__init__(self)
         self.treeview = treeview
         self.parent = parent
 
-    def utf8conv(self,x):
+    def utf8conv(self, x):
         try:
-            return unicode(x,'utf8')
+            return unicode(x, 'utf8')
         except:
             return x
 
@@ -50,27 +56,22 @@ class RunLoggingHandler(logging.Handler):
         tree_store = self.treeview.get_model()
         last_row = get_iter_last(tree_store)
         Gdk.threads_enter()
-        if not msg:
-            # Message is empty and is not add to tree
-            pass
-        else:
-            # Underline URLs in the record message 
+        if msg:
+            # Underline URLs in the record message
             msg = record.getMessage().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
-	    record.msg = urlfinder.sub(r'<u>\1</u>', msg)
+            record.msg = urlfinder.sub(r'<u>\1</u>', msg)
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
             # then GUI shows the message.
             if int(record.levelno) > 10:
-                if getattr(record, 'event_type', ''):
-                    if record.event_type == 'dep_installation_start':
-                        watch = Gdk.Cursor(Gdk.CursorType.WATCH)
-                        window = self.parent.run_window.get_root_window()
-                        window.set_cursor(watch)
-                    if record.event_type == 'dep_installation_end':
-                        arrow = Gdk.Cursor(Gdk.CursorType.ARROW)
-                        window = self.parent.run_window.get_root_window()
-                        window.set_cursor(arrow)
-                add_row(record, tree_store, last_row)
+                event_type = getattr(record, 'event_type', '')
+                if event_type:
+                    if event_type == 'dep_installation_start':
+                        switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
+                    if event_type == 'dep_installation_end':
+                        switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
+                if not event_type.startswith("dep_"):
+                    add_row(record, tree_store, last_row)
         Gdk.threads_leave()
 
 
@@ -99,6 +100,8 @@ class RunWindow(object):
         self.run_tree_view.connect('row-activated', self.treeview_row_clicked)
         self.stop = threading.Event()
         self.pr = None
+        self.debug_logs = dict()
+        self.debug_logs['logs'] = list()
         self.link = self.gui_helper.create_button()
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
         self.info_box.pack_start(self.info_label, False, False, 12)
@@ -115,9 +118,9 @@ class RunWindow(object):
             self.top_assistant = data.get('top_assistant', None)
             self.current_main_assistant = data.get('current_main_assistant', None)
         self.store.clear()
-        self.debugging = False
         self.debug_logs = dict()
         self.debug_logs['logs'] = list()
+        self.debugging = False
         self.thread = threading.Thread(target=self.devassistant_start)
         dirname, projectname = self.parent.path_window.get_data()
         if self.kwargs.get('github'):
@@ -223,7 +226,8 @@ class RunWindow(object):
             last_row = get_iter_last(self.store)
             if self.debugging:
                 # Create a new root tree element
-                self.store.append(None, [record.getMessage()])
+                if getattr(record, 'event_type', '') != "cmd_retcode":
+                    self.store.append(None, [record.getMessage()])
             else:
                 if int(record.levelno) > 10:
                     add_row(record, self.store, last_row)
