@@ -108,7 +108,7 @@ class PathWindow(object):
             lbl = self.gui_helper.get_btn_lower_replace(not_active)
             if 'default' in self.button[not_active].kwargs:
                 self.kwargs[lbl] = self.button[not_active].get_gui_hint('default')
-            if self.back_button and lbl in self.kwargs:
+            elif self.back_button and lbl in self.kwargs:
                 del self.kwargs[lbl]
         return True
 
@@ -159,15 +159,14 @@ class PathWindow(object):
         self.path_window.show_all()
         self.entry_project_name.set_text(os.path.basename(self.kwargs.get('name', '')))
         self.entry_project_name.set_sensitive(True)
-        if self.entry_project_name.get_text() == "":
-            self.run_btn.set_sensitive(False)
+        self.run_btn.set_sensitive(not self.project_name_shown or self.entry_project_name.get_text() != "")
         if 'name' in self.kwargs:
             self.dir_name.set_text(os.path.dirname(self.kwargs.get('name', '')))
         for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
             self.entries[arg.title()].set_text(self.kwargs.get(arg))
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
             lbl = self.gui_helper.get_btn_lower_replace(btn)
-            if lbl in self.kwargs:
+            if lbl in self.kwargs and self.kwargs[lbl] != "":
                 btn.set_active(True)
                 if lbl in self.browse_btns:
                     self.browse_btns[btn.get_label()].set_sensitive(True)
@@ -193,6 +192,7 @@ class PathWindow(object):
         self.dir_name.set_sensitive(not active)
         self.entry_project_name.set_sensitive(not active)
         self.dir_name_browse_btn.set_sensitive(not active)
+        self.run_btn.set_sensitive(active or not self.project_name_shown or self.entry_project_name.get_text() != "")
 
     def prev_window(self, widget, data=None):
         self.path_window.hide()
