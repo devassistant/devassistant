@@ -63,7 +63,7 @@ class RunLoggingHandler(logging.Handler):
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
             # then GUI shows the message.
-            if int(record.levelno) > 10:
+            if int(record.levelno) > 10 or self.parent.debugging:
                 event_type = getattr(record, 'event_type', '')
                 if event_type:
                     if event_type == 'dep_installation_start':
@@ -169,7 +169,6 @@ class RunWindow(object):
         self.close_win = False
 
     def disable_buttons(self):
-        self.debug_btn.set_sensitive(False)
         self.main_btn.set_sensitive(False)
         self.back_btn.hide()
         self.info_label.set_label('<span color="#FFA500">In progress...</span>')
