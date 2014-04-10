@@ -108,7 +108,7 @@ class PathWindow(object):
             lbl = self.gui_helper.get_btn_lower_replace(not_active)
             if 'default' in self.button[not_active].kwargs:
                 self.kwargs[lbl] = self.button[not_active].get_gui_hint('default')
-            if self.back_button and lbl in self.kwargs:
+            elif self.back_button and lbl in self.kwargs:
                 del self.kwargs[lbl]
         return True
 
@@ -166,7 +166,7 @@ class PathWindow(object):
             self.entries[arg.title()].set_text(self.kwargs.get(arg))
         for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
             lbl = self.gui_helper.get_btn_lower_replace(btn)
-            if lbl in self.kwargs:
+            if lbl in self.kwargs and self.kwargs[lbl] != "":
                 btn.set_active(True)
                 if lbl in self.browse_btns:
                     self.browse_btns[btn.get_label()].set_sensitive(True)
