@@ -771,9 +771,7 @@ class DependencyInstaller(object):
             if not installed:
                 msg = 'Failed to install dependencies, exiting.'
                 logger.error(msg, extra=log_extra)
-                ex = exceptions.DependencyException(msg)
-                ex.already_logged = True
-                raise ex
+                raise exceptions.DependencyException(msg)
             else:
                 logger.info('Successfully installed dependencies!', extra=log_extra)
 
