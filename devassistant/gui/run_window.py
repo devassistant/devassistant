@@ -24,7 +24,7 @@ from devassistant import sigint_handler
 def add_row(record, list_store):
     list_store.append([record.getMessage()])
 
-urlfinder = re.compile("(https?://[^\s<>\"]+|www\.[^\s<>\"]+)")
+urlfinder = re.compile("(https?://[^\s<>\":]+|www\.[^\s<>\":]+)")
 
 def switch_cursor(cursor_type, parent_window):
     watch = Gdk.Cursor(cursor_type)
@@ -61,11 +61,18 @@ class RunLoggingHandler(logging.Handler):
                     if event_type:
                         if event_type == 'dep_installation_start':
                             switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
+                            add_row(record, list_store)
                         if event_type == 'dep_installation_end':
                             switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
                     if not event_type.startswith("dep_"):
                         add_row(record, list_store)
             if self.parent.debugging:
+                event_type = getattr(record, 'event_type', '')
+                if event_type:
+                    if event_type == 'dep_installation_start':
+                        switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
+                    if event_type == 'dep_installation_end':
+                        switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
                 if getattr(record, 'event_type', '') != "cmd_retcode":
                     add_row(record, list_store)
         Gdk.threads_leave()
@@ -90,7 +97,7 @@ class RunWindow(object):
         self.store = Gtk.ListStore(str)
         renderer = Gtk.CellRendererText()
         renderer.set_property('font', 'Liberation Mono')
-        renderer.set_property('wrap_width', self.get_window_size())
+        renderer.set_property('wrap_width', 750)
         renderer.set_property('wrap_mode', Gtk.WrapMode.WORD)
         column = Gtk.TreeViewColumn("Log from current process", renderer, markup=0)
         self.run_list_view.append_column(column)
@@ -109,12 +116,8 @@ class RunWindow(object):
         self.top_assistant = None
         self.close_win = False
         self.debugging = False
+        self.thread = None
         sigint_handler.override()
-
-    def get_window_size(self):
-        win_size = self.run_window.get_default_size()[0]
-        # We need just a 3/4 of main window size
-        return win_size - win_size/4
 
     def open_window(self, widget, data=None):
         if data is not None:
@@ -130,12 +133,12 @@ class RunWindow(object):
         self.debug_logs = dict()
         self.debug_logs['logs'] = list()
         self.thread = threading.Thread(target=self.devassistant_start)
-        dirname, projectname = self.parent.path_window.get_data()
+        dir_name, project_name = self.parent.path_window.get_data()
         if self.kwargs.get('github'):
             self.info_box.remove(self.link)
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
-                    "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'), projectname))
+                    "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'), project_name))
             self.link.set_border_width(6)
             self.link.set_sensitive(False)
             self.info_box.pack_start(self.link, False, False, 12)
@@ -184,7 +187,6 @@ class RunWindow(object):
         self.info_label.set_label('<span color="#FFA500">In progress...</span>')
         self.disable_close_window()
         self.link.hide()
-        self.debug_btn.set_sensitive(False)
 
     def allow_buttons(self, message="", link=True, back=True):
         self.info_label.set_label(message)
@@ -194,7 +196,6 @@ class RunWindow(object):
             self.link.show_all()
         if back:
             self.back_btn.show()
-        self.debug_btn.set_sensitive(True)
         self.main_btn.set_sensitive(True)
 
     def devassistant_start(self):
