@@ -102,7 +102,7 @@ class RunWindow(object):
         self.pr = None
         self.debug_logs = dict()
         self.debug_logs['logs'] = list()
-        self.link = self.gui_helper.create_button()
+        self.link = None
         self.info_label = gui_helper.create_label('<span color="#FFA500">In progress...</span>')
         self.info_box.pack_start(self.info_label, False, False, 12)
         self.project_canceled = False
@@ -124,7 +124,6 @@ class RunWindow(object):
         self.thread = threading.Thread(target=self.devassistant_start)
         dirname, projectname = self.parent.path_window.get_data()
         if self.kwargs.get('github'):
-            self.info_box.remove(self.link)
             self.link = self.gui_helper.create_link_button(
                     "Link to project on Github",
                     "http://www.github.com/{0}/{1}".format(self.kwargs.get('github'), projectname))
@@ -138,6 +137,12 @@ class RunWindow(object):
 
     def destroy(self, widget, data=None):
         Gtk.main_quit()
+
+    def remove_link_button(self):
+        if self.link is not None:
+            self.info_box.remove(self.link)
+            self.link.destroy()
+            self.link = None
 
     def delete_event(self, widget, event, data=None):
         if not self.close_win:
@@ -173,12 +178,13 @@ class RunWindow(object):
         self.back_btn.hide()
         self.info_label.set_label('<span color="#FFA500">In progress...</span>')
         self.disable_close_window()
-        self.link.hide()
+        if self.link is not None:
+            self.link.hide()
 
     def allow_buttons(self, message="", link=True, back=True):
         self.info_label.set_label(message)
         self.allow_close_window()
-        if link:
+        if link and self.link is not None:
             self.link.set_sensitive(True)
             self.link.show_all()
         if back:
@@ -246,6 +252,7 @@ class RunWindow(object):
         self.gui_helper.create_clipboard(_clipboard_text)
 
     def back_btn_clicked(self, widget, data=None):
+        self.remove_link_button()
         self.run_window.hide()
         data = {}
         data['back'] = True
@@ -256,6 +263,7 @@ class RunWindow(object):
 
 
     def main_btn_clicked(self, widget, data=None):
+        self.remove_link_button()
         self.run_window.hide()
         self.parent.open_window(widget,data)
 
