@@ -30,8 +30,8 @@ class PathWindow(object):
         self.box_path_main.pack_start(self.title, False, False, 0)
         self.box_path_main.pack_start(self.grid, False, False, 0)
         self.entries = dict()
-        self.browse_btns= dict()
-        self.kwargs = {}
+        self.browse_btns = dict()
+        self.kwargs = dict()
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
@@ -40,9 +40,9 @@ class PathWindow(object):
         self.top_assistant = None
         self.project_name_shown = True
         self.current_main_assistant = None
+        self.data = dict()
 
     def next_window(self, widget, data=None):
-        #print self.parent.data
         # check whether deps-only is selected
         deps_only = False
         for active in filter(lambda x: isinstance(x, Gtk.CheckButton) and x.get_active(), self.button):
@@ -58,12 +58,12 @@ class PathWindow(object):
                 if not os.path.isdir(self.dir_name.get_text()):
                     return self.gui_helper.execute_dialog(
                                     "Directory {0} does not exists".format(self.dir_name.get_text())
-                                )
+                    )
                 elif os.path.isdir(os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())):
                     return self.gui_helper.execute_dialog(
                                     "Directory {0} already exists".format(
-                                os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text()))
-                                )
+                                    os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text()))
+                    )
 
         if not self._build_flags():
             return
@@ -71,11 +71,10 @@ class PathWindow(object):
         if not deps_only and self.current_main_assistant.name == 'crt':
             self.kwargs['name'] = os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())
 
-        data = {}
-        data['kwargs'] = self.kwargs
-        data['top_assistant'] = self.top_assistant
-        data['current_main_assistant'] = self.current_main_assistant
-        self.parent.run_window.open_window(widget, data)
+        self.data['kwargs'] = self.kwargs
+        self.data['top_assistant'] = self.top_assistant
+        self.data['current_main_assistant'] = self.current_main_assistant
+        self.parent.run_window.open_window(widget, self.data)
         self.path_window.hide()
 
     def _build_flags(self):
@@ -84,7 +83,7 @@ class PathWindow(object):
                 if widget.get_label() in self.entries and not self.entries[widget.get_label()].get_text():
                     self.gui_helper.execute_dialog(
                         "Entry {0} is empty".format(widget.get_label())
-                        )
+                    )
                     return False
         for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
             self.kwargs[label.get_label().lower()] = self.entries[label.get_label()].get_text()
@@ -126,11 +125,12 @@ class PathWindow(object):
             return path
 
     def open_window(self, widget, data=None):
-        if data != None:
+        if data is not None:
             self.back_button = data.get('back', False)
             self.top_assistant = data.get('top_assistant', None)
             self.current_main_assistant = data.get('current_main_assistant', None)
             self.kwargs = data.get('kwargs', None)
+            self.data['debugging'] = data.get('debugging', False)
         text = self.get_user_path()
         self.dir_name.set_text(text)
         self.dir_name.set_sensitive(True)
@@ -196,7 +196,7 @@ class PathWindow(object):
 
     def prev_window(self, widget, data=None):
         self.path_window.hide()
-        self.parent.open_window(widget, data)
+        self.parent.open_window(widget, self.data)
 
     def get_data(self):
         return self.dir_name.get_text(), self.entry_project_name.get_text()
@@ -219,7 +219,8 @@ class PathWindow(object):
         star_flag = False
         if arg.kwargs.get('required'):
             # If argument is required then red star instead of checkbox
-            star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.format(self._check_box_title(arg, number)))
+            star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.
+                                                      format(self._check_box_title(arg, number)))
             label = self.gui_helper.create_label(self._check_box_title(arg, number))
             box = self.gui_helper.create_box()
             box.pack_start(star_label, False, False, 6)
@@ -240,7 +241,7 @@ class PathWindow(object):
             self.grid.add(align)
         else:
             self.grid.attach(align, 0, row, 1, 1)
-        label = self.gui_helper.create_label(arg.kwargs['help'],justify=Gtk.Justification.LEFT)
+        label = self.gui_helper.create_label(arg.kwargs['help'], justify=Gtk.Justification.LEFT)
         label.set_alignment(0, 0.1)
         self.grid.attach(label, 1, row, 1, 1)
         label_check_box = self.gui_helper.create_label(name="")

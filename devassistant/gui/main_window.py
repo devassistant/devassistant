@@ -39,7 +39,7 @@ class MainWindow(object):
                 "on_backBtn_clicked": self.run_window.back_btn_clicked,
                 "on_mainBtn_clicked": self.run_window.main_btn_clicked,
                 "on_entryProjectName_changed": self.path_window.project_name_changed,
-                    }
+        }
         self.builder.connect_signals(self.mainhandlers)
         self.label_main_window = self.builder.get_object("sublabel")
         self.label_project_name = self.builder.get_object("labelProjectName")
@@ -69,7 +69,7 @@ class MainWindow(object):
         console_handler.setLevel(logging.INFO)
         logger_gui.addHandler(console_handler)
         # End used for debugging
-
+        self.data = dict()
         self.main_win.show_all()
         # Thread should be defined here
         # because of timeout and threads sharing.
@@ -78,6 +78,7 @@ class MainWindow(object):
         Gdk.threads_enter()
         Gtk.main()
         Gdk.threads_leave()
+
 
     def _tooltip_queries(self, item, x, y, key_mode, tooltip, text):
         """
@@ -120,15 +121,14 @@ class MainWindow(object):
 
     def submenu_activate(self, widget, item):
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
-        self.kwargs['subassistant_1']=item[0]
+        self.kwargs['subassistant_1'] = item[0]
         if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
-        self.kwargs['subassistant_2']=item[1]
-        data = {}
-        data['top_assistant'] = self.top_assistant
-        data['current_main_assistant'] = self.get_current_main_assistant()
-        data['kwargs'] = self.kwargs
-        self.path_window.open_window(widget, data)
+        self.kwargs['subassistant_2'] = item[1]
+        self.data['top_assistant'] = self.top_assistant
+        self.data['current_main_assistant'] = self.get_current_main_assistant()
+        self.data['kwargs'] = self.kwargs
+        self.path_window.open_window(widget, self.data)
         self.main_win.hide()
 
     def get_current_main_assistant(self):
@@ -137,20 +137,24 @@ class MainWindow(object):
 
     def btn_clicked(self, widget, data=None):
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
-        self.kwargs['subassistant_1']=data
+        self.kwargs['subassistant_1'] = data
         if 'subassistant_2' in self.kwargs:
             del (self.kwargs['subassistant_2'])
-        data = {}
-        data['top_assistant'] = self.top_assistant
-        data['current_main_assistant'] = self.get_current_main_assistant()
-        data['kwargs'] = self.kwargs
-        self.path_window.open_window(widget, data)
+        self.data['top_assistant'] = self.top_assistant
+        self.data['current_main_assistant'] = self.get_current_main_assistant()
+        self.data['kwargs'] = self.kwargs
+        self.path_window.open_window(widget, self.data)
         self.main_win.hide()
 
     def browse_path(self, window):
         self.path_window.browse_path()
 
     def open_window(self, widget, data=None):
+        # This is fix in case da created a project and project was deleted and GUI
+        # was not closed
+        if data is not None:
+            self.data = data
+        os.chdir(os.path.expanduser('~'))
         self.kwargs = dict()
         self.main_win.show_all()
 
