@@ -11,6 +11,7 @@ import threading, thread
 import time
 import locale
 import re
+import os
 from devassistant.logger import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -48,19 +49,24 @@ class RunLoggingHandler(logging.Handler):
         Gdk.threads_enter()
         if msg:
             # Underline URLs in the record message
-            msg = record.getMessage().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            msg = record.getMessage().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             record.msg = urlfinder.sub(r'<u>\1</u>', msg)
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
             # then GUI shows the message.
-            if int(record.levelno) > 10 or self.parent.debugging:
-                event_type = getattr(record, 'event_type', '')
-                if event_type:
-                    if event_type == 'dep_installation_start':
-                        switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
-                    if event_type == 'dep_installation_end':
-                        switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
-                if not event_type.startswith("dep_"):
+            if not self.parent.debugging:
+                # We will show only INFO messages and messages who have no dep_ event_type
+                if int(record.levelno) > 10:
+                    event_type = getattr(record, 'event_type', '')
+                    if event_type:
+                        if event_type == 'dep_installation_start':
+                            switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
+                        if event_type == 'dep_installation_end':
+                            switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
+                    if not event_type.startswith("dep_"):
+                        add_row(record, list_store)
+            if self.parent.debugging:
+                if getattr(record, 'event_type', '') != "cmd_retcode":
                     add_row(record, list_store)
         Gdk.threads_leave()
 
@@ -102,6 +108,7 @@ class RunWindow(object):
         self.current_main_assistant = None
         self.top_assistant = None
         self.close_win = False
+        self.debugging = False
         sigint_handler.override()
 
     def get_window_size(self):
@@ -114,10 +121,14 @@ class RunWindow(object):
             self.kwargs = data.get('kwargs', None)
             self.top_assistant = data.get('top_assistant', None)
             self.current_main_assistant = data.get('current_main_assistant', None)
+            self.debugging = data.get('debugging', False)
+            if not self.debugging:
+                self.debug_btn.set_label('Debug logs')
+            else:
+                self.debug_btn.set_label('Info logs')
         self.store.clear()
         self.debug_logs = dict()
         self.debug_logs['logs'] = list()
-        self.debugging = False
         self.thread = threading.Thread(target=self.devassistant_start)
         dirname, projectname = self.parent.path_window.get_data()
         if self.kwargs.get('github'):
@@ -129,6 +140,8 @@ class RunWindow(object):
             self.link.set_sensitive(False)
             self.info_box.pack_start(self.link, False, False, 12)
         self.run_list_view.connect('size-allocate', self.listview_changed)
+        # We need to be in /home directory before each project creations
+        os.chdir(os.path.expanduser('~'))
         self.run_window.show_all()
         self.disable_buttons()
         self.thread.start()
@@ -171,6 +184,7 @@ class RunWindow(object):
         self.info_label.set_label('<span color="#FFA500">In progress...</span>')
         self.disable_close_window()
         self.link.hide()
+        self.debug_btn.set_sensitive(False)
 
     def allow_buttons(self, message="", link=True, back=True):
         self.info_label.set_label(message)
@@ -225,7 +239,7 @@ class RunWindow(object):
                     self.store.append([record.getMessage()])
             else:
                 if int(record.levelno) > 10:
-                    add_row(record, self.store)
+                    self.store.append([record.getMessage()])
 
     def clipboard_btn_clicked(self, widget, data=None):
         _clipboard_text = list()
@@ -253,6 +267,7 @@ class RunWindow(object):
 
     def main_btn_clicked(self, widget, data=None):
         data = dict()
+        data['debugging'] = self.debugging
         self.run_window.hide()
         self.parent.open_window(widget, data)
 
