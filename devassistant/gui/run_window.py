@@ -227,6 +227,11 @@ class RunWindow(object):
 
     def debug_btn_clicked(self, widget, data=None):
         self.store.clear()
+        self.thread = threading.Thread(target=self.logs_update)
+        self.thread.start()
+
+    def logs_update(self):
+        Gdk.threads_enter()
         if not self.debugging:
             self.debugging = True
             self.debug_btn.set_label('Info logs')
@@ -241,6 +246,7 @@ class RunWindow(object):
             else:
                 if int(record.levelno) > 10:
                     self.store.append([record.getMessage()])
+        Gdk.threads_leave()
 
     def clipboard_btn_clicked(self, widget, data=None):
         _clipboard_text = list()
