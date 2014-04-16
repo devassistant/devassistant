@@ -54,26 +54,22 @@ class RunLoggingHandler(logging.Handler):
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
             # then GUI shows the message.
+            event_type = getattr(record, 'event_type', '')
+            if event_type:
+                if event_type == 'dep_installation_start':
+                    switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
+                    add_row(record, list_store)
+                if event_type == 'dep_installation_end':
+                    switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
             if not self.parent.debugging:
                 # We will show only INFO messages and messages who have no dep_ event_type
                 if int(record.levelno) > 10:
-                    event_type = getattr(record, 'event_type', '')
-                    if event_type:
-                        if event_type == 'dep_installation_start':
-                            switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
-                            add_row(record, list_store)
-                        if event_type == 'dep_installation_end':
-                            switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
-                    if not event_type.startswith("dep_"):
+                    if event_type == "dep_check" or event_type == "dep_found":
+                        add_row(record, list_store)
+                    elif not event_type.startswith("dep_"):
                         add_row(record, list_store)
             if self.parent.debugging:
-                event_type = getattr(record, 'event_type', '')
-                if event_type:
-                    if event_type == 'dep_installation_start':
-                        switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
-                    if event_type == 'dep_installation_end':
-                        switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
-                if getattr(record, 'event_type', '') != "cmd_retcode":
+                if event_type != "cmd_retcode":
                     add_row(record, list_store)
         Gdk.threads_leave()
 
