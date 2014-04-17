@@ -232,13 +232,21 @@ class GuiHelper(object):
         notebook.set_show_border(True)
         return notebook
 
-    def create_message_dialog(self, text, buttons=Gtk.ButtonsType.CLOSE):
+    def create_message_dialog(self, text, buttons=Gtk.ButtonsType.CLOSE, icon=Gtk.MessageType.WARNING):
         dialog = Gtk.MessageDialog(None,
-                             Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                             Gtk.MessageType.WARNING,
-                             buttons,
-                             text)
+                                   Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                   icon,
+                                   buttons,
+                                   text
+        )
         return dialog
+
+    def create_question_dialog(self, text, second_text):
+        dialog = self.create_message_dialog(text, buttons=Gtk.ButtonsType.YES_NO, icon=Gtk.MessageType.QUESTION)
+        dialog.format_secondary_text(second_text)
+        response = dialog.run()
+        dialog.destroy()
+        return response
 
     def execute_dialog(self, title):
         md = self.create_message_dialog(title)
