@@ -42,34 +42,52 @@ class PathWindow(object):
         self.current_main_assistant = None
         self.data = dict()
 
+    def check_for_directory(self, dirname):
+        return self.gui_helper.execute_dialog(
+                                        "Directory {0} already exists".format(
+                                        dirname))
+
+    def get_full_dir_name(self):
+        return os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())
+
     def next_window(self, widget, data=None):
         # check whether deps-only is selected
         deps_only = False
         for active in filter(lambda x: isinstance(x, Gtk.CheckButton) and x.get_active(), self.button):
             if self.gui_helper.get_btn_lower_label(active) == "deps-only":
                 deps_only = True
+        project_dir = self.dir_name.get_text()
+        project_name = self.entry_project_name.get_text()
+        full_name = self.get_full_dir_name()
 
         # check whether project directory and name is properly set
         if not deps_only and self.current_main_assistant.name == 'crt':
-            if self.dir_name.get_text() == "":
+            if project_dir == "":
                 return self.gui_helper.execute_dialog("Specify directory for project")
             else:
                 # check whether directory is existing
-                if not os.path.isdir(self.dir_name.get_text()):
-                    return self.gui_helper.execute_dialog(
-                                    "Directory {0} does not exists".format(self.dir_name.get_text())
-                    )
-                elif os.path.isdir(os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())):
-                    return self.gui_helper.execute_dialog(
-                                    "Directory {0} already exists".format(
-                                    os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text()))
-                    )
+                if not os.path.isdir(project_dir):
+                    response = self.gui_helper.create_question_dialog(
+                                    "Directory {0} does not exists".format(project_dir),
+                                    "Do you want to create them?"
+                                    )
+                    if response == Gtk.ResponseType.NO:
+                        # User do not want to create a directory
+                        return
+                    else:
+                        # Create directory
+                        try:
+                            os.makedirs(project_dir)
+                        except OSError as er:
+                            return self.gui_helper.execute_dialog("{0}".format(er))
+                elif os.path.isdir(full_name):
+                    return self.check_for_directory(full_name)
 
         if not self._build_flags():
             return
 
         if not deps_only and self.current_main_assistant.name == 'crt':
-            self.kwargs['name'] = os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())
+            self.kwargs['name'] = full_name
 
         self.data['kwargs'] = self.kwargs
         self.data['top_assistant'] = self.top_assistant
