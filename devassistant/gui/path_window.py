@@ -24,7 +24,7 @@ class PathWindow(object):
         self.box6 = builder.get_object("box6")
         self.run_btn = builder.get_object("nextPathBtn")
         self.button = dict()
-        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0, col_homogenous=False, row_homogenous=True)
+        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0, col_homogenous=False, row_homogenous=False)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0, 0)
         self.box_path_main.pack_start(self.title, False, False, 0)
@@ -168,10 +168,20 @@ class PathWindow(object):
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)[1:]
         caption_parts = []
 
+        # Finds any dependencies
+        found_deps = filter(lambda x: x.dependencies(), sorted(path))
+        # This bool variable is used for showing text "Available options:"
+        any_options = False
         for a in sorted(path):
             caption_parts.append("<b>"+a.fullname+"</b>")
             for arg in sorted(filter(lambda x: not '--name' in x.flags, a.args), key=lambda x: x.flags):
-                row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+                if not (arg.name == "deps_only" and not found_deps):
+                    row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+                    any_options = True
+        if not any_options:
+            self.title.set_text("")
+        else:
+            self.title.set_text("Available options:")
         caption_text += ' -> '.join(caption_parts)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
@@ -239,6 +249,7 @@ class PathWindow(object):
             # If argument is required then red star instead of checkbox
             star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.
                                                       format(self._check_box_title(arg, number)))
+            star_label.set_padding(0, 3)
             label = self.gui_helper.create_label(self._check_box_title(arg, number))
             box = self.gui_helper.create_box()
             box.pack_start(star_label, False, False, 6)
@@ -260,7 +271,8 @@ class PathWindow(object):
         else:
             self.grid.attach(align, 0, row, 1, 1)
         label = self.gui_helper.create_label(arg.kwargs['help'], justify=Gtk.Justification.LEFT)
-        label.set_alignment(0, 0.1)
+        label.set_alignment(0, 0)
+        label.set_padding(0, 3)
         self.grid.attach(label, 1, row, 1, 1)
         label_check_box = self.gui_helper.create_label(name="")
         self.grid.attach(label_check_box, 0, row, 1, 1)
