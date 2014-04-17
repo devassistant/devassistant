@@ -168,10 +168,20 @@ class PathWindow(object):
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)[1:]
         caption_parts = []
 
+        # Finds any dependencies
+        found_deps = filter(lambda x: x.dependencies(), sorted(path))
+        # This bool variable is used for showing text "Available options:"
+        any_options = False
         for a in sorted(path):
             caption_parts.append("<b>"+a.fullname+"</b>")
             for arg in sorted(filter(lambda x: not '--name' in x.flags, a.args), key=lambda x: x.flags):
-                row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+                if not (arg.name == "deps_only" and not found_deps):
+                    row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
+                    any_options = True
+        if not any_options:
+            self.title.set_text("")
+        else:
+            self.title.set_text("Available options:")
         caption_text += ' -> '.join(caption_parts)
         self.label_caption.set_markup(caption_text)
         self.path_window.show_all()
