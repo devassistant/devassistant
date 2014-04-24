@@ -142,50 +142,63 @@ class GuiHelper(object):
             grid_lang.attach(btn, column, row, 1, 1)
         return btn
 
-    def add_menu_button(self, grid_lang, assistant, row, column):
+    def create_menu(self):
+        menu = Gtk.Menu()
+        return menu
+
+    def menu_item(self, assistant, subassistant, path):
+        if not os.path.exists(subassistant[0].icon_path):
+            menu_item = self.create_menu_item(subassistant[0].fullname)
+        else:
+            menu_item = self.create_imagemenu_item(subassistant[0].fullname, subassistant[0].icon_path)
+        if subassistant[0].description:
+            menu_item.set_has_tooltip(True)
+            menu_item.connect("query-tooltip",
+                              self.parent._tooltip_queries,
+                              self.get_formated_description(subassistant[0].description),
+                              )
+        menu_item.connect("select", self.parent.submenu_select, path)
+        menu_item.connect("button-press-event", self.parent.submenu_pressed)
+        menu_item.show()
+        return menu_item
+
+    def generate_menu(self, ass, text, path=[], level=0):
+        menu = self.create_menu()
+        for index, sub in enumerate(sorted(ass[1], key=lambda y: y[0].fullname.lower())):
+            if index != 0:
+                text += "|"
+            text += "- "+sub[0].fullname
+            new_path = list(path)
+            if level == 0:
+                new_path.append(ass[0].name)
+            new_path.append(sub[0].name)
+            menu_item = self.menu_item(ass, sub, new_path)
+            if sub[1]:
+                # If assistant has subassistants
+                (sub_menu, txt) = self.generate_menu(sub, text, new_path, level=level+1)
+                menu_item.set_submenu(sub_menu)
+            menu.append(menu_item)
+        return menu, text
+
+    def add_submenu(self, grid_lang, ass, row, column):
         """
         The function is used for creating button with menu and submenu.
         Also signal on tooltip and signal on clicked are specified
         Button is add to the Gtk.Grid
         """
-        #print "gui_helper add_menu_button"
-        menu = Gtk.Menu()
-        text="Avalaible subassistants:\n"
-        cnt=0
-        for sub in sorted(assistant[1], key=lambda y: y[0].fullname.lower()):
-            if cnt != 0:
-                text += "|"
-            cnt += 1
-            text += "- "+sub[0].fullname
-            if not os.path.exists(sub[0].icon_path):
-                menu_item = self.create_menu_item(sub[0].fullname)
-            else:
-                menu_item = self.create_imagemenu_item(sub[0].fullname, sub[0].icon_path)
-            if sub[0].description:
-                menu_item.set_has_tooltip(True)
-                menu_item.connect("query-tooltip",
-                                  self.parent._tooltip_queries,
-                                  self.get_formated_description(sub[0].description),
-                                  )
-            menu_item.show()
-            menu.append(menu_item)
-            item = list()
-            item.append(assistant[0].name)
-            item.append(sub[0].name)
-            menu_item.connect("activate", self.parent.submenu_activate, item)
+        text = "Available subassistants:\n"
+        # Generate menus
+        (menu, text) = self.generate_menu(ass, text)
         menu.show_all()
-        text = text.replace('|', '\n')
-        image_name = assistant[0].icon_path
+        description = self.get_formated_description(ass[0].description)+"\n\n" if ass[0].description else ""
+        description += text.replace('|', '\n')
+        image_name = ass[0].icon_path
+        lbl_text = "<b>"+ass[0].fullname+"</b>"
         if not os.path.exists(image_name):
-            btn = self.button_with_label("<b>"+assistant[0].fullname+"</b>")
+            btn = self.button_with_label(lbl_text)
         else:
-            btn = self.button_with_image("<b>"+assistant[0].fullname+"</b>", image=image_name)
+            btn = self.button_with_image(lbl_text, image=image_name)
         btn.set_has_tooltip(True)
-        if assistant[0].description:
-            description = self.get_formated_description(assistant[0].description)+"\n\n"
-        else:
-            description = ""
-        description += text
         btn.connect("query-tooltip",
                     self.parent._tooltip_queries,
                     description
@@ -195,7 +208,6 @@ class GuiHelper(object):
             grid_lang.add(btn)
         else:
             grid_lang.attach(btn, column, row, 1, 1)
-        return btn
 
     def get_btn_label(self, btn):
         return btn.get_label()

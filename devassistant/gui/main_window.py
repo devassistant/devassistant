@@ -8,7 +8,7 @@ from gi.repository import GLib
 
 from devassistant.bin import TopAssistant
 from devassistant.logger import logger_gui
-from devassistant import current_run
+from devassistant import current_run, settings
 
 from devassistant.gui import path_window
 from devassistant.gui import run_window
@@ -70,6 +70,7 @@ class MainWindow(object):
         logger_gui.addHandler(console_handler)
         # End used for debugging
         self.data = dict()
+        self.dev_assistant_path = []
         self.main_win.show_all()
         # Thread should be defined here
         # because of timeout and threads sharing.
@@ -108,9 +109,9 @@ class MainWindow(object):
                 self.gui_helper.add_button(grid_lang, ass, row, column)
             else:
                 # If assistant has more subassistants then create button with menu
-                self.gui_helper.add_menu_button(grid_lang, ass, row, column)
+                self.gui_helper.add_submenu(grid_lang, ass, row, column)
             column += 1
-        if row == 0 and len(subas)< 3:
+        if row == 0 and len(subas) < 3:
             while column < 3:
                 btn = self.gui_helper.create_button(style=Gtk.ReliefStyle.NONE)
                 btn.set_sensitive(False)
@@ -119,12 +120,16 @@ class MainWindow(object):
                 column += 1
         return scrolled_window
 
-    def submenu_activate(self, widget, item):
+    def submenu_select(self, widget, item):
+        self.dev_assistant_path = list(item)
+
+    def submenu_pressed(self, widget, event):
+        for index, data in enumerate(self.dev_assistant_path):
+            index += 1
+            if settings.SUBASSISTANT_N_STRING.format(index) in self.kwargs:
+                del (self.kwargs[settings.SUBASSISTANT_N_STRING.format(index)])
+            self.kwargs[settings.SUBASSISTANT_N_STRING.format(index)] = data
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
-        self.kwargs['subassistant_1'] = item[0]
-        if 'subassistant_2' in self.kwargs:
-            del (self.kwargs['subassistant_2'])
-        self.kwargs['subassistant_2'] = item[1]
         self.data['top_assistant'] = self.top_assistant
         self.data['current_main_assistant'] = self.get_current_main_assistant()
         self.data['kwargs'] = self.kwargs
