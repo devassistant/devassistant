@@ -280,6 +280,64 @@ class PacmanPackageManager(PackageManager):
 
 
 @register_manager
+class HomebrewPackageManager(PackageManager):
+    """Package manager for managing OSX packages by homebrew."""
+    permission_prompt = "Installing {num} package{plural} by Homebrew. Is this ok?"
+    shortcut = 'homebrew'
+
+    c_homebrew = 'brew'
+
+    @classmethod
+    def install(cls, *args):
+        cmd = [cls.c_homebrew, 'install']
+        quoted_pkgs = ['"{0}"'.format(pkg) for pkg in args]
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True)
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def is_pkg_installed(cls, dep):
+        logger.info('Checking for presence of {0}...'.format(dep),
+                    extra={'event_type': 'dep_check'})
+        if not getattr(cls, '_installed', None):
+            query = ClHelper.run_command(' '.join([cls.c_homebrew, 'list']))
+            cls._installed = query.split('\n')
+        search = filter(lambda e: e.startswith(dep), cls._installed)
+        if search:
+            logger.info('Found {0}'.format(search[0]), extra={'event_type': 'dep_found'})
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+
+        return len(search) > 0
+
+
+    @classmethod
+    def works(cls):
+        try:
+            ClHelper.run_command('which brew')
+            return True
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def resolve(cls, *args):
+      logger.info('Resolving Homebrew dependencies ...')
+      for pkg in args:
+        logger.debug('Looking at {0}'.format(pkg))
+
+      logger.debug('Installing/Updating:')
+      to_install = set()
+      for pkg in args:
+          query = ClHelper.run_command(' '.join([cls.c_homebrew, 'deps -n', pkg]))
+          to_install.update(query.split('\n'))
+
+      return list(to_install)
+
+
+@register_manager
 class PIPPackageManager(PackageManager):
     """ Package manager for managing python dependencies from PyPI """
     permission_prompt = "Installing {num} package{plural} from PyPI. Is this ok?"
@@ -698,7 +756,7 @@ class DependencyInstaller(object):
     def _process_dependency(self, dep_t, dep_l):
         """Add dependencies into self.dependencies, possibly also adding system packages
         that contain non-distro package managers (e.g. if someone wants to install
-        dependencines with pip and pip is not present, it will get installed through
+        dependencies with pip and pip is not present, it will get installed through
         RPM on RPM based systems, etc.
 
         Skips dependencies that are supposed to be installed by system manager that

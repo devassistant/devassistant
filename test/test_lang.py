@@ -1,5 +1,6 @@
 import pytest
 import os
+import re
 
 from devassistant.exceptions import YamlSyntaxError
 from devassistant.lang import Command, evaluate_expression, exceptions, \
@@ -347,11 +348,12 @@ class TestRunSection(object):
     def test_assign_unsuccessful_command(self):
         kwargs = {}
         run_section([{'$foo~': '$(ls spam/spam/spam)'}], kwargs)
-        assert kwargs['foo'] == u'ls: cannot access spam/spam/spam: No such file or directory'
+        assert re.match(r'ls:.* spam/spam/spam: No such file or directory', kwargs['foo'], re.I|re.M)
 
         # both logical result and result
         run_section([{'$success, $val~': '$(ls spam/spam/spam)'}], kwargs)
-        assert kwargs['val'] == u'ls: cannot access spam/spam/spam: No such file or directory'
+        # assert kwargs['val'] == u'ls: cannot access spam/spam/spam: No such file or directory'
+        assert re.match(r'ls:.* spam/spam/spam: No such file or directory', kwargs['val'], re.I|re.M)
         assert kwargs['success'] == False
 
     def test_assing_string_with_escaped_exec_flag(self):

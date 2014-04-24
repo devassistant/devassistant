@@ -53,7 +53,8 @@ class TestClHelper(object):
     def test_run_command_cd(self):
         cwd = os.getcwd()
         try:
-            tmpdir = tempfile.gettempdir()
+            # On OSX, /etc is a link to /private/etc, hence the realpath call
+            tmpdir = os.path.realpath(tempfile.gettempdir())
             out = ClHelper.run_command('cd {0}'.format(tmpdir))
             assert out == ''
             assert os.getcwd() == tmpdir

@@ -165,7 +165,7 @@ class TestCache(object):
         self.addme_copy('addme_change_fullname.yaml', 'assistants/crt/addme.yaml')
         self.create_or_refresh_cache()
         assert addme['attrs']['fullname'] == 'Fullname changed!'
-        
+
         # change current snippet (will change argument flag)
         # snippets are cached during one startup => reset snippet cache manually
         # TODO: fix this ^^
