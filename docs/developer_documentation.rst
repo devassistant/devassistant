@@ -7,6 +7,7 @@ Developer Documentation
 
    developer_documentation/devassistant_core
    developer_documentation/tutorial_creating_assistant
+   developer_documentation/packaging_your_assistant
    developer_documentation/yaml_assistant_reference
    developer_documentation/run_sections_reference
    developer_documentation/command_reference
