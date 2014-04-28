@@ -77,7 +77,7 @@ setup(
     author='Miro Hrončok',
     author_email='miro@hroncok.cz',
     license='GPLv2+',
-    url='https://github.com/hroncok/python-daploader',
+    url='https://github.com/hroncok/daploader',
     packages=find_packages(),
     install_requires=['PyYAML'],
     entry_points={'console_scripts': ['daplint = daploader.daplint:lint']},

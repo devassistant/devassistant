@@ -1,7 +1,7 @@
 devassistant_version: 0.8.0
 original_kwargs:
   github: hroncok
-  name: python-daploader
+  name: daploader
 subassistant_path:
 - python
 - lib
