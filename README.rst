@@ -1,6 +1,15 @@
 python-daploader
 ================
 
+.. image:: https://badge.fury.io/py/daploader.svg
+    :target: http://badge.fury.io/py/daploader
+
+.. image:: https://travis-ci.org/hroncok/daploader.png?branch=master
+        :target: https://travis-ci.org/hroncok/daploader
+
+.. image:: https://pypip.in/d/daploader/badge.png
+        :target: https://pypi.python.org/pypi/daploader
+
 Python module that loads a dap file, check it for sanity/validity
 and provide access for metadata via a Python class.
 
