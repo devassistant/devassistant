@@ -226,9 +226,9 @@ class Dap(object):
             name = self.meta['package_name']
 
             dirs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))?|snippets)(/' +
-                              name + ')?|icons(/' + name + ')?|files|(files/(crt|mod|prep|task|snippets)|doc)(/' + name + '(/.+)?)?)$')
+                              name + ')?|icons(/(crt|mod|prep|task|snippets)(/' + name + ')?)?|files|(files/(crt|mod|prep|task|snippets)|doc)(/' + name + '(/.+)?)?)$')
             regs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))|snippets)/' +
-                              name + r'(/[^/]+)?\.yaml|icons/' + name + r'(/[^/]+)?\.(' +
+                              name + r'(/[^/]+)?\.yaml|icons/(crt|mod|prep|task|snippets)/' + name + r'(/[^/]+)?\.(' +
                               Dap._icons + ')|(files/(crt|mod|prep|task|snippets)|doc)/' + name + '/.+)$')
 
             remove = []
@@ -257,10 +257,9 @@ class Dap(object):
                 if f.startswith(os.path.join(dirname, 'icons/')):
                     # name without extension and dirname/icons/
                     icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].split('.')[:-1]))
-                for t in ['assistants/' + t for t in 'crt mod prep task'.split()] + ['snippets']:
-                    if f.startswith(os.path.join(dirname, t, '')):
-                        # extension is .yaml only, so we don't need to split
-                        assistants.add(f[len(os.path.join(dirname, t, '')):-len('.yaml')])
+                if f.startswith(os.path.join(dirname, 'assistants/')):
+                    # extension is .yaml only, so we don't need to split and join
+                    assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
         duplicates = set([x for x in icons if icons.count(x) > 1])
         for d in duplicates:
             self._report_problem('Duplicate icon for ' + f, logging.WARNING)

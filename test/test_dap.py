@@ -274,7 +274,7 @@ class TestDap(object):
         '''Dap with wrong files produces errors'''
         out = StringIO()
         assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
-        assert len(out.getvalue().rstrip().split('\n')) == 17
+        assert len(out.getvalue().rstrip().split('\n')) == 21
         assert '/files/wrong.txt is not allowed file' in out.getvalue()
         assert '/files/wrong/ is not allowed directory' in out.getvalue()
         assert '/files/wrong/a is not allowed file' in out.getvalue()
@@ -283,6 +283,10 @@ class TestDap(object):
         assert '/files/crt/wrong is not allowed file' in out.getvalue()
         assert '/icons/foo.gif is not allowed file' in out.getvalue()
         assert '/icons/foo.yaml is not allowed file' in out.getvalue()
+        assert '/icons/mod/foo.gif is not allowed file' in out.getvalue()
+        assert '/icons/mod/foo.yaml is not allowed file' in out.getvalue()
+        assert '/icons/foo/ is not allowed directory' in out.getvalue()
+        assert '/icons/foo/a.png is not allowed file' in out.getvalue()
         assert '/doc/README is not allowed file' in out.getvalue()
         assert '/snippets/bar/ is not allowed directory' in out.getvalue()
         assert '/snippets/bar/bar.yaml is not allowed file' in out.getvalue()
@@ -297,7 +301,11 @@ class TestDap(object):
         '''Dap with redundant or missing icons and redundant files should produce warnings'''
         out = StringIO()
         assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out)
-        assert 'Useless icon for non-exisiting assistant foo/a' in out.getvalue()
-        assert 'Missing icon for assistant foo/bar' in out.getvalue()
-        assert 'Useless files for non-exisiting assistant snippets/foo/deep' in out.getvalue()
-        assert 'Useless files for non-exisiting assistant crt/foo' in out.getvalue()
+        assert 'Useless icon for non-exisiting assistant mod/foo/a' in out.getvalue()
+        assert 'Useless icon for non-exisiting assistant mod/foo/a' in out.getvalue()
+        assert 'Useless icon for non-exisiting assistant crt/foo' in out.getvalue()
+        assert 'Useless icon for non-exisiting assistant crt/foo' in out.getvalue()
+        assert 'Missing icon for assistant mod/foo/bar' in out.getvalue()
+        assert 'Missing icon for assistant mod/foo/bar' in out.getvalue()
+        assert 'Missing icon for assistant prep/foo/bar' in out.getvalue()
+        assert 'Missing icon for assistant prep/foo/bar' in out.getvalue()

@@ -34,7 +34,9 @@ Structure
 
   * icons/
 
-    * <package_name>.{svg,png...}
+    * {crt,mod,prep,task,snippets}/
+
+      * <package_name>.{svg,png...}
 
   * snippets/
 
