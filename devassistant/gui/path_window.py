@@ -7,9 +7,13 @@ Created on Wed Apr  3 13:16:47 2013
 
 import os
 from gi.repository import Gtk
-from devassistant.bin import CreatorAssistant
+
 
 class PathWindow(object):
+    """
+    Class shows option dialogs and checks settings for each
+    assistant
+    """
     def __init__(self, parent, main_window, builder, gui_helper):
         self.parent = parent
         self.main_window = main_window
@@ -24,7 +28,9 @@ class PathWindow(object):
         self.box6 = builder.get_object("box6")
         self.run_btn = builder.get_object("nextPathBtn")
         self.button = dict()
-        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0, col_homogenous=False, row_homogenous=False)
+        self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,
+                                                    col_homogenous=False,
+                                                    row_homogenous=False)
         self.title = self.gui_helper.create_label("Available options:")
         self.title.set_alignment(0, 0)
         self.box_path_main.pack_start(self.title, False, False, 0)
@@ -35,29 +41,40 @@ class PathWindow(object):
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
-        self.hseparator = self.builder.get_object("hseparator")
+        self.h_separator = self.builder.get_object("hseparator")
         self.back_button = False
         self.top_assistant = None
         self.project_name_shown = True
         self.current_main_assistant = None
         self.data = dict()
+        self.browse_btn = None
+        self.link_button = None
 
     def check_for_directory(self, dirname):
+        """
+        Function checks the directory and report it to user
+        """
         return self.gui_helper.execute_dialog(
-                                        "Directory {0} already exists".format(
-                                        dirname))
+            "Directory {0} already exists".format(
+            dirname))
 
     def get_full_dir_name(self):
+        """
+        Function returns a full dir name
+        """
         return os.path.join(self.dir_name.get_text(), self.entry_project_name.get_text())
 
     def next_window(self, widget, data=None):
+        """
+        Function opens the run Window who executes the
+        assistant project creation
+        """
         # check whether deps-only is selected
         deps_only = False
-        for active in filter(lambda x: isinstance(x, Gtk.CheckButton) and x.get_active(), self.button):
+        for active in [x for x in self.button if isinstance(x, Gtk.CheckButton) and x.get_active()]:
             if self.gui_helper.get_btn_lower_label(active) == "deps-only":
                 deps_only = True
         project_dir = self.dir_name.get_text()
-        project_name = self.entry_project_name.get_text()
         full_name = self.get_full_dir_name()
 
         # check whether project directory and name is properly set
@@ -68,9 +85,9 @@ class PathWindow(object):
                 # check whether directory is existing
                 if not os.path.isdir(project_dir):
                     response = self.gui_helper.create_question_dialog(
-                                    "Directory {0} does not exists".format(project_dir),
-                                    "Do you want to create them?"
-                                    )
+                        "Directory {0} does not exists".format(project_dir),
+                        "Do you want to create them?"
+                    )
                     if response == Gtk.ResponseType.NO:
                         # User do not want to create a directory
                         return
@@ -78,8 +95,8 @@ class PathWindow(object):
                         # Create directory
                         try:
                             os.makedirs(project_dir)
-                        except OSError as er:
-                            return self.gui_helper.execute_dialog("{0}".format(er))
+                        except OSError as os_err:
+                            return self.gui_helper.execute_dialog("{0}".format(os_err))
                 elif os.path.isdir(full_name):
                     return self.check_for_directory(full_name)
 
@@ -96,6 +113,9 @@ class PathWindow(object):
         self.path_window.hide()
 
     def _build_flags(self):
+        """
+        Function builds kwargs variable for run_window
+        """
         for widget in self.button:
             if isinstance(widget, Gtk.Label) or isinstance(widget, Gtk.CheckButton) and widget.get_active():
                 if widget.get_label() in self.entries and not self.entries[widget.get_label()].get_text():
@@ -103,12 +123,12 @@ class PathWindow(object):
                         "Entry {0} is empty".format(widget.get_label())
                     )
                     return False
-        for label in filter(lambda x: isinstance(x, Gtk.Label), self.button):
+        for label in [x for x in self.button if isinstance(x, Gtk.Label)]:
             self.kwargs[label.get_label().lower()] = self.entries[label.get_label()].get_text()
 
-        check_button = filter(lambda x: isinstance(x, Gtk.CheckButton), self.button)
+        check_button = [x for x in self.button if isinstance(x, Gtk.CheckButton)]
         # Check for active CheckButtons
-        for active in filter(lambda x: x.get_active(), check_button):
+        for active in [x for x in check_button if x.get_active()]:
             lbl = self.gui_helper.get_btn_lower_replace(active)
             btn = self.gui_helper.get_btn_label(active)
             if not btn in self.entries:
@@ -117,11 +137,11 @@ class PathWindow(object):
                 else:
                     self.kwargs[lbl] = True
                 continue
-            for entry in filter(lambda x: x == btn, self.entries):
+            for entry in [x for x in self.entries if x == btn]:
                 self.kwargs[lbl] = self.entries[btn].get_text()
 
         # Check for non active CheckButtons but with defaults flag
-        for not_active in filter(lambda x: not x.get_active(), check_button):
+        for not_active in [x for x in check_button if not x.get_active()]:
             lbl = self.gui_helper.get_btn_lower_replace(not_active)
             if 'default' in self.button[not_active].kwargs:
                 self.kwargs[lbl] = self.button[not_active].get_gui_hint('default')
@@ -130,11 +150,18 @@ class PathWindow(object):
         return True
 
     def _remove_widget_items(self):
+        """
+        Function removes widgets from grid
+        """
         self.button = dict()
         for btn in self.grid:
             self.grid.remove(btn)
 
     def get_user_path(self):
+        """
+        Function returns a path either user home directory
+        or empty directory
+        """
         try:
             path = os.path.expanduser('~')
         except Exception:
@@ -143,6 +170,9 @@ class PathWindow(object):
             return path
 
     def open_window(self, widget, data=None):
+        """
+        Function opens the Options dialog
+        """
         if data is not None:
             self.back_button = data.get('back', False)
             self.top_assistant = data.get('top_assistant', None)
@@ -169,12 +199,12 @@ class PathWindow(object):
         caption_parts = []
 
         # Finds any dependencies
-        found_deps = filter(lambda x: x.dependencies(), sorted(path))
+        found_deps = [x for x in sorted(path) if x.dependencies()]
         # This bool variable is used for showing text "Available options:"
         any_options = False
-        for a in sorted(path):
-            caption_parts.append("<b>"+a.fullname+"</b>")
-            for arg in sorted(filter(lambda x: not '--name' in x.flags, a.args), key=lambda x: x.flags):
+        for ass in sorted(path):
+            caption_parts.append("<b>" + ass.fullname + "</b>")
+            for arg in sorted([x for x in ass.args if not '--name' in x.flags], key=lambda y: y.flags):
                 if not (arg.name == "deps_only" and not found_deps):
                     row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
                     any_options = True
@@ -190,9 +220,9 @@ class PathWindow(object):
         self.run_btn.set_sensitive(not self.project_name_shown or self.entry_project_name.get_text() != "")
         if 'name' in self.kwargs:
             self.dir_name.set_text(os.path.dirname(self.kwargs.get('name', '')))
-        for arg in filter(lambda x: x.title() in self.entries, self.kwargs):
+        for arg in [x for x in self.kwargs if x.title() in self.entries]:
             self.entries[arg.title()].set_text(self.kwargs.get(arg))
-        for btn in filter(lambda x: isinstance(x, Gtk.CheckButton), self.button):
+        for btn in [x for x in self.button if isinstance(x, Gtk.CheckButton)]:
             lbl = self.gui_helper.get_btn_lower_replace(btn)
             if lbl in self.kwargs and self.kwargs[lbl] != "":
                 btn.set_active(True)
@@ -201,8 +231,10 @@ class PathWindow(object):
             else:
                 btn.set_active(False)
 
-
     def _check_box_toggled(self, widget, data=None):
+        """
+        Function manipulates with entries and buttons.
+        """
         active = widget.get_active()
         label = widget.get_label()
 
@@ -210,12 +242,15 @@ class PathWindow(object):
         if browse_btn:
             browse_btn.set_sensitive(active)
 
-        for _, entry in filter(lambda x: x[0] == label, self.entries.items()):
+        for _, entry in [x for x in self.entries.items() if x[0] == label]:
             entry.set_sensitive(active)
 
         self.path_window.show_all()
 
     def _deps_only_toggled(self, widget, data=None):
+        """
+        Function deactivate options in case of deps_only and opposite
+        """
         active = widget.get_active()
         self.dir_name.set_sensitive(not active)
         self.entry_project_name.set_sensitive(not active)
@@ -223,26 +258,44 @@ class PathWindow(object):
         self.run_btn.set_sensitive(active or not self.project_name_shown or self.entry_project_name.get_text() != "")
 
     def prev_window(self, widget, data=None):
+        """
+        Function returns to Main Window
+        """
         self.path_window.hide()
         self.parent.open_window(widget, self.data)
 
     def get_data(self):
+        """
+        Function returns project dirname and project name
+        """
         return self.dir_name.get_text(), self.entry_project_name.get_text()
 
     def browse_path(self, window):
+        """
+        Function opens the file chooser dialog for settings project dir
+        """
         text = self.gui_helper.create_file_chooser_dialog("Choose project directory", self.path_window, name="Select")
         if text is not None:
             self.dir_name.set_text(text)
 
     def _check_box_title(self, arg, number):
-        title = arg.flags[number][2:].title()
-        return title
+        """
+        Function returns a title from checkbox from args
+        """
+        return arg.flags[number][2:].title()
 
     def open_webbrowser(self, widget):
+        """
+        Function opens webbrowser
+        """
         import webbrowser
+
         webbrowser.open_new_tab(widget.get_uri())
 
     def _add_table_row(self, arg, number, row):
+        """
+        Function adds options to a grid
+        """
         align = self.gui_helper.create_alignment()
         star_flag = False
         if arg.kwargs.get('required'):
@@ -322,11 +375,17 @@ class PathWindow(object):
         return row
 
     def browse_clicked(self, widget, data=None):
+        """
+        Function sets the directory to entry
+        """
         text = self.gui_helper.create_file_chooser_dialog("Please select directory", self.path_window)
         if text is not None:
             data.set_text(text)
 
     def project_name_changed(self, widget, data=None):
+        """
+        Function controls whether run button is enabled
+        """
         if widget.get_text() != "":
             self.run_btn.set_sensitive(True)
         else:
