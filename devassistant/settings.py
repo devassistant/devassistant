@@ -32,4 +32,5 @@ SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora', 'red hat enterprise linux'],
                              'pacman': ['arch'],
                              # NOTE /etc/os-release has ID=gentoo,
                              # but platform.distribution reports "Gentoo Base System" string
-                             'ebuild': ['gentoo', 'gentoo base system']}
+                             'ebuild': ['gentoo', 'gentoo base system'],
+                             'homebrew': ['darwin', 'OS X']}

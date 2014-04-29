@@ -18,6 +18,9 @@ sdist
 develop-eggs
 .installed.cfg
 
+# varenv
+.env
+
 # Installer logs
 pip-log.txt
 
