@@ -79,7 +79,7 @@ setup(
     license='GPLv2+',
     url='https://github.com/hroncok/daploader',
     packages=find_packages(),
-    install_requires=['PyYAML'],
+    install_requires=['PyYAML', 'requests', 'sh'],
     entry_points={'console_scripts': ['daplint = daploader.daplint:lint']},
     classifiers=['Development Status :: 4 - Beta',
                  'Intended Audience :: Developers',

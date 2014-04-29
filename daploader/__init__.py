@@ -318,3 +318,7 @@ class Dap(object):
         del self._check_output
         del self._logger
         return not self._problematic
+
+    def extract(self, location):
+        '''Extract the contents of a dap to a given location'''
+        self._tar.extractall(location)
