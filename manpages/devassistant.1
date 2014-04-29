@@ -6,15 +6,15 @@
 .SH NAME
 devassistant \- setup development environment and create basic projects in various
 languages
-Please note that \fBda\fP binary is the recommended way of running DevAssistant
-(even though it works completely same).
 
 .SH SYNOPSIS
 \fBdevassistant [--debug] [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
 \fBdevassistant [--debug] [ ACTION ] [ OPTIONS ]
 
 .SH DESCRIPTION
-\fBdevassistant\fP is the main binary of DevAssistant. It is responsible for
+Please note that the \fBda\fP command is the recommended way of running DevAssistant (even though it works exactly the same).
+
+\fBdevassistant\fP is the main command of DevAssistant. It is responsible for
 dispatching commandline calls to assistants or actions. It accepts some
 optional flags:
 
@@ -46,8 +46,8 @@ You can display these (and also other options) by running e.g.
 the desired assistant (and its subassistants), just run it, e.g.
 \fBdevassistant crt python django -n newproject\fP.
 
-The list of assistants and their functionality may vary depending on type
-of your installation - just run help to see currently available assistants.
+The list of assistants and their functionality may vary depending on
+your installation - just run help to see currently available assistants.
 
 .SH DESCRIPTION - ACTION
 DevAssistant is designed to also provide custom functionality through so-called
@@ -78,7 +78,7 @@ specifying another path.
 .TP
 .B \-g --github <username>
 create a GitHub repo and push the initial sources there. Uses current system
-username as GH username, unless specified otherwise.The GitHub projectname is
+username as GitHub username, unless specified otherwise. The GitHub projectname is
 taken from \fBname\fP parameter.
 .TP
 .B \-b --build
@@ -86,13 +86,13 @@ generate a SPEC file, SRPM and mock-build RPM.
 .TP
 .B \-v --vim
 install vim settings specific for this language (backs up your original vim settings)
-.TP
 
-.SH ENVIRONMENT VARIABLES
-DevAssistant uses DEVASSISTANT_PATH environment variable. When specified, this has to
-be list of paths delimited by colon. These paths are traversed first, therefore if
-there is assistant "foo" in path from DEVASSISTANT_PATH and assistant with the same name
-is in standard paths, the one from DEVASSISTANT_PATH will be loaded.
+.SH ENVIRONMENT
+.TP
+.B DEVASSISTANT_PATH
+A colon-separated list of directories in which to search for assistants.
+Searched in before the standard paths. If multiple assistants with the same
+name are found only the first of them will be used.
 
 .SH "SEE ALSO"
 .BR da (1)

@@ -13,7 +13,7 @@ languages
 \fBda [--debug] [--no-cache] [ ACTION ] [ OPTIONS ]
 
 .SH DESCRIPTION
-\fBda\fP is the main binary of DevAssistant. It is responsible for dispatching
+\fBda\fP is the main command of DevAssistant. It is responsible for dispatching
 commandline calls to assistants or actions. It accepts some optional flags:
 
 .TP
@@ -43,8 +43,8 @@ You can display these (and also other options) by running e.g. \fBda crt -h\fP
 and \fBda crt python -h\fP. Once you select the desired assistant (and its
 subassistants), just run it, e.g. \fBda crt python django -n newproject\fP.
 
-The list of assistants and their functionality may vary depending on type
-of your installation - just run help to see currently available assistants.
+The list of assistants and their functionality may vary depending on
+your installation - just run help to see currently available assistants.
 
 .SH DESCRIPTION - ACTION
 DevAssistant is designed to also provide custom functionality through so-called
@@ -74,21 +74,21 @@ specifying another path.
 .TP
 .B \-g --github <username>
 create a GitHub repo and push the initial sources there. Uses current system
-username as GH username, unless specified otherwise.The GitHub projectname is
-taken from \fBname\fP parameter.
+username as GitHub username, unless specified otherwise. The GitHub projectname is
+taken from the \fBname\fP parameter.
 .TP
 .B \-b --build
 generate a SPEC file, SRPM and mock-build RPM.
 .TP
 .B \-v --vim
 install vim settings specific for this language (backs up your original vim settings)
-.TP
 
-.SH ENVIRONMENT VARIABLES
-DevAssistant uses DEVASSISTANT_PATH environment variable. When specified, this has to
-be list of paths delimited by colon. These paths are traversed first, therefore if
-there is assistant "foo" in path from DEVASSISTANT_PATH and assistant with the same name
-is in standard paths, the one from DEVASSISTANT_PATH will be loaded.
+.SH ENVIRONMENT
+.TP
+.B DEVASSISTANT_PATH
+A colon-separated list of directories in which to search for assistants.
+Searched in before the standard paths. If multiple assistants with the same
+name are found only the first of them will be used.
 
 .SH "SEE ALSO"
 .BR da-gui (1)
