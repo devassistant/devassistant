@@ -296,7 +296,7 @@ class Dap(object):
             handler = logging.StreamHandler(self._check_output)
             handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
             self._logger.addHandler(handler)
-            self._logger.setLevel(level)
+        self._logger.setLevel(level)
 
     def check(self, network=False, raises=False, output=sys.stderr, level=logging.INFO):
         '''Checks if the dap is valid, reports problems
@@ -316,7 +316,6 @@ class Dap(object):
 
         del self._check_raises
         del self._check_output
-        del self._logger
         return not self._problematic
 
     def extract(self, location):
