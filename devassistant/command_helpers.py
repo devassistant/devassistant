@@ -112,10 +112,10 @@ class ClHelper(object):
     def format_for_another_user(cls, cmd_str, as_user):
         # TODO: implement the best way based on platform/other circumstances
         delimiter = 'DA_AS_USER_{0}'.format(as_user.upper())
-        heredoc_firstline = ['cat << {delim} | pkexec'.format(delim=delimiter)]
+        heredoc_firstline = ['pkexec']
         if as_user != 'root':
             heredoc_firstline.extend(['--user',  as_user])
-        heredoc_firstline.append('bash')
+        heredoc_firstline.append('bash << {delim}'.format(delim=delimiter))
         cmd = '\n'.join([' '.join(heredoc_firstline),
                          cmd_str,
                          delimiter
