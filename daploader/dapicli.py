@@ -289,6 +289,15 @@ def install_dap(name, version='', force=False):
         pass
 
 
+def _eshout(e):
+    '''Prints the Exception's message to stderr'''
+    try:
+        sys.stderr.write(e.message)
+    except AttributeError:
+        sys.stderr.write(e.args[0])
+    sys.stderr.write('\n')
+
+
 def sync_daps():
     '''For all installed daps, get the latest version from Dapi
     and replace the isntalled dap with it'''
@@ -297,8 +306,27 @@ def sync_daps():
         try:
             install_dap(name, force=True)
         except Exception as e:
-            try:
-                sys.stderr.write(e.message)
-            except AttributeError:
-                sys.stderr.write(e.args[0])
-            sys.stderr.write('\n')
+            _eshout(e)
+
+
+def cli():
+    '''Command line client for Dapi'''
+    if len(sys.argv) < 2 or sys.argv[1].endswith('help'):
+        print(
+            ''.join(open(os.path.join(os.path.dirname(__file__), 'dapi.help')).readlines()),
+            end='')
+    elif (sys.argv[1] == 'install' or sys.argv[1] == 'update'):
+        try:
+            name = sys.argv[2]
+        except:
+            sys.stderr.write('You need to say what dap to {what}\n'.format(what=sys.argv[1]))
+            exit(1)
+        try:
+            version = sys.argv[3]
+        except:
+            version = ''
+        try:
+            install_dap(name, version, sys.argv[1] == 'update')
+        except Exception as e:
+            _eshout(e)
+            exit(1)
