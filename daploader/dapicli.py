@@ -9,6 +9,7 @@ import tempfile
 import urllib
 import tarfile
 import daploader
+import sys
 from sh import mkdir
 from sh import cp
 
@@ -250,7 +251,7 @@ def download_dap(name, version='', d='', directory=''):
 
 def install_dap(name, version='', force=False):
     '''Install a dap from dapi
-    If override is True, it will remove previously installed daps of the same name'''
+    If force is True, it will remove previously installed daps of the same name'''
     will_uninstall = False
     if name in get_installed_daps():
         if not force:
@@ -286,3 +287,18 @@ def install_dap(name, version='', force=False):
             shutil.rmtree(_extracted_dir)
     except:
         pass
+
+
+def sync_daps():
+    '''For all installed daps, get the latest version from Dapi
+    and replace the isntalled dap with it'''
+    for name in get_installed_daps():
+        print('Updating {dap}'.format(dap=name))
+        try:
+            install_dap(name, force=True)
+        except Exception as e:
+            try:
+                sys.stderr.write(e.message)
+            except AttributeError:
+                sys.stderr.write(e.args[0])
+            sys.stderr.write('\n')
