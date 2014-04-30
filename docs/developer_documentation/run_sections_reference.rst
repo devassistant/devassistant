@@ -4,10 +4,10 @@ Run Sections Reference
 ======================
 
 Run sections are the essence of DevAssistant. They are responsible for
-preforming all the tasks and actions to set up the environment and
-the project itself. For Creator and Preparer assistants, section named ``run``
+performing all the tasks and actions to set up the environment and
+the project itself. For Creator and Preparer assistants, the section named ``run``
 is always invoked, :ref:`modifier_assistants_ref` may invoke different sections
-based on metadata in ``.devassistant`` file.
+based on metadata in a ``.devassistant`` file.
 
 Note, that ``pre_run`` and ``post_run`` follow the same rules as ``run`` sections.
 See :ref:`assistants_invocation_ref` to find out how and when these sections are invoked.
@@ -45,7 +45,7 @@ the basic usage of the most important commands here. Note, that when you use var
   You can use similar commands to log at different log levels: ``log_d`` for ``DEBUG``,
   ``log_w`` for ``WARNING``, ``log_e`` for ``ERROR`` and ``log_c`` for ``CRITICAL``. By default,
   messages of level ``INFO`` and higher are logged. Log messages with levels ``ERROR`` and
-  ``CRITICAL`` emit the message and then terminate execution of DevAssistant imediatelly.
+  ``CRITICAL`` emit the message and then terminate execution of DevAssistant immediately.
 
 - conditions::
 
@@ -56,7 +56,7 @@ the basic usage of the most important commands here. Note, that when you use var
 
   Conditions work as you'd expect in any programming language - ``if`` subsection gets executed if
   the condition evaluates to true, otherwise ``else`` subsection gets executed. The condition
-  itself is an **expression**, see :ref:`expressions_ref` for detailed reference of expression.
+  itself is an **expression**, see :ref:`expressions_ref` for detailed reference of expressions.
 
 - loops::
 
@@ -73,11 +73,12 @@ the basic usage of the most important commands here. Note, that when you use var
 
      - $foo: "Some literal with value of "foo" variable: $foo"
 
-  This shows how to assign a literal value to a variable. There is also a possibility to assing
-  result of another command to variable, see TODO.
+  This shows how to assign a literal value to a variable. It is also possible to assign
+  the result of another command to a variable, see `Section Results`_ for how to
+  use the execution flag.
 
 
-Remember to check :ref:`command_ref` for comprehensive description of all commands.
+Remember to check :ref:`command_ref` for a comprehensive description of all commands.
 
 Literal Sections vs. Execution Sections
 ---------------------------------------
@@ -120,9 +121,9 @@ Similarly to :ref:`expressions <expressions_ref>`, sections return *logical resu
 Some examples follow::
 
    run:
-   # now we're inherently in execution section
+   # now we're inherently in an execution section
    - if $(ls /foo):
-     # now we're also in execution section, e.g. the below sequence is executed
+     # now we're also in an execution section, e.g. the below sequence is executed
      - foo:
          # the input passed to "foo" command runner is inherently a literal input, e.g. not executed
          # this means foo command runner will get a mapping with two key-value pairs as input, e.g.:
@@ -131,7 +132,7 @@ Some examples follow::
          with: [$list, $of, $substituted, $variables]
    - $var: this string gets assigned to "var" with $substituted $variables
 
-If you need to assign result of expression or execution section to a variable or pass it to
+If you need to assign the result of an expression or execution section to a variable or pass it to
 a command runner, you need to use the **execution flag**: ``~``::
 
    run:
@@ -144,7 +145,7 @@ a command runner, you need to use the **execution flag**: ``~``::
        - cr: ci
        - cr2: ci2
 
-Note, that a string starting with execution flag is also executed as an expression. If you
+Note, that a string starting with the execution flag is also executed as an expression. If you
 want to create a literal that starts with ``~``, just use the escape value for it (``~~``)::
 
    run:
@@ -152,19 +153,19 @@ want to create a literal that starts with ``~``, just use the escape value for i
    - $bar: ~~/some_dir_in_users_home
    - log_i: The tilde character (~) only needs to be escaped when starting a string.
 
-Each command specifies return value in a different way, see :ref:`command_ref`.
+Each command specifies its return value in a different way, see :ref:`command_ref`.
 
 Variables Explained
 -------------------
 
-Initially, variables are populated with values of arguments from
+Initially, variables are populated with values of arguments from the
 commandline/gui and there are no other variables defined for creator
 assistants. For modifier assistants global variables are prepopulated
 with some values read from ``.devassistant``. You can either define
 (and assign to) your own variables or change the values of current ones.
 
 Additionally, after each command, variables ``$LAST_RES`` and ``$LAST_LRES`` are populated
-with result of the last command (these are also the return values of the command) -
+with the result of the last command (these are also the return values of the command) -
 see :ref:`command_ref`
 
 The variable scope works as follows:
@@ -173,7 +174,7 @@ The variable scope works as follows:
   the variables get passed by value (e.g. they don't get modified for the
   remainder of this scope).
 - Variables defined in subsections (``if``, ``else``, ``for``) continue to be available
-  until end of the current ``run`` section.
+  until the end of the current ``run`` section.
 
 All variables are global in the sense that if you call a snippet or another
 section, it can see all the arguments that are defined.
@@ -189,15 +190,15 @@ variable assignment that uses bash.
 Global Variables
 ~~~~~~~~~~~~~~~~
 
-In all assistants, few useful global variables are available. These include:
+In all assistants, a few useful global variables are available. These include:
 
 - ``$__system_name__`` - name of the system, e.g. "linux"
 - ``$__system_version__`` - version of the system, e.g. "3.13.3-201.fc20.x86_64"
 - ``$__distro_name__`` - name of Linux distro, e.g. "fedora"
 - ``$__distro_version__`` - version of Linux distro, e.g. "20"
 
-Note: if any of these information is not available, the corresponding variable will be empty.
-Also note, that you can also rely on all the variables having lowercase content.
+Note: if any of this information is not available, the corresponding variable will be empty.
+Also note, that you can rely on all the variables having lowercase content.
 
 .. _expressions_ref:
 
@@ -227,7 +228,7 @@ Syntax and semantics:
     - *result*: empty string
 
   - *note*: boolean values (e.g. those acquired by argument with ``action: store_true``)
-    always have empty string as a *result* and their value as *logical result*
+    always have an empty string as a *result* and their value as *logical result*
 
 - ``$(commandline command)`` (yes, that is a command invocation that looks like
   running command in a subshell)
@@ -255,13 +256,13 @@ Syntax and semantics:
 
 - ``$foo and $bar``
 
-  - *logical result* is logical conjunction of the two arguments
+  - *logical result* is the logical conjunction of the two arguments
 
-  - *result* is empty string if at least one of the arguments is empty, or the latter argument
+  - *result* is an empty string if at least one of the arguments is empty, or the latter argument
 
 - ``$foo or $bar``
 
-  - *logical result* is logical disjunction of the two arguments
+  - *logical result* is the logical disjunction of the two arguments
 
   - *result* is the first non-empty argument or an empty string
 
