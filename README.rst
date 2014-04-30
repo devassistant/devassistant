@@ -1,5 +1,5 @@
-python-daploader
-================
+daploader
+=========
 
 .. image:: https://badge.fury.io/py/daploader.svg
     :target: http://badge.fury.io/py/daploader
