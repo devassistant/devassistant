@@ -14,7 +14,7 @@ from sh import mkdir
 from sh import cp
 
 DEFAULT_API_URL = 'http://dapi.devassistant.org/api/'
-DEFAULT_USER_INSTALL = os.path.expanduser('~/.devassistant')
+DEFAULT_USER_INSTALL = '~/.devassistant'
 DEFAULT_ROOT_INSTALL = '/usr/local/share/devassistant'
 
 
@@ -26,11 +26,11 @@ def _install_path():
     path = os.environ.get('DAPI_INSTALL', None)
     if path:
         if path.endswith('/'):
-            return path[:-1]
-        return path
+            return os.path.expanduser(path[:-1])
+        return os.path.expanduser(path)
     if os.geteuid() == 0:
         return DEFAULT_ROOT_INSTALL
-    return DEFAULT_USER_INSTALL
+    return os.path.expanduser(DEFAULT_USER_INSTALL)
 
 
 def _process_req(req):
@@ -110,7 +110,11 @@ def _print_dap_with_description(mdap):
 def print_users(page=''):
     '''Prints a list of users available on Dapi'''
     u = users(page=page)
-    if not u['count']:
+    try:
+        count = u['count']
+    except KeyError:
+        raise Exception('Page over maximum or other 404 error')
+    if not count:
         raise Exception('Could not find any users')
     for user in u['results']:
         print(user['username'], end='')
@@ -119,7 +123,7 @@ def print_users(page=''):
         else:
             print('')
     if u['next']:
-        print('There are more users available, paginate by --page X')
+        print('There are more users available, paginate by adding page number')
 
 
 def print_daps(page=''):
@@ -131,7 +135,7 @@ def print_daps(page=''):
     for mdap in m['results']:
         _print_dap_with_description(mdap)
     if m['next']:
-        print('There are more daps available, paginate by --page X')
+        print('There are more daps available, paginate by adding page number')
 
 
 def _get_metadap_dap(name, version=''):
@@ -182,14 +186,18 @@ def print_dap(name, version=''):
 def print_search(query, page=''):
     '''Prints the results of a search'''
     m = search(query, page=page)
-    if not m['count']:
+    try:
+        count = m['count']
+    except KeyError:
+        raise Exception('Page over maximum or other 404 error')
+    if not count:
         raise Exception('Could not find any daps for your query')
         return
     for mdap in m['results']:
         mdap = mdap['content_object']
         _print_dap_with_description(mdap)
     if m['next']:
-        print('There are more daps available, paginate by --page X')
+        print('There are more daps available, paginate by adding page number')
 
 
 def get_installed_daps():
@@ -291,10 +299,7 @@ def install_dap(name, version='', force=False):
 
 def _eshout(e):
     '''Prints the Exception's message to stderr'''
-    try:
-        sys.stderr.write(e.message)
-    except AttributeError:
-        sys.stderr.write(e.args[0])
+    sys.stderr.write(str(e))
     sys.stderr.write('\n')
 
 
@@ -311,16 +316,23 @@ def sync_daps():
 
 def cli():
     '''Command line client for Dapi'''
-    if len(sys.argv) < 2 or sys.argv[1].endswith('help'):
+    if len(sys.argv) < 2:
+        sys.stderr.write('You\'ll need some arguments, try dapi help\n')
+        return 1
+
+    if sys.argv[1].endswith('help'):
         print(
-            ''.join(open(os.path.join(os.path.dirname(__file__), 'dapi.help')).readlines()),
+            ''.join(open(os.path.join(os.path.dirname(__file__), 'dapi.help')).readlines())
+            .format(user=DEFAULT_USER_INSTALL, root=DEFAULT_ROOT_INSTALL),
             end='')
-    elif (sys.argv[1] == 'install' or sys.argv[1] == 'update'):
+        return
+
+    if (sys.argv[1] == 'install' or sys.argv[1] == 'update'):
         try:
             name = sys.argv[2]
         except:
             sys.stderr.write('You need to say what dap to {what}\n'.format(what=sys.argv[1]))
-            exit(1)
+            return 1
         try:
             version = sys.argv[3]
         except:
@@ -329,4 +341,47 @@ def cli():
             install_dap(name, version, sys.argv[1] == 'update')
         except Exception as e:
             _eshout(e)
-            exit(1)
+            return 1
+        return
+
+    if (sys.argv[1] == 'search'):
+        try:
+            query = sys.argv[2]
+        except:
+            sys.stderr.write('You need to say what to search for\n')
+            return 1
+        try:
+            page = sys.argv[3]
+        except:
+            page = ''
+        try:
+            print_search(query, page)
+        except Exception as e:
+            _eshout(e)
+            return 1
+        return
+
+    if (sys.argv[1] == 'info'):
+        try:
+            name = sys.argv[2]
+        except:
+            sys.stderr.write('You need to say what dap details you want\n')
+            return 1
+        try:
+            version = sys.argv[3]
+        except:
+            version = ''
+        try:
+            print_dap(name, version)
+        except Exception as e:
+            _eshout(e)
+            return 1
+        return
+
+    if (sys.argv[1] == 'list'):
+        for d in get_installed_daps():
+            print(d)
+        return
+
+    sys.stderr.write('Unknown command {c}\n'.format(c=sys.argv[1]))
+    return 1
