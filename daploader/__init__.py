@@ -201,6 +201,14 @@ class Dap(object):
                     emptydirs.append(f)
         return emptydirs
 
+    def _check_dapi(self):
+        '''Check that the package_name is not registered on Dapi'''
+        if self.meta['package_name']:
+            from . import dapicli
+            d = dapicli.metadap(self.meta['package_name'])
+            if d:
+                self._report_problem('This dap name is already registered on Dapi', logging.WARNING)
+
     def _check_files(self):
         '''Check that there are only those files the standard accepts'''
         dirname = os.path.dirname(self._meta_location)
@@ -313,6 +321,9 @@ class Dap(object):
         self._check_meta()
         self._check_topdir()
         self._check_files()
+
+        if network:
+            self._check_dapi()
 
         del self._check_raises
         del self._check_output
