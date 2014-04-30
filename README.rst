@@ -13,6 +13,10 @@ python-daploader
 Python module that loads a dap file, check it for sanity/validity
 and provide access for metadata via a Python class.
 
+You can also run ``daplint`` on your daps to see some errors or warnings.
+
+Also provides very basic command line tool to install daps from `Dapi <http://dapi.devassistant.org/>`_ (``dapi``).
+
 dap
 ---
 
