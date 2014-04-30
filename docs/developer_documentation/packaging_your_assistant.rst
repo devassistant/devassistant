@@ -58,7 +58,7 @@ meta.yaml
 ::
 
     package_name: foo # required
-    version: 1.0.0 # required
+    version: 0.0.1 # required
     license: GPLv2 # required
     authors: [Bohuslav Kabrda <bkabrda@mailserver.com>, ...] # required
     homepage: https://github.com/bkabrda/assistant-foo # optional
@@ -84,12 +84,27 @@ meta.yaml
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
 
-The dap assistant
------------------
+Checking your dap for sanity
+----------------------------
 
--- IN PROGRESS --
+Once you have your dap packaged, check it for sanity with ``daplint`` tool from ``daploader``.
+
+First, you have to get the ``daplint`` tool.
+Install `daploader <https://pypi.python.org/pypi/daploader/>`_ with ``pip`` or ``easy_install``.
+
+::
+
+   pip install daploader
+
+Then you can check your dap with ``daplint``:
+
+::
+
+   daplint foo-0.0.1.dap
 
 Uploading your dap to DevAssistant Package Index
 ------------------------------------------------
 
--- IN PROGRESS --
+When you are satisfied, you can share your assistant on `Dapi <http://dapi.devassistant.org/>`_ (DevAssistant Package Index).
+
+On `Dapi <http://dapi.devassistant.org/>`_, log in with Github or Fedora account and follow `Upload a Dap <http://dapi.devassistant.org/upload>`_ link in the menu.
