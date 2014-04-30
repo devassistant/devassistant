@@ -1,7 +1,7 @@
 Packaging Your Assistant
 ========================
 
-So now you know how to :ref:`create an assistant <tutorial_creating_assistant>`.
+So now you know how to :ref:`create an assistant <tutorial>`.
 But what if you want to share your assistant with others?
 
 For that you could send them all the files from your assistant and tell them where they belong.
