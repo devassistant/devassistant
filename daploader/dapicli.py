@@ -260,12 +260,13 @@ def download_dap(name, version='', d='', directory=''):
 
 def install_dap_from_path(path, force=False):
     '''Installs a dap from a given path'''
+    will_uninstall = False
     dap_obj = daploader.Dap(path)
     if dap_obj.meta['package_name'] in get_installed_daps():
         if not force:
             raise Exception('Won\'t override already installed dap')
         else:
-            uninstall_dap(dap_obj.meta['package_name'])
+            will_uninstall = True
     if os.path.isfile(_install_path()):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
@@ -274,6 +275,8 @@ def install_dap_from_path(path, force=False):
     if not ok:
         raise Exception('The dap you want to install has errors, won\'t do it')
     dap_obj.extract(_dir)
+    if will_uninstall:
+        uninstall_dap(dap_obj.meta['package_name'])
     _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
     try:
         os.remove(os.path.join(_dapdir, 'meta.yaml'))
