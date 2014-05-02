@@ -10,6 +10,7 @@ import urllib
 import tarfile
 import daploader
 import sys
+import logging
 from sh import mkdir
 from sh import cp
 
@@ -257,42 +258,50 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap(name, version='', force=False):
-    '''Install a dap from dapi
-    If force is True, it will remove previously installed daps of the same name'''
-    will_uninstall = False
-    if name in get_installed_daps():
+def install_dap_from_path(path, force=False):
+    '''Installs a dap from a given path'''
+    dap_obj = daploader.Dap(path)
+    if dap_obj.meta['package_name'] in get_installed_daps():
         if not force:
             raise Exception('Won\'t override already installed dap')
         else:
-            will_uninstall = True
+            uninstall_dap(dap_obj.meta['package_name'])
     if os.path.isfile(_install_path()):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
-    m, d = _get_metadap_dap(name, version)
-    path, remove_dir = download_dap(name, d=d)
-    _dir = os.path.dirname(path)
-    _extracted_dir = '.'.join(path.split('.')[:-1])
-    dap_obj = daploader.Dap(path)
-    dap_obj.check()
+    _dir = tempfile.mkdtemp()
+    ok = dap_obj.check(level=logging.ERROR)
+    if not ok:
+        raise Exception('The dap you want to install has errors, won\'t do it')
     dap_obj.extract(_dir)
+    _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
     try:
-        os.remove(os.path.join(_extracted_dir, 'meta.yaml'))
+        os.remove(os.path.join(_dapdir, 'meta.yaml'))
     except:
         pass
-    if will_uninstall:
-        uninstall_dap(name)
     if not os.path.isdir(_install_path()):
         mkdir(_install_path(), '-p')
-    for f in glob.glob(_extracted_dir + '/*'):
+    for f in glob.glob(_dapdir + '/*'):
         cp('-r', f, _install_path())
+    try:
+        shutil.rmtree(_dir)
+    except:
+        pass
+
+
+def install_dap(name, version='', force=False):
+    '''Install a dap from dapi
+    If force is True, it will remove previously installed daps of the same name'''
+    m, d = _get_metadap_dap(name, version)
+    path, remove_dir = download_dap(name, d=d)
+
+    install_dap_from_path(path, force=force)
 
     try:
         if remove_dir:
-            shutil.rmtree(_dir)
+            shutil.rmtree(os.dirname(path))
         else:
             os.remove(path)
-            shutil.rmtree(_extracted_dir)
     except:
         pass
 
@@ -333,15 +342,22 @@ def cli():
         except:
             sys.stderr.write('You need to say what dap to {what}\n'.format(what=sys.argv[1]))
             return 1
-        try:
-            version = sys.argv[3]
-        except:
-            version = ''
-        try:
-            install_dap(name, version, sys.argv[1] == 'update')
-        except Exception as e:
-            _eshout(e)
-            return 1
+        if os.path.isfile(name):
+            try:
+                install_dap_from_path(name, sys.argv[1] == 'update')
+            except Exception as e:
+                _eshout(e)
+                return 1
+        else:
+            try:
+                version = sys.argv[3]
+            except:
+                version = ''
+            try:
+                install_dap(name, version, sys.argv[1] == 'update')
+            except Exception as e:
+                _eshout(e)
+                return 1
         return
 
     if (sys.argv[1] == 'search'):

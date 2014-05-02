@@ -9,6 +9,9 @@ Use the following commands:
         installs given version of given dap
         installs a latest stable version of given dap if no version given
         installs devel version if not stable version is available
+    
+    dapi install <path>
+        installs a dap from given path
 
     dapi uninstall <dap>
         removes the dap from your system
