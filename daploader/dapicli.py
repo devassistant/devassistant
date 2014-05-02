@@ -315,12 +315,15 @@ def _eshout(e):
 def sync_daps():
     '''For all installed daps, get the latest version from Dapi
     and replace the isntalled dap with it'''
+    e = 0
     for name in get_installed_daps():
         print('Updating {dap}'.format(dap=name))
         try:
             install_dap(name, force=True)
         except Exception as e:
             _eshout(e)
+            e += 1
+    return e
 
 
 def cli():
@@ -398,6 +401,9 @@ def cli():
         for d in get_installed_daps():
             print(d)
         return
+
+    if (sys.argv[1] == 'sync'):
+        return sync_daps()
 
     sys.stderr.write('Unknown command {c}\n'.format(c=sys.argv[1]))
     return 1
