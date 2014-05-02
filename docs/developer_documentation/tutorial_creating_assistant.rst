@@ -1,3 +1,5 @@
+.. _tutorial:
+
 Tutorial: Creating Your Own Assistant
 =====================================
 
