@@ -65,8 +65,8 @@ the basic usage of the most important commands here. Note, that when you use var
 
   Loops probably also work as you'd expect - they've got the control variable and an "iterator".
   Loop iterators are **expressions**, see :ref:`expressions_ref`. Note, that you can use two
-  forms of for loop. If you use ``word_in``, DevAssistant will split given expression on
-  whitespaces and then iterate over that, while if you use ``in``, DevAssistant will iterate
+  forms of for loop. If you use ``word_in``, DevAssistant will split the given expression on
+  whitespace and then iterate over that, while if you use ``in``, DevAssistant will iterate
   over single characters of the string.
 
 - variable assignment::
