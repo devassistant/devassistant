@@ -144,6 +144,19 @@
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkLabel" id="labelCrtIn">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Create in:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkLabel" id="labelPrjDir">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -152,8 +165,8 @@
                       </object>
                       <packing>
                         <property name="expand">True</property>
-                        <property name="fill">False</property>
-                        <property name="position">1</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -167,6 +180,7 @@
                   <object class="GtkVBox" id="vbox2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkEntry" id="entryProjectName">
                         <property name="can_focus">True</property>
@@ -194,6 +208,7 @@
                             <property name="invisible_char">●</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
+                            <signal name="changed" handler="on_dirName_changed" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -224,8 +239,21 @@
                         <property name="expand">False</property>
                         <property name="fill">False</property>
                         <property name="padding">6</property>
-                        <property name="pack_type">end</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="labelFullPrjDir">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="wrap">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="pack_type">end</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>

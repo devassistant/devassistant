@@ -54,6 +54,7 @@ class MainWindow(object):
             "on_backBtn_clicked": self.run_window.back_btn_clicked,
             "on_mainBtn_clicked": self.run_window.main_btn_clicked,
             "on_entryProjectName_changed": self.path_window.project_name_changed,
+            "on_dirName_changed": self.path_window.dir_name_changed,
         }
         self.builder.connect_signals(self.main_handlers)
         self.label_main_window = self.builder.get_object("sublabel")

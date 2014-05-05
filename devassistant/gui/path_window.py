@@ -41,6 +41,7 @@ class PathWindow(object):
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
+        self.label_full_prj_dir = self.builder.get_object("labelFullPrjDir")
         self.h_separator = self.builder.get_object("hseparator")
         self.back_button = False
         self.top_assistant = None
@@ -181,6 +182,7 @@ class PathWindow(object):
             self.data['debugging'] = data.get('debugging', False)
         text = self.get_user_path()
         self.dir_name.set_text(text)
+        self.label_full_prj_dir.set_text(text)
         self.dir_name.set_sensitive(True)
         self.dir_name_browse_btn.set_sensitive(True)
         self._remove_widget_items()
@@ -382,6 +384,13 @@ class PathWindow(object):
         if text is not None:
             data.set_text(text)
 
+    def update_full_label(self):
+        """
+        Function is used for updating whole path
+        of project
+        """
+        self.label_full_prj_dir.set_text(self.get_full_dir_name())
+
     def project_name_changed(self, widget, data=None):
         """
         Function controls whether run button is enabled
@@ -390,3 +399,11 @@ class PathWindow(object):
             self.run_btn.set_sensitive(True)
         else:
             self.run_btn.set_sensitive(False)
+        self.update_full_label()
+
+    def dir_name_changed(self, widget, data=None):
+        """
+        Function is used for controlling
+        label Full Directory project name
+        """
+        self.update_full_label()
