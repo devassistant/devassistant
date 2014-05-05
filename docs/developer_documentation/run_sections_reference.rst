@@ -38,7 +38,7 @@ the basic usage of the most important commands here. Note, that when you use var
   non-zero return code, DevAssistant will fail.
 
 - logging::
-  
+
      - log_i: Directory $spam created.
 
   This command will log the given message at ``INFO`` level - either to terminal or GUI.
@@ -63,7 +63,7 @@ the basic usage of the most important commands here. Note, that when you use var
      - for $i word_in $(ls):
        - log_i: Found file $i.
 
-  Loops probably also work as you'd expect - they've got the control variable and an "iterator".
+  Loops probably also work as you'd expect - they've got the control variable and an iterable.
   Loop iterators are **expressions**, see :ref:`expressions_ref`. Note, that you can use two
   forms of for loop. If you use ``word_in``, DevAssistant will split the given expression on
   whitespace and then iterate over that, while if you use ``in``, DevAssistant will iterate
