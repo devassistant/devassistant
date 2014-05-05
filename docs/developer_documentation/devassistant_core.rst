@@ -123,7 +123,7 @@ than DevAssistant will print out something like::
    INFO: MyCommandRunner was invoked: mycomm: You are using DevAssistant!
 
 When run, this command returns a tuple with *logical result* and *result*. This means
-you can assign the length of string to variable like this::
+you can assign the length of a string to a variable like this::
 
    run:
    $thiswillbetrue, $length~:

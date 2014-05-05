@@ -3,19 +3,19 @@
 Command Reference
 =================
 
-This page serves as a reference commands of DevAssistant Yaml DSL.
-Every command consists of **command_type** and **command_input**. After it gets executed,
-it sets ``LAST_LRES`` and ``LAST_RES`` variables. These are also its return values,
+This page serves as a reference for commands of the DevAssistant Yaml DSL.
+Every command consists of a **command_type** and **command_input**. After it gets executed,
+it sets the ``LAST_LRES`` and ``LAST_RES`` variables. These are also its return values,
 similar to :ref:`expressions_ref` **logical result** and **result**.
 
-- ``LAST_LRES`` is a logical result of the run - ``True``/``False`` if successful/unsuccessful
-- ``LAST_RES`` is a "return value" - e.g. a computed value
+- ``LAST_LRES`` is the logical result of the run - ``True``/``False`` if successful/unsuccessful
+- ``LAST_RES`` is the "return value" - e.g. a computed value
 
 In the Yaml DSL, commands are called like this::
 
    command_type: command_input
 
-This reference summarizes commands included in DevAssistant itself in following format:
+This reference summarizes commands included in DevAssistant itself in the following format:
 
 ``command_type`` - some optional info
 
@@ -24,7 +24,7 @@ This reference summarizes commands included in DevAssistant itself in following 
 - LRES: what is ``LAST_LRES`` set to after this command?
 - Example: example usage
 
-*Missing something?* Commands are your entrypoint for extending DevAssistant.
+*Missing something?* Commands are your entry point for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
 :ref:`write a command runner <command_runners>` and send us a pull request.
 
