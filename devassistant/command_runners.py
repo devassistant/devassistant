@@ -98,7 +98,11 @@ class UseCommandRunner(CommandRunner):
             raise exceptions.CommandException('"use" command expects "use: what.which_section".')
         section_name = call_parts[1] # TODO: check dependencies/run
         called = call_parts[0]
-        section, sourcefile = cls.get_section_from_call(called, section_name, assistant)
+
+        if cls.is_snippet_call(c.input_res):
+            section, sourcefile = cls.get_snippet_from_call(called, section_name, assistant)
+        else:
+            section, running_assistant = cls.get_section_assistant_from_call(called, section_name, assistant)
 
         if not section:
             msg = 'Couldn\'t find {t} section "{n}".'.format(t=section,
@@ -115,7 +119,9 @@ class UseCommandRunner(CommandRunner):
             c.kwargs['__sourcefiles__'].append(snippet.path)
 
         if section_name.startswith('dependencies'):
-            result = lang.dependencies_section(section, copy.deepcopy(c.kwargs), runner=assistant)
+            kwargs = copy.deepcopy(c.kwargs)
+            kwargs['__assistant__'] = running_assistant
+            result = lang.dependencies_section(section, kwargs, runner=assistant)
         else:
             result = lang.run_section(section,
                                       copy.deepcopy(c.kwargs),
@@ -132,7 +138,23 @@ class UseCommandRunner(CommandRunner):
         return not (cmd_call.startswith('self.') or cmd_call.startswith('super.'))
 
     @classmethod
-    def get_section_from_call(cls, called, section_name, assistant):
+    def get_section_assistant_from_call(cls, called, section_name, origin_assistant):
+        if called == 'self':
+            # TODO Check if section exists
+            section = getattr(assistant, '_' + section_name, None)
+            return section, origin_assistant
+        elif called == 'super':
+            a = origin_assistant.superassistant
+            while a:
+                if hasattr(a, 'assert_fully_loaded'):
+                    a.assert_fully_loaded()
+                if hasattr(a, '_' + section_name):
+                    section = getattr(a, '_' + section_name)
+                    return section, a
+                a = a.superassistant
+
+    @classmethod
+    def get_snippet_from_call(cls, called, section_name):
         """Returns a section and source file from call command.
 
         Examples:
@@ -153,31 +175,22 @@ class UseCommandRunner(CommandRunner):
         """
         section = sourcefile = None
 
-        if called == 'self':
-            section = getattr(assistant, '_' + section_name, None)
-            sourcefile = assistant.path
-        elif called == 'super':
-            a = assistant.superassistant
-            while a:
-                if hasattr(a, 'assert_fully_loaded'):
-                    a.assert_fully_loaded()
-                if hasattr(a, '_' + section_name):
-                    section = getattr(a, '_' + section_name)
-                    sourcefile = a.path
-                    break
-                a = a.superassistant
-        else:  # snippet
-            try:
-                snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(called)
-                if section_name.startswith('run'):
-                    section = snippet.get_run_section(section_name) if snippet else None
-                else:
-                    section = snippet.get_dependencies_section(section_name) if snippet else None
-                sourcefile = snippet.path
-            except exceptions.SnippetNotFoundException:
-                pass  # snippet not found => leave section = sourcefile = None
+        try:
+            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(called)
+            if section_name.startswith('run'):
+                section = snippet.get_run_section(section_name) if snippet else None
+            else:
+                section = snippet.get_dependencies_section(section_name) if snippet else None
+            sourcefile = snippet.path
+        except exceptions.SnippetNotFoundException:
+            pass  # snippet not found => leave section = sourcefile = None
 
         return section, sourcefile
+
+    @classmethod
+    def get_section_from_call(cls, called, section_name, assistant):
+        raise NotImplementedError('Please use either get_assistant_from_call or get_snippet_from_call')
+
 
 
 @register_command_runner
