@@ -215,6 +215,18 @@ class TestRunSection(object):
         self.assert_run_section_result(run_section(rs, {'list': 'fo ba'}), [True, 'ba'])
         self.assert_run_section_result(run_section(rs, {}), [False, ''])
 
+    @pytest.mark.parametrize('control_line, output', [
+        ('for $i in $j', (['i'], 'in', '$j')),
+        ('for $multichar in $secondmultichar', (['multichar'], 'in', '$secondmultichar')),
+        ('for $multi1, $multi2 in $multi3', (['multi1', 'multi2'], 'in', '$multi3')),
+        ('for  $i  ,     $j in  $k', (['i', 'j'], 'in', '$k')),
+        ('for $i in $this and $that', (['i'], 'in', '$this and $that')),
+    ])
+    def test_for_control_line_parsing(self, control_line, output):
+        # there's a pretty complicated regexp for checking the control line, so let's
+        #  check some of the correct variants
+        assert parse_for(control_line) == output
+
     def test_for_empty_string(self):
         kwargs = {}
         run_section([{'for $i in $(echo "")': [{'$foo': '$i'}]}], kwargs)

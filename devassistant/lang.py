@@ -250,7 +250,7 @@ def parse_for(control_line):
     - given "for $k, $v in $foo", returns (['k', 'v'], '$foo')
     """
     error = 'For loop call must be in form \'for $var in expression\', got: ' + control_line
-    regex = re.compile(r'for\s+(\${?\S}?)(?:\s*,\s+(\${?\S}?))?\s+(in|word_in)\s+(\S.+)')
+    regex = re.compile(r'for\s+(\${?\S+}?)(?:\s*,\s+(\${?\S+}?))?\s+(in|word_in)\s+(\S.+)')
     res = regex.match(control_line)
     if not res:
         raise exceptions.YamlSyntaxError(error)
