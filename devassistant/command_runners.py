@@ -91,106 +91,76 @@ class UseCommandRunner(CommandRunner):
         return c.comm_type == 'use'
 
     @classmethod
-    def run(cls, c):
-        assistant = c.kwargs['__assistant__']
-        call_parts = c.input_res.rsplit('.', 1)
-        if len(call_parts) < 2:
-            raise exceptions.CommandException('"use" command expects "use: what.which_section".')
-        section_name = call_parts[1] # TODO: check dependencies/run
-        called = call_parts[0]
-
-        if cls.is_snippet_call(c.input_res):
-            section, sourcefile = cls.get_snippet_from_call(called, section_name, assistant)
-        else:
-            section, running_assistant = cls.get_section_assistant_from_call(called, section_name, assistant)
-
-        if not section:
-            msg = 'Couldn\'t find {t} section "{n}".'.format(t=section,
-                                                             n=c.input_res)
-            raise exceptions.CommandException(msg)
-
-        if cls.is_snippet_call(c.input_res):
-            # we're calling a snippet => add files and files_dir to kwargs
-            snippet = yaml_snippet_loader.YamlSnippetLoader.\
-                get_snippet_by_name(c.input_res.split('.')[0])
-
-            c.kwargs['__files__'].append(snippet.get_files_section())
-            c.kwargs['__files_dir__'].append(snippet.get_files_dir())
-            c.kwargs['__sourcefiles__'].append(snippet.path)
-
-        if section_name.startswith('dependencies'):
-            kwargs = copy.deepcopy(c.kwargs)
-            kwargs['__assistant__'] = running_assistant
-            result = lang.dependencies_section(section, kwargs, runner=assistant)
-        else:
-            result = lang.run_section(section,
-                                      copy.deepcopy(c.kwargs),
-                                      runner=assistant)
-        if cls.is_snippet_call(c.input_res):
-            c.kwargs['__files__'].pop()
-            c.kwargs['__files_dir__'].pop()
-            c.kwargs['__sourcefiles__'].pop()
-
-        return result
-
-    @classmethod
     def is_snippet_call(cls, cmd_call):
         return not (cmd_call.startswith('self.') or cmd_call.startswith('super.'))
 
     @classmethod
-    def get_section_assistant_from_call(cls, called, section_name, origin_assistant):
-        if called == 'self':
-            # TODO Check if section exists
-            section = getattr(assistant, '_' + section_name, None)
-            return section, origin_assistant
-        elif called == 'super':
+    def run(cls, c):
+        assistant = c.kwargs['__assistant__']
+        kwargs = copy.deepcopy(c.kwargs)
+        try:
+            yaml_name, section_name = c.input_res.rsplit('.', 1)
+        except ValueError:
+            raise exceptions.CommandException('"use" command expects "use: what.which_section".')
+
+        # Modify kwargs based on command
+        if cls.is_snippet_call(c.input_res):
+            snip = cls.get_snippet(yaml_name)
+            section = cls.get_snippet_section(section_name, snip)
+
+            kwargs['__files__'].append(snip.get_files_section())
+            kwargs['__files_dir__'].append(snip.get_files_dir())
+            kwargs['__sourcefiles__'].append(snip.path)
+        else:
+            assistant = cls.get_assistant(yaml_name, section_name, assistant)
+            section = cls.get_assistant_section(section_name, assistant)
+
+            kwargs['__assistant__'] = assistant
+
+        # Get section with modified kwargs
+        if section_name.startswith('dependencies'):
+            result = lang.dependencies_section(section, kwargs, runner=assistant)
+        else:
+            result = lang.run_section(section, kwargs, runner=assistant)
+
+        return result
+
+    @classmethod
+    def get_snippet(cls, yaml_name):
+        try:
+            return yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(yaml_name)
+        except exceptions.SnippetNotFoundException as e:
+            raise exceptions.CommandException(e)
+
+    @classmethod
+    def get_snippet_section(cls, section_name, snip):
+        if section_name.startswith('run'):
+            section = snip.get_run_section(section_name) if snip else None
+        else:
+            section = snip.get_dependencies_section(section_name) if snip else None
+
+        if not section:
+            raise exceptions.CommandException('Couldn\'t find {t} section "{n}".'.\
+                                              format(t=section, n=snip.dotted_name))
+        return section
+
+    @classmethod
+    def get_assistant(cls, assistant_name, section_name, origin_assistant):
+        if assistant_name == 'self':
+            return origin_assistant
+        elif assistant_name == 'super':
             a = origin_assistant.superassistant
             while a:
                 if hasattr(a, 'assert_fully_loaded'):
                     a.assert_fully_loaded()
                 if hasattr(a, '_' + section_name):
-                    section = getattr(a, '_' + section_name)
-                    return section, a
+                    return a
                 a = a.superassistant
+        # TODO raise something?
 
     @classmethod
-    def get_snippet_from_call(cls, called, section_name):
-        """Returns a section and source file from call command.
-
-        Examples:
-        - self.dependencies_bar ~> dependencies_bar section from this assistant
-        - eclipse.run_foo ~> run_foo section from eclipse snippet
-        - super.dependencies ~> dependencies section from first superassistant that has such
-
-        If the part after dot is omitted, "section_type" is used instead
-
-        Args:
-            called - what was called, e.g. "super", "self" or snippet name
-            section_name - name of the section, e.g. dependencies or run_foo
-            assistant - current assistant for the possibility of trying to use "self" or "super"
-
-        Returns:
-            section to call (list), None if not found
-            sourcefile, None if not found
-        """
-        section = sourcefile = None
-
-        try:
-            snippet = yaml_snippet_loader.YamlSnippetLoader.get_snippet_by_name(called)
-            if section_name.startswith('run'):
-                section = snippet.get_run_section(section_name) if snippet else None
-            else:
-                section = snippet.get_dependencies_section(section_name) if snippet else None
-            sourcefile = snippet.path
-        except exceptions.SnippetNotFoundException:
-            pass  # snippet not found => leave section = sourcefile = None
-
-        return section, sourcefile
-
-    @classmethod
-    def get_section_from_call(cls, called, section_name, assistant):
-        raise NotImplementedError('Please use either get_assistant_from_call or get_snippet_from_call')
-
+    def get_assistant_section(cls, section_name, assistant):
+        return getattr(assistant, '_' + section_name)
 
 
 @register_command_runner
