@@ -51,15 +51,38 @@ class TestUseCommandRunner(object):
         assert self.ccr.matches(Command('use', None))
         assert not self.ccr.matches(Command('foo', None))
 
-    @pytest.mark.parametrize('command', ['self.run', 'super.run'])
-    def test_is_snippet_call_fails(self, command):
-        assert not self.ccr.is_snippet_call(command)
-        assert not self.ccr.is_snippet_call('{0}.foo'.format(command))
+    @pytest.mark.parametrize(('command', 'result'), [
+                             ('self.run', False),
+                             ('self.foo.bar', False),
+                             ('super.run', False),
+                             ('super.foo.bar.baz', False),
+                             ('foo.run', True),
+                             ('bar.baz.dependencies', True)])
+    def test_is_snippet_call(self, command, result):
+        assert self.ccr.is_snippet_call(command) is result
+        assert self.ccr.is_snippet_call('{cmd}.foo'.format(cmd=command)) is result
 
-    def test_is_snippet_call_passes(self):
-        assert self.ccr.is_snippet_call('foo.run')
 
-    # TODO test other methods
+    @pytest.mark.parametrize('snip', ['snippet1', 'snippet2'])
+    def test_get_snippet(self, snip):
+        assert self.ccr.get_snippet(snip).name == snip
+
+    def test_get_snippet_fails(self):
+        with pytest.raises(CommandException):
+            self.ccr.get_snippet('foo.bar.baz')
+
+    @pytest.mark.parametrize(('section_name', 'snip_name'), [
+                             ('args', 'snippet1'),
+                             ('run', 'snippet1'),
+                             ('run', 'snippet2')])
+    def test_get_snippet_section(self, section_name, snip_name):
+        snip = self.ccr.get_snippet(snip_name)
+        assert self.ccr.get_snippet_section(section_name, snip) is not None
+
+    def test_get_snippet_section_fails(self):
+        snip = self.ccr.get_snippet('snippet1')
+        with pytest.raises(CommandException):
+            self.ccr.get_snippet_section('foo', snip)
 
 
 class TestClCommandRunner(object):
