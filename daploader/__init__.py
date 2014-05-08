@@ -173,7 +173,7 @@ class Dap(object):
         else:
             for path in self.files:
                 if not path.startswith(dirname):
-                    self._report_problem(path + ' is outside ' + dirname + 'top-level directory')
+                    self._report_problem(path + ' is outside ' + dirname + ' top-level directory')
         if self.meta['package_name'] and self.meta['version']:
             desired_dirname = self.meta['package_name'] + '-' + self.meta['version']
             desired_filename = desired_dirname + '.dap'
