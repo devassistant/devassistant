@@ -400,6 +400,19 @@ def cli():
             return 1
         return
 
+    if (sys.argv[1] == 'uninstall'):
+        try:
+            name = sys.argv[2]
+        except:
+            sys.stderr.write('You need to say what dap to uninstall\n')
+            return 1
+        try:
+            uninstall_dap(name)
+        except Exception as e:
+            _eshout(e)
+            return 1
+        return
+
     if (sys.argv[1] == 'list'):
         for d in get_installed_daps():
             print(d)
