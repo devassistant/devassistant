@@ -99,12 +99,30 @@ class TestUseCommandRunner(object):
 
     @pytest.mark.parametrize(('assistant', 'section', 'origin', 'expected'), [
                              ('self', 'foo', 'parent', 'parent'),
-                             ('self', 'foo', 'leaf', 'leaf'),
+                             ('self', 'bar', 'mid', 'mid'),
                              ('super', 'foo', 'leaf', 'parent'),
-                             ('super', 'bar', 'leaf', 'mid')
-                             ])
+                             ('super', 'bar', 'leaf', 'mid')])
     def test_get_assistant(self, assistant, section, origin, expected):
         assert self.ccr.get_assistant(assistant, section, self.ass[origin]) == self.ass[expected]
+
+    @pytest.mark.parametrize(('assistant', 'section', 'origin'), [
+                             ('super', 'baz', 'leaf'),
+                             ('self', 'foo', 'leaf'),
+                             ('self', 'baz', 'parent')])
+    def test_get_assistant_fails(self, assistant, section, origin):
+        with pytest.raises(CommandException):
+            self.ccr.get_assistant(assistant, section, self.ass[origin])
+
+    @pytest.mark.parametrize(('assistant', 'section'), [
+                             ('parent', 'foo'),
+                             ('mid', 'bar')])
+    def test_get_assistant_section(self, assistant, section):
+        assert self.ccr.get_assistant_section(section, self.ass[assistant]) == \
+               getattr(self.ass[assistant], '_' + section)
+
+    def test_get_assistant_section_fails(self):
+        with pytest.raises(CommandException):
+            self.ccr.get_assistant_section('foo', self.ass['leaf'])
 
 
 class TestClCommandRunner(object):

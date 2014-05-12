@@ -147,6 +147,10 @@ class UseCommandRunner(CommandRunner):
     @classmethod
     def get_assistant(cls, assistant_name, section_name, origin_assistant):
         if assistant_name == 'self':
+            if not hasattr(origin_assistant, '_' + section_name):
+                raise exceptions.CommandException('Assistant {a} has no section {s}'.\
+                                                  format(a=origin_assistant.name,
+                                                         s=section_name))
             return origin_assistant
         elif assistant_name == 'super':
             a = origin_assistant.superassistant
@@ -156,10 +160,16 @@ class UseCommandRunner(CommandRunner):
                 if hasattr(a, '_' + section_name):
                     return a
                 a = a.superassistant
-        # TODO raise something?
+            raise exceptions.CommandException('No superassistant of {a} has section {s}'.\
+                                              format(a=origin_assistant.name,
+                                                     s=section_name))
 
     @classmethod
     def get_assistant_section(cls, section_name, assistant):
+        if not hasattr(assistant, '_' + section_name):
+            raise exceptions.CommandException('Assistant {a} has no section {s}'.\
+                                                format(a=assistant.name,
+                                                       s=section_name))
         return getattr(assistant, '_' + section_name)
 
 
