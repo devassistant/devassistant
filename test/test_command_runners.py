@@ -3,14 +3,18 @@ import os
 import pytest
 from flexmock import flexmock
 
+from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
+from devassistant.yaml_assistant import YamlAssistant
 
 from test.logger import TestLoggingHandler
 
+class CreatorAssistant(AssistantBase):
+    name = 'crt'
 
 class TestAskCommandRunner(object):
     # There is mocking code duplication, because (at least) with flexmock 0.9.6
@@ -44,6 +48,15 @@ class TestAskCommandRunner(object):
 
 
 class TestUseCommandRunner(object):
+    def setup_class(self):
+        parent = YamlAssistant('parent', {}, '', CreatorAssistant())
+        setattr(parent, '_foo', 'bar')
+        mid = YamlAssistant('mid', {}, '', parent)
+        setattr(mid, '_bar', 'baz')
+        leaf = YamlAssistant('leaf', {}, '', mid)
+
+        self.ass = {'parent': parent, 'mid': mid, 'leaf': leaf}
+
     def setup_method(self, method):
         self.ccr = UseCommandRunner
 
@@ -83,6 +96,15 @@ class TestUseCommandRunner(object):
         snip = self.ccr.get_snippet('snippet1')
         with pytest.raises(CommandException):
             self.ccr.get_snippet_section('foo', snip)
+
+    @pytest.mark.parametrize(('assistant', 'section', 'origin', 'expected'), [
+                             ('self', 'foo', 'parent', 'parent'),
+                             ('self', 'foo', 'leaf', 'leaf'),
+                             ('super', 'foo', 'leaf', 'parent'),
+                             ('super', 'bar', 'leaf', 'mid')
+                             ])
+    def test_get_assistant(self, assistant, section, origin, expected):
+        assert self.ccr.get_assistant(assistant, section, self.ass[origin]) == self.ass[expected]
 
 
 class TestClCommandRunner(object):
