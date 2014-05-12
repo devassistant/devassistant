@@ -3,6 +3,7 @@ import os
 import pytest
 from flexmock import flexmock
 
+from devassistant import lang
 from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
@@ -123,6 +124,16 @@ class TestUseCommandRunner(object):
     def test_get_assistant_section_fails(self):
         with pytest.raises(CommandException):
             self.ccr.get_assistant_section('foo', self.ass['leaf'])
+
+    @pytest.mark.parametrize(('cmd', 'assistant', 'expected'), [
+                             ('super.foo', 'leaf', 'bar'),
+                             ('super.bar', 'leaf', 'baz')])
+    def test_run_assistants(self, cmd, assistant, expected):
+        com = Command('use', cmd, {'__assistant__': self.ass[assistant]})
+        flexmock(lang).should_receive('run_section').and_return(expected)
+        result = self.ccr.run(com)
+
+        assert result == expected
 
 
 class TestClCommandRunner(object):
