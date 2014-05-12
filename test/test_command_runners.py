@@ -3,14 +3,18 @@ import os
 import pytest
 from flexmock import flexmock
 
+from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
+from devassistant.yaml_assistant import YamlAssistant
 
 from test.logger import TestLoggingHandler
 
+class CreatorAssistant(AssistantBase):
+    name = 'crt'
 
 class TestAskCommandRunner(object):
     # There is mocking code duplication, because (at least) with flexmock 0.9.6
@@ -44,6 +48,15 @@ class TestAskCommandRunner(object):
 
 
 class TestUseCommandRunner(object):
+    def setup_class(self):
+        parent = YamlAssistant('parent', {}, '', CreatorAssistant())
+        setattr(parent, '_foo', 'bar')
+        mid = YamlAssistant('mid', {}, '', parent)
+        setattr(mid, '_bar', 'baz')
+        leaf = YamlAssistant('leaf', {}, '', mid)
+
+        self.ass = {'parent': parent, 'mid': mid, 'leaf': leaf}
+
     def setup_method(self, method):
         self.ccr = UseCommandRunner
 
@@ -51,15 +64,65 @@ class TestUseCommandRunner(object):
         assert self.ccr.matches(Command('use', None))
         assert not self.ccr.matches(Command('foo', None))
 
-    @pytest.mark.parametrize('command', ['self.run', 'super.run'])
-    def test_is_snippet_call_fails(self, command):
-        assert not self.ccr.is_snippet_call(command)
-        assert not self.ccr.is_snippet_call('{0}.foo'.format(command))
+    @pytest.mark.parametrize(('command', 'result'), [
+                             ('self.run', False),
+                             ('self.foo.bar', False),
+                             ('super.run', False),
+                             ('super.foo.bar.baz', False),
+                             ('foo.run', True),
+                             ('bar.baz.dependencies', True)])
+    def test_is_snippet_call(self, command, result):
+        assert self.ccr.is_snippet_call(command) is result
+        assert self.ccr.is_snippet_call('{cmd}.foo'.format(cmd=command)) is result
 
-    def test_is_snippet_call_passes(self):
-        assert self.ccr.is_snippet_call('foo.run')
 
-    # TODO test other methods
+    @pytest.mark.parametrize('snip', ['snippet1', 'snippet2'])
+    def test_get_snippet(self, snip):
+        assert self.ccr.get_snippet(snip).name == snip
+
+    def test_get_snippet_fails(self):
+        with pytest.raises(CommandException):
+            self.ccr.get_snippet('foo.bar.baz')
+
+    @pytest.mark.parametrize(('section_name', 'snip_name'), [
+                             ('args', 'snippet1'),
+                             ('run', 'snippet1'),
+                             ('run', 'snippet2')])
+    def test_get_snippet_section(self, section_name, snip_name):
+        snip = self.ccr.get_snippet(snip_name)
+        assert self.ccr.get_snippet_section(section_name, snip) is not None
+
+    def test_get_snippet_section_fails(self):
+        snip = self.ccr.get_snippet('snippet1')
+        with pytest.raises(CommandException):
+            self.ccr.get_snippet_section('foo', snip)
+
+    @pytest.mark.parametrize(('assistant', 'section', 'origin', 'expected'), [
+                             ('self', 'foo', 'parent', 'parent'),
+                             ('self', 'bar', 'mid', 'mid'),
+                             ('super', 'foo', 'leaf', 'parent'),
+                             ('super', 'bar', 'leaf', 'mid')])
+    def test_get_assistant(self, assistant, section, origin, expected):
+        assert self.ccr.get_assistant(assistant, section, self.ass[origin]) == self.ass[expected]
+
+    @pytest.mark.parametrize(('assistant', 'section', 'origin'), [
+                             ('super', 'baz', 'leaf'),
+                             ('self', 'foo', 'leaf'),
+                             ('self', 'baz', 'parent')])
+    def test_get_assistant_fails(self, assistant, section, origin):
+        with pytest.raises(CommandException):
+            self.ccr.get_assistant(assistant, section, self.ass[origin])
+
+    @pytest.mark.parametrize(('assistant', 'section'), [
+                             ('parent', 'foo'),
+                             ('mid', 'bar')])
+    def test_get_assistant_section(self, assistant, section):
+        assert self.ccr.get_assistant_section(section, self.ass[assistant]) == \
+               getattr(self.ass[assistant], '_' + section)
+
+    def test_get_assistant_section_fails(self):
+        with pytest.raises(CommandException):
+            self.ccr.get_assistant_section('foo', self.ass['leaf'])
 
 
 class TestClCommandRunner(object):
