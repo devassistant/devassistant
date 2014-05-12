@@ -10,8 +10,6 @@ except:
     from yaml import Loader
 from . import licenses
 
-__version__ = '0.0.6'
-
 
 class DapError(Exception):
     '''Mother of all dap related exceptions'''

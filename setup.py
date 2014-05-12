@@ -9,8 +9,6 @@ except:
 import subprocess
 import os
 
-from daploader import __version__
-
 
 class PyTest(Command):
     user_options = [('test-runner=',
@@ -70,7 +68,7 @@ class PyTest(Command):
 
 setup(
     name='daploader',
-    version=__version__,
+    version='0.0.6',
     description='Dap archives loader and checker',
     long_description=''.join(open('README.rst').readlines()),
     keywords='devassiatnt, lint, dap',
