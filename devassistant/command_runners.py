@@ -563,6 +563,7 @@ class GitHubCommandRunner(CommandRunner):
         Raises:
             devassistant.exceptions.CommandException on error
         """
+        timeout = 300 # 5 minutes
         fork_login, fork_reponame = kwargs['repo_url'].split('/')
         logger.info('Forking {repo} for user {login} on Github ...'.\
             format(login=kwargs['login'], repo=kwargs['repo_url']))
@@ -571,7 +572,16 @@ class GitHubCommandRunner(CommandRunner):
         try:
             repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
             fork = cls._user.create_fork(repo)
-            success = True
+            while timeout > 0:
+                time.sleep(5)
+                timeout -= 5
+                try:
+                    repo.get_contents('/') # This function doesn't throw an exception when clonable
+                    success = True
+                    break
+                except cls._gh_module.GithubException as e:
+                    if 'is empty' not in e:
+                        raise e
             msg = fork.ssh_url
         except cls._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
