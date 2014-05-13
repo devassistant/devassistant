@@ -287,6 +287,9 @@ class GtkDialogHelper(object):
 
     @classmethod
     def get_gtk(cls):
+        """
+        Method sets cls.Gtk as a class parameter
+        """
         if not cls.Gtk:
             try:
                 from gi.repository import Gtk
@@ -297,6 +300,9 @@ class GtkDialogHelper(object):
 
     @classmethod
     def get_gdk(cls):
+        """
+        Method sets cls.Gdk as a class parameter
+        """
         if not cls.Gdk:
             try:
                 from gi.repository import Gdk
@@ -351,68 +357,30 @@ class GtkDialogHelper(object):
         return True
 
     @classmethod
-    def ask_for_password(cls, prompt, **options):
-        Gtk = cls.get_gtk()
-        Gdk = cls.get_gdk()
-        Gdk.threads_enter()
-        win = Gtk.Dialog(title=prompt)
-        win.ok = False
+    def _get_gtk_box(cls, win):
         box = win.get_content_area()
-
-        grid = Gtk.Grid()
-        grid.set_column_spacing(10)
-        grid.set_row_spacing(10)
-        box.add(grid)
         box.set_margin_left(10)
         box.set_margin_right(10)
-
-        ok = cls._get_button('Ok')
-        ok.connect('clicked', cls._ok_close(win))
-        cancel = cls._get_button('Cancel')
-        cancel.connect('clicked', cls._cancel_close(win))
-        pwd = cls._get_pwd_entry()
-
-        grid.attach(pwd, 0, 0, 2, 1)
-        grid.attach(cancel, 0, 1, 1, 1)
-        grid.attach(ok, 1, 1, 1, 1)
-
-        win.show_all()
-        win.run()
-        Gdk.threads_leave()
-        return pwd.get_text() if win.ok else None
+        return box
 
     @classmethod
-    def ask_for_confirm_with_message(cls, prompt, message, **options):
-        raise NotImplementedError()
-
-    @classmethod
-    def ask_for_package_list_confirm(cls, prompt, package_list, **options):
-        Gtk = cls.get_gtk()
-        Gdk = cls.get_gdk()
-        Gdk.threads_enter()
-        win = Gtk.Dialog('Dependencies Installation')
-        win.set_default_size(200, 250)
-        win.ok = False
-        box = win.get_content_area()
-
-        grid = Gtk.Grid()
-        grid.set_halign(Gtk.Align.CENTER)
-        #grid.set_size_request(300, 50)
-        grid.set_column_homogeneous(True)
+    def _create_gtk_grid(cls, win):
+        grid = cls.get_gtk().Grid()
         grid.set_column_spacing(10)
         grid.set_row_spacing(10)
-        #box.remove(box.get_children()[0])
-        box.set_margin_left(10)
-        box.set_margin_right(10)
+        return grid
 
-        label = Gtk.Label(prompt)
-        ok = cls._get_button('Ok')
-        ok.connect('clicked', cls._ok_close(win))
-        cancel = cls._get_button('Cancel')
-        cancel.connect('clicked', cls._cancel_close(win))
-        cls.info_btn = cls._get_button('Show packages')
-        cls.show = True
-        cls.info_btn.connect('clicked', cls._info_installed_packages(win))
+    @classmethod
+    def _create_yes_no(cls, win, yes="Yes", no="No"):
+        yes_btn = cls._get_button(yes)
+        yes_btn.connect('clicked', cls._ok_close(win))
+        no_btn = cls._get_button(no)
+        no_btn.connect('clicked', cls._cancel_close(win))
+        return yes_btn, no_btn
+
+    @classmethod
+    def _create_list_store(cls, package_list):
+        Gtk = cls.get_gtk()
         liststore = Gtk.ListStore(str)
         for pkg in sorted(package_list):
             liststore.append([pkg])
@@ -421,16 +389,98 @@ class GtkDialogHelper(object):
         column = Gtk.TreeViewColumn("", cell_renderer, text=0)
         listview.set_headers_visible(False)
         listview.append_column(column)
-        cls.scrollwin = Gtk.ScrolledWindow()
+        return listview
+
+    @classmethod
+    def _create_scrollwindow(cls):
+        Gtk = cls.get_gtk()
+        scrollwin = Gtk.ScrolledWindow()
+        scrollwin.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
+        scrollwin.set_sensitive(True)
+        scrollwin.set_hexpand(True)
+        scrollwin.set_vexpand(True)
+        return scrollwin
+
+    @classmethod
+    def ask_for_password(cls, prompt, **options):
+        """
+        Method shows password dialog
+        """
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog(title=prompt)
+        win.ok = False
+
+        box = cls._get_gtk_box(win)
+        grid = cls._create_gtk_grid(win)
+        box.add(grid)
+        yes_btn, no_btn = cls._create_yes_no(win)
+        pwd = cls._get_pwd_entry()
+
+        grid.attach(pwd, 0, 0, 2, 1)
+        grid.attach(no_btn, 0, 1, 1, 1)
+        grid.attach(yes_btn, 1, 1, 1, 1)
+
+        win.show_all()
+        win.run()
+        Gdk.threads_leave()
+        return pwd.get_text() if win.ok else None
+
+    @classmethod
+    def ask_for_confirm_with_message(cls, prompt, message, **options):
+        """
+        Method shows a confirm message
+        """
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog(title=prompt)
+        win.ok = False
+        box = cls._get_gtk_box(win)
+        grid = cls._create_gtk_grid(win)
+        box.add(grid)
+        yes_btn, no_btn = cls._create_yes_no(win)
+        label = Gtk.Label(label=message)
+
+        grid.attach(label, 0, 0, 2, 1)
+        grid.attach(yes_btn, 0, 1, 1, 1)
+        grid.attach(no_btn, 1, 1, 1, 1)
+
+        win.show_all()
+        win.run()
+        Gdk.threads_leave()
+        return win.ok or None
+
+    @classmethod
+    def ask_for_package_list_confirm(cls, prompt, package_list, **options):
+        """
+        Method shows a dialog with package list
+        """
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog('Dependencies Installation')
+        win.set_default_size(200, 250)
+        win.ok = False
+
+        box = cls._get_gtk_box(win)
+        grid = cls._create_gtk_grid(win)
+        grid.set_halign(Gtk.Align.CENTER)
+
+        label = Gtk.Label(prompt)
+        yes_btn, no_btn = cls._create_yes_no(win)
+        cls.info_btn = cls._get_button('Show packages')
+        cls.show = True
+        cls.info_btn.connect('clicked', cls._info_installed_packages(win))
+
+        listview = cls._create_list_store(package_list)
+        cls.scrollwin = cls._create_scrollwindow()
         cls.scrollwin.add(listview)
-        cls.scrollwin.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
-        cls.scrollwin.set_sensitive(True)
-        cls.scrollwin.set_hexpand(True)
-        cls.scrollwin.set_vexpand(True)
 
         grid.attach(label, 0, 0, 3, 1)
-        grid.attach(cancel, 0, 1, 1, 1)
-        grid.attach(ok, 1, 1, 1, 1)
+        grid.attach(no_btn, 0, 1, 1, 1)
+        grid.attach(yes_btn, 1, 1, 1, 1)
         grid.attach(cls.info_btn, 2, 1, 1, 1)
         grid.attach(cls.scrollwin, 0, 2, 3, 1)
 
