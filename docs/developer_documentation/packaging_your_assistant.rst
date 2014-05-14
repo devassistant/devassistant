@@ -1,6 +1,8 @@
 Packaging Your Assistant
 ========================
 
+**Note: this functionality is under heavy development and is not fully implemented yet.**
+
 So now you know how to :ref:`create an assistant <tutorial>`.
 But what if you want to share your assistant with others?
 
@@ -20,7 +22,7 @@ The directory structure of a dap copies the structure of ``~/.devassistant`` or
 files and icons that that belongs to it's namespace.
 
 Each dap has an unique name (lat's say ``foo``) and it can only contain assistants ``foo`` or
-``foo/*``. Therefor, the directory structure looks like this:
+``foo/*``. Therefore, the directory structure looks like this::
 
    foo-0.0.1/
      meta.yaml
@@ -45,7 +47,7 @@ Note several things:
 - Each of this is optional, i.e. you don't create ``files`` or ``snippets`` folder if you provide
   no files or snippets. Only mandatory thing is ``meta.yaml`` (see below).
 - Everything goes to the particular folder, just like you've learn in the
-  :ref:`Tutorial <tutorial_creating_assistant>`. However, you can only add stuff named as your
+  :ref:`Tutorial <tutorial>`. However, you can only add stuff named as your
   dap (means either a folder or a file with a particular extension). If you have more levels of
   assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level assistants (in this
   case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to preserve the structure

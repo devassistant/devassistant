@@ -7,7 +7,8 @@ from devassistant import lang
 from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
-    Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner
+    Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
+    SetupProjectDirCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 from devassistant.yaml_assistant import YamlAssistant
@@ -300,3 +301,67 @@ class TestSCLCommandRunner(object):
         c = Command('scl enable foo bar', inp)
         c.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
+
+
+class TestSetupProjectDirCommandRunner(object):
+    def setup_method(self, method):
+        self.s = SetupProjectDirCommandRunner
+
+    @pytest.mark.parametrize('inp', [
+        ({}),
+        ({'from': 'foo/bar', 'accept_path': False}),
+    ])
+    def test_failure_cases(self, inp):
+        c = Command('setup_project_dir', inp)
+        with pytest.raises(CommandException):
+            c.run()
+
+    def test_fails_when_dir_exists(self, tmpdir):
+        c = Command('setup_project_dir', {'from': 'foo'})
+        with tmpdir.as_cwd():
+            open('foo', 'w').close()
+            with pytest.raises(CommandException):
+                c.run()
+
+    def test_doesn_fail_when_dir_exists_but_overrided(self, tmpdir):
+        c = Command('setup_project_dir', {'from': 'foo', 'on_existing': 'pass'})
+        with tmpdir.as_cwd():
+            os.makedirs('foo')
+            assert c.run() == (True, 'foo')
+
+    @pytest.mark.parametrize('path, comm_args, normalized, varnames', [
+        # two normal cases
+        ('bar', {}, 'bar', []),
+        (os.path.join('foo', 'bar'), {}, 'bar', []),
+        # renamed variables
+        (os.path.join('foo', 'bar'),
+            {'contdir_var': 'a', 'topdir_var': 'b', 'topdir_normalized_var': 'c'},
+            'bar',
+            ['a', 'b', 'c']),
+        # create_topdir variations
+        (os.path.join('foo', 'bar'), {'create_topdir': False}, 'bar', []),
+        (os.path.join('foo', 'bar'), {'create_topdir': 'normalized'}, 'bar', []),
+    ])
+    def test_correct_cases(self, tmpdir, path, comm_args, normalized, varnames):
+        if not varnames:
+            varnames = ['contdir', 'topdir', 'topdir_normalized']
+        kwargs = {'name': path}
+        comm_args['from'] = '$name'
+        c = Command('setup_project_dir', comm_args, kwargs=kwargs)
+
+        with tmpdir.as_cwd():
+            ret = c.run()
+            create_topdir = comm_args.get('create_topdir', True)
+            p = path
+            if create_topdir is True:
+                assert ret == (True, p)
+            elif create_topdir == 'normalized':
+                p = os.path.join(os.path.dirname(path), normalized)
+                assert ret == (True, p)
+            else:
+                p = os.path.dirname(path)
+                assert ret == (True, p)
+            assert os.path.isdir(p)
+            assert kwargs[varnames[0]] == os.path.dirname(path)
+            assert kwargs[varnames[1]] == os.path.basename(path)
+            assert kwargs[varnames[2]] == normalized
