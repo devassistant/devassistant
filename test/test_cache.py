@@ -2,13 +2,17 @@ import os
 import shutil
 import time
 
+import pytest
 import yaml
 
-import  devassistant
+import devassistant
 
 from devassistant.cache import Cache
+from devassistant.exceptions import YamlTypeError
 from devassistant import settings
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
+
+from test.logger import TestLoggingHandler
 
 # the paths in this dicts are truncated to make tests pass in any location
 # (if not truncated, they contain e.g. home dir on your machine, etc.)
@@ -70,6 +74,7 @@ class TestCache(object):
         if os.path.exists(self.cf):
             os.unlink(self.cf)
         self.cch = Cache()
+        self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def teardown_method(self, method):
         while self.remove_files:
@@ -202,3 +207,11 @@ class TestCache(object):
         time.sleep(0.1)
         Cache()
         assert prev_time == os.path.getctime(self.cch.cache_file)
+
+    def test_cache_doesnt_log_higher_than_debug(self):
+        # make sure that there's an assistant with an error
+        with pytest.raises(YamlTypeError):
+            self.create_or_refresh_cache(assistants='assistants_malformed')
+        # make sure that there are only DEBUG messages logged
+        for msg in self.tlh.msgs:
+            assert msg[0] == 'DEBUG'

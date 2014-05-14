@@ -176,7 +176,7 @@ class Cache(object):
                       (for format see what refresh_role accepts)
         """
         # we need to process assistant in custom way to see unexpanded args, etc.
-        loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'])
+        loaded_ass = yaml_loader.YamlLoader.load_yaml_by_path(file_ass['source'], log_debug=True)
         attrs = utils.get_assistant_attrs_from_dict(loaded_ass, file_ass['source'])
         yaml_checker.check(file_ass['source'], attrs)
         cached_ass['source'] = file_ass['source']

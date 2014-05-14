@@ -61,7 +61,7 @@ class YamlAssistantLoader(object):
                 except BaseException as e:
                     logger.debug(e)
                     load_all = True
-            if load_all or not current_run.USE_CACHE:
+            if load_all:
                 cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy,
                                                                              superas_dict[tl],
                                                                              role=tl)
