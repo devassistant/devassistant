@@ -139,7 +139,7 @@ User interaction commands, let you ask for password and various other input.
 - LRES: same as RES
 - Example::
 
-    - $confirmed:
+    - $confirmed~:
       - ask_confirm:
           message: "Do you think DevAssistant is great?"
           prompt: "Please select yes."
