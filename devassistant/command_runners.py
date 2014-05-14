@@ -1105,7 +1105,7 @@ class SetupProjectDirCommandRunner(CommandRunner):
         args['create_topdir'] = inp.get('create_topdir', True)
         if not args['create_topdir'] in [True, False, 'normalized']:
             msg = '"setup_project_dir" expects "create_topdir" to be one of: ' +\
-                'True, False, "normalized"'
+                'True, False, normalized'
             raise exceptions.CommandException(msg)
         args['on_existing'] = inp.get('on_existing', 'fail')
         if not args['on_existing'] in ['fail', 'pass']:
