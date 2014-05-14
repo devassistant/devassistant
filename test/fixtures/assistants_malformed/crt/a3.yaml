@@ -1,0 +1,4 @@
+# issue #219
+fullname: Foo
+- ask_password:
+  prompt: 'bar'
