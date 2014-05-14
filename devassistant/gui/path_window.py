@@ -241,7 +241,7 @@ class PathWindow(object):
         label = widget.get_label()
 
         browse_btn = self.browse_btns.get(label)
-        if browse_btn:
+        if browse_btn and label.lower() != 'github':
             browse_btn.set_sensitive(active)
 
         for _, entry in [x for x in self.entries.items() if x[0] == label]:
@@ -370,6 +370,7 @@ class PathWindow(object):
                 if arg.name == 'github' or arg.name == 'github-login':
                     align_btn.add(self.link_button)
                     self.browse_btns[self._check_box_title(arg, number)] = self.link_button
+                    self.link_button.set_sensitive(True)
             new_box.pack_start(align_btn, False, False, 6)
             row += 1
             self.entries[self._check_box_title(arg, number)] = entry
