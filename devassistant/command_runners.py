@@ -1080,3 +1080,77 @@ class NormalizeCommandRunner(CommandRunner):
             tt = str.maketrans(badchars, '_' * len(badchars))
         normalized = normalized.translate(tt)
         return (True, normalized)
+
+
+@register_command_runner
+class SetupProjectDirCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'setup_project_dir'
+
+    @classmethod
+    def _get_args(cls, inp, ctxt):
+        args = {}
+        if not isinstance(inp, dict):
+            raise exceptions.CommandException('"setup_project_dir" expects mapping as input')
+
+        args['from'] = inp.get('from', None)
+        if args['from'] is None:
+            raise exceptions.CommandException('"setup_project_dir" requires "from" argument')
+
+        args['contdir_var'] = inp.get('contdir_var', 'contdir')
+        args['topdir_var'] = inp.get('topdir_var', 'topdir')
+        args['topdir_normalized_var'] = inp.get('topdir_normalized_var', 'topdir_normalized')
+        args['accept_path'] = bool(inp.get('accept_path', True))
+        args['create_topdir'] = inp.get('create_topdir', True)
+        if not args['create_topdir'] in [True, False, 'normalized']:
+            msg = '"setup_project_dir" expects "create_topdir" to be one of: ' +\
+                'True, False, "normalized"'
+            raise exceptions.CommandException(msg)
+        args['on_existing'] = inp.get('on_existing', 'fail')
+        if not args['on_existing'] in ['fail', 'pass']:
+            msg = '"setup_project_dir" expects "on_existing" to be one of: "fail", "pass"'
+            raise exceptions.CommandException(msg)
+
+        return args
+
+    @classmethod
+    def run(cls, c):
+        args = cls._get_args(c.input_res, c.kwargs)
+        contdir, topdir = os.path.split(args['from'])
+        normalized_topdir = lang.Command('normalize', topdir).run()[1]
+        try:  # ok, this is a bit ugly, but we need to check multiple calls for the exception
+            if contdir:  # we need to create containing directory
+                if not args['accept_path']:
+                    msg = 'Path is not accepted as project name by this assistant (got "{0}")'
+                    raise exceptions.CommandException(msg.format(args['from']))
+
+                if not os.path.exists(contdir):
+                    os.makedirs(contdir)
+                elif not os.path.isdir(contdir):
+                    msg = 'Can\'t create subdirectory in "{0}", it\'s not a directory'.\
+                        format(contdir)
+                    raise exceptions.CommandException(msg)
+            actual_topdir = normalized_topdir if args['create_topdir'] == 'normalized' else topdir
+            topdir_fullpath = os.path.join(contdir, actual_topdir)
+            if args['create_topdir']:
+                if os.path.exists(topdir_fullpath):
+                    if args['on_existing'] == 'fail':
+                        msg = 'Directory "{0}" already exists, can\'t proceed'.format(topdir_fullpath)
+                        raise exceptions.CommandException(msg)
+                    elif not os.path.isdir(topdir_fullpath):
+                        msg = 'Location "{0}" exists, but is not a directory, can\'t proceed'.\
+                            format(topdir_fullpath)
+                        raise exceptions.CommandException(msg)
+                else:
+                    os.makedirs(topdir_fullpath)
+
+        except OSError as e:
+            msg = 'Failed to create directory {0}: {1}'.format(args['from'], e.message)
+            raise CommandException(msg)
+
+        c.kwargs[args['contdir_var']] = contdir
+        c.kwargs[args['topdir_var']] = topdir
+        c.kwargs[args['topdir_normalized_var']] = normalized_topdir
+
+        return (True, topdir_fullpath if args['create_topdir'] else contdir)
