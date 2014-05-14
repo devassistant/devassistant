@@ -810,7 +810,7 @@ class AsUserCommandRunner(CommandRunner):
     def get_user_from_comm_type(cls, comm_type):
         split_type = comm_type.split()
         if len(split_type) != 2:
-            raise exceptions.CommandExceptions('"as" expects format "as <username>".')
+            raise exceptions.CommandException('"as" expects format "as <username>".')
         user = split_type[1]
         return user
 
