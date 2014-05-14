@@ -431,6 +431,61 @@ This can be used to run:
 - LRES: LRES of the last command in the given section
 - Example::
 
-    use: self.run_foo
-    use: super.run
-    use: a_snippet.run_spam
+    - use: self.run_foo
+    - use: super.run
+    - use: a_snippet.run_spam
+
+.. _normalize_commands_ref:
+
+Normalizing User Input
+----------------------
+
+Replace "weird characters" in user input by underscores.
+
+- Input: a string
+- RES: a string with weird characters (e.g. brackets/braces, whitespace, etc) replaced by underscores
+- LRES: True
+- Example::
+
+   - $dir~:
+     - normalize: foo!@#$%^bar
+   - cl: mkdir $dir  # creates dir named foo______bar
+
+Setting up Project Directory
+----------------------------
+
+Creates a project directory (possibly with a directory containing it) and sets some global variables.
+
+- Input: a mapping of input options, see below
+- RES: path of project directory or a directory containing it, if ``create_topdir`` is ``False``
+- LRES: always True, terminates DevAssistant if something goes wrong
+- Example::
+
+   - $dir: foo/bar/baz
+   - setup_project_dir:
+       from: $dir
+       create_topdir: normalized
+
+Note: as a side effect, this command runner sets 3 global variables for you (their names can
+be altered by using arguments ``contdir_var``, ``topdir_var`` and ``topdir_normalized_var``):
+
+- ``contdir`` - the dir containing project directory (e.g. ``foo/bar`` in the example above)
+- ``topdir`` - the project directory (e.g. ``baz`` in the example above)
+- ``topdir_normalized`` - normalized name (by :ref:`normalize_commands_ref`) of the
+  project directory
+
+Arguments:
+
+- ``from`` (required) - a string or a variable containing string with directory name
+  (possibly a path)
+- ``create_topdir`` - one of ``True`` (default), ``False``, ``normalized`` - if ``False``,
+  only creates the directory containing the project, not the project directory itself
+  (e.g. it would create only ``foo/bar`` in example above, but not the ``baz`` directory);
+  if ``True``, it also creates the project directory itself; if ``normalized``, it creates
+  the project directory itself, but runs it's name through :ref:`normalize_commands_ref` first
+- ``contdir_var``, ``topdir_var``, ``topdir_normalized_var`` - names to which the global
+  variables should be assigned to - *note: you have to use variable names without dollar sign here*
+- ``accept_path`` - either ``True`` (default) or ``False`` - if ``False``, this will terminate
+  DevAssistant if a path is provided
+- ``on_existing`` - one of ``fail`` (default), ``pass`` - if ``fail``, this will terminate
+  DevAssistant if directory specified by ``from`` already exists; if ``pass``, nothing will happen
