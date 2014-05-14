@@ -10,9 +10,13 @@ class YamlChecker(object):
                        six.binary_type: 'string',
                        int: 'integer',
                        float: 'float',
-                       bool: 'boolean'}
+                       bool: 'boolean',
+                       type(None): 'None'}
     for s in six.string_types:
         _yaml_typenames[s] = 'string'
+
+    def _get_yaml_typename(self, tp):
+        return self._yaml_typenames.get(tp, 'unknown type')
 
     def __init__(self, sourcefile, parsed_yaml):
         self.sourcefile = sourcefile
@@ -217,9 +221,9 @@ class YamlChecker(object):
         """
         wanted_yaml_typenames = set()
         for t in types:
-            wanted_yaml_typenames.add(self._yaml_typenames[t])
+            wanted_yaml_typenames.add(self._get_yaml_typename(t))
         wanted_yaml_typenames = ' or '.join(wanted_yaml_typenames)
-        actual_yaml_typename = self._yaml_typenames[type(struct)]
+        actual_yaml_typename = self._get_yaml_typename(type(struct))
         if not isinstance(struct, types):
             err = []
             if path:
