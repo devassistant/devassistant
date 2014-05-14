@@ -450,7 +450,7 @@ class GtkDialogHelper(object):
         win.show_all()
         win.run()
         Gdk.threads_leave()
-        return win.ok or None
+        return win.ok
 
     @classmethod
     def ask_for_package_list_confirm(cls, prompt, package_list, **options):
