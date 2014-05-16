@@ -55,14 +55,18 @@ class TestYUMPackageManager(object):
         mock.should_receive('__import__').and_raise(ImportError)
         assert not self.ypm.works()
 
-    @pytest.mark.parametrize(('method', 'string', 'expected'), [
-        ('is_group_installed', '@foo', True),
-        ('is_rpm_installed', 'foo', True),
-        ('is_group_installed', 'foo', False),
-        ('is_rpm_installed', '@foo', False),
+    @pytest.mark.parametrize(('correct_query', 'wrong_query', 'string', 'expected'), [
+        ('group', 'rpm', '@foo', True),
+        ('rpm', 'group', 'foo', True),
+        ('group', 'rpm', '@foo', False),
+        ('rpm', 'group', 'foo', False),
     ])
-    def test_is_pkg_installed(self, method, string, expected):
-        flexmock(YUMPackageManager).should_receive(method).and_return(expected)
+    def test_is_pkg_installed(self, correct_query, wrong_query, string, expected):
+        correct_method = 'is_{query}_installed'.format(query=correct_query)
+        wrong_method = 'is_{query}_installed'.format(query=wrong_query)
+        flexmock(YUMPackageManager)
+        YUMPackageManager.should_receive(correct_method).and_return(expected).at_least().once()
+        YUMPackageManager.should_call(wrong_method).never()
         assert YUMPackageManager.is_pkg_installed(string) is expected
 
     @pytest.mark.skipif(yum_not_available(), reason='Requires yum module')
