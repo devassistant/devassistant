@@ -4,18 +4,16 @@
 .\"
 .TH DA 1 2014-04-04 "" "Linux User's Manual"
 .SH NAME
-devassistant \- setup development environment and create basic projects in various
+{binary} \- setup development environment and create basic projects in various
 languages
 
 .SH SYNOPSIS
-\fBdevassistant [--debug] [--no-cache] [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
+\fB{binary} [--debug] [--no-cache] [ ASSISTANT_TYPE ] [ OPTIONS ] [[ SUBASSISTANT ] [OPTIONS] ...]
 
-\fBdevassistant [--debug] [--no-cache] [ ACTION ] [ OPTIONS ]
+\fB{binary} [--debug] [--no-cache] [ ACTION ] [ OPTIONS ]
 
 .SH DESCRIPTION
-Please note that the \fBda\fP command is the recommended way of running DevAssistant (even though it works exactly the same).
-
-\fBdevassistant\fP is the main command of DevAssistant. It is responsible for dispatching
+{desc}\fB{binary}\fP is the main command of DevAssistant. It is responsible for dispatching
 commandline calls to assistants or actions. It accepts some optional flags:
 
 .TP
@@ -41,9 +39,9 @@ You can shorten "create" to "crt", "modify" to "mod" and "prepare" to "prep".
 
 Each assistant type can have many associated assistants (e.g. python, ruby)
 and each assistant can have many associated subassistants (e.g. django, flask).
-You can display these (and also other options) by running e.g. \fBdevassistant crt -h\fP
-and \fBdevassistant crt python -h\fP. Once you select the desired assistant (and its
-subassistants), just run it, e.g. \fBdevassistant crt python django -n newproject\fP.
+You can display these (and also other options) by running e.g. \fB{binary} crt -h\fP
+and \fB{binary} crt python -h\fP. Once you select the desired assistant (and its
+subassistants), just run it, e.g. \fB{binary} crt python django -n newproject\fP.
 
 The list of assistants and their functionality may vary depending on
 your installation - just run help to see currently available assistants.
@@ -56,7 +54,7 @@ actions. Currently, these contain:
 .br
 \fBversion\fP - display devassistant version.
 
-Again, to show options, just use \fB-h\fP with the action, e.g. \fBdevassistant version -h\fP.
+Again, to show options, just use \fB-h\fP with the action, e.g. \fB{binary} version -h\fP.
 
 .SH COMMON OPTIONS
 There are some commonly used options shared among many assistants. Their usual
@@ -93,5 +91,4 @@ Searched in before the standard paths. If multiple assistants with the same
 name are found only the first of them will be used.
 
 .SH "SEE ALSO"
-.BR da (1)
-.BR da-gui (1)
+{seealso}.BR da-gui (1)
