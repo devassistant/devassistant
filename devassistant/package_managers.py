@@ -305,7 +305,7 @@ class HomebrewPackageManager(PackageManager):
         if not getattr(cls, '_installed', None):
             query = ClHelper.run_command(' '.join([cls.c_homebrew, 'list']))
             cls._installed = query.split('\n')
-        search = filter(lambda e: e.startswith(dep), cls._installed)
+        search = [e for e in cls._installed if e.startswith(dep)]
         if search:
             logger.info('Found {0}'.format(search[0]), extra={'event_type': 'dep_found'})
         else:

@@ -5,7 +5,8 @@ from flexmock import flexmock
 
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
-from devassistant.package_managers import YUMPackageManager, PacmanPackageManager
+from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
+                                          HomebrewPackageManager
 
 def yum_not_available():
     try:
@@ -64,10 +65,10 @@ class TestYUMPackageManager(object):
     def test_is_pkg_installed(self, correct_query, wrong_query, string, expected):
         correct_method = 'is_{query}_installed'.format(query=correct_query)
         wrong_method = 'is_{query}_installed'.format(query=wrong_query)
-        flexmock(YUMPackageManager)
-        YUMPackageManager.should_receive(correct_method).and_return(expected).at_least().once()
-        YUMPackageManager.should_call(wrong_method).never()
-        assert YUMPackageManager.is_pkg_installed(string) is expected
+        flexmock(self.ypm)
+        self.ypm.should_receive(correct_method).and_return(expected).at_least().once()
+        self.ypm.should_call(wrong_method).never()
+        assert self.ypm.is_pkg_installed(string) is expected
 
     @pytest.mark.skipif(yum_not_available(), reason='Requires yum module')
     def test_resolve(self):
@@ -130,18 +131,58 @@ class TestPacmanPackageManager(object):
         assert not self.ppm.works()
 
     def test_is_pkg_installed(self):
-        flexmock(PacmanPackageManager)
-        PacmanPackageManager.should_receive('is_group_installed').and_return(False)
-        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(True).at_least().once()
+        flexmock(self.ppm)
+        self.ppm.should_receive('is_group_installed').and_return(False)
+        self.ppm.should_receive('is_pacmanpkg_installed').and_return(True).at_least().once()
         assert self.ppm.is_pkg_installed('foo')
 
-        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(False)
-        PacmanPackageManager.should_receive('is_group_installed').and_return(True).at_least().once()
+        self.ppm.should_receive('is_pacmanpkg_installed').and_return(False)
+        self.ppm.should_receive('is_group_installed').and_return(True).at_least().once()
         assert self.ppm.is_pkg_installed('foo')
 
-        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(False)
-        PacmanPackageManager.should_receive('is_group_installed').and_return(False)
+        self.ppm.should_receive('is_pacmanpkg_installed').and_return(False)
+        self.ppm.should_receive('is_group_installed').and_return(False)
         assert not self.ppm.is_pkg_installed('foo')
 
     def test_resolve(self):
         pass
+
+class TestHomebrewPackageManager(object):
+
+    def setup_class(self):
+        self.hpm = HomebrewPackageManager
+
+    def test_install(self):
+        pkgs = ('foo', 'bar')
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('brew install "foo" "bar"',\
+                                     ignore_sigint=True).at_least().once()
+        assert self.hpm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.hpm.install(*pkgs)
+
+    def test_is_pkg_installed(self):
+        flexmock(ClHelper).should_receive('run_command').with_args('brew list').and_return('foo\nbar')
+
+        assert self.hpm.is_pkg_installed('foo')
+        assert not self.hpm.is_pkg_installed('baz')
+
+    def test_works(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('which brew').at_least().once()
+        assert self.hpm.works()
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.hpm.works()
+
+    # TODO add test case for empty pkg list
+    @pytest.mark.parametrize(('pkgs', 'deps', 'more_deps'), [
+        (['foo'], ['bar', 'baz'], []),
+        (['foo', 'bar'], ['baz', 'foobar'], ['foobarbaz'])
+    ])
+    def test_resolve(self, pkgs, deps, more_deps):
+        flexmock(ClHelper).should_receive('run_command')\
+                .and_return('\n'.join(deps)).and_return('\n'.join(more_deps))
+
+        assert set(self.hpm.resolve(*pkgs)) == set(deps + more_deps)
