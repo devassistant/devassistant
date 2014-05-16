@@ -1,7 +1,7 @@
 - Yaml DSL got a major facelift; check the documentation for more details
   on changes.
 - Improved Github integration - better authentication, better return
-  values of command runners, more error prone and user friendly.
+  values of command runners, less error prone and more user friendly.
 - Support for manipulating Docker containers was added to core.
 - A simple mechanism for checking Yaml assistant sanity was implemented.
 - Project types were introduced.
