@@ -5,7 +5,7 @@ from flexmock import flexmock
 
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
-from devassistant.package_managers import YUMPackageManager
+from devassistant.package_managers import YUMPackageManager, PacmanPackageManager
 
 def yum_not_available():
     try:
@@ -86,3 +86,62 @@ class TestYUMPackageManager(object):
         with pytest.raises(DependencyException):
             self.ypm.resolve('foo')
 
+class TestPacmanPackageManager(object):
+
+    def setup_class(self):
+        self.ppm = PacmanPackageManager
+
+    def test_install(self):
+        pkgs = ('foo', 'bar')
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('pacman -S --noconfirm "foo" "bar"',\
+                                     ignore_sigint=True, as_user='root').at_least().once()
+        assert self.ppm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.install(*pkgs)
+
+    def test_is_pacmanpkg_installed(self):
+        pkg = 'foo'
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('pacman -Q "{pkg}"'.format(pkg=pkg))\
+                          .and_return(pkg).at_least().once()
+        assert self.ppm.is_pacmanpkg_installed(pkg) == 'foo'
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.is_pacmanpkg_installed(pkg)
+
+    def test_is_group_installed(self):
+        group = 'foo'
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('pacman -Qg "{group}"'.format(group=group))\
+                          .and_return(group).at_least().once()
+        assert self.ppm.is_group_installed(group) == 'foo'
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.is_group_installed(group)
+
+    def test_works(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('which pacman').at_least().once()
+        assert self.ppm.works()
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.works()
+
+    def test_is_pkg_installed(self):
+        flexmock(PacmanPackageManager)
+        PacmanPackageManager.should_receive('is_group_installed').and_return(False)
+        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(True).at_least().once()
+        assert self.ppm.is_pkg_installed('foo')
+
+        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(False)
+        PacmanPackageManager.should_receive('is_group_installed').and_return(True).at_least().once()
+        assert self.ppm.is_pkg_installed('foo')
+
+        PacmanPackageManager.should_receive('is_pacmanpkg_installed').and_return(False)
+        PacmanPackageManager.should_receive('is_group_installed').and_return(False)
+        assert not self.ppm.is_pkg_installed('foo')
+
+    def test_resolve(self):
+        pass
