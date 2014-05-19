@@ -606,7 +606,7 @@ class LogCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
-            logger.log(logging._levelNames[settings.LOG_LEVELS_MAP[c.comm_type[-1]]], c.input_res)
+            logger.log(settings.LOG_SHORT_TO_NUM_LEVEL[c.comm_type[-1]], c.input_res)
             if c.comm_type[-1] in 'ce':
                 e = exceptions.CommandException(c.input_res)
                 e.already_logged = True
