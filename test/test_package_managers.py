@@ -6,7 +6,8 @@ from flexmock import flexmock
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
-                                          HomebrewPackageManager, PIPPackageManager
+                                          HomebrewPackageManager, PIPPackageManager,\
+                                          NPMPackageManager
 
 def yum_not_available():
     try:
@@ -240,8 +241,55 @@ class TestPIPPackageManager(object):
             delattr(self.ppm, '_installed')
 
     def test_resolve(self):
-        pkgs = ['a', 'b', 'c']
-        assert self.ppm.resolve(pkgs) == pkgs
+        pkgs = ('foo', 'bar', 'baz')
+        assert self.ppm.resolve(*pkgs) == pkgs
+
+    def test_get_distro_dependencies(self):
+        pass
+
+
+class TestNPMPackageManager(object):
+
+    def setup_class(self):
+        self.npm = NPMPackageManager
+
+    def test_install(self):
+        pkgs = ('foo', 'bar')
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('npm install "foo" "bar"',\
+                                     ignore_sigint=True).at_least().once()
+        assert self.npm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.npm.install(*pkgs)
+
+    def test_works(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('npm').at_least().once()
+        assert self.npm.works()
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.npm.works()
+
+    def test_is_pkg_installed(self):
+        flexmock(ClHelper).should_receive('run_command').with_args('npm list').and_return('foo (1)\nbar (2)')
+
+        assert self.npm.is_pkg_installed('foo')
+        assert not self.npm.is_pkg_installed('baz')
+
+    @pytest.mark.parametrize(('pkg', 'expected'), [('foo', True), ('bar', True), ('baz', False)])
+    def test_is_pkg_installed_with_fake(self, pkg, expected):
+        try:
+            setattr(self.npm, '_installed', ['foo (1)', 'bar (2)'])
+            print(self.npm.is_pkg_installed(pkg))
+
+            assert self.npm.is_pkg_installed(pkg) is expected
+        finally:
+            delattr(self.npm, '_installed')
+
+    def test_resolve(self):
+        pkgs = ('foo', 'bar', 'baz')
+        assert self.npm.resolve(*pkgs) == tuple(pkgs)
 
     def test_get_distro_dependencies(self):
         pass
