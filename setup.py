@@ -34,18 +34,17 @@ class PyTest(Command):
         return False
 
     def run(self):
-        # only one test runner => just run the tests
-        runners = ['py.test-2.7', 'py.test-3.3']
+        # if user provides a runner and it's not found, this fails
+        #  otherwise it first tries various versioned runners and if it doesn't
+        #  find any, it tries "py.test" - if that's not found either, this fails
+        supported = ['2.6', '2.7', '3.3', '3.4']
+        potential_runners = ['py.test-' + s for s in supported]
         if self.test_runner:
-            runners = [self.test_runner]
+            potential_runners = [self.test_runner]
+        runners = [pr for pr in potential_runners if self.runner_exists(pr)]
 
-        have_runner = False
-        for runner in runners:
-            if self.runner_exists(runner):
-                have_runner = True
-
-        if not have_runner:
-            if self.runner_exists('py.test'):
+        if len(runners) == 0:
+            if not self.test_runner and self.runner_exists('py.test'):
                 runners = ['py.test']
             else:
                 print('No py.test runners found, can\'t run tests.')
