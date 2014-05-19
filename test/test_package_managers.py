@@ -6,7 +6,7 @@ from flexmock import flexmock
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
-                                          HomebrewPackageManager
+                                          HomebrewPackageManager, PIPPackageManager
 
 def yum_not_available():
     try:
@@ -198,3 +198,50 @@ class TestHomebrewPackageManager(object):
                 .and_return('\n'.join(deps)).and_return('\n'.join(more_deps))
 
         assert set(self.hpm.resolve(*pkgs)) == set(deps + more_deps)
+
+
+class TestPIPPackageManager(object):
+
+    def setup_class(self):
+        self.ppm = PIPPackageManager
+
+    def test_install(self):
+        pkgs = ('foo', 'bar')
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('pip install --user "foo" "bar"',\
+                                     ignore_sigint=True).at_least().once()
+        assert self.ppm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.install(*pkgs)
+
+    def test_works(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('pip').at_least().once()
+        assert self.ppm.works()
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.ppm.works()
+
+    def test_is_pkg_installed(self):
+        flexmock(ClHelper).should_receive('run_command').with_args('pip list').and_return('foo (1)\nbar (2)')
+
+        assert self.ppm.is_pkg_installed('foo')
+        assert not self.ppm.is_pkg_installed('baz')
+
+    @pytest.mark.parametrize(('pkg', 'expected'), [('foo', True), ('bar', True), ('baz', False)])
+    def test_is_pkg_installed_with_fake(self, pkg, expected):
+        try:
+            setattr(self.ppm, '_installed', ['foo (1)', 'bar (2)'])
+            print(self.ppm.is_pkg_installed(pkg))
+
+            assert self.ppm.is_pkg_installed(pkg) is expected
+        finally:
+            delattr(self.ppm, '_installed')
+
+    def test_resolve(self):
+        pkgs = ['a', 'b', 'c']
+        assert self.ppm.resolve(pkgs) == pkgs
+
+    def test_get_distro_dependencies(self):
+        pass
