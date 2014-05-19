@@ -5,14 +5,10 @@ import logging
 from gi.repository import Gtk, Gdk
 from gi.repository import GLib
 
-from devassistant import assistant_base
 from devassistant.bin import CreatorAssistant
-from devassistant import yaml_assistant_loader
 from devassistant.logger import logger_gui
 from devassistant.gui import gui_helper
 from devassistant.gui import yaml_window
-
-import threading, thread
 
 GLib.threads_init()
 Gdk.threads_init()

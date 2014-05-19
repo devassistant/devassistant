@@ -209,13 +209,13 @@ class YamlWindow(object):
         self.list_store.append()
 
     def _delete_dependency_row(self, widget, data=None):
-        print "Delete row"
+        print("Delete row")
 
     def _select_pkg_manager(self,widget,path,text):
         self.list_store[path][0] = text
 
     def _list_changed(self, selection):
-        print "list change"
+        print("list change")
         model, listiter = selection.get_selected()
         if listiter != None:
-            print "Selected", model[listiter][1]
+            print("Selected", model[listiter][1])

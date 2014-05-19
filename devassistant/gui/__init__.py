@@ -6,9 +6,9 @@ from devassistant.gui import creator_window
 def run_gui():
     try:
         from gi.repository import Gtk
-    except RuntimeError, e:
-        print _("Developer Assistant GUI requires a running X server.")
-        print "%s: %r" % (e.__class__.__name__, str(e))
+    except RuntimeError as e:
+        print("Developer Assistant GUI requires a running X server.")
+        print("%s: %r" % (e.__class__.__name__, str(e)))
         sys.exit(1)
 
     main_window.MainWindow()
@@ -16,9 +16,9 @@ def run_gui():
 def run_yaml_gui():
     try:
         from gi.repository import Gtk
-    except RuntimeError, e:
-        print _("Developer Assistant GUI requires a running X server.")
-        print "%s: %r" % (e.__class__.__name__, str(e))
+    except RuntimeError as e:
+        print("Developer Assistant GUI requires a running X server.")
+        print("%s: %r" % (e.__class__.__name__, str(e)))
         sys.exit(1)
 
     creator_window.CreatorWindow()

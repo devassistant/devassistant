@@ -5,17 +5,13 @@ Created on Wed Apr  3 13:16:47 2013
 @author: Petr Hracek
 """
 
-import sys
 import logging
-import threading, thread
-import time
-import locale
+import threading
 import re
 import os
 from devassistant.logger import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
 from devassistant import path_runner
 from devassistant import exceptions
 from devassistant import sigint_handler
