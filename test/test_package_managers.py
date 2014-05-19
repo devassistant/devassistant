@@ -10,11 +10,11 @@ from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
                                           HomebrewPackageManager, PIPPackageManager,\
                                           NPMPackageManager, GemPackageManager,\
-                                          GentooPackageManager
+                                          GentooPackageManager, EmergePackageManager
 
-def yum_not_available():
+def module_not_available(module):
     try:
-        import yum
+        six.moves.builtins.__import__(module)
         return False
     except ImportError:
         return True
@@ -74,7 +74,7 @@ class TestYUMPackageManager(object):
         self.ypm.should_call(wrong_method).never()
         assert self.ypm.is_pkg_installed(string) is expected
 
-    @pytest.mark.skipif(yum_not_available(), reason='Requires yum module')
+    @pytest.mark.skipif(module_not_available('yum'), reason='Requires yum module')
     def test_resolve(self):
         import yum
         expected = ['bar', 'baz']
@@ -343,6 +343,12 @@ class TestGentooPackageManager(object):
     def setup_class(self):
         self.gpm = GentooPackageManager
 
+    def teardown_method(self, method):
+        try:
+            delattr(self.gpm, 'works_result')
+        except:
+            pass
+
     def test_const(self):
         assert self.gpm.PORTAGE == 0
         assert self.gpm.PALUDIS == 1
@@ -384,3 +390,29 @@ class TestGentooPackageManager(object):
             self.gpm.throw_package_list(['foo', 'bar'])
         msg = str(e)
         assert 'foo' in msg and 'bar' in msg
+
+
+class TestEmergePackageManager(object):
+
+    def setup_class(self):
+        self.epm = EmergePackageManager
+
+    def teardown_method(self, method):
+        try:
+            delattr(self.epm, 'works_result')
+        except:
+            pass
+
+    def test_install(self):
+        pass
+
+    def test_works(self):
+        flexmock(self.epm).should_receive('_try_get_current_manager').and_return(self.epm.PORTAGE)
+        assert self.epm.works()
+
+    @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, None])
+    def test_not_works(self, manager):
+        print(hasattr(self.epm, 'works_result'))
+        flexmock(self.epm).should_receive('_try_get_current_manager').and_return(manager)
+        assert not self.epm.works()
+
