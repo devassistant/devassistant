@@ -10,7 +10,8 @@ from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
                                           HomebrewPackageManager, PIPPackageManager,\
                                           NPMPackageManager, GemPackageManager,\
-                                          GentooPackageManager, EmergePackageManager
+                                          GentooPackageManager, EmergePackageManager,\
+                                          PaludisPackageManager
 
 def module_not_available(module):
     try:
@@ -237,7 +238,6 @@ class TestPIPPackageManager(object):
     def test_is_pkg_installed_with_fake(self, pkg, expected):
         try:
             setattr(self.ppm, '_installed', ['foo (1)', 'bar (2)'])
-            print(self.ppm.is_pkg_installed(pkg))
 
             assert self.ppm.is_pkg_installed(pkg) is expected
         finally:
@@ -284,7 +284,6 @@ class TestNPMPackageManager(object):
     def test_is_pkg_installed_with_fake(self, pkg, expected):
         try:
             setattr(self.npm, '_installed', ['foo (1)', 'bar (2)'])
-            print(self.npm.is_pkg_installed(pkg))
 
             assert self.npm.is_pkg_installed(pkg) is expected
         finally:
@@ -413,7 +412,6 @@ class TestEmergePackageManager(object):
 
     @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, None])
     def test_not_works(self, manager):
-        print(hasattr(self.epm, 'works_result'))
         flexmock(self.epm).should_receive('_try_get_current_manager').and_return(manager)
         assert not self.epm.works()
 
@@ -449,3 +447,29 @@ class TestEmergePackageManager(object):
             assert self.epm.resolve('foo', 'bar')
         msg = str(e)
         assert 'foo' in msg and 'bar' in msg and 'Package not found' not in msg
+
+
+class TestPaludisPackageManager(object):
+
+    def setup_class(self):
+        self.ppm = PaludisPackageManager
+
+    def teardown_method(self, method):
+        try:
+            delattr(self.ppm, 'works_result')
+        except:
+            pass
+
+    def test_install(self):
+        pass
+
+    def test_works(self):
+        flexmock(self.ppm).should_receive('_try_get_current_manager')\
+                          .and_return(self.ppm.PALUDIS)
+        assert self.ppm.works()
+
+    @pytest.mark.parametrize('manager', [GentooPackageManager.PORTAGE, None])
+    def test_not_works(self, manager):
+        flexmock(self.ppm).should_receive('_try_get_current_manager').and_return(manager)
+        assert not self.ppm.works()
+
