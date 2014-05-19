@@ -485,7 +485,7 @@ class GemPackageManager(PackageManager):
         logger.info('Checking for presence of {0}...'.format(dep),
                     extra={'event_type': 'dep_check'})
         try:
-            ClHelper.run_command(' '.join([cls.c_gem, 'list', '-i', dep]))
+            ClHelper.run_command(' '.join([cls.c_gem, 'list', '-i', '"{pkg}"'.format(pkg=dep)]))
             logger.info('Found {0}'.format(dep), extra={'event_type': 'dep_found'})
             return True
         except exceptions.ClException:

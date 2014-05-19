@@ -7,7 +7,7 @@ from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
                                           HomebrewPackageManager, PIPPackageManager,\
-                                          NPMPackageManager
+                                          NPMPackageManager, GemPackageManager
 
 def yum_not_available():
     try:
@@ -290,6 +290,46 @@ class TestNPMPackageManager(object):
     def test_resolve(self):
         pkgs = ('foo', 'bar', 'baz')
         assert self.npm.resolve(*pkgs) == tuple(pkgs)
+
+    def test_get_distro_dependencies(self):
+        pass
+
+
+class TestGemPackageManager(object):
+
+    def setup_class(self):
+        self.gpm = GemPackageManager
+
+    def test_install(self):
+        pkgs = ('foo', 'bar')
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('gem install "foo" "bar"',\
+                                     ignore_sigint=True).at_least().once()
+        assert self.gpm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.gpm.install(*pkgs)
+
+    def test_works(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('which gem').at_least().once()
+        assert self.gpm.works()
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert not self.gpm.works()
+
+    def test_is_pkg_installed(self):
+        flexmock(ClHelper).should_receive('run_command')\
+                          .with_args('gem list -i "foo"')
+        assert self.gpm.is_pkg_installed('foo')
+
+        flexmock(ClHelper).should_receive('run_command')\
+                          .and_raise(ClException(None, None, None))
+        assert not self.gpm.is_pkg_installed('baz')
+
+    def test_resolve(self):
+        pkgs = ('foo', 'bar', 'baz')
+        assert self.gpm.resolve(*pkgs) == tuple(pkgs)
 
     def test_get_distro_dependencies(self):
         pass
