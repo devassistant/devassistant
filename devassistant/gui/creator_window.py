@@ -13,7 +13,6 @@ from devassistant.gui import gui_helper
 from devassistant.gui import yaml_window
 
 import threading, thread
-import gobject
 
 GLib.threads_init()
 Gdk.threads_init()
