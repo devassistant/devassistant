@@ -407,7 +407,8 @@ class TestEmergePackageManager(object):
         pass
 
     def test_works(self):
-        flexmock(self.epm).should_receive('_try_get_current_manager').and_return(self.epm.PORTAGE)
+        flexmock(self.epm).should_receive('_try_get_current_manager')\
+                          .and_return(self.epm.PORTAGE)
         assert self.epm.works()
 
     @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, None])
@@ -416,3 +417,35 @@ class TestEmergePackageManager(object):
         flexmock(self.epm).should_receive('_try_get_current_manager').and_return(manager)
         assert not self.epm.works()
 
+    def test_is_pkg_installed(self):
+        fake_vartree = flexmock(dbapi=flexmock(match=lambda x: {'foo': 'foobar',
+                                                                'bar': None}[x]))
+        fake_portage = flexmock(root='/', db={'/': {'vartree': fake_vartree}},
+                                exception=flexmock(InvalidAtom=Exception))
+        flexmock(six.moves.builtins).should_receive('__import__').and_return(fake_portage)
+
+        assert self.epm.is_pkg_installed('foo')
+        assert not self.epm.is_pkg_installed('bar')
+
+        # Wrong Atom format
+        flexmock(fake_vartree.dbapi.should_receive('match')\
+                                   .and_raise(fake_portage.exception.InvalidAtom()))
+        with pytest.raises(DependencyException) as e:
+            self.epm.is_pkg_installed('bar')
+        msg = str(e)
+        assert 'bar' in msg and 'Invalid dependency' in msg
+
+    def test_resolve(self):
+        fake_porttree = flexmock(dep_bestmatch=lambda x: '{x}bar'.format(x=x))
+        fake_portage = flexmock(root='/', db={'/': {'porttree': fake_porttree}})
+        flexmock(six.moves.builtins).should_receive('__import__').and_return(fake_portage)
+
+        with pytest.raises(DependencyException) as e:
+            self.epm.resolve('foo')
+        msg = str(e)
+        assert 'foobar' in msg and 'Package not found' not in msg
+
+        with pytest.raises(DependencyException) as e:
+            assert self.epm.resolve('foo', 'bar')
+        msg = str(e)
+        assert 'foo' in msg and 'bar' in msg and 'Package not found' not in msg
