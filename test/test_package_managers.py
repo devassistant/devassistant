@@ -147,6 +147,7 @@ class TestPacmanPackageManager(object):
     def test_resolve(self):
         pass
 
+
 class TestHomebrewPackageManager(object):
 
     def setup_class(self):
@@ -167,6 +168,17 @@ class TestHomebrewPackageManager(object):
 
         assert self.hpm.is_pkg_installed('foo')
         assert not self.hpm.is_pkg_installed('baz')
+
+    @pytest.mark.parametrize(('pkg', 'expected'), [('foo', True), ('bar', True), ('baz', False)])
+    def test_is_pkg_installed_with_fake(self, pkg, expected):
+        try:
+            setattr(self.hpm, '_installed', ['foo', 'bar'])
+
+            assert self.hpm.is_pkg_installed(pkg) is expected
+        except Exception as e:
+            raise e
+        finally:
+            delattr(self.hpm, '_installed')
 
     def test_works(self):
         flexmock(ClHelper).should_receive('run_command')\
