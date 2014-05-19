@@ -541,7 +541,7 @@ class GentooPackageManager:
             import portage
             return GentooPackageManager.PORTAGE
         except ImportError:
-            pass
+            return None
 
     @classmethod
     def is_current_manager_equals_to(cls, pm):

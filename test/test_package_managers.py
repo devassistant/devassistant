@@ -1,13 +1,16 @@
+import os
 import pytest
 import six
 
 from flexmock import flexmock
 
+from devassistant import utils
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
 from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
                                           HomebrewPackageManager, PIPPackageManager,\
-                                          NPMPackageManager, GemPackageManager
+                                          NPMPackageManager, GemPackageManager,\
+                                          GentooPackageManager
 
 def yum_not_available():
     try:
@@ -333,3 +336,51 @@ class TestGemPackageManager(object):
 
     def test_get_distro_dependencies(self):
         pass
+
+
+class TestGentooPackageManager(object):
+
+    def setup_class(self):
+        self.gpm = GentooPackageManager
+
+    def test_const(self):
+        assert self.gpm.PORTAGE == 0
+        assert self.gpm.PALUDIS == 1
+
+    def test_try_get_current_manager_fails(self):
+        flexmock(utils).should_receive('get_distro_name.find').with_args('gentoo').and_return(-1)
+        assert self.gpm._try_get_current_manager() is None
+
+        flexmock(utils).should_receive('get_distro_name.find').with_args('gentoo').and_return(0)
+        flexmock(os).should_receive('environ').and_return({'PACKAGE_MANAGER': 'foo'})
+        assert self.gpm._try_get_current_manager() is None
+
+    @pytest.mark.parametrize(('manager', 'man_val'), [
+        ('paludis', GentooPackageManager.PALUDIS),
+        ('portage', GentooPackageManager.PORTAGE),
+    ])
+    def test_try_get_current_manager(self, manager, man_val):
+        flexmock(utils).should_receive('get_distro_name.find').with_args('gentoo').and_return(0)
+        mock = flexmock(six.moves.builtins)
+
+        flexmock(os).should_receive('environ').and_return({'PACKAGE_MANAGER': manager})
+        mock.should_receive('__import__')
+        assert self.gpm._try_get_current_manager() == man_val
+
+        mock.should_receive('__import__').and_raise(ImportError)
+        assert self.gpm._try_get_current_manager() is None
+
+    @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, GentooPackageManager.PORTAGE, 'foo'])
+    def test_is_current_manager_equals_to(self, manager):
+        flexmock(self.gpm).should_receive('_try_get_current_manager').and_return(manager)
+        assert self.gpm.is_current_manager_equals_to(manager) is True
+        assert hasattr(self.gpm, 'works_result')
+
+    def test_throw_package_list(self):
+        with pytest.raises(AssertionError):
+            self.gpm.throw_package_list(dict())
+
+        with pytest.raises(DependencyException) as e:
+            self.gpm.throw_package_list(['foo', 'bar'])
+        msg = str(e)
+        assert 'foo' in msg and 'bar' in msg
