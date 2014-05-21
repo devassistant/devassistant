@@ -4,7 +4,7 @@ import six
 
 from flexmock import flexmock
 
-from devassistant import utils, package_managers
+from devassistant import package_managers, utils, settings
 from devassistant.exceptions import ClException, DependencyException,\
                                     NoPackageManagerOperationalException,\
                                     NoPackageManagerException
@@ -527,6 +527,33 @@ class TestDependencyInstaller(object):
         with pytest.raises(NoPackageManagerException):
             self.di.get_package_manager('foobar')
 
+    def test_process_dependency_fails(self):
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': []})
+
+        with pytest.raises(NoPackageManagerException):
+            self.di._process_dependency('barmgr', [])
+
+    def test_process_dependency_distro(self):
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': []})
+        flexmock(settings, SYSTEM_DEPTYPES_SHORTCUTS={'foomgr': ['foodistro'], 'barmgr': ['bardistro']})
+        flexmock(utils, get_distro_name=lambda: 'foodistro')
+
+        self.di._process_dependency('foomgr', ['bar'])
+        assert self.di.dependencies == [('foomgr', ['bar'])]
+
+    def test_process_dependency_non_distro(self):
+        foomgr = flexmock(get_distro_dependencies=lambda x: ['bar'])
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': [foomgr], 'barmgr': []})
+        flexmock(settings, SYSTEM_DEPTYPES_SHORTCUTS={'barmgr': ['foodistro']})
+        flexmock(utils, get_distro_name=lambda: 'foodistro')
+        flexmock(self.di, get_system_deptype_shortcut=lambda: 'barmgr')
+
+        self.di._process_dependency('foomgr', ['bar', 'baz'])
+        assert self.di.dependencies == [('barmgr', ['bar']), ('foomgr', ['bar', 'baz'])]
+
     @pytest.mark.parametrize('val', [True, False])
     def test_ask_to_confirm(self, val):
         pkg_list = ('foo', 'bar')
@@ -535,3 +562,4 @@ class TestDependencyInstaller(object):
                               .with_args(prompt=str, package_list=pkg_list).and_return('\n'.join(pkg_list) if val else None)
 
         assert self.di._ask_to_confirm(fake_mgr, *pkg_list) is val
+
