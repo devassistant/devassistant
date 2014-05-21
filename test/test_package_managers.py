@@ -473,3 +473,27 @@ class TestPaludisPackageManager(object):
         flexmock(self.ppm).should_receive('_try_get_current_manager').and_return(manager)
         assert not self.ppm.works()
 
+    @pytest.mark.parametrize(('pkg', 'installed'), [
+        ('foo', ['foo', 'bar']),
+        ('baz', ['foo', 'bar']),
+        ('foo', [])
+    ])
+    def test_is_pkg_installed(self, pkg, installed):
+        fake_paludis = flexmock(BaseException=Exception,
+                                EnvironmentFactory=flexmock(instance=\
+                                    flexmock(create=lambda x: fake_env)),
+                                parse_user_package_dep_spec=lambda x,y,z: fake_pkg,
+                                UserPackageDepSpecOptions=lambda: None)
+        fake_env = flexmock(fetch_repository=lambda x: {'installed': fake_repo}[x])
+        fake_repo = flexmock(package_ids=lambda x, y: [x] if x else y)
+        fake_pkg = flexmock(package=pkg if pkg in installed else '')
+        flexmock(six.moves.builtins).should_receive('__import__').and_return(fake_paludis)
+
+        if pkg in installed:
+            assert self.ppm.is_pkg_installed('pkg') == [pkg]
+        else:
+            assert self.ppm.is_pkg_installed('pkg') == []
+
+    def test_resolve(self):
+        # TODO write test for resolution
+        pass
