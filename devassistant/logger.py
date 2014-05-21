@@ -14,7 +14,8 @@ class DevassistantClHandler(logging.StreamHandler):
         if event_type.startswith('dep_'):
             pass
         else:
-            super(DevassistantClHandler, self).emit(record)
+            # can't use super() here, since in Python 2.6 StreamHandler is old style class
+            logging.StreamHandler.emit(self, record)
 
 
 class DevassistantClFormatter(logging.Formatter):
