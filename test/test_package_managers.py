@@ -613,3 +613,14 @@ class TestDependencyInstaller(object):
                .and_return(False).at_least().once()
         with pytest.raises(DependencyException):
             self.di._install_dependencies()
+
+    @pytest.mark.parametrize(('distro', 'dep_t'), [
+        ('foodistro', 'foomgr'),
+        ('bardistro', 'barmgr'),
+        ('bazdistro', 'rpm')
+    ])
+    def test_get_system_deptype_shortcut(self, distro, dep_t):
+        flexmock(utils).should_receive('get_distro_name').and_return(distro)
+        flexmock(settings, SYSTEM_DEPTYPES_SHORTCUTS={'foomgr': ['foodistro'],
+                                                      'barmgr': ['bardistro']})
+        assert self.di.get_system_deptype_shortcut() == dep_t
