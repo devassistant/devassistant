@@ -5,7 +5,9 @@ import six
 from flexmock import flexmock
 
 from devassistant import utils, package_managers
-from devassistant.exceptions import ClException, DependencyException
+from devassistant.exceptions import ClException, DependencyException,\
+                                    NoPackageManagerOperationalException,\
+                                    NoPackageManagerException
 from devassistant.command_helpers import ClHelper
 
 def module_not_available(module):
@@ -503,4 +505,25 @@ class TestPaludisPackageManager(object):
         # TODO write test for resolution
         pass
 
+
+class TestDependencyInstaller(object):
+
+    def setup_method(self, method):
+        self.di = package_managers.DependencyInstaller()
+
+    def test_package_manager(self):
+        non_working_mgr = flexmock(works=lambda: False)
+        working_mgr = flexmock(works=lambda: True)
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foo': [non_working_mgr, working_mgr],
+                                               'bar': [non_working_mgr],
+                                               'baz': []})
+
+        assert self.di.get_package_manager('foo') == working_mgr
+        with pytest.raises(NoPackageManagerOperationalException):
+            self.di.get_package_manager('bar')
+        with pytest.raises(NoPackageManagerException):
+            self.di.get_package_manager('baz')
+        with pytest.raises(NoPackageManagerException):
+            self.di.get_package_manager('foobar')
 
