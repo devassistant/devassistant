@@ -4,7 +4,7 @@ import six
 
 from flexmock import flexmock
 
-from devassistant import package_managers, utils, settings
+from devassistant import current_run, package_managers, utils, settings
 from devassistant.exceptions import ClException, DependencyException,\
                                     NoPackageManagerOperationalException,\
                                     NoPackageManagerException
@@ -511,7 +511,7 @@ class TestDependencyInstaller(object):
     def setup_method(self, method):
         self.di = package_managers.DependencyInstaller()
 
-    def test_package_manager(self):
+    def test_get_package_manager(self):
         non_working_mgr = flexmock(works=lambda: False)
         working_mgr = flexmock(works=lambda: True)
         flexmock(package_managers).should_receive('managers')\
@@ -537,7 +537,8 @@ class TestDependencyInstaller(object):
     def test_process_dependency_distro(self):
         flexmock(package_managers).should_receive('managers')\
                                   .and_return({'foomgr': []})
-        flexmock(settings, SYSTEM_DEPTYPES_SHORTCUTS={'foomgr': ['foodistro'], 'barmgr': ['bardistro']})
+        flexmock(settings, SYSTEM_DEPTYPES_SHORTCUTS={'foomgr': ['foodistro'],
+                                                      'barmgr': ['bardistro']})
         flexmock(utils, get_distro_name=lambda: 'foodistro')
 
         self.di._process_dependency('foomgr', ['bar'])
@@ -559,7 +560,56 @@ class TestDependencyInstaller(object):
         pkg_list = ('foo', 'bar')
         fake_mgr = flexmock(get_perm_prompt=lambda x: 'Foobar: {0}'.format(' '.join(x)))
         flexmock(DialogHelper).should_receive('ask_for_package_list_confirm')\
-                              .with_args(prompt=str, package_list=pkg_list).and_return('\n'.join(pkg_list) if val else None)
+                              .with_args(prompt=str, package_list=pkg_list)\
+                              .and_return('\n'.join(pkg_list) if val else None)
 
         assert self.di._ask_to_confirm(fake_mgr, *pkg_list) is val
 
+    def test_install_dependencies_empty(self):
+        self.di.dependencies = [('foomgr', [])]
+        flexmock(self.di).should_call('get_package_manager').never()
+
+        self.di._install_dependencies()
+
+    def test_install_dependencies_already_installed(self):
+        self.di.dependencies = [('foomgr', ['foo', 'bar'])]
+        pkg_mgr = flexmock(works=lambda: True, is_pkg_installed=lambda x: True,
+                           resolve=lambda x: None)
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': [pkg_mgr]})
+        flexmock(pkg_mgr).should_call('resolve').never()
+
+        self.di._install_dependencies()
+
+    def test_install_dependencies_denied(self):
+        self.di.dependencies = [('foomgr', ['foo', 'bar'])]
+        pkg_mgr = flexmock(works=lambda: True, is_pkg_installed=lambda x: False)
+        pkg_mgr.should_receive('resolve').and_return(['foo', 'bar', 'baz'])
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': [pkg_mgr]})
+        flexmock(self.di).should_receive('_ask_to_confirm')\
+                        .with_args(object, *['foo', 'bar', 'baz']).and_return(False)
+        with pytest.raises(DependencyException):
+            self.di._install_dependencies()
+
+    @pytest.mark.parametrize('ui', ['cli', 'foo'])
+    def test_install_dependencies(self, ui):
+        self.di.dependencies = [('foomgr', ['foo', 'bar'])]
+        pkg_mgr = flexmock(works=lambda: True, is_pkg_installed=lambda x: False)
+        pkg_mgr.should_receive('resolve').and_return(['foo', 'bar', 'baz'])
+        flexmock(package_managers).should_receive('managers')\
+                                  .and_return({'foomgr': [pkg_mgr]})
+        flexmock(self.di).should_receive('_ask_to_confirm')\
+                        .with_args(object, *['foo', 'bar', 'baz']).and_return(True)
+        flexmock(current_run).should_receive('UI').and_return(ui)
+
+        # Successful run
+        pkg_mgr.should_receive('install').with_args('foo', 'bar', 'baz')\
+               .and_return(('foo', 'bar', 'baz')).at_least().once()
+        self.di._install_dependencies()
+
+        # Unsuccessful run
+        pkg_mgr.should_receive('install').with_args('foo', 'bar', 'baz')\
+               .and_return(False).at_least().once()
+        with pytest.raises(DependencyException):
+            self.di._install_dependencies()
