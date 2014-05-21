@@ -8,7 +8,7 @@ from devassistant import utils, package_managers
 from devassistant.exceptions import ClException, DependencyException,\
                                     NoPackageManagerOperationalException,\
                                     NoPackageManagerException
-from devassistant.command_helpers import ClHelper
+from devassistant.command_helpers import ClHelper, DialogHelper
 
 def module_not_available(module):
     try:
@@ -527,3 +527,11 @@ class TestDependencyInstaller(object):
         with pytest.raises(NoPackageManagerException):
             self.di.get_package_manager('foobar')
 
+    @pytest.mark.parametrize('val', [True, False])
+    def test_ask_to_confirm(self, val):
+        pkg_list = ('foo', 'bar')
+        fake_mgr = flexmock(get_perm_prompt=lambda x: 'Foobar: {0}'.format(' '.join(x)))
+        flexmock(DialogHelper).should_receive('ask_for_package_list_confirm')\
+                              .with_args(prompt=str, package_list=pkg_list).and_return('\n'.join(pkg_list) if val else None)
+
+        assert self.di._ask_to_confirm(fake_mgr, *pkg_list) is val
