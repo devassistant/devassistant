@@ -4,14 +4,9 @@ import six
 
 from flexmock import flexmock
 
-from devassistant import utils
+from devassistant import utils, package_managers
 from devassistant.exceptions import ClException, DependencyException
 from devassistant.command_helpers import ClHelper
-from devassistant.package_managers import YUMPackageManager, PacmanPackageManager,\
-                                          HomebrewPackageManager, PIPPackageManager,\
-                                          NPMPackageManager, GemPackageManager,\
-                                          GentooPackageManager, EmergePackageManager,\
-                                          PaludisPackageManager
 
 def module_not_available(module):
     try:
@@ -23,7 +18,7 @@ def module_not_available(module):
 class TestYUMPackageManager(object):
 
     def setup_method(self, method):
-        self.ypm = YUMPackageManager
+        self.ypm = package_managers.YUMPackageManager
 
     @pytest.mark.parametrize('result', [True, False])
     def test_is_rpm_installed(self, result):
@@ -95,7 +90,7 @@ class TestYUMPackageManager(object):
 class TestPacmanPackageManager(object):
 
     def setup_class(self):
-        self.ppm = PacmanPackageManager
+        self.ppm = package_managers.PacmanPackageManager
 
     def test_install(self):
         pkgs = ('foo', 'bar')
@@ -156,7 +151,7 @@ class TestPacmanPackageManager(object):
 class TestHomebrewPackageManager(object):
 
     def setup_class(self):
-        self.hpm = HomebrewPackageManager
+        self.hpm = package_managers.HomebrewPackageManager
 
     def test_install(self):
         pkgs = ('foo', 'bar')
@@ -208,7 +203,7 @@ class TestHomebrewPackageManager(object):
 class TestPIPPackageManager(object):
 
     def setup_class(self):
-        self.ppm = PIPPackageManager
+        self.ppm = package_managers.PIPPackageManager
 
     def test_install(self):
         pkgs = ('foo', 'bar')
@@ -254,7 +249,7 @@ class TestPIPPackageManager(object):
 class TestNPMPackageManager(object):
 
     def setup_class(self):
-        self.npm = NPMPackageManager
+        self.npm = package_managers.NPMPackageManager
 
     def test_install(self):
         pkgs = ('foo', 'bar')
@@ -300,7 +295,7 @@ class TestNPMPackageManager(object):
 class TestGemPackageManager(object):
 
     def setup_class(self):
-        self.gpm = GemPackageManager
+        self.gpm = package_managers.GemPackageManager
 
     def test_install(self):
         pkgs = ('foo', 'bar')
@@ -340,7 +335,7 @@ class TestGemPackageManager(object):
 class TestGentooPackageManager(object):
 
     def setup_class(self):
-        self.gpm = GentooPackageManager
+        self.gpm = package_managers.GentooPackageManager
 
     def teardown_method(self, method):
         try:
@@ -361,8 +356,8 @@ class TestGentooPackageManager(object):
         assert self.gpm._try_get_current_manager() is None
 
     @pytest.mark.parametrize(('manager', 'man_val'), [
-        ('paludis', GentooPackageManager.PALUDIS),
-        ('portage', GentooPackageManager.PORTAGE),
+        ('paludis', package_managers.GentooPackageManager.PALUDIS),
+        ('portage', package_managers.GentooPackageManager.PORTAGE),
     ])
     def test_try_get_current_manager(self, manager, man_val):
         flexmock(utils).should_receive('get_distro_name.find').with_args('gentoo').and_return(0)
@@ -375,7 +370,11 @@ class TestGentooPackageManager(object):
         mock.should_receive('__import__').and_raise(ImportError)
         assert self.gpm._try_get_current_manager() is None
 
-    @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, GentooPackageManager.PORTAGE, 'foo'])
+    @pytest.mark.parametrize('manager', [
+        package_managers.GentooPackageManager.PALUDIS,
+        package_managers.GentooPackageManager.PORTAGE,
+        'foo'
+        ])
     def test_is_current_manager_equals_to(self, manager):
         flexmock(self.gpm).should_receive('_try_get_current_manager').and_return(manager)
         assert self.gpm.is_current_manager_equals_to(manager) is True
@@ -394,7 +393,7 @@ class TestGentooPackageManager(object):
 class TestEmergePackageManager(object):
 
     def setup_class(self):
-        self.epm = EmergePackageManager
+        self.epm = package_managers.EmergePackageManager
 
     def teardown_method(self, method):
         try:
@@ -410,7 +409,10 @@ class TestEmergePackageManager(object):
                           .and_return(self.epm.PORTAGE)
         assert self.epm.works()
 
-    @pytest.mark.parametrize('manager', [GentooPackageManager.PALUDIS, None])
+    @pytest.mark.parametrize('manager', [
+        package_managers.GentooPackageManager.PALUDIS,
+        None
+        ])
     def test_not_works(self, manager):
         flexmock(self.epm).should_receive('_try_get_current_manager').and_return(manager)
         assert not self.epm.works()
@@ -452,7 +454,7 @@ class TestEmergePackageManager(object):
 class TestPaludisPackageManager(object):
 
     def setup_class(self):
-        self.ppm = PaludisPackageManager
+        self.ppm = package_managers.PaludisPackageManager
 
     def teardown_method(self, method):
         try:
@@ -468,7 +470,10 @@ class TestPaludisPackageManager(object):
                           .and_return(self.ppm.PALUDIS)
         assert self.ppm.works()
 
-    @pytest.mark.parametrize('manager', [GentooPackageManager.PORTAGE, None])
+    @pytest.mark.parametrize('manager', [
+        package_managers.GentooPackageManager.PORTAGE,
+        None
+        ])
     def test_not_works(self, manager):
         flexmock(self.ppm).should_receive('_try_get_current_manager').and_return(manager)
         assert not self.ppm.works()
@@ -497,3 +502,5 @@ class TestPaludisPackageManager(object):
     def test_resolve(self):
         # TODO write test for resolution
         pass
+
+
