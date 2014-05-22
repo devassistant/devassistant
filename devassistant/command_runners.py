@@ -576,11 +576,11 @@ class GitHubCommandRunner(CommandRunner):
                 time.sleep(5)
                 timeout -= 5
                 try:
-                    repo.get_contents('/') # This function doesn't throw an exception when clonable
+                    fork.get_contents('/') # This function doesn't throw an exception when clonable
                     success = True
                     break
                 except cls._gh_module.GithubException as e:
-                    if 'is empty' not in e:
+                    if 'is empty' not in str(e):
                         raise e
             msg = fork.ssh_url
         except cls._gh_module.GithubException as e:
