@@ -241,7 +241,6 @@ class CliDialogHelper(object):
 
     @classmethod
     def ask_for_confirm_with_message(cls, prompt, message, **options):
-        print(prompt + '\n')
         print(message)
         prompt += ' [y/n]'
         while True:
