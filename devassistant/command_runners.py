@@ -1149,7 +1149,8 @@ class SetupProjectDirCommandRunner(CommandRunner):
             msg = 'Failed to create directory {0}: {1}'.format(args['from'], e.message)
             raise CommandException(msg)
 
-        c.kwargs[args['contdir_var']] = contdir
+        # if contdir == '', then return current dir ('.')
+        c.kwargs[args['contdir_var']] = contdir or '.'
         c.kwargs[args['topdir_var']] = topdir
         c.kwargs[args['topdir_normalized_var']] = normalized_topdir
 

@@ -362,6 +362,7 @@ class TestSetupProjectDirCommandRunner(object):
                 p = os.path.dirname(path)
                 assert ret == (True, p)
             assert os.path.isdir(p)
-            assert kwargs[varnames[0]] == os.path.dirname(path)
+            # if os.path.dirname(path) == '', then '.' should be saved instead
+            assert kwargs[varnames[0]] == (os.path.dirname(path) or '.')
             assert kwargs[varnames[1]] == os.path.basename(path)
             assert kwargs[varnames[2]] == normalized
