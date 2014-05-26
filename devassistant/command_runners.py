@@ -140,15 +140,15 @@ class UseCommandRunner(CommandRunner):
             section = snip.get_dependencies_section(section_name) if snip else None
 
         if not section:
-            raise exceptions.CommandException('Couldn\'t find {t} section "{n}".'.\
-                                              format(t=section, n=snip.dotted_name))
+            raise exceptions.CommandException('Couldn\'t find section "{t}" in snippet "{n}".'.\
+                                              format(t=section_name, n=snip.dotted_name))
         return section
 
     @classmethod
     def get_assistant(cls, assistant_name, section_name, origin_assistant):
         if assistant_name == 'self':
             if not hasattr(origin_assistant, '_' + section_name):
-                raise exceptions.CommandException('Assistant {a} has no section {s}'.\
+                raise exceptions.CommandException('Assistant "{a}" has no section "{s}"'.\
                                                   format(a=origin_assistant.name,
                                                          s=section_name))
             return origin_assistant
