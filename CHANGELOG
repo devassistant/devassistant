@@ -1,3 +1,4 @@
+0.9.0
 - Yaml DSL got a major facelift; check the documentation for more details
   on changes.
 - Improved Github integration - better authentication, better return
