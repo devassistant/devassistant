@@ -323,12 +323,7 @@ class RunWindow(object):
         """
         self.remove_link_button()
         self.run_window.hide()
-        data = dict()
-        data['back'] = True
-        data['top_assistant'] = self.top_assistant
-        data['current_main_assistant'] = self.current_main_assistant
-        data['kwargs'] = self.kwargs
-        self.parent.path_window.open_window(widget, data)
+        self.parent.path_window.path_window.show()
 
     def main_btn_clicked(self, widget, data=None):
         """

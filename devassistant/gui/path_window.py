@@ -27,7 +27,7 @@ class PathWindow(object):
         self.box_project = builder.get_object("boxProject")
         self.box6 = builder.get_object("box6")
         self.run_btn = builder.get_object("nextPathBtn")
-        self.button = dict()
+        self.args = dict()
         self.grid = self.gui_helper.create_gtk_grid(row_spacing=0,
                                                     col_homogenous=False,
                                                     row_homogenous=False)
@@ -35,21 +35,22 @@ class PathWindow(object):
         self.title.set_alignment(0, 0)
         self.box_path_main.pack_start(self.title, False, False, 0)
         self.box_path_main.pack_start(self.grid, False, False, 0)
-        self.entries = dict()
-        self.browse_btns = dict()
         self.kwargs = dict()
         self.label_caption = self.builder.get_object("labelCaption")
         self.label_prj_name = self.builder.get_object("labelPrjName")
         self.label_prj_dir = self.builder.get_object("labelPrjDir")
         self.label_full_prj_dir = self.builder.get_object("labelFullPrjDir")
         self.h_separator = self.builder.get_object("hseparator")
-        self.back_button = False
         self.top_assistant = None
         self.project_name_shown = True
         self.current_main_assistant = None
         self.data = dict()
-        self.browse_btn = None
-        self.link_button = None
+
+    def arg_is_selected(self, arg_dict):
+        if arg_dict['arg'].kwargs.get('required'):
+            return True
+        else:
+            return arg_dict['checkbox'].get_active()
 
     def check_for_directory(self, dirname):
         """
@@ -71,10 +72,18 @@ class PathWindow(object):
         assistant project creation
         """
         # check whether deps-only is selected
-        deps_only = False
-        for active in [x for x in self.button if isinstance(x, Gtk.CheckButton) and x.get_active()]:
-            if self.gui_helper.get_btn_lower_label(active) == "deps-only":
-                deps_only = True
+        deps_only = ('deps_only' in self.args and self.args['deps_only']['checkbox'].get_active())
+
+        # preserve argument value if it is needed to be preserved
+        #for arg_name, arg_dict in [(k, v) for (k, v) in self.args.items() if v['arg'].kwargs.get('preserved')]:
+        #    # preserve entry text (string value)
+        #    if 'entry' in arg_dict:
+        #        if self.arg_is_selected(arg_dict):
+        #            config_manager.set_config_value(arg_name, arg_dict['entry'].get_text())
+        #    # preserve if checkbox is ticked (boolean value)
+        #    else:
+        #        config_manager.set_config_value(arg_name, self.arg_is_selected(arg_dict))
+
         project_dir = self.dir_name.get_text()
         full_name = self.get_full_dir_name()
 
@@ -117,44 +126,35 @@ class PathWindow(object):
         """
         Function builds kwargs variable for run_window
         """
-        for widget in self.button:
-            if isinstance(widget, Gtk.Label) or isinstance(widget, Gtk.CheckButton) and widget.get_active():
-                if widget.get_label() in self.entries and not self.entries[widget.get_label()].get_text():
-                    self.gui_helper.execute_dialog(
-                        "Entry {0} is empty".format(widget.get_label())
-                    )
-                    return False
-        for label in [x for x in self.button if isinstance(x, Gtk.Label)]:
-            self.kwargs[label.get_label().lower()] = self.entries[label.get_label()].get_text()
+        # Check if all entries for selected arguments are nonempty
+        for arg_dict in [x for x in self.args.values() if self.arg_is_selected(x)]:
+            if 'entry' in arg_dict and not arg_dict['entry'].get_text():
+                self.gui_helper.execute_dialog("Entry {0} is empty".format(arg_dict['label']))
+                return False
 
-        check_button = [x for x in self.button if isinstance(x, Gtk.CheckButton)]
         # Check for active CheckButtons
-        for active in [x for x in check_button if x.get_active()]:
-            lbl = self.gui_helper.get_btn_lower_replace(active)
-            btn = self.gui_helper.get_btn_label(active)
-            if not btn in self.entries:
-                if self.button[active].get_gui_hint('type') == 'const':
-                    self.kwargs[lbl] = self.button[active].kwargs['const']
+        for arg_name, arg_dict in [(k, v) for (k, v) in self.args.items() if self.arg_is_selected(v)]:
+            if 'entry' in arg_dict:
+                self.kwargs[arg_name] = arg_dict['entry'].get_text()
+            else:
+                if arg_dict['arg'].get_gui_hint('type') == 'const':
+                    self.kwargs[arg_name] = arg_dict['arg'].kwargs['const']
                 else:
-                    self.kwargs[lbl] = True
-                continue
-            for entry in [x for x in self.entries if x == btn]:
-                self.kwargs[lbl] = self.entries[btn].get_text()
+                    self.kwargs[arg_name] = True
 
         # Check for non active CheckButtons but with defaults flag
-        for not_active in [x for x in check_button if not x.get_active()]:
-            lbl = self.gui_helper.get_btn_lower_replace(not_active)
-            if 'default' in self.button[not_active].kwargs:
-                self.kwargs[lbl] = self.button[not_active].get_gui_hint('default')
-            elif self.back_button and lbl in self.kwargs:
-                del self.kwargs[lbl]
+        for arg_name, arg_dict in [(k, v) for (k, v) in self.args.items() if not self.arg_is_selected(v)]:
+            if 'default' in arg_dict['arg'].kwargs:
+                self.kwargs[arg_name] = arg_dict['arg'].get_gui_hint('default')
+            elif arg_name in self.kwargs:
+                del self.kwargs[arg_name]
+
         return True
 
     def _remove_widget_items(self):
         """
         Function removes widgets from grid
         """
-        self.button = dict()
         for btn in self.grid:
             self.grid.remove(btn)
 
@@ -170,12 +170,12 @@ class PathWindow(object):
         if os.path.isdir(path):
             return path
 
-    def open_window(self, widget, data=None):
+    def open_window(self, data=None):
         """
         Function opens the Options dialog
         """
+        self.args = dict()
         if data is not None:
-            self.back_button = data.get('back', False)
             self.top_assistant = data.get('top_assistant', None)
             self.current_main_assistant = data.get('current_main_assistant', None)
             self.kwargs = data.get('kwargs', None)
@@ -204,9 +204,9 @@ class PathWindow(object):
         found_deps = [x for x in sorted(path) if x.dependencies()]
         # This bool variable is used for showing text "Available options:"
         any_options = False
-        for ass in sorted(path):
-            caption_parts.append("<b>" + ass.fullname + "</b>")
-            for arg in sorted([x for x in ass.args if not '--name' in x.flags], key=lambda y: y.flags):
+        for assistant in sorted(path):
+            caption_parts.append("<b>" + assistant.fullname + "</b>")
+            for arg in sorted([x for x in assistant.args if not '--name' in x.flags], key=lambda y: y.flags):
                 if not (arg.name == "deps_only" and not found_deps):
                     row = self._add_table_row(arg, len(arg.flags) - 1, row) + 1
                     any_options = True
@@ -222,30 +222,26 @@ class PathWindow(object):
         self.run_btn.set_sensitive(not self.project_name_shown or self.entry_project_name.get_text() != "")
         if 'name' in self.kwargs:
             self.dir_name.set_text(os.path.dirname(self.kwargs.get('name', '')))
-        for arg in [x for x in self.kwargs if x.title() in self.entries]:
-            self.entries[arg.title()].set_text(self.kwargs.get(arg))
-        for btn in [x for x in self.button if isinstance(x, Gtk.CheckButton)]:
-            lbl = self.gui_helper.get_btn_lower_replace(btn)
-            if lbl in self.kwargs and self.kwargs[lbl] != "":
-                btn.set_active(True)
-                if lbl in self.browse_btns:
-                    self.browse_btns[btn.get_label()].set_sensitive(True)
-            else:
-                btn.set_active(False)
+        for arg_name, arg_dict in [(k, v) for (k, v) in self.args.items() if self.kwargs.get(k)]:
+            if 'checkbox' in arg_dict:
+                arg_dict['checkbox'].set_active(True)
+            if 'entry' in arg_dict:
+                arg_dict['entry'].set_sensitive(True)
+                arg_dict['entry'].set_text(self.kwargs[arg_name])
+            if 'browse_btn' in arg_dict:
+                arg_dict['browse_btn'].set_sensitive(True)
 
     def _check_box_toggled(self, widget, data=None):
         """
         Function manipulates with entries and buttons.
         """
         active = widget.get_active()
-        label = widget.get_label()
+        arg_name = data
 
-        browse_btn = self.browse_btns.get(label)
-        if browse_btn and label.lower() != 'github':
-            browse_btn.set_sensitive(active)
-
-        for _, entry in [x for x in self.entries.items() if x[0] == label]:
-            entry.set_sensitive(active)
+        if 'entry' in self.args[arg_name]:
+            self.args[arg_name]['entry'].set_sensitive(active)
+        if 'browse_btn' in self.args[arg_name]:
+            self.args[arg_name]['browse_btn'].set_sensitive(active)
 
         self.path_window.show_all()
 
@@ -280,47 +276,33 @@ class PathWindow(object):
         if text is not None:
             self.dir_name.set_text(text)
 
-    def _check_box_title(self, arg, number):
-        """
-        Function returns a title from checkbox from args
-        """
-        return arg.flags[number][2:].title()
-
-    def open_webbrowser(self, widget):
-        """
-        Function opens webbrowser
-        """
-        import webbrowser
-
-        webbrowser.open_new_tab(widget.get_uri())
-
     def _add_table_row(self, arg, number, row):
         """
         Function adds options to a grid
         """
+        self.args[arg.name] = dict()
+        self.args[arg.name]['arg'] = arg
+        check_box_title = arg.flags[number][2:].title()
+        self.args[arg.name]['label'] = check_box_title
         align = self.gui_helper.create_alignment()
-        star_flag = False
         if arg.kwargs.get('required'):
             # If argument is required then red star instead of checkbox
-            star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>'.
-                                                      format(self._check_box_title(arg, number)))
+            star_label = self.gui_helper.create_label('<span color="#FF0000">*</span>')
             star_label.set_padding(0, 3)
-            label = self.gui_helper.create_label(self._check_box_title(arg, number))
+            label = self.gui_helper.create_label(check_box_title)
             box = self.gui_helper.create_box()
             box.pack_start(star_label, False, False, 6)
             box.pack_start(label, False, False, 6)
             align.add(box)
-            self.button[label] = arg
-            star_flag = True
         else:
-            act_btn = self.gui_helper.create_checkbox(self._check_box_title(arg, number))
-            act_btn.set_alignment(0, 0)
-            self.button[act_btn] = arg
+            chbox = self.gui_helper.create_checkbox(check_box_title)
+            chbox.set_alignment(0, 0)
             if arg.name == "deps_only":
-                act_btn.connect("clicked", self._deps_only_toggled)
+                chbox.connect("clicked", self._deps_only_toggled)
             else:
-                act_btn.connect("clicked", self._check_box_toggled)
-            align.add(act_btn)
+                chbox.connect("clicked", self._check_box_toggled, arg.name)
+            align.add(chbox)
+            self.args[arg.name]['checkbox'] = chbox
         if row == 0:
             self.grid.add(align)
         else:
@@ -345,35 +327,23 @@ class PathWindow(object):
                 Some fields needs a input user like user name for GitHub
                 and some fields needs to have interaction from user like selecting directory
             '''
-            self.browse_btn = self.gui_helper.button_with_label("Browse")
-            self.browse_btn.connect("clicked", self.browse_clicked, entry)
-            self.link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage",
-                                                                  uri="https://www.github.com")
-            self.link_button.connect("clicked", self.open_webbrowser)
             entry.set_text(arg.get_gui_hint('default'))
-            if arg.kwargs.get('required'):
-                self.browse_btn.set_sensitive(True)
-                self.link_button.set_sensitive(True)
-                entry.set_sensitive(True)
-                if not star_flag:
-                    act_btn.set_active(True)
-                    act_btn.set_sensitive(False)
-            else:
-                self.browse_btn.set_sensitive(False)
-                self.link_button.set_sensitive(False)
-                entry.set_sensitive(False)
-                act_btn.set_active(False)
+            entry.set_sensitive(arg.kwargs.get('required') == True)
+
             if arg.get_gui_hint('type') == 'path':
-                align_btn.add(self.browse_btn)
-                self.browse_btns[self._check_box_title(arg, number)] = self.browse_btn
+                browse_btn = self.gui_helper.button_with_label("Browse")
+                browse_btn.connect("clicked", self.browse_clicked, entry)
+                browse_btn.set_sensitive(arg.kwargs.get('required') == True)
+                align_btn.add(browse_btn)
+                self.args[arg.name]['browse_btn'] = browse_btn
             elif arg.get_gui_hint('type') == 'str':
                 if arg.name == 'github' or arg.name == 'github-login':
-                    align_btn.add(self.link_button)
-                    self.browse_btns[self._check_box_title(arg, number)] = self.link_button
-                    self.link_button.set_sensitive(True)
+                    link_button = self.gui_helper.create_link_button(text="For registration visit GitHub Homepage",
+                                                                     uri="https://www.github.com")
+                    align_btn.add(link_button)
             new_box.pack_start(align_btn, False, False, 6)
             row += 1
-            self.entries[self._check_box_title(arg, number)] = entry
+            self.args[arg.name]['entry'] = entry
             self.grid.attach(new_box, 1, row, 1, 1)
         return row
 
