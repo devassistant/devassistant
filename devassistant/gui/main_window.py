@@ -143,6 +143,17 @@ class MainWindow(object):
         """
         self.dev_assistant_path = list(item)
 
+    def _open_path_window(self):
+        """
+        Hides this window and opens path window.
+        Passes all needed data and kwargs.
+        """
+        self.data['top_assistant'] = self.top_assistant
+        self.data['current_main_assistant'] = self.get_current_main_assistant()
+        self.data['kwargs'] = self.kwargs
+        self.path_window.open_window(self.data)
+        self.main_win.hide()
+
     def sub_menu_pressed(self, widget, event):
         """
         Function serves for getting full assistant path and
@@ -154,11 +165,7 @@ class MainWindow(object):
                 del self.kwargs[settings.SUBASSISTANT_N_STRING.format(index)]
             self.kwargs[settings.SUBASSISTANT_N_STRING.format(index)] = data
         self.kwargs['subassistant_0'] = self.get_current_main_assistant().name
-        self.data['top_assistant'] = self.top_assistant
-        self.data['current_main_assistant'] = self.get_current_main_assistant()
-        self.data['kwargs'] = self.kwargs
-        self.path_window.open_window(widget, self.data)
-        self.main_win.hide()
+        self._open_path_window()
 
     def get_current_main_assistant(self):
         """
@@ -176,11 +183,7 @@ class MainWindow(object):
         self.kwargs['subassistant_1'] = data
         if 'subassistant_2' in self.kwargs:
             del self.kwargs['subassistant_2']
-        self.data['top_assistant'] = self.top_assistant
-        self.data['current_main_assistant'] = self.get_current_main_assistant()
-        self.data['kwargs'] = self.kwargs
-        self.path_window.open_window(widget, self.data)
-        self.main_win.hide()
+        self._open_path_window()
 
     def browse_path(self, window):
         self.path_window.browse_path()
