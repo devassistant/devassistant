@@ -216,6 +216,14 @@ Available argument attributes:
   will override those from the snippet By convention, some arguments
   should be common to all or most of the assistants.
   See :ref:`common_assistant_behaviour`
+``preserved``
+  if set, the value of this argument will be saved and will reappear in the next launch
+  of devassistant GUI. The attribute string is a key under which the argument value
+  will be stored. The key should be of the form "scope.argname" so that you can 
+  either share the value across more assistants or avoid collisions if any other 
+  assistant uses an argument with same name but different meaning.
+  The argument values are stored in "~/.devassistant/.config".
+  It is ignored in command-line interface.
 
 Gui Hints
 ~~~~~~~~~
