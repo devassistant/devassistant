@@ -1,6 +1,7 @@
 import os
 import csv
 
+from devassistant.logger import logger_gui
 from devassistant import settings
 
 class ConfigManager(object):
@@ -16,39 +17,57 @@ class ConfigManager(object):
         self.config_changed = False
 
     def load_configuration_file(self):
-        """Load all configuration from file
+        """
+        Load all configuration from file
         """
         if not os.path.exists(self.config_file):
             return
-        with open(self.config_file,'r') as file:
-            csvreader = csv.reader(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
-            for line in csvreader:
-                if len(line) == 2:
-                    key, value = line
-                    self.config_dict[key] = value
+        try:
+            with open(self.config_file,'r') as file:
+                csvreader = csv.reader(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+                for line in csvreader:
+                    if len(line) == 2:
+                        key, value = line
+                        self.config_dict[key] = value
+                    else:
+                        self.config_dict = dict()
+                        logger_gui.warning("Malformed configuration file {0}, ignoring it.".format(self.config_file))
+                        return
+        except IOError as e:
+            logger_gui.warning("Could not load configuration file: {0}".format(str(e)))
 
     def save_configuration_file(self):
-        """Save all configuration into file
+        """
+        Save all configuration into file
         Only if config file does not yet exist or configuration was changed
         """
         if os.path.exists(self.config_file) and not self.config_changed:
             return
         dirname = os.path.dirname(self.config_file)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        with open(self.config_file,'w') as file:
-            csvwriter = csv.writer(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
-            for key, value in self.config_dict.items():
-                csvwriter.writerow([key, value])
-        self.config_changed = False
+        try:
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+        except OSError as e:
+            logger_gui.warning("Could not make directory for configuration file: {0}".format(str(e)))
+            return
+        try:
+            with open(self.config_file,'w') as file:
+                csvwriter = csv.writer(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+                for key, value in self.config_dict.items():
+                    csvwriter.writerow([key, value])
+            self.config_changed = False
+        except IOError as e:
+            logger_gui.warning("Could not save configuration file: {0}".format(str(e)))
 
     def get_config_value(self, name):
-        """Get configuration value for given name.
+        """
+        Get configuration value for given name.
         """
         return self.config_dict.get(name)
 
     def set_config_value(self, name, value):
-        """Set configuration value with given name.
+        """
+        Set configuration value with given name.
         Value can be string or boolean type.
         """
         if value == True:
