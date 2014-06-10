@@ -15,6 +15,7 @@ class ConfigManager(object):
         self.config_dict = dict()
         self.config_file = settings.CONFIG_FILE
         self.config_changed = False
+        self.logger = logger_gui
 
     def load_configuration_file(self):
         """
@@ -31,10 +32,10 @@ class ConfigManager(object):
                         self.config_dict[key] = value
                     else:
                         self.config_dict = dict()
-                        logger_gui.warning("Malformed configuration file {0}, ignoring it.".format(self.config_file))
+                        self.logger.warning("Malformed configuration file {0}, ignoring it.".format(self.config_file))
                         return
-        except IOError as e:
-            logger_gui.warning("Could not load configuration file: {0}".format(str(e)))
+        except (OSError, IOError) as e:
+            self.logger.warning("Could not load configuration file: {0}".format(str(e)))
 
     def save_configuration_file(self):
         """
@@ -47,17 +48,17 @@ class ConfigManager(object):
         try:
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-        except OSError as e:
-            logger_gui.warning("Could not make directory for configuration file: {0}".format(str(e)))
+        except (OSError, IOError) as e:
+            self.logger.warning("Could not make directory for configuration file: {0}".format(str(e)))
             return
         try:
             with open(self.config_file,'w') as file:
-                csvwriter = csv.writer(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+                csvwriter = csv.writer(file, delimiter='=', escapechar='\\', lineterminator='\n', quoting=csv.QUOTE_NONE)
                 for key, value in self.config_dict.items():
                     csvwriter.writerow([key, value])
             self.config_changed = False
-        except IOError as e:
-            logger_gui.warning("Could not save configuration file: {0}".format(str(e)))
+        except (OSError, IOError) as e:
+            self.logger.warning("Could not save configuration file: {0}".format(str(e)))
 
     def get_config_value(self, name):
         """
