@@ -68,7 +68,7 @@ class PyTest(Command):
 
 setup(
     name='daploader',
-    version='0.0.7',
+    version='0.0.8',
     description='Dap archives loader and checker',
     long_description=''.join(open('README.rst').readlines()),
     keywords='devassiatnt, lint, dap',
@@ -82,6 +82,7 @@ setup(
         'daplint = daploader.daplint:lint',
         'dapi = daploader.dapicli:cli',
     ]},
+    data_files=[('daploader', ['daploader/dapi.help'])],
     classifiers=['Development Status :: 4 - Beta',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
