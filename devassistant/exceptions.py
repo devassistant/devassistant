@@ -15,6 +15,7 @@ class ClException(RunException):
         self.command = command
         self.returncode = returncode
         self.output = output
+        self.message = output.splitlines()[-1] if output else ""
 
     def __str__(self):
         return self.output

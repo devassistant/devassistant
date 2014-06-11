@@ -206,10 +206,10 @@ class PathWindow(object):
         caption_parts = []
 
         # Finds any dependencies
-        found_deps = [x for x in sorted(path) if x.dependencies()]
+        found_deps = [x for x in path if x.dependencies()]
         # This bool variable is used for showing text "Available options:"
         any_options = False
-        for assistant in sorted(path):
+        for assistant in path:
             caption_parts.append("<b>" + assistant.fullname + "</b>")
             for arg in sorted([x for x in assistant.args if not '--name' in x.flags], key=lambda y: y.flags):
                 if not (arg.name == "deps_only" and not found_deps):
