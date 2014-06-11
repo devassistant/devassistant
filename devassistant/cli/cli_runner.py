@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import six
 
 from devassistant import actions
 from devassistant import bin
@@ -57,8 +58,11 @@ class CliRunner(object):
             parsed_args = cls.transform_executable_assistant_alias(parsed_args)
             path = top_assistant.get_selected_subassistant_path(**parsed_args)
             to_run = path_runner.PathRunner(path, parsed_args)
+        parsed_args_decoded = dict()
+        for k, v in parsed_args.items():
+            parsed_args_decoded[k] = v.decode('utf-8') if six.PY2 and isinstance(v, str) else v
         try:
-            to_run.run(**parsed_args)
+            to_run.run(**parsed_args_decoded)
         except exceptions.ExecutionException:
             # error is already logged, just catch it and silently exit here
             sys.exit(1)

@@ -540,7 +540,10 @@ def evaluate_expression(expression, names):
         # If there is a known variable in the literal, substitute it for its
         # value
         for v in reversed(sorted(interpr.names.keys())):
-            self.value = self.value.replace("$" + v, six.text_type(interpr.names[v]))
+            val = interpr.names[v]
+            if six.PY2 and isinstance(val, str):
+                val = val.decode('utf-8')
+            self.value = self.value.replace("$" + v, six.text_type(val))
         # if self.value is in double/single quotes, strip them (but only the outer quotes)
         ret = self.value
         if ret.startswith('"'):
