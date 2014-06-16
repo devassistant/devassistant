@@ -205,6 +205,11 @@ class DialogHelper(object):
                                                                          package_list,
                                                                          **options)
 
+    @classmethod
+    def ask_for_input_with_prompt(cls, prompt='', **options):
+        """Ask user for written input with prompt"""
+        return cls.get_appropriate_helper().ask_for_input_with_prompt(prompt)
+
 
 @DialogHelper.register_helper
 class CliDialogHelper(object):
@@ -273,6 +278,14 @@ class CliDialogHelper(object):
                 else:
                     print('\n'.join(sorted(package_list)))
 
+    @classmethod
+    def ask_for_input_with_prompt(cls, prompt, **options):
+        print('{prt}: '.format(prt=prompt), end='')
+        inp = cls._read_inp()
+        if not inp:
+            print()
+        return inp or ''
+
 
 @DialogHelper.register_helper
 class GtkDialogHelper(object):
@@ -315,9 +328,10 @@ class GtkDialogHelper(object):
         return cls.get_gtk().Button(label=label)
 
     @classmethod
-    def _get_pwd_entry(cls):
+    def _get_input_entry(cls, passwd=False):
         entry = cls.get_gtk().Entry()
-        entry.set_visibility(False)
+        if passwd:
+            entry.set_visibility(False)
         return entry
 
     @classmethod
@@ -415,7 +429,7 @@ class GtkDialogHelper(object):
         grid = cls._create_gtk_grid(win)
         box.add(grid)
         yes_btn, no_btn = cls._create_yes_no(win)
-        pwd = cls._get_pwd_entry()
+        pwd = cls._get_input_entry(passwd=True)
 
         grid.attach(pwd, 0, 0, 2, 1)
         grid.attach(no_btn, 0, 1, 1, 1)
@@ -491,3 +505,29 @@ class GtkDialogHelper(object):
         win.run()
         Gdk.threads_leave()
         return win.ok or None
+
+    @classmethod
+    def ask_for_input_with_prompt(cls, message, **options):
+        """
+        Show a window asking user for written input
+        """
+        Gtk = cls.get_gtk()
+        Gdk = cls.get_gdk()
+        Gdk.threads_enter()
+        win = Gtk.Dialog(title=message)
+        win.ok = False
+
+        box = cls._get_gtk_box(win)
+        grid = cls._create_gtk_grid(win)
+        box.add(grid)
+        yes_btn, no_btn = cls._create_yes_no(win, yes='OK', no='Cancel')
+        inp = cls._get_input_entry()
+
+        grid.attach(inp, 0, 0, 2, 1)
+        grid.attach(no_btn, 0, 1, 1, 1)
+        grid.attach(yes_btn, 1, 1, 1, 1)
+
+        win.show_all()
+        win.run()
+        Gdk.threads_leave()
+        return inp.get_text() if win.ok else None

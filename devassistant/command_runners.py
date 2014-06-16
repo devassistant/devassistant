@@ -79,6 +79,8 @@ class AskCommandRunner(CommandRunner):
             res = DialogHelper.ask_for_password(**c.input_res)
         elif c.comm_type == 'ask_confirm':
             res = DialogHelper.ask_for_confirm_with_message(**c.input_res)
+        elif c.comm_type == 'ask_input':
+            res = DialogHelper.ask_for_input_with_prompt(**c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
         return bool(res), res

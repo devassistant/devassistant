@@ -38,6 +38,16 @@ class TestAskCommandRunner(object):
         assert res[0] is True
         assert res[1] == 'foobar'
 
+    @pytest.mark.parametrize('inp', ['', 'foo', u'foo'])
+    def test_run_input(self, inp):
+        flexmock(DialogHelper)
+        DialogHelper.should_receive('ask_for_input_with_prompt').and_return(inp)
+        comm = Command('ask_input', {})
+        res = self.acr.run(comm)
+
+        assert res[0] is bool(inp)
+        assert res[1] == inp
+
     @pytest.mark.parametrize('decision', [True, False])
     def test_run_confirm(self, decision):
         flexmock(DialogHelper)
