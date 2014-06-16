@@ -5,3 +5,6 @@ flexmock
 progress
 pytest
 six
+# note: to run guitest, you also need to install behave from PyPI
+#  and dogtail (not on PyPI, get it at https://fedorahosted.org/dogtail/
+#  or from RPM/Deb/whatever)

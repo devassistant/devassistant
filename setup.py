@@ -68,6 +68,22 @@ class PyTest(Command):
         raise SystemExit(retcode)
 
 
+class GUITest(Command):
+    user_options = []
+    command_consumes_arguments = True
+
+    def initialize_options(self):
+        self.args = []
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        t = subprocess.Popen(['behave', '-k'] + self.args)
+        rc = t.wait()
+        raise SystemExit(t.returncode)
+
+
 description = ''.join(open('README.rst').readlines())
 
 setup(
@@ -97,5 +113,5 @@ setup(
                    'Programming Language :: Python',
                    'Topic :: Software Development',
                   ],
-    cmdclass = {'test': PyTest}
+    cmdclass = {'test': PyTest, 'guitest': GUITest}
 )
