@@ -1,2 +1,33 @@
 fullname: Creator 1
 description: Creator 1 description
+
+args:
+  name:
+    flags: [-n, --name]
+    help: Provide project name
+
+  make_awesome:
+    flags: [-m, --make-awesome]
+    help: Make this project awesome
+    action: store_true
+    required: True
+
+  yourname:
+    flags: [-y, --your-name]
+    help: Provide your name
+    gui_hints:
+      default: $(whoami)
+
+  somepath:
+    flags: [-s, --somepath]
+    help: Just some path
+    gui_hints:
+      default: $(pwd)
+      type: path
+
+  someconst:
+    flags: [-c, --const]
+    help: Some constant
+    action: store_const
+    const: spam
+    default: ''

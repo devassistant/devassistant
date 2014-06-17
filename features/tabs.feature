@@ -12,3 +12,7 @@ Feature: Tabs switching
      When user clicks "Modify Project" tab
      Then "Modify Project" is the current tab
       and "Modifier 1" assistant should be listed
+     When user clicks "Prepare Environment" tab
+     Then "Preparer 1" assistant should be listed
+     When user clicks "Custom Task" tab
+     Then "Task 1" assistant should be listed
