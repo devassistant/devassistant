@@ -428,7 +428,7 @@ class GtkDialogHelper(object):
         box = cls._get_gtk_box(win)
         grid = cls._create_gtk_grid(win)
         box.add(grid)
-        yes_btn, no_btn = cls._create_yes_no(win)
+        yes_btn, no_btn = cls._create_yes_no(win, yes='OK', no='Cancel')
         pwd = cls._get_input_entry(passwd=True)
 
         grid.attach(pwd, 0, 0, 2, 1)
