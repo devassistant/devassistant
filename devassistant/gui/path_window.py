@@ -7,6 +7,7 @@ Created on Wed Apr  3 13:16:47 2013
 
 import os
 from gi.repository import Gtk
+from devassistant.config_manager import config_manager
 
 
 class PathWindow(object):
@@ -75,15 +76,19 @@ class PathWindow(object):
         deps_only = ('deps_only' in self.args and self.args['deps_only']['checkbox'].get_active())
 
         # preserve argument value if it is needed to be preserved
-        #for arg_name, arg_dict in [(k, v) for (k, v) in self.args.items() if v['arg'].kwargs.get('preserved')]:
-        #    # preserve entry text (string value)
-        #    if 'entry' in arg_dict:
-        #        if self.arg_is_selected(arg_dict):
-        #            config_manager.set_config_value(arg_name, arg_dict['entry'].get_text())
-        #    # preserve if checkbox is ticked (boolean value)
-        #    else:
-        #        config_manager.set_config_value(arg_name, self.arg_is_selected(arg_dict))
+        for arg_dict in [x for x in self.args.values() if 'preserved' in x['arg'].kwargs]:
+            preserve_key = arg_dict['arg'].kwargs['preserved']
+            # preserve entry text (string value)
+            if 'entry' in arg_dict:
+                if self.arg_is_selected(arg_dict):
+                    config_manager.set_config_value(preserve_key, arg_dict['entry'].get_text())
+            # preserve if checkbox is ticked (boolean value)
+            else:
+                config_manager.set_config_value(preserve_key, self.arg_is_selected(arg_dict))
 
+        # save configuration into file
+        config_manager.save_configuration_file()
+        # get project directory and name
         project_dir = self.dir_name.get_text()
         full_name = self.get_full_dir_name()
 
@@ -180,7 +185,7 @@ class PathWindow(object):
             self.current_main_assistant = data.get('current_main_assistant', None)
             self.kwargs = data.get('kwargs', None)
             self.data['debugging'] = data.get('debugging', False)
-        text = self.get_user_path()
+        text = config_manager.get_config_value("da.project_dir") or self.get_user_path()
         self.dir_name.set_text(text)
         self.label_full_prj_dir.set_text(text)
         self.dir_name.set_sensitive(True)
@@ -201,10 +206,10 @@ class PathWindow(object):
         caption_parts = []
 
         # Finds any dependencies
-        found_deps = [x for x in sorted(path) if x.dependencies()]
+        found_deps = [x for x in path if x.dependencies()]
         # This bool variable is used for showing text "Available options:"
         any_options = False
-        for assistant in sorted(path):
+        for assistant in path:
             caption_parts.append("<b>" + assistant.fullname + "</b>")
             for arg in sorted([x for x in assistant.args if not '--name' in x.flags], key=lambda y: y.flags):
                 if not (arg.name == "deps_only" and not found_deps):
@@ -345,6 +350,10 @@ class PathWindow(object):
             row += 1
             self.args[arg.name]['entry'] = entry
             self.grid.attach(new_box, 1, row, 1, 1)
+        else:
+            if 'preserved' in arg.kwargs and config_manager.get_config_value(arg.kwargs['preserved']): 
+                if 'checkbox' in self.args[arg.name]:
+                    self.args[arg.name]['checkbox'].set_active(True)       
         return row
 
     def browse_clicked(self, widget, data=None):
@@ -376,5 +385,8 @@ class PathWindow(object):
         """
         Function is used for controlling
         label Full Directory project name
+        and storing current project directory
+        in configuration manager
         """
+        config_manager.set_config_value("da.project_dir", self.dir_name.get_text())
         self.update_full_label()

@@ -9,6 +9,7 @@ import logging
 import threading
 import re
 import os
+import six
 from devassistant.logger import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -35,6 +36,8 @@ def switch_cursor(cursor_type, parent_window):
     window = parent_window.get_root_window()
     window.set_cursor(watch)
 
+def replace_markup_chars(msg):
+    return msg.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 class RunLoggingHandler(logging.Handler):
     """
@@ -54,7 +57,7 @@ class RunLoggingHandler(logging.Handler):
         Gdk.threads_enter()
         if msg:
             # Underline URLs in the record message
-            msg = record.getMessage().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            msg = replace_markup_chars(record.getMessage())
             record.msg = URL_FINDER.sub(r'<u>\1</u>', msg)
             self.parent.debug_logs['logs'].append(record)
             # During execution if level is bigger then DEBUG
@@ -244,8 +247,11 @@ class RunWindow(object):
         #logger_gui.info("Thread run")
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)
         self.dev_assistant_runner = path_runner.PathRunner(path)
+        kwargs_decoded = dict()
+        for k, v in self.kwargs.items():
+            kwargs_decoded[k] = v.decode('utf-8') if six.PY2 and isinstance(v, str) else v
         try:
-            self.dev_assistant_runner.run(**self.kwargs)
+            self.dev_assistant_runner.run(**kwargs_decoded)
             Gdk.threads_enter()
             if not self.project_canceled:
                 message = '<span color="#008000">Done</span>'
@@ -258,17 +264,23 @@ class RunWindow(object):
             self.allow_buttons(message=message, link=link, back=back)
             Gdk.threads_leave()
         except exceptions.ClException as cle:
+            msg = replace_markup_chars(cle.message)
+            if six.PY2:
+                msg = msg.encode('utf-8')
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
-                               format(cle.message))
+                               format(msg))
         except exceptions.ExecutionException as exe:
+            msg = replace_markup_chars(six.text_type(exe))
+            if six.PY2:
+                msg = msg.encode('utf-8')
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
-                               format((exe.message[:50] + '...') if len(exe.message) > 50 else exe.message))
+                               format((msg[:80] + '...') if len(msg) > 80 else msg))
         except IOError as ioe:
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
-                               format((ioe.message[:50] + '...') if len(ioe.message) > 50 else ioe.message))
+                               format((ioe.message[:80] + '...') if len(ioe.message) > 80 else ioe.message))
 
     def debug_btn_clicked(self, widget, data=None):
         """

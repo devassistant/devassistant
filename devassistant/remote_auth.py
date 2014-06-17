@@ -183,7 +183,8 @@ class GitHubAuth(object):
                 logger.warning('PyGithub not installed, skipping Github auth procedures.')
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
-                func_cls._user = cls._get_github_user(kwargs['login'])
+                login = kwargs['login'].encode('utf-8') if six.PY2 else kwargs['login']
+                func_cls._user = cls._get_github_user(login)
                 if func_cls._user is None:
                     msg = 'Github authentication failed, skipping Github command.'
                     logger.warning(msg)

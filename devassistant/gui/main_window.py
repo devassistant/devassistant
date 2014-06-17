@@ -14,6 +14,7 @@ from gi.repository import GLib
 from devassistant.bin import TopAssistant
 from devassistant.logger import logger_gui
 from devassistant import current_run, settings
+from devassistant.config_manager import config_manager
 
 from devassistant.gui import path_window
 from devassistant.gui import run_window
@@ -42,10 +43,10 @@ class MainWindow(object):
                                                self.builder,
                                                self.gui_helper)
         self.main_handlers = {
-            "on_mainWindow_delete_event": Gtk.main_quit,
+            "on_mainWindow_delete_event": self.delete_event,
             "on_browsePathBtn_clicked": self.path_window.browse_path,
             "on_nextPathBtn_clicked": self.path_window.next_window,
-            "on_pathWindow_delete_event": Gtk.main_quit,
+            "on_pathWindow_delete_event": self.delete_event,
             "on_runWindow_delete_event": self.run_window.delete_event,
             "on_runWindow_destroy": self.run_window.destroy,
             "on_prevPathBtn_clicked": self.path_window.prev_window,
@@ -90,6 +91,8 @@ class MainWindow(object):
         self.data = dict()
         self.dev_assistant_path = []
         self.main_win.show_all()
+        # Load configuration file
+        config_manager.load_configuration_file()
         # Thread should be defined here
         # because of timeout and threads sharing.
         GLib.threads_init()
@@ -211,3 +214,7 @@ class MainWindow(object):
                              event.button.button, event.time)
             return True
         return False
+
+    def delete_event(self, widget, event, data=None):
+        config_manager.save_configuration_file()
+        Gtk.main_quit()

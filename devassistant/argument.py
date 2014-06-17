@@ -3,6 +3,7 @@ import os
 
 from devassistant import exceptions
 from devassistant import yaml_snippet_loader
+from devassistant.config_manager import config_manager
 
 
 class Argument(object):
@@ -27,6 +28,9 @@ class Argument(object):
             if self.kwargs['action'][0] == 'default_iff_used':
                 self.kwargs['action'] = DefaultIffUsedActionFactory.generate_action(
                     self.kwargs['action'][1])
+        # In cli 'preserved' is not supported.
+        # It needs to be removed because it is unknown for argparse.
+        self.kwargs.pop('preserved', None)
         parser.add_argument(*self.flags, **self.kwargs)
 
     def get_gui_hint(self, hint):
@@ -51,9 +55,14 @@ class Argument(object):
             hint_type = self.get_gui_hint('type')
             hint_default = self.gui_hints.get('default', None)
             arg_default = self.kwargs.get('default', None)
+            preserved_value = None
+            if 'preserved' in self.kwargs:
+                preserved_value = config_manager.get_config_value(self.kwargs['preserved'])
 
             if hint_type == 'path':
-                if hint_default is not None:
+                if preserved_value is not None:
+                    default = preserved_value
+                elif hint_default is not None:
                     default = hint_default.replace('$(pwd)', os.getcwd())
                 else:
                     default = arg_default or '~'
@@ -65,7 +74,7 @@ class Argument(object):
             else:
                 if hint_default == '$(whoami)':
                     hint_default = getpass.getuser()
-                return hint_default or arg_default or ''
+                return preserved_value or hint_default or arg_default or ''
 
     @classmethod
     def construct_arg(cls, name, params):
