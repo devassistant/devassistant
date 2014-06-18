@@ -117,19 +117,6 @@ Ask Commands
 
 User interaction commands, let you ask for password and various other input.
 
-``ask_password``
-
-- Input: mapping containing ``prompt`` (short prompt for user)
-
-- RES: the password
-- LRES: ``True`` if non-empty password was provided
-- Example::
-
-     - $passwd:
-       - ask_password:
-           prompt: "Please provide your password"
-
-
 ``ask_confirm``
 
 - Input: mapping containing ``prompt`` (short prompt for user) and ``message``
@@ -143,6 +130,33 @@ User interaction commands, let you ask for password and various other input.
       - ask_confirm:
           message: "Do you think DevAssistant is great?"
           prompt: "Please select yes."
+
+``ask_input``
+
+- Input: mapping containing ``prompt`` (short prompt for user)
+
+- RES: the string that was entered by the user
+- LRES: ``True`` if non-empty string was provided
+- Example::
+
+     - $variable:
+       - ask_input:
+           prompt: "Your name"
+
+``ask_password``
+
+- Input: mapping containing ``prompt`` (short prompt for user)
+- This command works the same way as ``ask_input``, but the entered text is
+  hidden (displayed as bullets)
+
+- RES: the password
+- LRES: ``True`` if non-empty password was provided
+- Example::
+
+     - $passwd:
+       - ask_password:
+           prompt: "Please provide your password"
+
 
 Command Line Commands
 ---------------------
