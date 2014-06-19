@@ -29,6 +29,7 @@ DEPS_ONLY_FLAG = '--deps-only'
 
 CACHE_FILE = os.path.expanduser('~/.devassistant/.cache.yaml')
 CONFIG_FILE = os.path.expanduser('~/.devassistant/.config')
+LOG_FILE = os.path.expanduser('~/.devassistant/lastrun.log')
 DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]

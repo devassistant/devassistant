@@ -44,6 +44,9 @@ class CliRunner(object):
         # parser requires loaded assistants
         current_run.USE_CACHE = False if '--no-cache' in sys.argv else True
         cls.register_console_logging_handler(logger.logger)
+        is_log_file = logger.add_log_file_handler(settings.LOG_FILE)
+        if not is_log_file:
+            logger.logger.warning("Could not create log file '{0}'.".format(settings.LOG_FILE))
         cls.inform_of_short_bin_name(sys.argv[0])
         top_assistant = bin.TopAssistant()
         tree = top_assistant.get_subassistant_tree()

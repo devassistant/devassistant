@@ -1,4 +1,5 @@
 import logging
+import os
 
 from devassistant import settings
 
@@ -24,3 +25,17 @@ class DevassistantClFormatter(logging.Formatter):
         fmt_str = settings.LOG_FORMATS_MAP.get(event_type, None) or \
             settings.LOG_FORMATS_MAP['log_cmd']
         return fmt_str.format(**vars(record))
+
+def add_log_file_handler(log_file):
+    # add logging handler to log current run into log file
+    dirname = os.path.dirname(log_file)
+    try:
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+    except (OSError, IOError):
+        return False
+    try:
+        logger.addHandler(logging.FileHandler(log_file, 'w'))
+    except (IOError, OSError):
+        return False
+    return True
