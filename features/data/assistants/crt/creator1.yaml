@@ -26,8 +26,15 @@ args:
       type: path
 
   someconst:
-    flags: [-c, --const]
+    flags: [-c, --someconst]
     help: Some constant
     action: store_const
     const: spam
     default: ''
+
+run:
+- log_i: "name: $name"
+- log_i: "make_awesome: $make_awesome"
+- log_i: "yourname: $yourname"
+- log_i: "somepath: $somepath"
+- log_i: "someconst: $someconst"

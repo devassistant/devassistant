@@ -4,4 +4,14 @@ Feature: Complex DevAssistant scenarios
     Given da-gui is running
       and "Create Project" is the current tab
       When user clicks "Creator 1" assistant
-      When user fills "/tmp/myproject" in "Project name"
+      # TODO: check for prefilled default values (@whoami@, @pwd@, defaults)
+      When user fills "myproject" in "Project name"
+       and user fills "/tmp/" in "Create in"
+       and user clicks "Run" button
+      When assistant run finishes with "Done"
+      Then log window should show
+        | output              |
+        | make_awesome: True  |
+        | yourname: $yourname |
+        | somepath: $somepath |
+        | "someconst: "       |
