@@ -253,7 +253,7 @@ class RunWindow(object):
         self.dev_assistant_runner = path_runner.PathRunner(path)
         kwargs_decoded = dict()
         for k, v in self.kwargs.items():
-            kwargs_decoded[k] = v.decode('utf-8') if six.PY2 and isinstance(v, str) else v
+            kwargs_decoded[k] = v.decode('utf-8') if not six.PY3 and isinstance(v, str) else v
         try:
             self.dev_assistant_runner.run(**kwargs_decoded)
             Gdk.threads_enter()
@@ -269,14 +269,14 @@ class RunWindow(object):
             Gdk.threads_leave()
         except exceptions.ClException as cle:
             msg = replace_markup_chars(cle.message)
-            if six.PY2:
+            if not six.PY3:
                 msg = msg.encode('utf-8')
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
                                format(msg))
         except exceptions.ExecutionException as exe:
             msg = replace_markup_chars(six.text_type(exe))
-            if six.PY2:
+            if not six.PY3:
                 msg = msg.encode('utf-8')
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.

@@ -63,7 +63,7 @@ class CliRunner(object):
             to_run = path_runner.PathRunner(path, parsed_args)
         parsed_args_decoded = dict()
         for k, v in parsed_args.items():
-            parsed_args_decoded[k] = v.decode('utf-8') if six.PY2 and isinstance(v, str) else v
+            parsed_args_decoded[k] = v.decode('utf-8') if not six.PY3 and isinstance(v, str) else v
         try:
             to_run.run(**parsed_args_decoded)
         except exceptions.ExecutionException:

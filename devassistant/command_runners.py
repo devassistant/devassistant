@@ -264,7 +264,7 @@ class DotDevassistantCommandRunner(CommandRunner):
                 return yaml.load(stream)
         except IOError as e:
             msg = 'Couldn\'t find/open/read .devassistant file: {0}'.format(e)
-            if six.PY2:
+            if not six.PY3:
                 msg = msg.decode('utf-8')
             raise exceptions.CommandException(msg)
 
