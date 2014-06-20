@@ -10,7 +10,7 @@ import threading
 import re
 import os
 import six
-from devassistant import logger
+from devassistant.logger import logger, add_log_file_handler, logger_gui
 from gi.repository import Gtk
 from gi.repository import Gdk
 from devassistant import path_runner
@@ -99,13 +99,13 @@ class RunWindow(object):
         self.main_btn = builder.get_object("mainBtn")
         self.tlh = RunLoggingHandler(self, self.run_list_view)
         self.gui_helper = gui_helper
-        logger.logger.addHandler(self.tlh)
+        logger.addHandler(self.tlh)
         format_msg = "%(levelname)s %(message)s"
         self.tlh.setFormatter(logging.Formatter(format_msg))
-        logger.logger.setLevel(logging.DEBUG)
-        is_log_file = logger.add_log_file_handler(settings.LOG_FILE)
+        logger.setLevel(logging.DEBUG)
+        is_log_file = add_log_file_handler(settings.LOG_FILE)
         if not is_log_file:
-            logger.logger_gui.warning("Could not create log file '{0}'.".format(settings.LOG_FILE))
+            logger_gui.warning("Could not create log file '{0}'.".format(settings.LOG_FILE))
         self.store = Gtk.ListStore(str)
         renderer = Gtk.CellRendererText()
         renderer.set_property('font', 'Liberation Mono')
