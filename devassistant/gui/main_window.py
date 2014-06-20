@@ -30,6 +30,13 @@ class MainWindow(object):
     """
 
     def __init__(self):
+        # Used for debugging
+        console_handler = logging.StreamHandler(stream=sys.stdout)
+        console_formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s')
+        console_handler.setFormatter(console_formatter)
+        console_handler.setLevel(logging.INFO)
+        logger_gui.addHandler(console_handler)
+        # End used for debugging
         current_run.UI = 'gtk'
         self.builder = Gtk.Builder()
         self.builder.add_from_file(GLADE_FILE)
@@ -80,14 +87,6 @@ class MainWindow(object):
 
         self.notebook.show()
         self.kwargs = dict()
-        self.data = dict()
-        # Used for debugging
-        console_handler = logging.StreamHandler(stream=sys.stdout)
-        console_formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s')
-        console_handler.setFormatter(console_formatter)
-        console_handler.setLevel(logging.INFO)
-        logger_gui.addHandler(console_handler)
-        # End used for debugging
         self.data = dict()
         self.dev_assistant_path = []
         self.main_win.show_all()

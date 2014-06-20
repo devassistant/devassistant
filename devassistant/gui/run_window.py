@@ -10,12 +10,13 @@ import threading
 import re
 import os
 import six
-from devassistant.logger import logger
+from devassistant import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
 from devassistant import path_runner
 from devassistant import exceptions
 from devassistant import sigint_handler
+from devassistant import settings
 
 
 def add_row(record, list_store):
@@ -98,10 +99,13 @@ class RunWindow(object):
         self.main_btn = builder.get_object("mainBtn")
         self.tlh = RunLoggingHandler(self, self.run_list_view)
         self.gui_helper = gui_helper
-        logger.addHandler(self.tlh)
+        logger.logger.addHandler(self.tlh)
         format_msg = "%(levelname)s %(message)s"
         self.tlh.setFormatter(logging.Formatter(format_msg))
-        logger.setLevel(logging.DEBUG)
+        logger.logger.setLevel(logging.DEBUG)
+        is_log_file = logger.add_log_file_handler(settings.LOG_FILE)
+        if not is_log_file:
+            logger.logger_gui.warning("Could not create log file '{0}'.".format(settings.LOG_FILE))
         self.store = Gtk.ListStore(str)
         renderer = Gtk.CellRendererText()
         renderer.set_property('font', 'Liberation Mono')
