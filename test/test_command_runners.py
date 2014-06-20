@@ -307,10 +307,22 @@ class TestSCLCommandRunner(object):
         # please don't use $__scls__ in actual assistants :)
         # scl runner has to use the unformatted input
         inp = [{'log_i': '$__scls__'}]
-        fmtd_inp = [{'log_i': 'this should not be used'}]
         c = Command('scl enable foo bar', inp)
         c.run()
         assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
+
+    def test_scl_with_nested_calls(self):
+        # https://github.com/bkabrda/devassistant/issues/234
+        # tests proper nesting of SCL commands and also elimination of identical calls
+        inp = [{'scl enable hamham foo': [{'scl enable spamspam': [{'cl': 'ls'}]}]}]
+        c = Command('scl enable spamspam', inp)
+        with pytest.raises(RunException):
+            c.run()
+        assert ('DEBUG', '\n'.join(['scl enable spamspam - << DA_SCL_enable_spamspam_EOF',
+                                    'scl enable hamham foo - << DA_SCL_enable_hamham_foo_EOF',
+                                    'ls',
+                                    'DA_SCL_enable_hamham_foo_EOF',
+                                    'DA_SCL_enable_spamspam_EOF'])) in self.tlh.msgs
 
 
 class TestSetupProjectDirCommandRunner(object):

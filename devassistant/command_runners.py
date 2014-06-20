@@ -628,29 +628,46 @@ class SCLCommandRunner(CommandRunner):
         return c.comm_type.startswith('scl ')
 
     @classmethod
-    def run(cls, c):
-        c.kwargs.setdefault('__scls__', [])
-        c.kwargs.setdefault('__assistant__', None)
-        c.kwargs['__scls__'].append(c.comm_type.split()[1:])
-
+    def _get_scl_command_processor(cls, scl_call):
         def scl_command_processor(cmd_str):
             if cmd_str.startswith('cd '):
                 return cmd_str
-            scls = []
-            scls = functools.reduce(lambda x, y: x + y, c.kwargs['__scls__'], scls)
-            cmd_str = 'scl {scls} - << DA_SCL_EOF\n {cmd_str} \nDA_SCL_EOF'.\
+            # we can be sure that we haven't yet added precisely the same delimiter,
+            #  since it would have been removed in run()
+            heredoc_delimiter = 'DA_SCL_{0}_EOF'.format('_'.join(scl_call))
+            cmd_str = 'scl {scls} - << {delim}\n{cmd_str}\n{delim}'.\
                 format(cmd_str=cmd_str,
-                       scls=' '.join(scls))
+                       scls=' '.join(scl_call),
+                       delim=heredoc_delimiter)
             return cmd_str
+        return scl_command_processor
 
-        ClHelper.command_processors['scl_command_processor'] = scl_command_processor
+    @classmethod
+    def run(cls, c):
+        """SCLCommandRunner adds command processors to ClHelper in order to wrap
+        commands in possibly multiple nested calls of "scl <action> <collection>".
+        Note: Identical calls are ignored."""
+        # TODO: in 0.10.0, we can actually remove global __scls__, since we don't need them
+        #  due to the fact that we're creating closure in _get_scl_command_processor
+        c.kwargs.setdefault('__scls__', [])
+        c.kwargs.setdefault('__assistant__', None)
+        c.kwargs['__scls__'].append(c.comm_type.split()[1:])
+        # a unique name for command processor
+        comproc_name = c.comm_type
+        # if such a command processor is already there, don't re-push/re-pop
+        pushpop = comproc_name not in ClHelper.command_processors
+
+        if pushpop:
+            ClHelper.command_processors[comproc_name] =\
+                cls._get_scl_command_processor(c.kwargs['__scls__'][-1])
 
         # use "c.comm", not "c.input_res" - we need unformatted input here
         retval = lang.run_section(c.comm,
                                   c.kwargs,
                                   runner=c.kwargs['__assistant__'])
 
-        ClHelper.command_processors.pop('scl_command_processor')
+        if pushpop:
+            ClHelper.command_processors.pop(comproc_name)
         return retval
 
 
