@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import atexit
+import errno
 import getpass
 import logging
 import os
@@ -72,13 +73,19 @@ class ClHelper(object):
 
         stdout = []
         while proc.poll() is None:
-            output = proc.stdout.readline().decode('utf8')
-            if output:
-                output = output.strip()
-                stdout.append(output)
-                logger.log(log_level, output, extra={'event_type': 'cmd_out'})
-            if output_callback:
-                output_callback(output)
+            try:
+                output = proc.stdout.readline().decode('utf8')
+                if output:
+                    output = output.strip()
+                    stdout.append(output)
+                    logger.log(log_level, output, extra={'event_type': 'cmd_out'})
+                if output_callback:
+                    output_callback(output)
+            except IOError as e:
+                if e.errno == errno.EINTR: # Interrupted system call in Python 2.6
+                    sys.stderr.write('Can\'t interrupt this process!\n')
+                else:
+                    raise e
 
         # remove process from cls.subprocesses
         cls.subprocesses.pop(proc.pid)
