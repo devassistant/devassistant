@@ -1,3 +1,4 @@
+import copy
 import os
 
 import pytest
@@ -5,7 +6,7 @@ from flexmock import flexmock
 
 from devassistant import lang
 from devassistant.assistant_base import AssistantBase
-from devassistant.command_helpers import DialogHelper
+from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
     SetupProjectDirCommandRunner
@@ -318,11 +319,20 @@ class TestSCLCommandRunner(object):
         c = Command('scl enable spamspam', inp)
         with pytest.raises(RunException):
             c.run()
-        assert ('DEBUG', '\n'.join(['scl enable spamspam - << DA_SCL_enable_spamspam_EOF',
-                                    'scl enable hamham foo - << DA_SCL_enable_hamham_foo_EOF',
-                                    'ls',
-                                    'DA_SCL_enable_hamham_foo_EOF',
-                                    'DA_SCL_enable_spamspam_EOF'])) in self.tlh.msgs
+        # make sure to remove scl command processors from ClHelper
+        ClHelper.command_processors = {}
+        res_lines = [['scl enable spamspam - << DA_SCL_enable_spamspam_EOF',
+                      'scl enable hamham foo - << DA_SCL_enable_hamham_foo_EOF',
+                      'ls',
+                      'DA_SCL_enable_hamham_foo_EOF',
+                      'DA_SCL_enable_spamspam_EOF']]
+        # shuffle first two and last two lines to get possible permutations of scl
+        #  call order (command processors are in dict, which has arbitrary order)
+        res_lines.append(copy.deepcopy(res_lines[0]))
+        res_lines[1][0], res_lines[1][1] = res_lines[1][1], res_lines[1][0]
+        res_lines[1][3], res_lines[1][4] = res_lines[1][4], res_lines[1][3]
+        assert ('DEBUG', '\n'.join(res_lines[0])) in self.tlh.msgs or \
+               ('DEBUG', '\n'.join(res_lines[1])) in self.tlh.msgs
 
 
 class TestSetupProjectDirCommandRunner(object):
