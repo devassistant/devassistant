@@ -11,8 +11,12 @@ class TestDevAssistantGUI(object):
         """
         test for detection wrong environment DISPLAY variable
         """
-        display = os.environ.get('DISPLAY')
-        with pytest.raises(SystemExit):
+        display = os.environ.get('DISPLAY', None)
+        if display:
             os.environ['DISPLAY'] = ""
+
+        with pytest.raises(SystemExit):
             run_gui()
-        os.environ['DISPLAY'] = display
+
+        if display:
+            os.environ['DISPLAY'] = display
