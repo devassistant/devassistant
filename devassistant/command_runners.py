@@ -1138,6 +1138,8 @@ class SetupProjectDirCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         args = cls._get_args(c.input_res, c.kwargs)
+        if not six.PY3:
+            args['from'] = args['from'].encode('utf-8')
         contdir, topdir = os.path.split(args['from'])
         normalized_topdir = lang.Command('normalize', topdir).run()[1]
         try:  # ok, this is a bit ugly, but we need to check multiple calls for the exception
