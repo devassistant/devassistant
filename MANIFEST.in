@@ -18,3 +18,5 @@ recursive-exclude . __pycache__
 
 recursive-include docs *
 recursive-exclude docs/_build *
+
+recursive-include icons *

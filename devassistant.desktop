@@ -2,6 +2,7 @@
 Name=DevAssistant
 GenericName=DevAssistant - making life easier for developers
 Exec=da-gui
+Icon=devassistant
 Terminal=false
 Type=Application
 Categories=Development;
