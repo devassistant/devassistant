@@ -12,6 +12,7 @@ Developer Documentation
    developer_documentation/run_sections_reference
    developer_documentation/command_reference
    developer_documentation/common_assistant_behaviour
+   developer_documentation/snippets
    developer_documentation/dot_devassistant
    developer_documentation/project_types
 

@@ -134,7 +134,7 @@ bring more functionality, such as making coffee for you.
   Displays current DevAssistant version.
 
 Using the GUI
----------
+-------------
 
 The DevAssistant GUI provides the full functionality of
 :ref:`Commandline Interface <cli_interface>` through a Gtk based application.

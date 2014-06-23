@@ -427,6 +427,8 @@ This means some behaviour differences from e.g. ``scl`` command, where each comm
 current assistant. Most importantly, RES of this command is RES of all commands from given
 subsection.
 
+.. _use_commands_ref:
+
 Using Another Section
 ---------------------
 
