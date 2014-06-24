@@ -1,3 +1,4 @@
 [submodule "devassistant/data"]
 	path = devassistant/data
 	url = https://github.com/bkabrda/devassistant-assistants-fedora.git
+	branch = master
