@@ -68,7 +68,7 @@ class PyTest(Command):
 
 setup(
     name='daploader',
-    version='0.0.8',
+    version='0.0.9',
     description='Dap archives loader and checker',
     long_description=''.join(open('README.rst').readlines()),
     keywords='devassiatnt, lint, dap',
