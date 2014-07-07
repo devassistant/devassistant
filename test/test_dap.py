@@ -4,6 +4,8 @@ import sys
 import os
 import logging
 import itertools
+import glob
+import subprocess
 try:
     from cStringIO import StringIO
 except:
@@ -323,3 +325,9 @@ class TestDap(object):
         os.environ['DAPI_FAKE_DATA'] = ''
         Dap('test/meta_only/foo-1.0.0.dap').check(output=out, network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
+
+    def test_sha256sum(self):
+        '''Check that sha256sum of the files is the same as sha256sum command does'''
+        for dap in glob.glob('test/meta_only/*.dap'):
+            process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
+            assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode('utf8')

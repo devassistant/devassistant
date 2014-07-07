@@ -4,6 +4,7 @@ import tarfile
 import yaml
 import re
 import logging
+import hashlib
 try:
     from yaml import CLoader as Loader
 except:
@@ -92,6 +93,7 @@ class Dap(object):
             raise DapMetaError('Multiple meta.yaml files found in %s (%s)' % (self.basename, ', '.join(metas)))
         self._meta_location = metas.pop()
         self._load_meta(self._get_file(self._meta_location))
+        self.sha256sum = hashlib.sha256(open(dapfile, 'rb').read()).hexdigest()
 
     def _get_file(self, path):
         '''Extracts a file from dap to a file-like object'''
