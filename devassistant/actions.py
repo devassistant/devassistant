@@ -283,6 +283,37 @@ class PkgUpdateAction(Action):
             raise exceptions.CommandException()
 
 
+class PkgListAction(Action):
+    """List installed packages from Dapi"""
+    name = 'list'
+    description = 'List packages'
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        for pkg in dapicli.get_installed_daps():
+            print(pkg)
+
+
+class PkgSeacrhAction(Action):
+    """Search packages from Dapi"""
+    name = 'search'
+    description = 'Search packages'
+    args = [
+        argument.Argument('query', 'query', nargs='+', help='One or multiple search queries'),
+        argument.Argument('-p', '--page', metavar='P', type=int, default=1, help='Page number'),
+    ]
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        try:
+            dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
+        except Exception as e:
+            logger.error(str(e))
+            raise exceptions.CommandException()
+
+
 @register_action
 class PkgAction(Action):
     """Installs packages from Dapi and more (removes, updates...)"""
@@ -291,7 +322,13 @@ class PkgAction(Action):
 
     @classmethod
     def get_subactions(cls):
-        return [PkgInstallAction, PkgUninstallAction, PkgUpdateAction]
+        return [
+            PkgInstallAction,
+            PkgUninstallAction,
+            PkgUpdateAction,
+            PkgListAction,
+            PkgSeacrhAction,
+        ]
 
 
 @register_action
