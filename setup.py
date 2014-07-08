@@ -101,7 +101,8 @@ setup(
     entry_points = {'console_scripts':['da=devassistant.cli.cli_runner:CliRunner.run',
                                        'da-gui=devassistant.gui:run_gui',
                                        'devassistant=devassistant.cli.cli_runner:CliRunner.run',
-                                       'devassistant-gui=devassistant.gui:run_gui']},
+                                       'devassistant-gui=devassistant.gui:run_gui',
+                                       'daplint = devassistant.dapi.daplint:lint']},
     # PyGithub is in fact optional, but let's keep it here
     install_requires=['PyYaml', 'PyGithub>=1.14.2', 'jinja2', 'progress', 'six'],
     setup_requires = [],
