@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import urllib
 import tarfile
-import daploader
+from devassistant import dapi
 import sys
 import logging
 from sh import mkdir
@@ -262,7 +262,7 @@ def download_dap(name, version='', d='', directory=''):
 def install_dap_from_path(path, force=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
-    dap_obj = daploader.Dap(path)
+    dap_obj = dapi.Dap(path)
     if dap_obj.meta['package_name'] in get_installed_daps():
         if not force:
             raise Exception('Won\'t override already installed dap')

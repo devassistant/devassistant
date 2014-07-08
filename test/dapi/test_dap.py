@@ -13,8 +13,7 @@ except:
         from StringIO import StringIO
     except:
         from io import StringIO
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from daploader import *
+from devassistant.dapi import *
 
 
 class TestDap(object):
@@ -22,7 +21,7 @@ class TestDap(object):
     def test_no_gz(self):
         '''Not-gzip archive should raise DapFileError'''
         with pytest.raises(DapFileError):
-            Dap('test/bz2.dap')
+            Dap('dapi/bz2.dap')
 
     def test_no_exist(self):
         '''Nonexisting file should raise DapFileError'''
@@ -32,11 +31,11 @@ class TestDap(object):
     def test_no_meta(self):
         '''Dap without meta.yaml should raise DapMetaError'''
         with pytest.raises(DapMetaError):
-            Dap('test/no_meta.dap')
+            Dap('dapi/no_meta.dap')
 
     def test_dap_data(self):
         '''Dap should have correct content in meta, basename and files'''
-        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        dap = Dap('dapi/meta_only/foo-1.0.0.dap')
         assert dap.meta['package_name'] == 'foo'
         assert dap.meta['version'] == '1.0.0'
         assert u'Hrončok' in dap.meta['authors'][0]
@@ -46,7 +45,7 @@ class TestDap(object):
     def test_no_toplevel(self):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
-        assert not Dap('test/no_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
+        assert not Dap('dapi/no_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
@@ -214,13 +213,13 @@ class TestDap(object):
 
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test (errors only)'''
-        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        dap = Dap('dapi/meta_only/foo-1.0.0.dap')
         assert dap.check(level=logging.ERROR)
 
     def test_meta_only_warning_check(self):
         '''meta_only.dap shopuld produce warning'''
         out = StringIO()
-        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        dap = Dap('dapi/meta_only/foo-1.0.0.dap')
         assert not dap.check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'Only meta.yaml in dap' in out.getvalue()
@@ -228,7 +227,7 @@ class TestDap(object):
     def test_unknown_metadata(self):
         '''meta_only.dap with added value should fail'''
         out = StringIO()
-        dap = Dap('test/meta_only/foo-1.0.0.dap')
+        dap = Dap('dapi/meta_only/foo-1.0.0.dap')
         dap.meta['foo'] = 'bar'
         assert not dap.check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
@@ -238,7 +237,7 @@ class TestDap(object):
     def test_forgotten_version_in_filename_and_dir(self):
         '''Dap without version in filename and dirname should produce 2 errors'''
         out = StringIO()
-        assert not Dap('test/meta_only/foo.dap').check(output=out, level=logging.ERROR)
+        assert not Dap('dapi/meta_only/foo.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 2
         assert 'Top-level directory with meta.yaml is not named foo-1.0.0' in out.getvalue()
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
@@ -246,36 +245,36 @@ class TestDap(object):
     def test_wrong_dap_filename(self):
         '''Dap with OK dirname, but wrong filename should produce 1 error'''
         out = StringIO()
-        assert not Dap('test/meta_only/bar.dap').check(output=out, level=logging.ERROR)
+        assert not Dap('dapi/meta_only/bar.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
 
     def test_wrong_dap_filename_mimicked_to_be_ok(self):
         '''Dap with wrong filename, mimicked to be OK, should produce no error'''
-        assert Dap('test/meta_only/bar.dap', mimic_filename='foo-1.0.0.dap').check(level=logging.ERROR)
+        assert Dap('dapi/meta_only/bar.dap', mimic_filename='foo-1.0.0.dap').check(level=logging.ERROR)
 
     def test_good_dap_filename_mimicked_to_be_wrong(self):
         '''Error passing dap, should fail with wrong mimicked filename'''
-        assert not Dap('test/meta_only/foo-1.0.0.dap', mimic_filename='wrong').check(level=logging.ERROR)
+        assert not Dap('dapi/meta_only/foo-1.0.0.dap', mimic_filename='wrong').check(level=logging.ERROR)
 
     def test_files_outside_of_toplevel_dir(self):
         '''Dap with files outside of top-level directory should produce error for each'''
         out = StringIO()
-        assert not Dap('test/outside_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
+        assert not Dap('dapi/outside_toplevel/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert 'is outside' in out.getvalue()
 
     def test_empty_dirs(self):
         '''Dap with empty dirs produces warning'''
         out = StringIO()
-        assert not Dap('test/empty_dirs/foo-1.0.0.dap').check(output=out)
+        assert not Dap('dapi/empty_dirs/foo-1.0.0.dap').check(output=out)
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert ' is empty directory' in out.getvalue()
 
     def test_wrong_files(self):
         '''Dap with wrong files produces errors'''
         out = StringIO()
-        assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
+        assert not Dap('dapi/wrong_files/foo-1.0.0.dap').check(output=out, level=logging.ERROR)
         assert len(out.getvalue().rstrip().split('\n')) == 21
         assert '/files/wrong.txt is not allowed file' in out.getvalue()
         assert '/files/wrong/ is not allowed directory' in out.getvalue()
@@ -302,7 +301,7 @@ class TestDap(object):
     def test_icons_files_warnings(self):
         '''Dap with redundant or missing icons and redundant files should produce warnings'''
         out = StringIO()
-        assert not Dap('test/wrong_files/foo-1.0.0.dap').check(output=out)
+        assert not Dap('dapi/wrong_files/foo-1.0.0.dap').check(output=out)
         assert 'Useless icon for non-exisiting assistant mod/foo/a' in out.getvalue()
         assert 'Useless icon for non-exisiting assistant mod/foo/a' in out.getvalue()
         assert 'Useless icon for non-exisiting assistant crt/foo' in out.getvalue()
@@ -316,18 +315,18 @@ class TestDap(object):
         '''Dap that is already on dapi should produce a warning when network is True'''
         out = StringIO()
         os.environ['DAPI_FAKE_DATA'] = 'nonempty'
-        Dap('test/meta_only/foo-1.0.0.dap').check(output=out, network=True)
+        Dap('dapi/meta_only/foo-1.0.0.dap').check(output=out, network=True)
         assert 'This dap name is already registered on Dapi' in out.getvalue()
 
     def test_dapi_check_false(self):
         '''Dap that is not already on dapi should not produce a warning when network is True'''
         out = StringIO()
         os.environ['DAPI_FAKE_DATA'] = ''
-        Dap('test/meta_only/foo-1.0.0.dap').check(output=out, network=True)
+        Dap('dapi/meta_only/foo-1.0.0.dap').check(output=out, network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
 
     def test_sha256sum(self):
         '''Check that sha256sum of the files is the same as sha256sum command does'''
-        for dap in glob.glob('test/meta_only/*.dap'):
+        for dap in glob.glob('dapi/meta_only/*.dap'):
             process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
             assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode('utf8')
