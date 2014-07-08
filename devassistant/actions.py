@@ -7,8 +7,10 @@ except ImportError:
     from yaml import Loader
 
 from devassistant import argument
+from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
+from devassistant.logger import logger
 
 actions = {}
 
@@ -197,6 +199,44 @@ class HelpAction(Action):
         text.append(cls.format_text(justed_name, 'bold', format_type))
         text.append(action_desc)
         return ''.join(text)
+
+
+class PkgInstallAction(Action):
+    """Installs packages from Dapi"""
+    name = 'install'
+    description = 'Install packages'
+    args = [argument.Argument('package', 'package', nargs='+')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        import os
+        exs = []
+        for pkg in kwargs['package']:
+            logger.info('Installing {pkg}...'.format(pkg=pkg))
+            if os.path.isfile(pkg):
+                method = dapicli.install_dap_from_path
+            else:
+                method = dapicli.install_dap
+            try:
+                method(pkg)
+                logger.info('{pkg} successfully installed'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(e)
+                logger.error(str(e))
+        if exs:
+            raise exceptions.CommandException()
+
+
+@register_action
+class PkgAction(Action):
+    """Installs packages from Dapi and more (removes, updates...)"""
+    name = 'pkg'
+    description = 'Manage packages'
+
+    @classmethod
+    def get_subactions(cls):
+        return [PkgInstallAction]
 
 
 @register_action
