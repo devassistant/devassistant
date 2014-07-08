@@ -231,12 +231,13 @@ def uninstall_dap(name, confirm=False):
         ok = raw_input('Is that OK? [y/N] ')
         if ok.lower() != 'y':
             print('Aborting')
-            return
+            return False
     for f in g:
         try:
             os.remove(f)
         except OSError:
             shutil.rmtree(f)
+    return True
 
 
 def download_dap(name, version='', d='', directory=''):
