@@ -228,6 +228,61 @@ class PkgInstallAction(Action):
             raise exceptions.CommandException()
 
 
+class PkgUninstallAction(Action):
+    """Uninstalls packages from Dapi"""
+    name = 'uninstall'
+    description = 'Uninstall packages'
+    args = [argument.Argument('package', 'package', nargs='+')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        exs = []
+        for pkg in kwargs['package']:
+            logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
+            try:
+                done = dapicli.uninstall_dap(pkg, confirm=True)
+                if done:
+                    logger.info('{pkg} successfully uninstalled'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(e)
+                logger.error(str(e))
+        if exs:
+            raise exceptions.CommandException()
+
+
+class PkgUpdateAction(Action):
+    """Updates packages from Dapi"""
+    name = 'update'
+    description = 'Uninstall packages'
+    args = [argument.Argument('package', 'package', nargs='*')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        pkgs = exs = []
+        try:
+            pkgs = kwargs['package']
+        except KeyError:
+            logger.info('Updating all packages')
+            try:
+                dapicli.sync_daps()
+            except Exception as e:
+                exs.append(e)
+                logger.error(str(e))
+        for pkg in pkgs:
+            logger.info('Updating {pkg}...'.format(pkg=pkg))
+            try:
+                # this should be updated once dapicli can actually check for updates
+                dapicli.install_dap(pkg,force=True)
+                logger.info('{pkg} successfully updated'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(e)
+                logger.error(str(e))
+        if exs:
+            raise exceptions.CommandException()
+
+
 @register_action
 class PkgAction(Action):
     """Installs packages from Dapi and more (removes, updates...)"""
@@ -236,7 +291,7 @@ class PkgAction(Action):
 
     @classmethod
     def get_subactions(cls):
-        return [PkgInstallAction]
+        return [PkgInstallAction, PkgUninstallAction, PkgUpdateAction]
 
 
 @register_action
