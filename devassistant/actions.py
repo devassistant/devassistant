@@ -314,6 +314,22 @@ class PkgSeacrhAction(Action):
             raise exceptions.CommandException()
 
 
+class PkgInfoAction(Action):
+    """Prints information about packages from Dapi"""
+    name = 'info'
+    description = 'Prints packages info'
+    args = [argument.Argument('package', 'package')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        from daploader import dapicli
+        try:
+            dapicli.print_dap(kwargs['package'])
+        except Exception as e:
+            logger.error(str(e))
+            raise exceptions.CommandException()
+
+
 @register_action
 class PkgAction(Action):
     """Installs packages from Dapi and more (removes, updates...)"""
@@ -328,6 +344,7 @@ class PkgAction(Action):
             PkgUpdateAction,
             PkgListAction,
             PkgSeacrhAction,
+            PkgInfoAction,
         ]
 
 
