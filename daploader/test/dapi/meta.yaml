@@ -1,0 +1,10 @@
+package_name: foo
+version: 1.0.0
+license: GPLv2+
+authors: [Miro Hrončok <miro_at_hroncok.cz>]
+homepage: https://github.com/hroncok/daploader
+summary: Dummy metadata for testing purposes
+bugreports: https://github.com/hroncok/daploader/issues
+description: |
+    Some not-so-brief optional text.
+    It can be split to multiple lines.
