@@ -267,7 +267,6 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating {pkg}...'.format(pkg=pkg))
             try:
-                # this should be updated once dapicli can actually check for updates
                 dapicli.install_dap(pkg,update=True)
                 logger.info('{pkg} successfully updated'.format(pkg=pkg))
             except Exception as e:

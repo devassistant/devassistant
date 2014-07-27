@@ -9,10 +9,15 @@ import tempfile
 import urllib
 import tarfile
 from devassistant import dapi
+from devassistant.dapi import dapver
 import sys
 import logging
 from sh import mkdir
 from sh import cp
+try:
+    from yaml import CLoader as Loader
+except:
+    from yaml import Loader
 
 DEFAULT_API_URL = 'http://dapi.devassistant.org/api/'
 DEFAULT_USER_INSTALL = '~/.devassistant'
@@ -265,8 +270,6 @@ def install_dap_from_path(path, update=False):
             raise Exception('Won\'t override already installed dap')
         else:
             will_uninstall = True
-    elif update:
-        raise Exception('Cannot update not yet installed dap')
     if os.path.isfile(_install_path()):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
@@ -288,11 +291,32 @@ def install_dap_from_path(path, update=False):
     except:
         pass
 
+def get_installed_version_of(name):
+    '''Gets the installed version of the given dap or None if not installed'''
+    if name not in get_installed_daps():
+        return None
+    meta = '{d}/{dap}.yaml'.format(d=_install_path(), dap=name)
+    with open(meta) as f:
+        data = yaml.load(f.read(), Loader=Loader)
+    return data['version']
 
 def install_dap(name, version='', update=False):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
+    if update:
+        available = d['version']
+        current = get_installed_version_of(name)
+        if not current:
+            raise Exception('Cannot update not yet installed dap')
+        if dapver.compare(available, current) < 0:
+            raise Exception(
+                'Currently installed version {c} is newer than version {a} available on Dapi'
+                .format(c=current, a=available))
+        if dapver.compare(available, current) == 0:
+            raise Exception(
+                'Currently installed version {c} is the same as the version available on Dapi'
+                .format(c=current))
     path, remove_dir = download_dap(name, d=d)
 
     install_dap_from_path(path, update=update)
