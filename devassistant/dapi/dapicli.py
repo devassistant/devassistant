@@ -203,10 +203,7 @@ def print_search(query, page=''):
 
 def get_installed_daps():
     '''Returns a set of all installed daps'''
-    g = []
-    for a in 'crt mod prep task'.split():
-        g += glob.glob('{d}/assistants/{a}/*.yaml'.format(d=_install_path(), a=a))
-    g += glob.glob('{d}/snippets/*.yaml'.format(d=_install_path()))
+    g = glob.glob('{d}/*.yaml'.format(d=_install_path()))
     s = set()
     for a in g:
         s.add(a.split('/')[-1][:-len('.yaml')])
@@ -217,7 +214,7 @@ def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
             'Cannot unisnatll {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
-    g = []
+    g = ['{d}/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
         g += glob.glob('{d}/{loc}/*/{dap}'.format(d=_install_path(), loc=loc, dap=name))
@@ -259,15 +256,17 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, force=False):
+def install_dap_from_path(path, update=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
     if dap_obj.meta['package_name'] in get_installed_daps():
-        if not force:
+        if not update:
             raise Exception('Won\'t override already installed dap')
         else:
             will_uninstall = True
+    elif update:
+        raise Exception('Cannot update not yet installed dap')
     if os.path.isfile(_install_path()):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
@@ -279,10 +278,7 @@ def install_dap_from_path(path, force=False):
     if will_uninstall:
         uninstall_dap(dap_obj.meta['package_name'])
     _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
-    try:
-        os.remove(os.path.join(_dapdir, 'meta.yaml'))
-    except:
-        pass
+    os.rename(os.path.join(_dapdir, 'meta.yaml'), os.path.join(_dapdir, dap_obj.meta['package_name'] + '.yaml'))
     if not os.path.isdir(_install_path()):
         mkdir(_install_path(), '-p')
     for f in glob.glob(_dapdir + '/*'):
@@ -293,13 +289,13 @@ def install_dap_from_path(path, force=False):
         pass
 
 
-def install_dap(name, version='', force=False):
+def install_dap(name, version='', update=False):
     '''Install a dap from dapi
-    If force is True, it will remove previously installed daps of the same name'''
+    If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
     path, remove_dir = download_dap(name, d=d)
 
-    install_dap_from_path(path, force=force)
+    install_dap_from_path(path, update=update)
 
     try:
         if remove_dir:
@@ -323,7 +319,7 @@ def sync_daps():
     for name in get_installed_daps():
         print('Updating {dap}'.format(dap=name))
         try:
-            install_dap(name, force=True)
+            install_dap(name, update=True)
         except Exception as e:
             _eshout(e)
             e += 1
