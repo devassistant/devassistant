@@ -310,18 +310,3 @@ def _eshout(e):
     '''Prints the Exception's message to stderr'''
     sys.stderr.write(str(e))
     sys.stderr.write('\n')
-
-
-def sync_daps():
-    '''For all installed daps, get the latest version from Dapi
-    and replace the isntalled dap with it'''
-    e = 0
-    for name in get_installed_daps():
-        print('Updating {dap}'.format(dap=name))
-        try:
-            install_dap(name, update=True)
-        except Exception as e:
-            _eshout(e)
-            e += 1
-    return e
-

@@ -263,11 +263,7 @@ class PkgUpdateAction(Action):
             pkgs = kwargs['package']
         except KeyError:
             logger.info('Updating all packages')
-            try:
-                dapicli.sync_daps()
-            except Exception as e:
-                exs.append(e)
-                logger.error(str(e))
+            pkgs = dapicli.get_installed_daps()
         for pkg in pkgs:
             logger.info('Updating {pkg}...'.format(pkg=pkg))
             try:
