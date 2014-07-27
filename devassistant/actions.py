@@ -11,6 +11,7 @@ from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
 from devassistant.logger import logger
+from devassistant.dapi import dapicli
 
 actions = {}
 
@@ -209,7 +210,6 @@ class PkgInstallAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         import os
         exs = []
         for pkg in kwargs['package']:
@@ -236,7 +236,6 @@ class PkgUninstallAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         exs = []
         for pkg in kwargs['package']:
             logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
@@ -259,7 +258,6 @@ class PkgUpdateAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         pkgs = exs = []
         try:
             pkgs = kwargs['package']
@@ -290,7 +288,6 @@ class PkgListAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         for pkg in dapicli.get_installed_daps():
             print(pkg)
 
@@ -306,7 +303,6 @@ class PkgSeacrhAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         try:
             dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
         except Exception as e:
@@ -322,7 +318,6 @@ class PkgInfoAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        from daploader import dapicli
         try:
             dapicli.print_dap(kwargs['package'])
         except Exception as e:
