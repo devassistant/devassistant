@@ -12,6 +12,7 @@ from devassistant import dapi
 from devassistant.dapi import dapver
 import sys
 import logging
+import hashlib
 from sh import mkdir
 from sh import cp
 try:
@@ -258,6 +259,12 @@ def download_dap(name, version='', d='', directory=''):
     filename = url.split('/')[-1]
     path = os.path.join(_dir, filename)
     urllib.urlretrieve(url, path)
+    dapisum = d['sha256sum']
+    downloadedsum = hashlib.sha256(open(path, 'rb').read()).hexdigest()
+    if dapisum != downloadedsum:
+        os.remove(path)
+        raise Exception('{dap} has incorrect sha256sum (dapi: {dapi}, downloaded: {downloaded})'
+                        .format(dap=name, dapi=dapisum, downloaded=downloadedsum))
     return path, not bool(directory)
 
 
