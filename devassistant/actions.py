@@ -232,7 +232,10 @@ class PkgUninstallAction(Action):
     """Uninstalls packages from Dapi"""
     name = 'uninstall'
     description = 'Uninstall packages'
-    args = [argument.Argument('package', 'package', nargs='+')]
+    args = [
+        argument.Argument('package', 'package', nargs='+'),
+        argument.Argument('-f', '--force', action='store_false', default=True, help='Do not ask for confirmation')
+    ]
 
     @classmethod
     def run(cls, **kwargs):
@@ -240,7 +243,7 @@ class PkgUninstallAction(Action):
         for pkg in kwargs['package']:
             logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
             try:
-                done = dapicli.uninstall_dap(pkg, confirm=True)
+                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
                 if done:
                     logger.info('{pkg} successfully uninstalled'.format(pkg=pkg))
             except Exception as e:
