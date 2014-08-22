@@ -207,7 +207,7 @@ class HelpAction(Action):
 class PkgInstallAction(Action):
     """Installs packages from Dapi"""
     name = 'install'
-    description = 'Install packages'
+    description = 'Installs packages from Dapi or from given paths'
     args = [argument.Argument('package', 'package', nargs='+')]
 
     @classmethod
@@ -233,7 +233,7 @@ class PkgInstallAction(Action):
 class PkgUninstallAction(Action):
     """Uninstalls packages from Dapi"""
     name = 'uninstall'
-    description = 'Uninstall packages'
+    description = 'Uninstalls packages of given names'
     args = [
         argument.Argument('package', 'package', nargs='+'),
         argument.Argument('force', '-f', '--force', action='store_false',
@@ -259,7 +259,7 @@ class PkgUninstallAction(Action):
 class PkgUpdateAction(Action):
     """Updates packages from Dapi"""
     name = 'update'
-    description = 'Uninstall packages'
+    description = 'Updates packages of given names or all of them'
     args = [argument.Argument('package', 'package', nargs='*')]
 
     @classmethod
@@ -285,7 +285,7 @@ class PkgUpdateAction(Action):
 class PkgListAction(Action):
     """List installed packages from Dapi"""
     name = 'list'
-    description = 'List packages'
+    description = 'Lists installed packages'
 
     @classmethod
     def run(cls, **kwargs):
@@ -296,7 +296,7 @@ class PkgListAction(Action):
 class PkgSearchAction(Action):
     """Search packages from Dapi"""
     name = 'search'
-    description = 'Search packages'
+    description = 'Searches packages from Dapi and prints the result'
     args = [
         argument.Argument('query', 'query', nargs='+', help='One or multiple search queries'),
         argument.Argument('-p', '--page', metavar='P', type=int, default=1, help='Page number'),
@@ -314,7 +314,7 @@ class PkgSearchAction(Action):
 class PkgInfoAction(Action):
     """Prints information about packages from Dapi"""
     name = 'info'
-    description = 'Prints packages info'
+    description = 'Prints information about packages from Dapi'
     args = [argument.Argument('package', 'package')]
 
     @classmethod
@@ -329,9 +329,9 @@ class PkgInfoAction(Action):
 class PkgLintAction(Action):
     """Checks packages for sanity"""
     name = 'lint'
-    description = 'Checks packages for sanity'
+    description = 'Checks local packages for sanity'
     args = [
-        argument.Argument('package', 'package', nargs='+', help='One or multiple packages to check'),
+        argument.Argument('package', 'package', nargs='+', help='One or multiple packages to check (path)'),
         argument.Argument('network', '-n', '--network', action='store_true', default=False,
                           help='Perform checks that require Internet connection'),
         argument.Argument('nowarnings', '-w', '--nowarnings', action='store_true', default=False,
@@ -360,9 +360,9 @@ class PkgLintAction(Action):
 
 @register_action
 class PkgAction(Action):
-    """Installs packages from Dapi and more (removes, updates...)"""
+    """Manage packages"""
     name = 'pkg'
-    description = 'Manage packages'
+    description = 'Lets you interact with online Dapi service and your local assistants'
 
     @classmethod
     def get_subactions(cls):
