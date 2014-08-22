@@ -57,3 +57,31 @@ class NoPackageManagerException(DependencyException):
     No manager exists for a type of dependency.
     """
     pass
+
+
+class DapError(ExecutionException):
+    """
+    Mother of all dap related exceptions
+    """
+    pass
+
+
+class DapFileError(DapError):
+    """
+    Exception that indicates something wrong with dap file
+    """
+    pass
+
+
+class DapMetaError(DapError):
+    """
+    Exception that indicates something wrong with dap's metadata
+    """
+    pass
+
+
+class DapInvalid(DapError):
+    """
+    Exception that indicates invalid dap
+    """
+    pass

@@ -10,26 +10,7 @@ try:
 except:
     from yaml import Loader
 from . import licenses
-
-
-class DapError(Exception):
-    '''Mother of all dap related exceptions'''
-    pass
-
-
-class DapFileError(DapError):
-    '''Exception that indicates something wrong with dap file'''
-    pass
-
-
-class DapMetaError(DapError):
-    '''Exception that indicates something wrong with dap's metadata'''
-    pass
-
-
-class DapInvalid(DapError):
-    '''Exception that indicates invalid dap'''
-    pass
+from devassistant.exceptions import DapError, DapFileError, DapMetaError, DapInvalid
 
 
 class Dap(object):
