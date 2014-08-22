@@ -222,10 +222,10 @@ class PkgInstallAction(Action):
                 method(pkg)
                 logger.info('{pkg} successfully installed'.format(pkg=pkg))
             except Exception as e:
-                exs.append(e)
+                exs.append(str(e))
                 logger.error(str(e))
         if exs:
-            raise exceptions.CommandException()
+            raise exceptions.ExecutionException('; '.join(exs))
 
 
 class PkgUninstallAction(Action):
@@ -247,10 +247,10 @@ class PkgUninstallAction(Action):
                 if done:
                     logger.info('{pkg} successfully uninstalled'.format(pkg=pkg))
             except Exception as e:
-                exs.append(e)
+                exs.append(str(e))
                 logger.error(str(e))
         if exs:
-            raise exceptions.CommandException()
+            raise exceptions.ExecutionException('; '.join(exs))
 
 
 class PkgUpdateAction(Action):
@@ -273,10 +273,10 @@ class PkgUpdateAction(Action):
                 dapicli.install_dap(pkg,update=True)
                 logger.info('{pkg} successfully updated'.format(pkg=pkg))
             except Exception as e:
-                exs.append(e)
+                exs.append(str(e))
                 logger.error(str(e))
         if exs:
-            raise exceptions.CommandException()
+            raise exceptions.ExecutionException('; '.join(exs))
 
 
 class PkgListAction(Action):
@@ -305,7 +305,7 @@ class PkgSearchAction(Action):
             dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
         except Exception as e:
             logger.error(str(e))
-            raise exceptions.CommandException()
+            raise exceptions.ExecutionException(str(e))
 
 
 class PkgInfoAction(Action):
@@ -320,7 +320,7 @@ class PkgInfoAction(Action):
             dapicli.print_dap(kwargs['package'])
         except Exception as e:
             logger.error(str(e))
-            raise exceptions.CommandException()
+            raise exceptions.ExecutionException(str(e))
 
 
 @register_action
