@@ -290,7 +290,7 @@ class PkgListAction(Action):
             print(pkg)
 
 
-class PkgSeacrhAction(Action):
+class PkgSearchAction(Action):
     """Search packages from Dapi"""
     name = 'search'
     description = 'Search packages'
@@ -336,7 +336,7 @@ class PkgAction(Action):
             PkgUninstallAction,
             PkgUpdateAction,
             PkgListAction,
-            PkgSeacrhAction,
+            PkgSearchAction,
             PkgInfoAction,
         ]
 
