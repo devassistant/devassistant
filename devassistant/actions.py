@@ -11,7 +11,9 @@ from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
 from devassistant.logger import logger
+from devassistant import dapi
 from devassistant.dapi import dapicli
+import logging
 
 actions = {}
 
@@ -234,7 +236,8 @@ class PkgUninstallAction(Action):
     description = 'Uninstall packages'
     args = [
         argument.Argument('package', 'package', nargs='+'),
-        argument.Argument('-f', '--force', action='store_false', default=True, help='Do not ask for confirmation')
+        argument.Argument('force', '-f', '--force', action='store_false',
+                          default=True, help='Do not ask for confirmation')
     ]
 
     @classmethod
@@ -323,6 +326,38 @@ class PkgInfoAction(Action):
             raise exceptions.ExecutionException(str(e))
 
 
+class PkgLintAction(Action):
+    """Checks packages for sanity"""
+    name = 'lint'
+    description = 'Checks packages for sanity'
+    args = [
+        argument.Argument('package', 'package', nargs='+', help='One or multiple packages to check'),
+        argument.Argument('network', '-n', '--network', action='store_true', default=False,
+                          help='Perform checks that require Internet connection'),
+        argument.Argument('nowarnings', '-w', '--nowarnings', action='store_true', default=False,
+                          help='Ignore warnings'),
+    ]
+
+    @classmethod
+    def run(cls, **kwargs):
+        error = False
+        for pkg in kwargs['package']:
+            try:
+                if kwargs['nowarnings']:
+                    level = logging.ERROR
+                else:
+                    level = logging.INFO
+                d = dapi.Dap(pkg)
+                if not d.check(network=kwargs['network'], level=level):
+                    error = True
+            except (exceptions.DapFileError, exceptions.DapMetaError) as e:
+                logger.error(str(e))
+                error = True
+        if error:
+            raise exceptions.ExecutionException('One or more packages are not sane')
+
+
+
 @register_action
 class PkgAction(Action):
     """Installs packages from Dapi and more (removes, updates...)"""
@@ -338,6 +373,7 @@ class PkgAction(Action):
             PkgListAction,
             PkgSearchAction,
             PkgInfoAction,
+            PkgLintAction,
         ]
 
 
