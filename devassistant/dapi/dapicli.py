@@ -19,14 +19,12 @@ try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
-
-DEFAULT_API_URL = 'http://dapi.devassistant.org/api/'
-DEFAULT_USER_INSTALL = '~/.devassistant'
-DEFAULT_ROOT_INSTALL = '/usr/local/share/devassistant'
-
+from devassistant.settings import DAPI_DEFAULT_API_URL
+from devassistant.settings import DAPI_DEFAULT_USER_INSTALL
+from devassistant.settings import DAPI_DEFAULT_ROOT_INSTALL
 
 def _api_url():
-    return os.environ.get('DAPI_API_URL', DEFAULT_API_URL)
+    return os.environ.get('DAPI_API_URL', DAPI_DEFAULT_API_URL)
 
 
 def _install_path():
@@ -36,8 +34,8 @@ def _install_path():
             return os.path.expanduser(path[:-1])
         return os.path.expanduser(path)
     if os.geteuid() == 0:
-        return DEFAULT_ROOT_INSTALL
-    return os.path.expanduser(DEFAULT_USER_INSTALL)
+        return DAPI_DEFAULT_ROOT_INSTALL
+    return os.path.expanduser(DAPI_DEFAULT_USER_INSTALL)
 
 
 def _process_req(req):
