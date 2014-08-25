@@ -1,5 +1,7 @@
 import logging
 import os
+import six
+import sys
 
 from devassistant import settings
 
@@ -25,6 +27,20 @@ class DevassistantClFormatter(logging.Formatter):
         fmt_str = settings.LOG_FORMATS_MAP.get(event_type, None) or \
             settings.LOG_FORMATS_MAP['log_cmd']
         return fmt_str.format(**vars(record))
+
+class DevassistantClColorFormatter(DevassistantClFormatter):
+    color_str = {'ERROR': u'\033[1;31m{0}\033[0m',
+                 'WARNING': u'\033[1m{0}\033[0m'}
+
+    def format(self, record):
+        if record.levelname in self.color_str:
+            arglist = (record,) #if not six.PY3 else (self, record)
+            return self.color_str[record.levelname].\
+                    format(super(DevassistantClColorFormatter, self).format(*arglist))
+        else:
+            arglist = (record,) if not six.PY3 else (self, record)
+            return super(DevassistantClColorFormatter, self).format(*arglist)
+
 
 def add_log_file_handler(log_file):
     # add logging handler to log current run into log file
