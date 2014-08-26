@@ -18,16 +18,25 @@ from devassistant import exceptions
 from devassistant import sigint_handler
 from devassistant import settings
 
-
-def add_row(record, list_store):
-    """
-    Function adds row to list_store used by List View
-    """
-    list_store.append([record.getMessage()])
+LOG_COLORS = {'ERROR': '#FF0000', 'WARNING': '#FF7700'}
 
 
 URL_FINDER = re.compile("(https?://[^\s<>\":]+|www\.[^\s<>\":]+)")
 
+
+def format_entry(record, show_level=False, colorize=False):
+    """
+    Format a log entry according to its level and context
+    """
+    if show_level:
+        log_str = '{}: {}'.format(record.levelname, record.getMessage())
+    else:
+        log_str = record.getMessage()
+
+    if colorize and record.levelname in LOG_COLORS:
+        log_str = '<span color="{}">'.format(LOG_COLORS[record.levelname]) + log_str + '</span>'
+
+    return log_str
 
 def switch_cursor(cursor_type, parent_window):
     """
@@ -67,19 +76,19 @@ class RunLoggingHandler(logging.Handler):
             if event_type:
                 if event_type == 'dep_installation_start':
                     switch_cursor(Gdk.CursorType.WATCH, self.parent.run_window)
-                    add_row(record, list_store)
+                    list_store.append([format_entry(record)])
                 if event_type == 'dep_installation_end':
                     switch_cursor(Gdk.CursorType.ARROW, self.parent.run_window)
             if not self.parent.debugging:
                 # We will show only INFO messages and messages who have no dep_ event_type
                 if int(record.levelno) > 10:
                     if event_type == "dep_check" or event_type == "dep_found":
-                        add_row(record, list_store)
+                        list_store.append([format_entry(record)])
                     elif not event_type.startswith("dep_"):
-                        add_row(record, list_store)
+                        list_store.append([format_entry(record, colorize=True)])
             if self.parent.debugging:
                 if event_type != "cmd_retcode":
-                    add_row(record, list_store)
+                    list_store.append([format_entry(record, show_level=True, colorize=True)])
         Gdk.threads_leave()
 
 
@@ -309,11 +318,12 @@ class RunWindow(object):
             if self.debugging:
                 # Create a new root tree element
                 if getattr(record, 'event_type', '') != "cmd_retcode":
-                    self.store.append([record.getMessage()])
+                    self.store.append([format_entry(record, show_level=True, colorize=True)])
             else:
                 if int(record.levelno) > 10:
-                    self.store.append([record.getMessage()])
+                    self.store.append([format_entry(record, colorize=True)])
         Gdk.threads_leave()
+
 
     def clipboard_btn_clicked(self, widget, data=None):
         """
@@ -322,14 +332,14 @@ class RunWindow(object):
         _clipboard_text = []
         for record in self.debug_logs['logs']:
             if self.debugging:
-                _clipboard_text.append(record.getMessage())
+                _clipboard_text.append(format_entry(record, show_level=True))
             else:
                 if int(record.levelno) > 10:
                     if getattr(record, 'event_type', ''):
                         if not record.event_type.startswith("dep_"):
-                            _clipboard_text.append(record.getMessage())
+                            _clipboard_text.append(format_entry(record))
                     else:
-                        _clipboard_text.append(record.getMessage())
+                        _clipboard_text.append(format_entry(record))
         self.gui_helper.create_clipboard(_clipboard_text)
 
     def back_btn_clicked(self, widget, data=None):
