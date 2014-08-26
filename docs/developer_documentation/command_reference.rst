@@ -368,7 +368,7 @@ with ``jinja_render_dir``:
 - else if name of the template endswith ``.tpl``, strip ``.tpl`` and use it
 - else use the template name
 
-For template syntax reference, see `Jinja2 documentation <http://jinja.pocoo.org/docs/>`.
+For template syntax reference, see `Jinja2 documentation <http://jinja.pocoo.org/docs/>`_.
 
 Logging Commands
 ----------------
