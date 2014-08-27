@@ -34,12 +34,10 @@ class DevassistantClColorFormatter(DevassistantClFormatter):
 
     def format(self, record):
         if record.levelname in self.color_str:
-            arglist = (record,) #if not six.PY3 else (self, record)
             return self.color_str[record.levelname].\
-                    format(super(DevassistantClColorFormatter, self).format(*arglist))
+                    format(DevassistantClFormatter.format(self, record))
         else:
-            arglist = (record,) if not six.PY3 else (self, record)
-            return super(DevassistantClColorFormatter, self).format(*arglist)
+            return DevassistantClFormatter.format(self, record)
 
 
 def add_log_file_handler(log_file):
