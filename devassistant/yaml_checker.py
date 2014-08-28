@@ -2,6 +2,9 @@ import six
 
 from devassistant import exceptions
 
+LEGAL_SECTION_NAMES = ['fullname', 'description', 'dependencies', 'args', \
+                       'files', 'project_type', 'run', 'pre_run', 'post_run', \
+                       'files_dir', 'icon_path', ]
 
 class YamlChecker(object):
     _yaml_typenames = {dict: 'mapping',
@@ -42,6 +45,7 @@ class YamlChecker(object):
             raise exceptions.YamlTypeError(msg)
         self._check_fullname(self.sourcefile)
         self._check_description(self.sourcefile)
+        self._check_section_names(self.sourcefile)
         self._check_project_type(self.sourcefile)
         self._check_args(self.sourcefile)
         self._check_files(self.sourcefile)
@@ -55,6 +59,14 @@ class YamlChecker(object):
     def _check_description(self, source):
         path = [source]
         self._assert_str(self.parsed_yaml.get('description', ''), 'description', path)
+
+    def _check_section_names(self, source):
+        path = [source]
+        for section in self.parsed_yaml.keys():
+            if len([True for name in LEGAL_SECTION_NAMES if section.startswith(name)]) == 0:
+                err = [self._format_error_path(path + [section])]
+                err.append('Invalid section name: {0}'.format(section))
+                raise exceptions.YamlSyntaxError('\n'.join(err))
 
     def _check_project_type(self, source):
         path = [source]
