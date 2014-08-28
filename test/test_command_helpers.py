@@ -115,13 +115,18 @@ class TestCliDialogHelper(object):
         CliDialogHelper.inp = self.eofraiser
         assert CliDialogHelper.ask_for_package_list_confirm('asd', ['sdf']) is None
 
-    @pytest.mark.parametrize(('inp', 'message', 'expected'), [
-        (u'foo', u'bar', u'foo'),
-        (u'', u'baz', u''),
+    @pytest.mark.parametrize(('inp', 'prompt', 'message', 'expected'), [
+        (u'foo', u'bar', u'baz', u'foo'),
+        (u'', u'baz', None, u''),
         ])
-    def test_ask_for_user_input(self, inp, message, expected, capsys):
+    def test_ask_for_user_input(self, inp, prompt, message, expected, capsys):
         sys.stdin = StringIO(inp)
-        result = CliDialogHelper.ask_for_input_with_prompt(message)
+        options = {}
+        if message:
+            options['message'] = message
+        result = CliDialogHelper.ask_for_input_with_prompt(prompt, **options)
         stdout, stderr = capsys.readouterr()
-        assert message in stdout
+        assert prompt in stdout
+        if message:
+            assert message in stdout
         assert result == expected

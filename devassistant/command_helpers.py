@@ -215,7 +215,7 @@ class DialogHelper(object):
     @classmethod
     def ask_for_input_with_prompt(cls, prompt='', **options):
         """Ask user for written input with prompt"""
-        return cls.get_appropriate_helper().ask_for_input_with_prompt(prompt)
+        return cls.get_appropriate_helper().ask_for_input_with_prompt(prompt=prompt, **options)
 
 
 @DialogHelper.register_helper
@@ -287,6 +287,9 @@ class CliDialogHelper(object):
 
     @classmethod
     def ask_for_input_with_prompt(cls, prompt, **options):
+        msg = options.get('message', None)
+        if msg:
+            print(msg)
         print('{prt}: '.format(prt=prompt), end='')
         inp = cls._read_inp()
         if not inp:
