@@ -517,14 +517,14 @@ class GtkDialogHelper(object):
         return win.ok or None
 
     @classmethod
-    def ask_for_input_with_prompt(cls, message, **options):
+    def ask_for_input_with_prompt(cls, prompt, **options):
         """
         Show a window asking user for written input
         """
         Gtk = cls.get_gtk()
         Gdk = cls.get_gdk()
         Gdk.threads_enter()
-        win = Gtk.Dialog(title=message)
+        win = Gtk.Dialog(title='Prompt')
         win.ok = False
 
         box = cls._get_gtk_box(win)
@@ -532,10 +532,25 @@ class GtkDialogHelper(object):
         box.add(grid)
         yes_btn, no_btn = cls._create_yes_no(win, yes='OK', no='Cancel')
         inp = cls._get_input_entry()
+        prt = Gtk.Label(prompt)
+        prt.set_alignment(0, 0)
+        prt.set_max_width_chars(40)
+        prt.set_single_line_mode(False)
 
-        grid.attach(inp, 0, 0, 2, 1)
-        grid.attach(no_btn, 0, 1, 1, 1)
-        grid.attach(yes_btn, 1, 1, 1, 1)
+        message = options.get('message', None)
+        offset = 0
+        if message:
+            msg = Gtk.Label(message)
+            msg.set_alignment(0, 0)
+            msg.set_max_width_chars(40)
+            msg.set_single_line_mode(False)
+            offset = 1
+            grid.attach(msg, 0, 0, 2, 1)
+
+        grid.attach(prt, 0, 0+offset, 2, 1)
+        grid.attach(inp, 0, 1+offset, 2, 1)
+        grid.attach(no_btn, 0, 2+offset, 1, 1)
+        grid.attach(yes_btn, 1, 2+offset, 1, 1)
 
         win.show_all()
         win.run()
