@@ -1,5 +1,7 @@
 import os
+import pytest
 
+from devassistant import exceptions
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 class TestYamlSnippetLoader(object):
@@ -10,8 +12,8 @@ class TestYamlSnippetLoader(object):
     def teardown_method(self, method):
         self.reset_yl_snippets_dirs()
 
-    def reset_yl_snippets_dirs(self):
-        self.yl.snippets_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'snippets')]
+    def reset_yl_snippets_dirs(self, directory='snippets'):
+        self.yl.snippets_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', directory)]
         self.yl._snippets = {}
 
     def test_get_snippet_by_name(self):
@@ -37,3 +39,13 @@ class TestYamlSnippetLoader(object):
 
         assert s['snippetd.subdir.snippet1'].name == 'snippet1'
         assert s['snippetd.subdir.snippet1'].get_dependencies_section() == [{'rpm': ['foo']}]
+
+    @pytest.mark.parametrize(('snippet', 'error', 'err_str'), [
+        ('snippet1', exceptions.YamlSyntaxError, 'Invalid section name: section'),
+    ])
+    def test_get_malformed_snippet(self, snippet, error, err_str):
+        self.reset_yl_snippets_dirs('snippets_malformed')
+        with pytest.raises(error) as excinfo:
+            self.yl.get_snippet_by_name('snippet1')
+        assert err_str in str(excinfo.value)
+
