@@ -1,8 +1,6 @@
 import io
 import logging
 import pytest
-import six
-import sys
 
 from devassistant.logger import logger, DevassistantClHandler, DevassistantClFormatter, \
                                 DevassistantClColorFormatter

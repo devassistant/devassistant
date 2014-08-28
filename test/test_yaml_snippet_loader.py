@@ -46,6 +46,6 @@ class TestYamlSnippetLoader(object):
     def test_get_malformed_snippet(self, snippet, error, err_str):
         self.reset_yl_snippets_dirs('snippets_malformed')
         with pytest.raises(error) as excinfo:
-            self.yl.get_snippet_by_name('snippet1')
+            self.yl.get_snippet_by_name(snippet)
         assert err_str in str(excinfo.value)
 
