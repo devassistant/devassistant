@@ -133,7 +133,8 @@ User interaction commands, let you ask for password and various other input.
 
 ``ask_input``
 
-- Input: mapping containing ``prompt`` (short prompt for user)
+- Input: mapping containing ``prompt`` (short prompt for user) and optionally ``message``
+  (a longer description)
 
 - RES: the string that was entered by the user
 - LRES: ``True`` if non-empty string was provided
@@ -384,6 +385,8 @@ Log commands on various levels. Logging on ERROR or CRITICAL logs the message an
 
     log_i: Hello $name!
     log_e: Yay, something has gone wrong, exiting.
+
+.. warning:: If you start your log command with an apostrophe or a quotation mark, you must end the line with the same character, and it must not appear elsewhere on the line
 
 SCL Command
 -----------
