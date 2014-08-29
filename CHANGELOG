@@ -1,3 +1,11 @@
+0.9.2
+- Bugfix release
+- Colorized logs
+- Eclipse snippet, ask_input fixed
+- GUI for asking Git user name and password reworked
+- Enforcing names of root assistant sections
+- High contrast icon set added
+
 0.9.1
 - Mainly bugfixes
 - New command ask_input - requests interactive input from user. Usable in both
