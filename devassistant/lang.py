@@ -449,7 +449,7 @@ class Interpreter(object):
     def tokenize(self, program):
         self.in_shell = False
         lexer = shlex.shlex(program)
-        lexer.wordchars += "$-/\\.:`={}"
+        lexer.wordchars += "$-/\\.:`!={}"
 
         for tok in lexer:
             if tok in ["and", "or", "not", "defined", "(", ")", "in", "$", "as_root"]:
