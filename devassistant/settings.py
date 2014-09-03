@@ -30,11 +30,17 @@ DEPS_ONLY_FLAG = '--deps-only'
 CACHE_FILE = os.path.expanduser('~/.devassistant/.cache.yaml')
 CONFIG_FILE = os.path.expanduser('~/.devassistant/.config')
 LOG_FILE = os.path.expanduser('~/.devassistant/lastrun.log')
+# NOTE: data directories should always be absolute paths, since
+# - theoretically, if DevAssistant would change working directory and *then* try to
+#   load assistants, the relative path would point in an unwanted location
+# - command runners should be allowed to rely on this (e.g. if we pass a file from files
+#   section to Jinja2Runner, we need to make sure it's fullpath)
 DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]
 if 'DEVASSISTANT_PATH' in os.environ:
-    DATA_DIRECTORIES = os.environ['DEVASSISTANT_PATH'].split(':') + DATA_DIRECTORIES
+    DATA_DIRECTORIES = [os.path.abspath(p) for p in os.environ['DEVASSISTANT_PATH'].split(':')] +\
+        DATA_DIRECTORIES
 
 ASSISTANT_ROLES = ['crt', 'mod', 'prep', 'task']
 DEFAULT_ASSISTANT_ROLE = 'crt'
