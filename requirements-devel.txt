@@ -1,9 +1,11 @@
 PyGithub
 PyYAML
-jinja2
 flexmock
+jinja2
 progress
 pytest
+requests
+sh
 six
 # note: to run guitest, you also need to install behave from PyPI
 #  and dogtail (not on PyPI, get it at https://fedorahosted.org/dogtail/

@@ -7,8 +7,13 @@ except ImportError:
     from yaml import Loader
 
 from devassistant import argument
+from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
+from devassistant.logger import logger
+from devassistant import dapi
+from devassistant.dapi import dapicli
+import logging
 
 actions = {}
 
@@ -197,6 +202,179 @@ class HelpAction(Action):
         text.append(cls.format_text(justed_name, 'bold', format_type))
         text.append(action_desc)
         return ''.join(text)
+
+
+class PkgInstallAction(Action):
+    """Installs packages from Dapi"""
+    name = 'install'
+    description = 'Installs packages from Dapi or from given paths'
+    args = [argument.Argument('package', 'package', nargs='+')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        import os
+        exs = []
+        for pkg in kwargs['package']:
+            logger.info('Installing {pkg}...'.format(pkg=pkg))
+            if os.path.isfile(pkg):
+                method = dapicli.install_dap_from_path
+            else:
+                method = dapicli.install_dap
+            try:
+                method(pkg)
+                logger.info('{pkg} successfully installed'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(str(e))
+                logger.error(str(e))
+        if exs:
+            raise exceptions.ExecutionException('; '.join(exs))
+
+
+class PkgUninstallAction(Action):
+    """Uninstalls packages from Dapi"""
+    name = 'uninstall'
+    description = 'Uninstalls packages of given names'
+    args = [
+        argument.Argument('package', 'package', nargs='+'),
+        argument.Argument('force', '-f', '--force', action='store_false',
+                          default=True, help='Do not ask for confirmation')
+    ]
+
+    @classmethod
+    def run(cls, **kwargs):
+        exs = []
+        for pkg in kwargs['package']:
+            logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
+            try:
+                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
+                if done:
+                    logger.info('{pkg} successfully uninstalled'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(str(e))
+                logger.error(str(e))
+        if exs:
+            raise exceptions.ExecutionException('; '.join(exs))
+
+
+class PkgUpdateAction(Action):
+    """Updates packages from Dapi"""
+    name = 'update'
+    description = 'Updates packages of given names or all of them'
+    args = [argument.Argument('package', 'package', nargs='*')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        pkgs = exs = []
+        try:
+            pkgs = kwargs['package']
+        except KeyError:
+            logger.info('Updating all packages')
+            pkgs = dapicli.get_installed_daps()
+        for pkg in pkgs:
+            logger.info('Updating {pkg}...'.format(pkg=pkg))
+            try:
+                dapicli.install_dap(pkg,update=True)
+                logger.info('{pkg} successfully updated'.format(pkg=pkg))
+            except Exception as e:
+                exs.append(str(e))
+                logger.error(str(e))
+        if exs:
+            raise exceptions.ExecutionException('; '.join(exs))
+
+
+class PkgListAction(Action):
+    """List installed packages from Dapi"""
+    name = 'list'
+    description = 'Lists installed packages'
+
+    @classmethod
+    def run(cls, **kwargs):
+        for pkg in dapicli.get_installed_daps():
+            print(pkg)
+
+
+class PkgSearchAction(Action):
+    """Search packages from Dapi"""
+    name = 'search'
+    description = 'Searches packages from Dapi and prints the result'
+    args = [
+        argument.Argument('query', 'query', nargs='+', help='One or multiple search queries'),
+        argument.Argument('-p', '--page', metavar='P', type=int, default=1, help='Page number'),
+    ]
+
+    @classmethod
+    def run(cls, **kwargs):
+        try:
+            dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
+        except Exception as e:
+            logger.error(str(e))
+            raise exceptions.ExecutionException(str(e))
+
+
+class PkgInfoAction(Action):
+    """Prints information about packages from Dapi"""
+    name = 'info'
+    description = 'Prints information about packages from Dapi'
+    args = [argument.Argument('package', 'package')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        try:
+            dapicli.print_dap(kwargs['package'])
+        except Exception as e:
+            logger.error(str(e))
+            raise exceptions.ExecutionException(str(e))
+
+
+class PkgLintAction(Action):
+    """Checks packages for sanity"""
+    name = 'lint'
+    description = 'Checks local packages for sanity'
+    args = [
+        argument.Argument('package', 'package', nargs='+', help='One or multiple packages to check (path)'),
+        argument.Argument('network', '-n', '--network', action='store_true', default=False,
+                          help='Perform checks that require Internet connection'),
+        argument.Argument('nowarnings', '-w', '--nowarnings', action='store_true', default=False,
+                          help='Ignore warnings'),
+    ]
+
+    @classmethod
+    def run(cls, **kwargs):
+        error = False
+        old_level = logger.getEffectiveLevel()
+        for pkg in kwargs['package']:
+            try:
+                if kwargs['nowarnings']:
+                    logger.setLevel(logging.ERROR)
+                d = dapi.Dap(pkg)
+                if not d.check(network=kwargs['network']):
+                    error = True
+            except (exceptions.DapFileError, exceptions.DapMetaError) as e:
+                logger.error(str(e))
+                error = True
+        logger.setLevel(old_level)
+        if error:
+            raise exceptions.ExecutionException('One or more packages are not sane')
+
+
+
+@register_action
+class PkgAction(Action):
+    """Manage packages"""
+    name = 'pkg'
+    description = 'Lets you interact with online Dapi service and your local assistants'
+
+    @classmethod
+    def get_subactions(cls):
+        return [
+            PkgInstallAction,
+            PkgUninstallAction,
+            PkgUpdateAction,
+            PkgListAction,
+            PkgSearchAction,
+            PkgInfoAction,
+            PkgLintAction,
+        ]
 
 
 @register_action
