@@ -10,6 +10,7 @@ import urllib
 import tarfile
 from devassistant import dapi
 from devassistant.dapi import dapver
+from devassistant.logger import logger
 import sys
 import logging
 import hashlib
@@ -279,7 +280,10 @@ def install_dap_from_path(path, update=False):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
     _dir = tempfile.mkdtemp()
-    ok = dap_obj.check(level=logging.ERROR)
+    old_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+    ok = dap_obj.check()
+    logger.setLevel(old_level)
     if not ok:
         raise Exception('The dap you want to install has errors, won\'t do it')
     dap_obj.extract(_dir)
