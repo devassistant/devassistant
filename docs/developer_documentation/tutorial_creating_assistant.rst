@@ -13,7 +13,7 @@ Preparer.
 This tutorial doesn't cover everything. Consult :ref:`yaml_assistant_reference`
 when you're missing something you really need to achieve. If you think
 that DevAssistant misses some functionality that would be useful, open
-a bug at https://www.github.com/bkabrda/devassistant/issues or send us
+a bug at https://www.github.com/devassistant/devassistant/issues or send us
 a pull request.
 
 Common Rules and Gotchas
