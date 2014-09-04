@@ -14,8 +14,6 @@ from devassistant.logger import logger
 import sys
 import logging
 import hashlib
-from sh import mkdir
-from sh import cp
 try:
     from yaml import CLoader as Loader
 except:
@@ -292,9 +290,13 @@ def install_dap_from_path(path, update=False):
     _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
     os.rename(os.path.join(_dapdir, 'meta.yaml'), os.path.join(_dapdir, dap_obj.meta['package_name'] + '.yaml'))
     if not os.path.isdir(_install_path()):
-        mkdir(_install_path(), '-p')
+        os.makedirs(_install_path())
     for f in glob.glob(_dapdir + '/*'):
-        cp('-r', f, _install_path())
+        dst = os.path.join(_install_path(), os.path.basename(f))
+        if os.path.isdir(f):
+            shutil.copytree(f, dst)
+        else:
+            shutil.copyfile(f, dst)
     try:
         shutil.rmtree(_dir)
     except:
