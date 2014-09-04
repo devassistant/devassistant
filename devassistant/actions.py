@@ -341,18 +341,18 @@ class PkgLintAction(Action):
     @classmethod
     def run(cls, **kwargs):
         error = False
+        old_level = logger.getEffectiveLevel()
         for pkg in kwargs['package']:
             try:
                 if kwargs['nowarnings']:
-                    level = logging.ERROR
-                else:
-                    level = logging.INFO
+                    logger.setLevel(logging.ERROR)
                 d = dapi.Dap(pkg)
-                if not d.check(network=kwargs['network'], level=level):
+                if not d.check(network=kwargs['network']):
                     error = True
             except (exceptions.DapFileError, exceptions.DapMetaError) as e:
                 logger.error(str(e))
                 error = True
+        logger.setLevel(old_level)
         if error:
             raise exceptions.ExecutionException('One or more packages are not sane')
 

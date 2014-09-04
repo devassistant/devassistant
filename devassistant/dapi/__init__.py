@@ -11,6 +11,7 @@ except:
     from yaml import Loader
 from . import licenses
 from devassistant.exceptions import DapError, DapFileError, DapMetaError, DapInvalid
+from devassistant.logger import logger
 
 
 class Dap(object):
@@ -89,6 +90,7 @@ class Dap(object):
 
     def _report_problem(self, problem, level=logging.ERROR):
         '''Report a given problem'''
+        problem = self.basename + ': ' + problem
         if self._logger.isEnabledFor(level):
             self._problematic = True
         if self._check_raises:
@@ -276,18 +278,7 @@ class Dap(object):
         for f in folders - assistants:
             self._report_problem('Useless files for non-exisiting assistant ' + f, logging.WARNING)
 
-    def _init_logger(self, level):
-        '''Initializes the logger'''
-        try:
-            self._logger
-        except AttributeError:
-            self._logger = logging.getLogger(self.basename)
-            handler = logging.StreamHandler(self._check_output)
-            handler.setFormatter(logging.Formatter('%(name)s: %(levelname)s: %(message)s'))
-            self._logger.addHandler(handler)
-        self._logger.setLevel(level)
-
-    def check(self, network=False, raises=False, output=sys.stderr, level=logging.INFO):
+    def check(self, network=False, raises=False, logger=logger):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
@@ -295,9 +286,8 @@ class Dap(object):
             output -- where to write() problems, might be None
             raises -- whether to raise an exception immediately after problem is detected'''
         self._check_raises = raises
-        self._check_output = output
         self._problematic = False
-        self._init_logger(level)
+        self._logger = logger
 
         self._check_meta()
         self._check_topdir()
@@ -307,7 +297,6 @@ class Dap(object):
             self._check_dapi()
 
         del self._check_raises
-        del self._check_output
         return not self._problematic
 
     def extract(self, location):
