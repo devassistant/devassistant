@@ -1,4 +1,4 @@
-.. _assistants in our Github repo: https://github.com/bkabrda/devassistant/tree/master/devassistant/assistants/assistants
+.. _assistants in our Github repo: https://github.com/devassistant/devassistant-assistants-fedora/
 
 .. _yaml_assistant_reference:
 

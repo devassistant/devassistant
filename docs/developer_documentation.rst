@@ -92,8 +92,8 @@ Contributing
 If you want to contribute (bug reporting, new assistants, patches for core,
 improving documentation, ...), please use our Github repo:
 
-- code: https://github.com/bkabrda/devassistant
-- issue tracker: https://github.com/bkabrda/devassistant/issues
+- code: https://github.com/devassistant/devassistant
+- issue tracker: https://github.com/devassistant/devassistant/issues
 
 If you have DevAssistant installed (version 0.8.0 or newer), there is a fair chance that you have
 ``devassistant`` preparer. Just run ``da prepare devassistant`` and it will
@@ -103,7 +103,7 @@ without DevAssistant.
 If you don't have DevAssistant installed, you can checkout the sources
 like this (just copy&paste this to get the job done)::
 
-   git clone https://github.com/bkabrda/devassistant
+   git clone https://github.com/devassistant/devassistant
    # get the official set of assistants
    cd devassistant
    git submodule init

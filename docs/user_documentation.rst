@@ -1,4 +1,4 @@
-.. _our issue tracker on Github: https://github.com/bkabrda/devassistant/issues
+.. _our issue tracker on Github: https://github.com/devassistant/devassistant/issues
 
 User Documentation
 ==================

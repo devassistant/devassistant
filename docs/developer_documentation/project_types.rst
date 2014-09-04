@@ -22,7 +22,7 @@ it does no harm.
 Current List of Types
 ---------------------
 Current project types list follows. If you want anything added in here,
-open a bug for us at https://github.com/bkabrda/devassistant/issues.
+open a bug for us at https://github.com/devassistant/devassistant/issues.
 **Note: the list is currently not very thorough and it is meant to grow
 as we get requested by assistant developers.**
 
