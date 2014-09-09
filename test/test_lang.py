@@ -161,7 +161,7 @@ class TestEvaluate(object):
         # surrounded by spaces when parsed and reconstructed by evaluate_expression
         # (e.g. backticks, colons, equal signs), e.g. the below command returned
         # (True, '` a : s = d `')
-        assert evaluate_expression('$(echo \`a:s!=d\`)', {}) == (True, '`a:s!=d`')
+        assert evaluate_expression('$(echo \`a:s!=d\`\~)', {}) == (True, '`a:s!=d`~')
 
     def test_variables_in_subshell_invocation(self):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
