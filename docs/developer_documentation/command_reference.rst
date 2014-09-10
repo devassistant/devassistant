@@ -164,7 +164,8 @@ Command Line Commands
 Run commands in subprocesses and receive their output.
 
 ``cl``, ``cl_[i,r]`` (these do the same, but appending ``i`` logs the command output on INFO level
-and appending ``r`` runs command as root)
+and appending ``r`` runs command as root; appending ``p`` makes DevAssistant pass subcommand error,
+e.g. execution continues normally even if subcommand return code is non-zero)
 
 - Input: a string, possibly containing variables and references to files
 - RES: stdout + stdin interleaved as they were returned by the executed process
@@ -176,6 +177,8 @@ and appending ``r`` runs command as root)
     cl_i: echo "Hey!"
     cl_ir: echo "Echoing this as root"
     cl_r: mkdir /var/lib/foo
+    $lres, $res:
+    - cl_ip: cmd -this -will -log -in -realtime -and -save -lres -and -res -and -then -continue
 
 Note: when using ``r``, it's job of DevAssistant core to figure out what to use as authentication
 method. Consider this an implementation detail.

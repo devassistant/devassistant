@@ -170,6 +170,10 @@ class TestClCommandRunner(object):
         self.cl.run(Command('cl_i', 'id'))
         assert ('INFO', 'id') in self.tlh.msgs
 
+    def test_p_flag_pasesses_even_if_subcommand_fails(self):
+        self.cl.run(Command('cl_ip', 'false'))
+        assert ('INFO', 'false') in self.tlh.msgs
+
 
 class TestDependenciesCommandRunner(object):
     pass
