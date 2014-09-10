@@ -185,12 +185,25 @@ class ClCommandRunner(CommandRunner):
     def run(cls, c):
         log_level = logging.DEBUG
         as_user = None
+        reraise = True
+
         if 'i' in c.comm_type:
             log_level = logging.INFO
         if 'r' in c.comm_type:
             as_user = 'root'
-        # if there is an exception, just let it bubble up
-        result = ClHelper.run_command(c.input_res, log_level, as_user=as_user)
+        if 'p' in c.comm_type:
+            # we need this option for the case we don't want to exit assistant imediatelly,
+            #  but at the same time we need the command output (we could use $(command), but
+            #  that doesn't allow logging output at realtime)
+            reraise = False
+
+        try:
+            result = ClHelper.run_command(c.input_res, log_level, as_user=as_user)
+        except exceptions.ClException as e:
+            if reraise:
+                raise
+            else:
+                return [False, e.output]
 
         return [True, result]
 
