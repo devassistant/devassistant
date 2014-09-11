@@ -294,7 +294,16 @@ def install_dap_from_path(path, update=False):
     for f in glob.glob(_dapdir + '/*'):
         dst = os.path.join(_install_path(), os.path.basename(f))
         if os.path.isdir(f):
-            shutil.copytree(f, dst)
+            if not os.path.exists(dst):
+                os.mkdir(dst)
+            for src_dir, dirs, files in os.walk(f):
+                dst_dir = src_dir.replace(f, dst)
+                if not os.path.exists(dst_dir):
+                    os.mkdir(dst_dir)
+                for file_ in files:
+                    src_file = os.path.join(src_dir, file_)
+                    dst_file = os.path.join(dst_dir, file_)
+                    shutil.copyfile(src_file, dst_file)
         else:
             shutil.copyfile(f, dst)
     try:
