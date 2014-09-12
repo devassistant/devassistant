@@ -272,6 +272,21 @@ class TestDap(object):
         assert not ok
         assert bads == ['A']
 
+    def test_self_dependency(self):
+        '''Test if depending on itself produces error'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = ['A', 'B > 1']
+        d.meta['package_name'] = 'B'
+        assert not d._check_selfdeps(report=False)
+
+        d.meta['package_name'] = 'C'
+        assert d._check_selfdeps(report=False)
+
+        d.meta['dependencies'] = ['C', 'B=1', 'A']
+        d.meta['package_name'] = 'B'
+        d._arevalid('dependencies')
+        assert d._check_selfdeps(report=False)
+
     def test_empty_dependencies(self):
         '''Test if empty dependencies list is valid'''
         d = Dap('', fake=True)

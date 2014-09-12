@@ -46,6 +46,7 @@ class Dap(object):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
         If fake is True, it fill not open any files, but creates a fake dap'''
+        self._badmeta = {}
         if fake:
             if mimic_filename:
                 self.basename = mimic_filename
@@ -124,6 +125,7 @@ class Dap(object):
         for item in self.meta[datatype]:
             if not Dap._meta_valid[datatype].match(item):
                 ret.append(item)
+        self._badmeta[datatype] = ret
         return not bool(ret), ret
 
     def _check_meta(self):
@@ -185,6 +187,27 @@ class Dap(object):
                 if empty:
                     emptydirs.append(f)
         return emptydirs
+
+    def _check_selfdeps(self, report=True):
+        '''Check that the package does not depend on itself'''
+        if self.meta['package_name'] and self.meta['dependencies']:
+            dependencies = set()
+            for dependency in self.meta['dependencies']:
+                try:
+                    if dependency in self._badmeta['dependencies']:
+                        continue
+                except (KeyError, AttributeError):
+                    pass
+                for mark in '== >= <= < >'.split():
+                    dep = dependency.split(mark)
+                    if len(dep) == 2:
+                        dependencies.add(dep[0].strip())
+                        break
+            if self.meta['package_name'] in dependencies:
+                if report:
+                    self._report_problem('Depends on dap with the same name as itself')
+                return False
+        return True
 
     def _check_dapi(self):
         '''Check that the package_name is not registered on Dapi'''
@@ -292,6 +315,7 @@ class Dap(object):
         self._logger = logger
 
         self._check_meta()
+        self._check_selfdeps()
         self._check_topdir()
         self._check_files()
 
