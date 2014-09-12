@@ -140,7 +140,7 @@ class Dap(object):
         for datatype in Dap._array_meta:
             ok, bads = self._arevalid(datatype)
             if not ok:
-                if not bad:
+                if not bads:
                     self._report_problem(datatype + ' is not a valid non-empty list')
                 else:
                     for bad in bads:
