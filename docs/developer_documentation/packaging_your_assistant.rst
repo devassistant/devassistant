@@ -66,6 +66,11 @@ meta.yaml
     homepage: https://github.com/bkabrda/assistant-foo # optional
     summary: Some brief one line text # required
     bugreports: <a single URL or email address> # optional
+    dependencies:
+      - bar
+      - eggs >= 1.0
+      - spam== 0.1     # as you can see, spaces are optional
+      - ook   <    2.5 # and more can be added, however, don't use tabs
     description: |
         Some not-so-brief optional text.
         It can be split to multiple lines.
@@ -86,23 +91,15 @@ meta.yaml
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
 
+* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional
+
 Checking your dap for sanity
 ----------------------------
 
-Once you have your dap packaged, check it for sanity with ``daplint`` tool from ``daploader``.
-
-First, you have to get the ``daplint`` tool.
-Install `daploader <https://pypi.python.org/pypi/daploader/>`_ with ``pip`` or ``easy_install``.
-
+Once you have your dap packaged, check it for sanity with ``da pkg lint`` tool from DevAssistant.
 ::
 
-   pip install daploader
-
-Then you can check your dap with ``daplint``:
-
-::
-
-   daplint foo-0.0.1.dap
+   da pkg lint foo-0.0.1.dap
 
 Uploading your dap to DevAssistant Package Index
 ------------------------------------------------
