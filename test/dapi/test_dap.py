@@ -408,6 +408,22 @@ class TestDap(object):
         Dap('dapi/meta_only/foo-1.0.0.dap').check(logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
 
+    def test_dap_good_dependencies(self):
+        '''Dap with good dependencies produces no error'''
+        assert Dap('dapi/dependencies/good-1.0.0.dap').check(logger=l(level=logging.ERROR))
+
+    def test_dap_invalid_dependencies(self):
+        '''Dap with invalid dependency produces an error'''
+        out = StringIO()
+        assert not Dap('dapi/dependencies/invalid-1.0.0.dap').check(logger=l(output=out, level=logging.ERROR))
+        assert 'invalid 0.0.1 in dependencies is not valid' in out.getvalue()
+
+    def test_dap_self_dependenciey(self):
+        '''Dap with self dependency produces an error'''
+        out = StringIO()
+        assert not Dap('dapi/dependencies/self-1.0.0.dap').check(logger=l(output=out, level=logging.ERROR))
+        assert 'Depends on dap with the same name as itself' in out.getvalue()
+
     def test_sha256sum(self):
         '''Check that sha256sum of the files is the same as sha256sum command does'''
         for dap in glob.glob('dapi/meta_only/*.dap'):
