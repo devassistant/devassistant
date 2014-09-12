@@ -220,6 +220,65 @@ class TestDap(object):
         ok, null = d._arevalid('authors')
         assert not ok
 
+    def test_valid_dependencies(self):
+        '''Test if valid dependencies are valid'''
+        d = Dap('', fake=True)
+        pool = ['foo',
+                'foo == 1.0.0',
+                'foo >= 1.0.0',
+                'foo <= 1.0.0',
+                'foo > 1.0.0',
+                'foo  < 1.0.0',
+                'foo <1.0.0',
+                'foo<1.0.0',
+                'foo< 1.0.0',
+                'foo      <    1.0.0',
+                'foo                   <1.0.0',
+                'foo < 1.0.0b']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['dependencies'] = list(dependencies)
+                ok, bads = d._arevalid('dependencies')
+                assert ok
+                assert not bads
+
+    def test_invalid_dependencies(self):
+        '''Test if invalid dependencies are invalid'''
+        d = Dap('', fake=True)
+        pool = ['foo != 1.0.0',
+                'foo = 1.0.0',
+                'foo =< 1.0.0',
+                'foo >> 1.0.0',
+                'foo > = 1.0.0',
+                '1.0.0',
+                'foo-1.0.0',
+                ' ',
+                '']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['dependencies'] = list(dependencies)
+                ok, bads = d._arevalid('dependencies')
+                assert not ok
+                assert bads == list(dependencies)
+        d.meta['dependencies'] = ['foo'] + pool + ['bar']
+        ok, bads = d._arevalid('dependencies')
+        assert bads == pool
+
+    def test_duplicate_dependencies(self):
+        '''Test if duplicate valid dependencies are invalid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = ['A', 'B', 'A']
+        ok, bads = d._arevalid('dependencies')
+        assert not ok
+        assert bads == ['A']
+
+    def test_empty_dependencies(self):
+        '''Test if empty dependencies list is valid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = []
+        ok, null = d._arevalid('dependencies')
+        assert ok
+
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test (errors only)'''
         dap = Dap('dapi/meta_only/foo-1.0.0.dap')

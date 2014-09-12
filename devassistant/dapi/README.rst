@@ -62,6 +62,11 @@ meta.yaml
     homepage: https://github.com/bkabrda/assistant-foo # optional
     summary: Some brief one line text # required
     bugreports: <a single URL or email address> # optional
+    dependencies:
+      - bar
+      - eggs >= 1.0
+      - spam== 0.1
+      - ook   <    2.5
     description: |
         Some not-so-brief optional text.
         It can be split to multiple lines.
@@ -79,3 +84,5 @@ meta.yaml
 * **summary** and **description** are self-descriptive in the given example
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
+
+* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional

@@ -22,23 +22,25 @@ class Dap(object):
     _icons = 'svg|png'
 
     _required_meta = set('package_name version license authors summary'.split())
-    _optional_meta = set('homepage bugreports description'.split())
-    _array_meta = set('authors'.split())
+    _optional_meta = set('homepage bugreports description dependencies'.split())
+    _array_meta = set('authors dependencies'.split())
 
     _url_pattern = r'(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
                    r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
                    r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*'
     _email_pattern = r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})'
     _name_pattern = r'([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])'
+    _version_pattern = r'([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?'
 
     _meta_valid = {'package_name': re.compile(r'^' + _name_pattern + r'$'),
-                   'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
+                   'version': re.compile(r'^' + _version_pattern + r'$'),
                    'license': licenses,
                    'summary': re.compile(r'^[^\n]+$'),
                    'homepage': re.compile(r'^' + _url_pattern + r'$'),
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
-                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE)}
+                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE),
+                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' + _version_pattern + r')?$')}
 
     def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.
@@ -112,9 +114,9 @@ class Dap(object):
                 return False, []
         except KeyError:
             self.meta[datatype] = []
-            return datatype in Dap._optional_meta
+            return datatype in Dap._optional_meta, []
         if not self.meta[datatype]:
-            return False, []
+            return datatype in Dap._optional_meta, []
         duplicates = set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1])
         if duplicates:
             return False, list(duplicates)
