@@ -220,6 +220,80 @@ class TestDap(object):
         ok, null = d._arevalid('authors')
         assert not ok
 
+    def test_valid_dependencies(self):
+        '''Test if valid dependencies are valid'''
+        d = Dap('', fake=True)
+        pool = ['foo',
+                'foo == 1.0.0',
+                'foo >= 1.0.0',
+                'foo <= 1.0.0',
+                'foo > 1.0.0',
+                'foo  < 1.0.0',
+                'foo <1.0.0',
+                'foo<1.0.0',
+                'foo< 1.0.0',
+                'foo      <    1.0.0',
+                'foo                   <1.0.0',
+                'foo < 1.0.0b']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['dependencies'] = list(dependencies)
+                ok, bads = d._arevalid('dependencies')
+                assert ok
+                assert not bads
+
+    def test_invalid_dependencies(self):
+        '''Test if invalid dependencies are invalid'''
+        d = Dap('', fake=True)
+        pool = ['foo != 1.0.0',
+                'foo = 1.0.0',
+                'foo =< 1.0.0',
+                'foo >> 1.0.0',
+                'foo > = 1.0.0',
+                '1.0.0',
+                'foo-1.0.0',
+                ' ',
+                '']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['dependencies'] = list(dependencies)
+                ok, bads = d._arevalid('dependencies')
+                assert not ok
+                assert bads == list(dependencies)
+        d.meta['dependencies'] = ['foo'] + pool + ['bar']
+        ok, bads = d._arevalid('dependencies')
+        assert bads == pool
+
+    def test_duplicate_dependencies(self):
+        '''Test if duplicate valid dependencies are invalid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = ['A', 'B', 'A']
+        ok, bads = d._arevalid('dependencies')
+        assert not ok
+        assert bads == ['A']
+
+    def test_self_dependency(self):
+        '''Test if depending on itself produces error'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = ['A', 'B > 1']
+        d.meta['package_name'] = 'B'
+        assert not d._check_selfdeps(report=False)
+
+        d.meta['package_name'] = 'C'
+        assert d._check_selfdeps(report=False)
+
+        d.meta['dependencies'] = ['C', 'B=1', 'A']
+        d.meta['package_name'] = 'B'
+        d._arevalid('dependencies')
+        assert d._check_selfdeps(report=False)
+
+    def test_empty_dependencies(self):
+        '''Test if empty dependencies list is valid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = []
+        ok, null = d._arevalid('dependencies')
+        assert ok
+
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test (errors only)'''
         dap = Dap('dapi/meta_only/foo-1.0.0.dap')
@@ -333,6 +407,22 @@ class TestDap(object):
         os.environ['DAPI_FAKE_DATA'] = ''
         Dap('dapi/meta_only/foo-1.0.0.dap').check(logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
+
+    def test_dap_good_dependencies(self):
+        '''Dap with good dependencies produces no error'''
+        assert Dap('dapi/dependencies/good-1.0.0.dap').check(logger=l(level=logging.ERROR))
+
+    def test_dap_invalid_dependencies(self):
+        '''Dap with invalid dependency produces an error'''
+        out = StringIO()
+        assert not Dap('dapi/dependencies/invalid-1.0.0.dap').check(logger=l(output=out, level=logging.ERROR))
+        assert 'invalid 0.0.1 in dependencies is not valid' in out.getvalue()
+
+    def test_dap_self_dependenciey(self):
+        '''Dap with self dependency produces an error'''
+        out = StringIO()
+        assert not Dap('dapi/dependencies/self-1.0.0.dap').check(logger=l(output=out, level=logging.ERROR))
+        assert 'Depends on dap with the same name as itself' in out.getvalue()
 
     def test_sha256sum(self):
         '''Check that sha256sum of the files is the same as sha256sum command does'''

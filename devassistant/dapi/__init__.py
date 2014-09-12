@@ -22,28 +22,31 @@ class Dap(object):
     _icons = 'svg|png'
 
     _required_meta = set('package_name version license authors summary'.split())
-    _optional_meta = set('homepage bugreports description'.split())
-    _array_meta = set('authors'.split())
+    _optional_meta = set('homepage bugreports description dependencies'.split())
+    _array_meta = set('authors dependencies'.split())
 
     _url_pattern = r'(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
                    r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
                    r'(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&%\$#\=~_\-]+))*'
     _email_pattern = r'[^@]+(@|_at_)([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4})'
     _name_pattern = r'([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])'
+    _version_pattern = r'([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?'
 
     _meta_valid = {'package_name': re.compile(r'^' + _name_pattern + r'$'),
-                   'version': re.compile(r'^([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?$'),
+                   'version': re.compile(r'^' + _version_pattern + r'$'),
                    'license': licenses,
                    'summary': re.compile(r'^[^\n]+$'),
                    'homepage': re.compile(r'^' + _url_pattern + r'$'),
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
-                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE)}
+                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE),
+                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' + _version_pattern + r')?$')}
 
     def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
         If fake is True, it fill not open any files, but creates a fake dap'''
+        self._badmeta = {}
         if fake:
             if mimic_filename:
                 self.basename = mimic_filename
@@ -112,9 +115,9 @@ class Dap(object):
                 return False, []
         except KeyError:
             self.meta[datatype] = []
-            return datatype in Dap._optional_meta
+            return datatype in Dap._optional_meta, []
         if not self.meta[datatype]:
-            return False, []
+            return datatype in Dap._optional_meta, []
         duplicates = set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1])
         if duplicates:
             return False, list(duplicates)
@@ -122,6 +125,7 @@ class Dap(object):
         for item in self.meta[datatype]:
             if not Dap._meta_valid[datatype].match(item):
                 ret.append(item)
+        self._badmeta[datatype] = ret
         return not bool(ret), ret
 
     def _check_meta(self):
@@ -136,7 +140,7 @@ class Dap(object):
         for datatype in Dap._array_meta:
             ok, bads = self._arevalid(datatype)
             if not ok:
-                if not bad:
+                if not bads:
                     self._report_problem(datatype + ' is not a valid non-empty list')
                 else:
                     for bad in bads:
@@ -183,6 +187,27 @@ class Dap(object):
                 if empty:
                     emptydirs.append(f)
         return emptydirs
+
+    def _check_selfdeps(self, report=True):
+        '''Check that the package does not depend on itself'''
+        if self.meta['package_name'] and self.meta['dependencies']:
+            dependencies = set()
+            for dependency in self.meta['dependencies']:
+                try:
+                    if dependency in self._badmeta['dependencies']:
+                        continue
+                except (KeyError, AttributeError):
+                    pass
+                for mark in '== >= <= < >'.split():
+                    dep = dependency.split(mark)
+                    if len(dep) == 2:
+                        dependencies.add(dep[0].strip())
+                        break
+            if self.meta['package_name'] in dependencies:
+                if report:
+                    self._report_problem('Depends on dap with the same name as itself')
+                return False
+        return True
 
     def _check_dapi(self):
         '''Check that the package_name is not registered on Dapi'''
@@ -290,6 +315,7 @@ class Dap(object):
         self._logger = logger
 
         self._check_meta()
+        self._check_selfdeps()
         self._check_topdir()
         self._check_files()
 

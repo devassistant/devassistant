@@ -1,24 +1,5 @@
-daploader
-=========
-
-.. image:: https://badge.fury.io/py/daploader.svg
-    :target: http://badge.fury.io/py/daploader
-
-.. image:: https://travis-ci.org/hroncok/daploader.png?branch=master
-        :target: https://travis-ci.org/hroncok/daploader
-
-.. image:: https://pypip.in/d/daploader/badge.png
-        :target: https://pypi.python.org/pypi/daploader
-
-Python module that loads a dap file, check it for sanity/validity
-and provide access for metadata via a Python class.
-
-You can also run ``daplint`` on your daps to see some errors or warnings.
-
-Also provides very basic command line tool to install daps from `Dapi <http://dapi.devassistant.org/>`_ (``dapi``).
-
 dap
----
+===
 
 Dap is a format of extension for DevAssistant that contains custom assistants.
 The whole thing is now in development phase and the specification may change
@@ -27,7 +8,7 @@ in the future. This module should define the standard.
 http://devassistant.org
 
 Structure
-~~~~~~~~~
+---------
 
 * <package_name>-<version>/
 
@@ -70,7 +51,7 @@ Structure
 Basically only meta.yaml is mandatory, but a dap with meta.yaml only makes no sense. All content is wrapped in tar.gz archive and renamed to <package_name>-<version>.dap. Both .yaml and icons file extension (currently only .svg and .png) must be lower case. The archive should contain one top level directory named <package_name>-<version>.
 
 meta.yaml
-~~~~~~~~~
+---------
 
 ::
 
@@ -81,6 +62,11 @@ meta.yaml
     homepage: https://github.com/bkabrda/assistant-foo # optional
     summary: Some brief one line text # required
     bugreports: <a single URL or email address> # optional
+    dependencies:
+      - bar
+      - eggs >= 1.0
+      - spam== 0.1
+      - ook   <    2.5
     description: |
         Some not-so-brief optional text.
         It can be split to multiple lines.
@@ -98,3 +84,5 @@ meta.yaml
 * **summary** and **description** are self-descriptive in the given example
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
+
+* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional
