@@ -8,6 +8,7 @@ import re
 import time
 import string
 import sys
+import threading
 
 import jinja2
 import six
@@ -867,6 +868,11 @@ class AsUserCommandRunner(CommandRunner):
 @register_command_runner
 class DockerCommandRunner(object):
     _has_docker_group = None
+    _client = None
+    try:
+        _d_module = utils.import_module('docker')
+    except:
+        _d_module = None
 
     @classmethod
     def matches(cls, c):
@@ -966,6 +972,10 @@ class DockerCommandRunner(object):
            take effect => use "newgrp" (_cmd_for_newgrp) for all docker commands
         3) user has been added to docker group in a previous login session => all ok
         """
+        if not cls._d_module:
+            logger.warning('docker-py not installed, cannot execute github command.')
+            return [False, '']
+
         if not cls._docker_group_active() and not cls._docker_group_added():
             # situation 1
             cls._docker_group_add()
@@ -973,6 +983,10 @@ class DockerCommandRunner(object):
 
         if not cls._docker_service_running():
             cls._docker_service_enable_and_run()
+
+        if not cls._client:
+            cls._client = cls._d_module.Client()
+        client = cls._client
 
         if c.comm_type == 'docker_build':
             # TODO: allow providing another argument - a repository name/tag for the built image
@@ -1038,19 +1052,64 @@ class DockerCommandRunner(object):
         return (logres, res)
 
     @classmethod
-    def _docker_attach(cls, container_hash):
-        result = ''
+    def _docker_attach(cls, container_ids):
+        result = []
         logres = False
+        queue = six.moves.queue.Queue()
 
-        cmd_str = cls._cmd_for_newgrp('docker attach {0}'.format(container_hash))
-        try:
-            result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
-            logres = True
-        except exceptions.ClException as e:
-            # even if there is error, return container output
-            result = e.output
+        if isinstance(container_ids, six.string_types):
+            container_ids = container_ids.split()
 
-        return (logres, result)
+        # we need a thread to read from every container
+        class ContainerAttacher(threading.Thread):
+            def __init__(self, container_id, client):
+                super(ContainerAttacher, self).__init__()
+                self.cid = container_id
+                self.client = client
+                self.daemon = True
+
+            def _get_container_state_attr(self, attr):
+                return self.client.inspect_container(self.cid)['State'][attr]
+
+            def _is_container_running(self):
+                return self._get_container_state_attr('Running')
+
+            def run(self):
+                """While container is running, queue it's output.
+                When it stops, queue None and exit.
+                """
+                it = self.client.attach(self.cid, stream=True)
+                try:
+                    line = next(it)
+                except StopIteration:
+                    line = None
+
+                while line is not None:
+                    msg = '{cid}: {out}'.format(cid=self.cid, out=line.decode('utf-8').strip())
+                    queue.put(msg)
+                    try:
+                        line = next(it)
+                    except StopIteration:
+                        line = None
+
+                queue.put('Container {cid} ended with return value {out}'.format(
+                    cid=self.cid,
+                    out=self._get_container_state_attr('ExitCode')))
+
+        # init threads, read from queue while something is in there and when
+        #  all threads exit, finish reading from the queue and join threads
+        threads = [ContainerAttacher(cid, cls._client) for cid in container_ids]
+        [t.start() for t in threads]
+        while any((t.is_alive() for t in threads)) or not queue.empty():
+            try:
+                line = queue.get(timeout=0.1)
+                logger.info(line)
+                result.append(line)
+            except six.moves.queue.Empty:
+                pass
+        [t.join() for t in threads]
+
+        return (logres, '\n'.join(result))
 
     @classmethod
     def _docker_find_image(cls, hash_start):
