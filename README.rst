@@ -4,8 +4,8 @@ DevAssistant
 .. image:: https://badge.fury.io/py/devassistant.png
     :target: http://badge.fury.io/py/devassistant
 
-.. image:: https://travis-ci.org/bkabrda/devassistant.png?branch=master
-        :target: https://travis-ci.org/bkabrda/devassistant
+.. image:: https://travis-ci.org/devassistant/devassistant.png?branch=master
+        :target: https://travis-ci.org/devassistant/devassistant
 
 .. image:: https://pypip.in/d/devassistant/badge.png
         :target: https://pypi.python.org/pypi/devassistant
@@ -50,7 +50,7 @@ To start developing, do:
 
 .. code:: sh
 
-  git clone https://github.com/bkabrda/devassistant
+  git clone https://github.com/devassistant/devassistant
   cd devassistant
   git submodule init
   git submodule update
