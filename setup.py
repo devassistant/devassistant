@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import subprocess
+import sys
 
 import devassistant
 
@@ -12,16 +13,7 @@ try:
 except:
     from distutils.core import setup, find_packages, Command
 
-class PyTest(Command):
-    user_options = [('test-runner=',
-                     't',
-                     'test runner to use; by default, multiple py.test runners are tried')]
-    command_consumes_arguments = True
-
-    def initialize_options(self):
-        self.test_runner = None
-        self.args = []
-
+class GeneralTest(Command):
     def finalize_options(self):
         pass
 
@@ -32,6 +24,17 @@ class PyTest(Command):
                 return True
 
         return False
+
+
+class PyTest(GeneralTest):
+    user_options = [('test-runner=',
+                     't',
+                     'test runner to use; by default, multiple py.test runners are tried')]
+    command_consumes_arguments = True
+
+    def initialize_options(self):
+        self.test_runner = None
+        self.args = []
 
     def run(self):
         # if user provides a runner and it's not found, this fails
@@ -47,8 +50,8 @@ class PyTest(Command):
             if not self.test_runner and self.runner_exists('py.test'):
                 runners = ['py.test']
             else:
-                print('No py.test runners found, can\'t run tests.')
-                print('Tried: {0}.'.format(', '.join(runners + ['py.test'])))
+                print('No py.test runners found, can\'t run tests.', file=sys.stderr)
+                print('Tried: {0}.'.format(', '.join(runners + ['py.test'])), file=sys.stderr)
                 raise SystemExit(100)
 
         for runner in runners:
@@ -68,17 +71,18 @@ class PyTest(Command):
         raise SystemExit(retcode)
 
 
-class GUITest(Command):
+class GUITest(GeneralTest):
     user_options = []
     command_consumes_arguments = True
 
     def initialize_options(self):
         self.args = []
 
-    def finalize_options(self):
-        pass
-
     def run(self):
+        if not self.runner_exists('behave'):
+            print('"behave" not found in PATH, can\'t run GUI tests.', file=sys.stderr)
+            raise SystemExit(100)
+
         t = subprocess.Popen(['behave', '-k'] + self.args)
         rc = t.wait()
         raise SystemExit(t.returncode)
