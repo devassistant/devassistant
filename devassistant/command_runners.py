@@ -2,6 +2,7 @@ import copy
 import functools
 import getpass
 import grp
+import json
 import logging
 import os
 import re
@@ -973,7 +974,7 @@ class DockerCommandRunner(object):
         3) user has been added to docker group in a previous login session => all ok
         """
         if not cls._d_module:
-            logger.warning('docker-py not installed, cannot execute github command.')
+            logger.warning('docker-py not installed, cannot execute docker command.')
             return [False, '']
 
         if not cls._docker_group_active() and not cls._docker_group_added():
@@ -984,6 +985,7 @@ class DockerCommandRunner(object):
         if not cls._docker_service_running():
             cls._docker_service_enable_and_run()
 
+        # TODO: how do we do analogy to "_cmd_for_newgrp" with the docker-py client?
         if not cls._client:
             cls._client = cls._d_module.Client()
         client = cls._client
@@ -998,31 +1000,56 @@ class DockerCommandRunner(object):
         elif c.comm_type == 'docker_find_img':
             ret = cls._docker_find_image(c.input_res)
         elif c.comm_type == 'docker_container_ip':
-            ret = cls._docker_get_container_attr('{{.NetworkSettings.IPAddress}}', c.input_res)
+            ret = cls._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
         elif c.comm_type == 'docker_container_name':
-            ret = cls._docker_get_container_attr('{{.Name}}', c.input_res)
+            ret = cls._docker_get_container_attr('Name', c.input_res)
+        elif c.comm_type == 'docker_start':
+            ret = cls._docker_start(c.input_res)
+        elif c.comm_type == 'docker_cc':
+            ret = cls._docker_cc(c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
         return ret
 
     @classmethod
-    def _docker_build(cls, directory):
+    def _docker_build(cls, args):
+        # TODO: check that only correct args were passed
         logger.info('Building Docker image, this may take a while ...')
+        success_re = re.compile(r'Successfully built ([0-9a-f]+)')
         logres = False
         final_image = ''
 
-        cmd_str = cls._cmd_for_newgrp('docker build --rm {0}'.format(directory))
-        try:
-            result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
+        # support both old and new way of accepting args
+        #  (e.g. new way = dict of args to pass to build,
+        #   old way = just pass directory to "docker build" subprocess)
+        if isinstance(args, dict):
+            if 'rm' not in args:
+                args['rm'] = True
+            args['stream'] = False
 
-            success_re = re.compile(r'Successfully built ([0-9a-f]+)')
-            success_found = success_re.search(result)
-            if success_found:
-                logres = True
-                final_image = success_found.group(1)
-        except exceptions.ClException:
-            pass  # no-op
+            output = cls._client.build(**args)
+            for chunk in output:
+                # chunk is a JSON chunk, for explanation see
+                #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
+                l = json.loads(chunk).get('stream', '').strip()
+                logger.info(l, extra={'event_type': 'cmd_out'})
+                success_found = success_re.search(l)
+                if success_found:
+                    logres = True
+                    final_image = success_found.group(1)
+        else:
+            # TODO: remove this whole else clause in version following 0.10
+            cmd_str = cls._cmd_for_newgrp('docker build --rm {0}'.format(args))
+            try:
+                result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
+
+                success_found = success_re.search(result)
+                if success_found:
+                    logres = True
+                    final_image = success_found.group(1)
+            except exceptions.ClException:
+                pass  # no-op
 
         return (logres, final_image)
 
@@ -1037,6 +1064,8 @@ class DockerCommandRunner(object):
 
     @classmethod
     def _docker_run(cls, inp):
+        logger.warning('docker_run command will be obsoleted in next version')
+        logger.warning('use docker_cc and docker_start')
         # TODO: we need to register the container for shutdown at DA exit, if run as daemon
         run_args = cls._get_docker_run_args(inp)
         logres = False
@@ -1052,6 +1081,20 @@ class DockerCommandRunner(object):
         return (logres, res)
 
     @classmethod
+    def _docker_cc(cls, inp):
+        """Creates a docker container"""
+        # TODO: check args, most importantly check that image is specified
+        res = cls._client.create_container(**inp)
+        return (True, res['Id'])
+
+    @classmethod
+    def _docker_start(cls, inp):
+        # TODO: check args, most importantly check that container is specified
+        cls._client.start(**inp)
+        # there is no real result here, so just return container hash again
+        return (True, inp['container'])
+
+    @classmethod
     def _docker_attach(cls, container_ids):
         result = []
         logres = False
@@ -1065,6 +1108,10 @@ class DockerCommandRunner(object):
             def __init__(self, container_id, client):
                 super(ContainerAttacher, self).__init__()
                 self.cid = container_id
+                if '_' not in self.cid and len(self.cid) > 25:  # probably a hash
+                    self.nicecid = cid[:12]
+                else:
+                    self.nicecid = self.cid
                 self.client = client
                 self.daemon = True
 
@@ -1085,7 +1132,7 @@ class DockerCommandRunner(object):
                     line = None
 
                 while line is not None:
-                    msg = '{cid}: {out}'.format(cid=self.cid, out=line.decode('utf-8').strip())
+                    msg = '{cid}: {out}'.format(cid=self.nicecid, out=line.decode('utf-8').strip())
                     queue.put(msg)
                     try:
                         line = next(it)
@@ -1113,36 +1160,34 @@ class DockerCommandRunner(object):
 
     @classmethod
     def _docker_find_image(cls, hash_start):
-        found_hashes = []
+        # hash start can theoretically be an int, so convert to unicode string either way
+        hash_start = six.text_type(hash_start)
+        hashes = cls._client.images(quiet=True)
+        matching = list(filter(lambda x: x.startswith(hash_start), hashes))
 
-        cmd_str = cls._cmd_for_newgrp('docker images -q --no-trunc')
-        try:
-            result = ClHelper.run_command(cmd_str)
+        res = ' '.join(matching)
+        # we return True if there is exactly one found hash
+        logres = bool(' ' not in res and res)
 
-            for line in result.splitlines():
-                if line.startswith(hash_start):
-                    found_hashes.append(line.strip())
-        except exceptions.ClException:
-            pass  # no-op
-
-        found_hash = ' '.join(found_hashes)
-        # return True if there was precisely one hash found
-        logres = ' ' not in found_hash and found_hash
-        return (logres, found_hash)
+        return (logres, res)
 
     @classmethod
-    def _docker_get_container_attr(cls, attr, container_hash):
-        logres = False
-        res = ''
+    def _docker_get_container_attr(cls, attr, container_id):
+        # container id can be either hash or name
+        logres = True
 
-        cmd_str = "docker inspect --format='{attr}' {cont}".format(attr=attr,
-                                                                   cont=container_hash)
-        cmd_str = cls._cmd_for_newgrp(cmd_str)
         try:
-            res = ClHelper.run_command(cmd_str)
-            logres = True
-        except exceptions.ClException:
-            pass  # no-op
+            res = cls._client.inspect_container(container_id)
+            # split on dots an loop to get access to nested dicts
+            for a in attr.split('.'):
+                if not isinstance(res, dict) or a not in res:
+                    logres = False
+                    res = 'Container doesn\'t have attribute {a}'.format(a=attr)
+                else:
+                    res = res[a]
+        except cls._d_module.errors.APIError as e:
+            logres = False
+            res = 'Failed to obtain container attribute: {e}'.format(e=e)
 
         return (logres, res)
 
