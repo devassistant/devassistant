@@ -72,6 +72,7 @@ class TestUseCommandRunner(object):
 
     def setup_method(self, method):
         self.ccr = UseCommandRunner
+        self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_matches(self):
         assert self.ccr.matches(Command('use', None))
@@ -146,6 +147,27 @@ class TestUseCommandRunner(object):
         result = self.ccr.run(com)
 
         assert result == expected
+
+    def test_run_with_specified_args(self):
+        kwargs = {'spam': 'something',
+                  'nospam': 'hahaha',
+                  '__magic_val__': 'it\'s magical',
+                  '__assistant__': self.ass['leaf']}
+
+        com = Command('use', {'sect': 'self.run',
+                              'args': {'spam': 'something else', 'spam2': 'blah'}}, kwargs)
+
+        class Matcher(object):
+            def __eq__(self, other):
+                assert len(other) == 4
+                assert other['spam'] == 'something else'
+                assert other['spam2'] == 'blah'
+                assert other['__magic_val__'] == 'it\'s magical'
+                assert '__assistant__' in other
+                return True
+
+        flexmock(lang).should_receive('run_section').with_args(list, Matcher())
+        com.run()
 
 
 class TestClCommandRunner(object):

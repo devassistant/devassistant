@@ -437,7 +437,7 @@ Using Another Section
 
 Runs a section specified by **command input** at this place.
 
-``use``, ``call`` (these two do completely same, ``call`` is obsolete and will be removed in 0.9.0)
+``use``
 This can be used to run:
 
 - another section of this assistant (e.g. ``use: self.run_foo``)
@@ -453,6 +453,21 @@ This can be used to run:
     - use: self.run_foo
     - use: super.run
     - use: a_snippet.run_spam
+
+This way, the whole context (all variables) are passed into the section run
+(by value, so they don't get modified).
+
+Another, more function-like usage is also available::
+
+    - use:
+        sect: self.run_foo
+        args:
+          foo: $bar
+          baz: $spam
+
+Using this approach, the assistant/snippet and section name is taken from ``sect`` and 
+only arguments listed in ``args`` are passed to the section (plus all "magic" variables,
+e.g. those starting and ending with double underscore).
 
 .. _normalize_commands_ref:
 

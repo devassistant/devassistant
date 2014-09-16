@@ -99,16 +99,66 @@ class UseCommandRunner(CommandRunner):
         return not (cmd_call.startswith('self.') or cmd_call.startswith('super.'))
 
     @classmethod
+    def check_args(cls, c):
+        if isinstance(c.input_res, dict):
+            # check that we have 'sect' and 'args'
+            if not ('sect' in c.input_res and 'args' in c.input_res):
+                msg = '"use" command expects both "sect" and "args" as arguments.'
+                raise exceptions.CommandException(msg)
+
+            # check that 'sect' and 'args' have a proper form
+            msg = None
+            if not isinstance(c.input_res['sect'], six.string_types):
+                msg = '"sect" argument for "use" command runner must be a string.'
+            elif not isinstance(c.input_res['args'], dict):
+                msg = '"args" argument for "use" command runner must be a mapping.'
+            if msg:
+                raise exceptions.CommandException(msg)
+
+            sect = c.input_res['sect']
+        elif isinstance(c.input_res, six.string_types):
+            sect = c.input_res
+        else:
+            msg = '"use" command runner expects string or mapping as an argument.'
+            raise exceptions.CommandException(msg)
+        
+        # check that sect is a string with at least one dot
+        if '.' not in sect:
+            msg ='"use" command section specification must be in form "what.which_section".'
+            raise exceptions.CommandException(msg)
+        # else everything is fine
+
+    @classmethod
+    def _construct_ctxt(cls, inp, original_ctxt):
+        """If inp is string, this just duplicates the whole context
+        (e.g. "use: snippet.run_section"), else else we pass just special
+        values (__*__) plus the specified values, e.g.:
+        - use:
+            sect: snippet.run_section
+            args:
+              foo: $somevar
+              spam: $spamspam
+        """
+        if isinstance(inp, dict):
+            new_ctxt = copy.deepcopy(inp['args'])
+            for k, v in original_ctxt.items():
+                if k.startswith('__') and k.endswith('__'):
+                    new_ctxt[k] = copy.deepcopy(v)
+        else:
+            new_ctxt = copy.deepcopy(original_ctxt)
+
+        return new_ctxt
+
+    @classmethod
     def run(cls, c):
+        cls.check_args(c)
+        kwargs = cls._construct_ctxt(c.input_res, c.kwargs)
+        sect = c.input_res if isinstance(c.input_res, six.string_types) else c.input_res['sect']
+        yaml_name, section_name = sect.rsplit('.', 1)
         assistant = c.kwargs['__assistant__']
-        kwargs = copy.deepcopy(c.kwargs)
-        try:
-            yaml_name, section_name = c.input_res.rsplit('.', 1)
-        except ValueError:
-            raise exceptions.CommandException('"use" command expects "use: what.which_section".')
 
         # Modify kwargs based on command
-        if cls.is_snippet_call(c.input_res):
+        if cls.is_snippet_call(sect):
             snip = cls.get_snippet(yaml_name)
             section = cls.get_snippet_section(section_name, snip)
 
