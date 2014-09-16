@@ -12,7 +12,7 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GLib
 
 from devassistant.bin import TopAssistant
-from devassistant.logger import logger_gui
+from devassistant import logger
 from devassistant import current_run, settings
 from devassistant.config_manager import config_manager
 
@@ -35,8 +35,16 @@ class MainWindow(object):
         console_formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s')
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.INFO)
-        logger_gui.addHandler(console_handler)
+        logger.logger_gui.addHandler(console_handler)
         # End used for debugging
+        # Setup logger for warnings and errors that can occur before running assistants
+        #  (e.g. errors from loading faulty assistants)
+        # TODO: are the logger.Devassistant* classes good enough or do we need special ones?
+        ch = logger.DevassistantClHandler(stream=sys.stderr)
+        ch.setFormatter(logger.DevassistantClFormatter())
+        ch.setLevel(logging.WARNING)
+        logger.logger.addHandler(ch)
+        # End setup logger
         current_run.UI = 'gtk'
         self.builder = Gtk.Builder()
         self.builder.add_from_file(GLADE_FILE)
