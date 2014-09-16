@@ -8,9 +8,9 @@ import subprocess
 import devassistant
 
 try:
-    from setuptools import setup, Command
+    from setuptools import setup, find_packages, Command
 except:
-    from distutils.core import setup, Command
+    from distutils.core import setup, find_packages, Command
 
 class PyTest(Command):
     user_options = [('test-runner=',
@@ -96,7 +96,7 @@ setup(
     author_email = 'bkabrda@redhat.com',
     url = 'https://github.com/bkabrda/devassistant',
     license = 'GPLv2+',
-    packages = ['devassistant', 'devassistant.cli', 'devassistant.gui'],
+    packages = find_packages(exclude=["test", "*test.*"]),
     include_package_data = True,
     entry_points = {'console_scripts':['da=devassistant.cli.cli_runner:CliRunner.run',
                                        'da-gui=devassistant.gui:run_gui',
