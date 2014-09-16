@@ -378,6 +378,12 @@ class TestRunSection(object):
         run_section([{'$foo': True}], kwargs)
         assert kwargs['foo'] == True
 
+    def test_numeric_literal_section(self):
+        kwargs = {}
+        run_section([{'$foo': 42}, {'$bar': 4.2}], kwargs)
+        assert kwargs['foo'] == 42
+        assert kwargs['bar'] == 4.2
+
 class TestIsVar(object):
     @pytest.mark.parametrize(('tested', 'expected'), [
         ('$normal', True),
