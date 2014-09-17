@@ -34,7 +34,7 @@ class TestAskCommandRunner(object):
     def test_run_password(self):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_password').and_return('foobar')
-        comm = Command('ask_password', {})
+        comm = Command('ask_password', {}, {'__ui__': 'cli'})
         res = self.acr.run(comm)
 
         assert res[0] is True
@@ -44,7 +44,7 @@ class TestAskCommandRunner(object):
     def test_run_input(self, inp):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_input_with_prompt').and_return(inp)
-        comm = Command('ask_input', {})
+        comm = Command('ask_input', {}, {'__ui__': 'cli'})
         res = self.acr.run(comm)
 
         assert res[0] is bool(inp)
@@ -54,7 +54,7 @@ class TestAskCommandRunner(object):
     def test_run_confirm(self, decision):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_confirm_with_message').and_return(decision)
-        comm = Command('ask_confirm', {})
+        comm = Command('ask_confirm', {}, {'__ui__': 'cli'})
         res = self.acr.run(comm)
 
         assert res[0] is decision
