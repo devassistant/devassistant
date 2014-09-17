@@ -13,7 +13,7 @@ from gi.repository import GLib
 
 from devassistant.bin import TopAssistant
 from devassistant import logger
-from devassistant import current_run, settings
+from devassistant import settings
 from devassistant.config_manager import config_manager
 
 from devassistant.gui import path_window
@@ -45,7 +45,6 @@ class MainWindow(object):
         ch.setLevel(logging.WARNING)
         logger.logger.addHandler(ch)
         # End setup logger
-        current_run.UI = 'gtk'
         self.builder = Gtk.Builder()
         self.builder.add_from_file(GLADE_FILE)
         self.main_win = self.builder.get_object("mainWindow")

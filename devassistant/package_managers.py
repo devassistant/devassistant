@@ -28,7 +28,6 @@ import threading
 
 import progress.spinner
 
-from devassistant import current_run
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.logger import logger
 from devassistant import exceptions
@@ -871,15 +870,15 @@ class DependencyInstaller(object):
                 return
         self.__add_dependencies(dep_t, dep_l)
 
-    def _ask_to_confirm(self, pac_man, *to_install):
+    def _ask_to_confirm(self, ui, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
-        ret = DialogHelper.ask_for_package_list_confirm(
+        ret = DialogHelper.ask_for_package_list_confirm(ui,
             prompt=pac_man.get_perm_prompt(to_install),
             package_list=to_install,
         )
         return bool(ret)
 
-    def _install_dependencies(self):
+    def _install_dependencies(self, ui):
         """Install missing dependencies"""
         for dep_t, dep_l in self.dependencies:
             if not dep_l:
@@ -894,7 +893,7 @@ class DependencyInstaller(object):
                 # nothing to install, let's move on
                 continue
             to_install = pkg_mgr.resolve(*to_resolve)
-            confirm = self._ask_to_confirm(pkg_mgr, *to_install)
+            confirm = self._ask_to_confirm(ui, pkg_mgr, *to_install)
             if not confirm:
                 msg = 'List of packages denied by user, exiting.'
                 raise exceptions.DependencyException(msg)
@@ -903,12 +902,12 @@ class DependencyInstaller(object):
             # TODO: we should do this more systematically (send signal to cl/gui?)
             logger.info('Installing dependencies, sit back and relax ...',
                         extra={'event_type': 'dep_installation_start'})
-            if current_run.UI == 'cli':  # TODO: maybe let every manager to decide when to start
+            if ui == 'cli':  # TODO: maybe let every manager to decide when to start
                 event = threading.Event()
                 t = EndlessProgressThread(event)
                 t.start()
             installed = pkg_mgr.install(*to_install)
-            if current_run.UI == 'cli':
+            if ui == 'cli':
                 event.set()
                 t.join()
             type(self).install_lock = False
@@ -921,7 +920,7 @@ class DependencyInstaller(object):
             else:
                 logger.info('Successfully installed dependencies!', extra=log_extra)
 
-    def install(self, struct):
+    def install(self, struct, ui):
         """
         This is the only method that should be called from outside. Call it
         like:
@@ -935,7 +934,7 @@ class DependencyInstaller(object):
             for dep_t, dep_l in dep_dict.items():
                 self._process_dependency(dep_t, dep_l)
         if self.dependencies:
-            self._install_dependencies()
+            self._install_dependencies(ui)
 
     def get_system_deptype_shortcut(self):
         local_distro = utils.get_distro_name()

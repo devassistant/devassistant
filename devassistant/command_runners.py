@@ -75,14 +75,15 @@ class AskCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
+        ui = c.kwargs['__ui__']
         if c.input_res and not isinstance(c.input_res, dict):
             raise exceptions.CommandException('{0} needs a mapping as input!'.format(c.comm_type))
         if c.comm_type == 'ask_password':
-            res = DialogHelper.ask_for_password(**c.input_res)
+            res = DialogHelper.ask_for_password(ui, **c.input_res)
         elif c.comm_type == 'ask_confirm':
-            res = DialogHelper.ask_for_confirm_with_message(**c.input_res)
+            res = DialogHelper.ask_for_confirm_with_message(ui, **c.input_res)
         elif c.comm_type == 'ask_input':
-            res = DialogHelper.ask_for_input_with_prompt(**c.input_res)
+            res = DialogHelper.ask_for_input_with_prompt(ui, **c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
         return bool(res), res
@@ -273,7 +274,7 @@ class DependenciesCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
-        di.install(c.input_res)
+        di.install(c.input_res, c.kwargs['__ui__'])
         return [True, c.input_res]
 
 
@@ -459,7 +460,7 @@ class GitHubCommandRunner(CommandRunner):
             comm = args
             args_rest = {}
         # find out what arguments we will need
-        kwargs = {}
+        kwargs = {'ui': c.kwargs['__ui__']}
         req_kwargs = cls._required_yaml_args.get(comm, cls._required_yaml_args['default'])
         for k in req_kwargs:
             kwargs[k] = getattr(cls, '_guess_' + k)(args_rest.get(k), c.kwargs)

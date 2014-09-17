@@ -4,7 +4,6 @@ import os
 
 import six
 
-from devassistant import current_run
 from devassistant import exceptions
 from devassistant import settings
 from devassistant import utils
@@ -36,7 +35,7 @@ class GitHubAuth(object):
         return cls._token
 
     @classmethod
-    def _get_github_user(cls, login):
+    def _get_github_user(cls, login, ui):
         if not cls._user:
             try:
                 # try logging with token
@@ -49,17 +48,17 @@ class GitHubAuth(object):
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
                 # try login with username/password 3 times
-                cls._user = cls._try_login_with_password_ntimes(login, 3)
+                cls._user = cls._try_login_with_password_ntimes(login, 3, ui)
                 if cls._user is not None:
                     cls._github_create_auth()  # create auth for future use
         return cls._user
 
     @classmethod
-    def _try_login_with_password_ntimes(cls, login, ntimes):
+    def _try_login_with_password_ntimes(cls, login, ntimes, ui):
         user = None
 
         for i in range(0, ntimes):
-            password = DialogHelper.ask_for_password(
+            password = DialogHelper.ask_for_password(ui,
                 prompt='Github Password for {username}:'.format(username=login))
 
             # user pressed Ctrl + D
@@ -76,7 +75,7 @@ class GitHubAuth(object):
                 msg = 'Wrong Github username or password; message from Github: {0}\n'.\
                     format(e.data.get('message', 'Unknown authentication error'))
                 msg += 'Try again or press {0} to abort.'
-                if current_run.UI == 'cli':
+                if ui == 'cli':
                     msg = msg.format('Ctrl + D')
                 else:
                     msg = msg.format('"Cancel"')
@@ -184,7 +183,7 @@ class GitHubAuth(object):
             elif not func_cls._user:
                 # authenticate user, possibly also creating authentication for future use
                 login = kwargs['login'].encode('utf-8') if not six.PY3 else kwargs['login']
-                func_cls._user = cls._get_github_user(login)
+                func_cls._user = cls._get_github_user(login, kwargs['ui'])
                 if func_cls._user is None:
                     msg = 'Github authentication failed, skipping Github command.'
                     logger.warning(msg)

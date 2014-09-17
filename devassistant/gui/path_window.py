@@ -120,6 +120,7 @@ class PathWindow(object):
 
         if not deps_only and self.current_main_assistant.name == 'crt':
             self.kwargs['name'] = full_name
+        self.kwargs['__ui__'] = 'gui_gtk+'
 
         self.data['kwargs'] = self.kwargs
         self.data['top_assistant'] = self.top_assistant

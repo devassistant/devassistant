@@ -59,9 +59,9 @@ class ArgparseGenerator(object):
                             default=False)
         # TODO: should gui also get --no-cache?
         # This really only stores the True/False value. We need to set
-        # current_run.USE_CACHE before we create the parser, but for creating
+        # settings.USE_CACHE before we create the parser, but for creating
         # the parser, we need to load assistants. That means we set
-        # current_run.USE_CACHE in cli_runner according to sys.argv.
+        # settings.USE_CACHE in cli_runner according to sys.argv.
         parser.add_argument('--no-cache',
                             help='Don\'t use assistants cache (useful for debugging).',
                             action='store_true',

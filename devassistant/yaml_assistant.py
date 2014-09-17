@@ -117,7 +117,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
                 logger.warning(msg)
         return args
 
-    def get_subassistants(self):
+    def get_subassistants(self, use_cache=True):
         return self._subassistants
 
     @needs_fully_loaded

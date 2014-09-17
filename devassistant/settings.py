@@ -27,6 +27,7 @@ SUBASSISTANT_N_STRING = 'subassistant_{0}'
 
 DEPS_ONLY_FLAG = '--deps-only'
 
+USE_CACHE = True
 CACHE_FILE = os.path.expanduser('~/.devassistant/.cache.yaml')
 CONFIG_FILE = os.path.expanduser('~/.devassistant/.config')
 LOG_FILE = os.path.expanduser('~/.devassistant/lastrun.log')

@@ -1,7 +1,6 @@
 import os
 
 from devassistant import cache
-from devassistant import current_run
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant import yaml_loader
@@ -50,8 +49,8 @@ class YamlAssistantLoader(object):
             dirs = [os.path.join(d, tl) for d in cls.assistants_dirs]
             file_hierarchy = cls.get_assistants_file_hierarchy(dirs)
             # load all if we're not using cache or if we fail to load it
-            load_all = not current_run.USE_CACHE
-            if current_run.USE_CACHE:
+            load_all = not settings.USE_CACHE
+            if settings.USE_CACHE:
                 try:
                     cch = cache.Cache()
                     cch.refresh_role(tl, file_hierarchy)

@@ -11,7 +11,6 @@ import sys
 
 import six
 
-from devassistant import current_run
 from devassistant import exceptions
 from devassistant.logger import logger
 
@@ -176,6 +175,8 @@ class DialogHelper(object):
     """This class is to be used in all places where user interaction is required. It will
     decide on its own which specific helper it is best to use in this place (CommandLine,
     Zenity, possibly other registered).
+    Note, that all methods that are supposed to actually interact with user should accept
+    "ui" as the first argument (the type of UI, e.g. "cli", "gui_gtk+")
     """
     helpers = {}
 
@@ -186,36 +187,37 @@ class DialogHelper(object):
         return helper
 
     @classmethod
-    def get_appropriate_helper(cls):
-        return cls.helpers[current_run.UI]
+    def get_appropriate_helper(cls, ui):
+        return cls.helpers[ui]
 
     @classmethod
-    def ask_for_password(cls, prompt='Provide your password:', **options):
+    def ask_for_password(cls, ui, prompt='Provide your password:', **options):
         """Returns the password typed by user as a string or None if user cancels the request
         (e.g. presses Ctrl + D on commandline or presses Cancel in GUI.
         """
         # optionally set title, that may be used by some helpers like zenity
-        return cls.get_appropriate_helper().ask_for_password(prompt,
-                                                             title=options.get('title', prompt))
+        return cls.get_appropriate_helper(ui).ask_for_password(prompt,
+                                                               title=options.get('title', prompt))
 
     @classmethod
-    def ask_for_confirm_with_message(cls, prompt='Do you agree?', message='', **options):
+    def ask_for_confirm_with_message(cls, ui, prompt='Do you agree?', message='', **options):
         """Returns True if user agrees, False otherwise"""
-        return cls.get_appropriate_helper().ask_for_confirm_with_message(prompt, message)
+        return cls.get_appropriate_helper(ui).ask_for_confirm_with_message(prompt, message)
 
     @classmethod
     def ask_for_package_list_confirm(cls,
+                                     ui,
                                      prompt='Do you want to install packages?',
                                      package_list=[],
                                      **options):
-        return cls.get_appropriate_helper().ask_for_package_list_confirm(prompt,
-                                                                         package_list,
-                                                                         **options)
+        return cls.get_appropriate_helper(ui).ask_for_package_list_confirm(prompt,
+                                                                           package_list,
+                                                                           **options)
 
     @classmethod
-    def ask_for_input_with_prompt(cls, prompt='', **options):
+    def ask_for_input_with_prompt(cls, ui, prompt='', **options):
         """Ask user for written input with prompt"""
-        return cls.get_appropriate_helper().ask_for_input_with_prompt(prompt=prompt, **options)
+        return cls.get_appropriate_helper(ui).ask_for_input_with_prompt(prompt=prompt, **options)
 
 
 @DialogHelper.register_helper
@@ -299,7 +301,7 @@ class CliDialogHelper(object):
 
 @DialogHelper.register_helper
 class GtkDialogHelper(object):
-    shortname = 'gtk'
+    shortname = 'gui_gtk+'
     Gtk = None
     Gdk = None
     top_window = None

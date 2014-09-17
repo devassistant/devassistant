@@ -6,7 +6,6 @@ import six
 from devassistant import actions
 from devassistant import bin
 from devassistant.cli import argparse_generator
-from devassistant import current_run
 from devassistant import exceptions
 from devassistant import logger
 from devassistant import path_runner
@@ -43,9 +42,9 @@ class CliRunner(object):
         4. Runs a proper assistant or action
         """
         sigint_handler.override()
-        # set current_run.USE_CACHE before constructing parser, since constructing
+        # set settings.USE_CACHE before constructing parser, since constructing
         # parser requires loaded assistants
-        current_run.USE_CACHE = False if '--no-cache' in sys.argv else True
+        settings.USE_CACHE = False if '--no-cache' in sys.argv else True
         cls.register_console_logging_handler(logger.logger)
         is_log_file = logger.add_log_file_handler(settings.LOG_FILE)
         if not is_log_file:
@@ -67,6 +66,7 @@ class CliRunner(object):
         parsed_args_decoded = dict()
         for k, v in parsed_args.items():
             parsed_args_decoded[k] = v.decode('utf-8') if not six.PY3 and isinstance(v, str) else v
+        parsed_args_decoded['__ui__'] = 'cli'
         try:
             to_run.run(**parsed_args_decoded)
         except exceptions.ExecutionException:

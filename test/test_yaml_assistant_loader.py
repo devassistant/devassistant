@@ -4,8 +4,8 @@ import pytest
 import yaml
 
 from devassistant.assistant_base import AssistantBase
-from devassistant import current_run
 from devassistant import exceptions
+from devassistant import settings
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
 from test.logger import TestLoggingHandler
@@ -22,6 +22,7 @@ class TestYamlAssistantLoader(object):
     def teardown_method(self, method):
         # in case that a test changed the dirs
         self.reset_yl_assistants_dirs()
+        settings.USE_CACHE = True
 
     def reset_yl_assistants_dirs(self):
         self.yl.assistants_dirs = [os.path.join(os.path.dirname(__file__), 'fixtures', 'assistants')]
@@ -92,7 +93,7 @@ class TestYamlAssistantLoader(object):
             in self.tlh.msgs
 
     def test_no_cache(self):
-        current_run.USE_CACHE = False
+        settings.USE_CACHE = False
         oldm = self.yl.get_assistants_from_cache_hierarchy
         self.yl.get_assistants_from_cache_hierarchy = None
         # if YamlAssistantLoader tries to load from cache now, it will log debug message
