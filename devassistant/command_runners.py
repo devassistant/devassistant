@@ -243,7 +243,8 @@ class DotDevassistantCommandRunner(CommandRunner):
         elif c.comm_type == 'dda_run':
             cls._dot_devassistant_run(c.input_res, c.kwargs)
         elif c.comm_type == 'dda_w':
-            cls._dot_devassistant_write(c.input_res)
+            # we intentionally pass c.comm to prevent any evaluation
+            cls._dot_devassistant_write(c.comm)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
@@ -274,7 +275,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         dda_path = os.path.join(os.path.abspath(os.path.expanduser(directory)), '.devassistant')
         try:
             with open(dda_path, 'r') as stream:
-                return yaml.load(stream)
+                return yaml.load(stream) or {}
         except IOError as e:
             msg = 'Couldn\'t find/open/read .devassistant file: {0}'.format(e)
             if not six.PY3:
