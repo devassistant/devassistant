@@ -510,4 +510,6 @@ Arguments:
 - ``accept_path`` - either ``True`` (default) or ``False`` - if ``False``, this will terminate
   DevAssistant if a path is provided
 - ``on_existing`` - one of ``fail`` (default), ``pass`` - if ``fail``, this will terminate
-  DevAssistant if directory specified by ``from`` already exists; if ``pass``, nothing will happen
+  DevAssistant if directory specified by ``from`` already exists; if ``pass``, nothing will
+  happen; note, that this is always considered ``pass``, if ``create_topdir`` is ``False``
+  (in which case the assistant is in full control and responsible for checking everything itself)
