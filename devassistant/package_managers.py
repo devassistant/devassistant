@@ -21,6 +21,7 @@ represent these high-level tools like YUM or Zypper, not RPM itself.
 """
 from __future__ import print_function
 import os
+import platform
 import tempfile
 import time
 import threading
@@ -105,16 +106,10 @@ class PackageManager(object):
         raise NotImplementedError()
 
 
-@register_manager
-class YUMPackageManager(PackageManager):
-    """Package manager for managing rpm packages from repositories by Yum.
-    TODO: when we start using another RPM platform with another installer (OpenSuse),
-    we will need to pull out the RPM stuff into common superclass."""
-    permission_prompt = "Installing {num} RPM package{plural} by Yum. Is this ok?"
-    shortcut = 'rpm'
+class RPMPackageManager(PackageManager):
 
+    shortcut = 'rpm'
     c_rpm = 'rpm'
-    c_yum = 'yum'
 
     @classmethod
     def rpm_q(cls, rpm_name):
@@ -141,6 +136,25 @@ class YUMPackageManager(PackageManager):
         return found_rpm
 
     @classmethod
+    def was_rpm_installed(cls, rpm_name):
+        # TODO: handle failure
+        found_rpm = cls.rpm_q(rpm_name)
+        logger.info('Installed {0}'.format(found_rpm), extra={'event_type': 'dep_installed'})
+        return found_rpm
+
+
+
+@register_manager
+class YUMPackageManager(RPMPackageManager):
+    """Package manager for managing rpm packages from repositories by Yum.
+    TODO: when we start using another RPM platform with another installer (OpenSuse),
+    we will need to pull out the RPM stuff into common superclass."""
+    permission_prompt = "Installing {num} RPM package{plural} by Yum. Is this ok?"
+
+    c_yum = 'yum'
+
+
+    @classmethod
     def is_group_installed(cls, group):
         logger.info('Checking for presence of group {0}...'.format(group))
 
@@ -152,13 +166,6 @@ class YUMPackageManager(PackageManager):
         else:
             logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
         return False
-
-    @classmethod
-    def was_rpm_installed(cls, rpm_name):
-        # TODO: handle failure
-        found_rpm = cls.rpm_q(rpm_name)
-        logger.info('Installed {0}'.format(found_rpm), extra={'event_type': 'dep_installed'})
-        return found_rpm
 
     @classmethod
     def install(cls, *args):
@@ -213,8 +220,89 @@ class YUMPackageManager(PackageManager):
         return to_install
 
     def __str__(self):
-        return "rpm package manager"
+        return "YUM package manager"
 
+
+@register_manager
+class DNFPackageManager(RPMPackageManager):
+    """Package manager for managing rpm packages from repositories by Yum.
+    TODO: when we start using another RPM platform with another installer (OpenSuse),
+    we will need to pull out the RPM stuff into common superclass."""
+    permission_prompt = "Installing {num} RPM package{plural} with DNF. Is this ok?"
+
+    c_dnf = 'dnf'
+
+    @classmethod
+    def is_group_installed(cls, group):
+        logger.info('Checking for presence of group {0}...'.format(group))
+
+        output = ClHelper.run_command(' '.join(
+            [cls.c_dnf, 'groups', 'list', '"{0}"'.format(group)]))
+        if 'installed groups' in output.lower():
+            logger.info('Found {0}'.format(group), extra={'event_type': 'dep_found'})
+            return group
+        else:
+            logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
+        return False
+
+    @classmethod
+    def install(cls, *args):
+        cmd = [cls.c_dnf, '-y', 'install']
+        quoted_pkgs = map(lambda pkg: '"{pkg}"'.format(pkg=pkg), args)
+        cmd.extend(quoted_pkgs)
+        try:
+            ClHelper.run_command(' '.join(cmd), ignore_sigint=True, as_user='root')
+            return args
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def works(cls):
+        try:
+            import dnf, hawkey
+            return True
+        except ImportError:
+            return False
+
+    @classmethod
+    def is_pkg_installed(cls, pkg):
+        return cls.is_group_installed(pkg) if pkg.startswith('@') else cls.is_rpm_installed(pkg)
+
+    @classmethod
+    def resolve(cls, *args):
+        logger.info('Resolving RPM dependencies with DNF...')
+        import dnf, hawkey
+        base = dnf.Base()
+        base.conf.cachedir = tempfile.mkdtemp()
+        base.conf.substitutions['releasever'] = platform.linux_distribution()[1]
+        base.read_all_repos()
+        base.fill_sack(load_system_repo=True, load_available_repos=True)
+        for pkg in (str(arg) for arg in args):
+            if pkg.startswith('@'):
+                base.group_install(pkg[1:])
+            else:
+                try:
+                    res = base.sack.query().available().filter(provides=pkg).run()
+                    base.install(str(res[0]))
+                except (hawkey.QueryException, IndexError):
+                    msg = 'Package not found: {pkg}'.format(pkg=pkg)
+                    raise exceptions.DependencyException(msg)
+        try:
+            base.resolve()
+        except dnf.exceptions.Error as e:
+            raise exceptions.DependencyException('Error resolving RPM dependencies with DNF: {0}'.\
+                format(str(e)))
+
+        logger.debug('Installing/Updating:')
+        to_install = []
+        for pkg in base.transaction.install_set:
+            to_install.append(str(pkg))
+            logger.debug(str(pkg))
+
+        return to_install
+
+    def __str__(self):
+        return "DNF package manager"
 
 @register_manager
 class PacmanPackageManager(PackageManager):

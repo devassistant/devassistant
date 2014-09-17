@@ -17,16 +17,25 @@ def module_not_available(module):
     except ImportError:
         return True
 
-class TestYUMPackageManager(object):
+class TestRPMPackageManager(object):
 
     def setup_method(self, method):
-        self.ypm = package_managers.YUMPackageManager
+        self.rpm = package_managers.RPMPackageManager
 
     @pytest.mark.parametrize('result', [True, False])
     def test_is_rpm_installed(self, result):
         flexmock(ClHelper).should_receive('run_command')\
                 .with_args('rpm -q --whatprovides "foo"').and_return(result)
-        assert self.ypm.is_rpm_installed('foo') is result
+        assert self.rpm.is_rpm_installed('foo') is result
+
+    def test_was_rpm_installed(self):
+        pass
+
+
+class TestYUMPackageManager(object):
+
+    def setup_method(self, method):
+        self.ypm = package_managers.YUMPackageManager
 
     @pytest.mark.parametrize(('group', 'output', 'result'), [
         ('foo', 'Installed Groups', 'foo'),
@@ -36,9 +45,6 @@ class TestYUMPackageManager(object):
         flexmock(ClHelper).should_receive('run_command')\
                 .with_args('yum group list "{grp}"'.format(grp=group)).and_return(output)
         assert self.ypm.is_group_installed(group) == result
-
-    def test_was_rpm_installed(self):
-        pass
 
     def test_install(self):
         pkgs = ('foo', 'bar', 'baz')
@@ -88,6 +94,74 @@ class TestYUMPackageManager(object):
         fake_yumbase.should_receive('resolveDeps').and_raise(yum.Errors.PackageSackError)
         with pytest.raises(DependencyException):
             self.ypm.resolve('foo')
+
+
+class TestDNFPackageManager(object):
+
+    def setup_method(self, method):
+        self.dpm = package_managers.DNFPackageManager
+
+    @pytest.mark.parametrize(('group', 'output', 'result'), [
+        ('foo', 'Installed Groups', 'foo'),
+        ('bar', '', False)
+    ])
+    def test_is_group_installed(self, group, output, result):
+        flexmock(ClHelper).should_receive('run_command')\
+                .with_args('dnf groups list "{grp}"'.format(grp=group)).and_return(output)
+        cmd_result = self.dpm.is_group_installed(group)
+        assert cmd_result == result
+
+    def test_install(self):
+        pkgs = ('foo', 'bar', 'baz')
+
+        flexmock(ClHelper).should_receive('run_command')
+        assert self.dpm.install(*pkgs) == pkgs
+
+        flexmock(ClHelper).should_receive('run_command').and_raise(ClException(None, None, None))
+        assert self.dpm.install(*pkgs) is False
+
+    def test_works(self):
+        mock = flexmock(six.moves.builtins)
+        mock.should_call('__import__')
+
+        mock.should_receive('__import__')
+        assert self.dpm.works()
+        mock.should_receive('__import__').and_raise(ImportError)
+        assert not self.dpm.works()
+
+    @pytest.mark.parametrize(('correct_query', 'wrong_query', 'string', 'expected'), [
+        ('group', 'rpm', '@foo', True),
+        ('rpm', 'group', 'foo', True),
+        ('group', 'rpm', '@foo', False),
+        ('rpm', 'group', 'foo', False),
+    ])
+    def test_is_pkg_installed(self, correct_query, wrong_query, string, expected):
+        correct_method = 'is_{query}_installed'.format(query=correct_query)
+        wrong_method = 'is_{query}_installed'.format(query=wrong_query)
+        flexmock(self.dpm)
+        self.dpm.should_receive(correct_method).and_return(expected).at_least().once()
+        self.dpm.should_call(wrong_method).never()
+        assert self.dpm.is_pkg_installed(string) is expected
+
+    @pytest.mark.skipif(module_not_available('dnf'), reason='Requires dnf module')
+    def test_resolve(self):
+        import dnf
+        expected = ['bar', 'baz']
+        fake_sack = flexmock()
+        fake_sack.should_receive('query.available.filter.run').and_return(expected)
+        fake_dnfbase = flexmock(conf=flexmock(cachedir='', substitutions={}),
+                                sack=fake_sack,
+                                fill_sack=lambda *args, **kwargs: None,
+                                read_all_repos=lambda: None,
+                                install=lambda x: True,
+                                resolve=lambda: None,
+                                transaction=flexmock(install_set=expected))
+        flexmock(dnf.Base).new_instances(fake_dnfbase)
+        assert self.dpm.resolve('foo') == expected
+        fake_dnfbase.should_receive('resolve').and_raise(dnf.exceptions.Error)
+        with pytest.raises(DependencyException):
+            self.dpm.resolve('foo')
+
 
 class TestPacmanPackageManager(object):
 
