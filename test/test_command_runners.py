@@ -3,6 +3,7 @@ import os
 
 import pytest
 from flexmock import flexmock
+import yaml
 
 from devassistant import lang
 from devassistant.assistant_base import AssistantBase
@@ -202,7 +203,14 @@ class TestDependenciesCommandRunner(object):
 
 
 class TestDotDevassistantCommandRunner(object):
-    pass
+    def test_dda_w_takes_section_as_literal(self, tmpdir):
+        # we want to make sure that the section we write is not evaluated, not even substituted
+        kwargs = {'foo': 'bar'}
+        to_write = [tmpdir.strpath, {'run': [{'$cwd~': '$(pwd)'}, {'log_i': '$foo'}]}]
+        open(os.path.join(tmpdir.strpath, '.devassistant'), 'w').close()
+        Command('dda_w', to_write, kwargs).run()
+        content = open(os.path.join(tmpdir.strpath, '.devassistant')).read()
+        assert content == yaml.dump(to_write[1], default_flow_style=False)
 
 
 class TestGitHubCommandRunner(object):
