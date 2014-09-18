@@ -13,6 +13,7 @@ import six
 
 from devassistant import exceptions
 from devassistant.logger import logger
+from devassistant.settings import ROOT_EXECUTABLE
 
 
 class ClHelper(object):
@@ -123,7 +124,11 @@ class ClHelper(object):
         heredoc_firstline = ['pkexec']
         if as_user != 'root':
             heredoc_firstline.extend(['--user',  as_user])
-        heredoc_firstline.append('bash << {delim}'.format(delim=delimiter))
+        if os.path.isfile(ROOT_EXECUTABLE) and os.access(ROOT_EXECUTABLE, os.X_OK):
+            executable = ROOT_EXECUTABLE
+        else:
+            executable = 'bash'
+        heredoc_firstline.append('{exe} << {delim}'.format(exe=executable, delim=delimiter))
         cmd = '\n'.join([' '.join(heredoc_firstline),
                          cmd_str,
                          delimiter

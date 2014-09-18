@@ -22,6 +22,8 @@ for level_short, level_name in LOG_LEVELS_MAP.items():
 LAST_LR_VAR = 'LAST_LRES'
 LAST_R_VAR = 'LAST_RES'
 
+ROOT_EXECUTABLE = '/usr/libexec/da_auth'
+
 SUBASSISTANT_PREFIX = 'subassistant'
 SUBASSISTANT_N_STRING = 'subassistant_{0}'
 
