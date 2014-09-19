@@ -2,6 +2,7 @@ import os
 import pytest
 import sys
 import tempfile
+from flexmock import flexmock
 from io import StringIO
 
 from devassistant.command_helpers import ClHelper, CliDialogHelper
@@ -60,6 +61,18 @@ class TestClHelper(object):
             assert os.getcwd() == tmpdir
         finally:
             os.chdir(cwd)
+
+    @pytest.mark.parametrize(('correct', 'wrong', 'system_exe'), [
+        ('bash', '/usr/libexec/da_auth', False),
+        ('/usr/libexec/da_auth', 'bash', True),
+    ])
+    def test_format_as_another_user_picks_the_right_exe(self, correct, wrong, system_exe):
+        flexmock(os.path).should_receive('isfile').with_args('/usr/libexec/da_auth').and_return(system_exe)
+        flexmock(os).should_receive('access').with_args('/usr/libexec/da_auth', 1).and_return(system_exe)
+
+        assert correct in ClHelper.format_for_another_user('foo', 'root')
+        assert wrong not in ClHelper.format_for_another_user('foo', 'root')
+
 
 
 class TestCliDialogHelper(object):
