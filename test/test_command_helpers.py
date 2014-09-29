@@ -66,6 +66,9 @@ class TestClHelper(object):
         ('bash', '/usr/libexec/da_auth', False),
         ('/usr/libexec/da_auth', 'bash', True),
     ])
+    # TODO: remove
+    # Skipping tests in Python 3.4 due to https://github.com/has207/flexmock/pull/100
+    @pytest.mark.skipif(sys.version_info[:2] == (3, 4), reason='Skipped due to flexmock bug in Python 3.4')
     def test_format_as_another_user_picks_the_right_exe(self, correct, wrong, system_exe):
         flexmock(os.path).should_receive('isfile').with_args('/usr/libexec/da_auth').and_return(system_exe)
         flexmock(os).should_receive('access').with_args('/usr/libexec/da_auth', 1).and_return(system_exe)
