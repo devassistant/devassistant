@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import atexit as python_atexit
 import os
 import platform
 import sys
@@ -99,15 +98,14 @@ def cl_string_for_da_eval(section, context=None):
 
 _exithandlers = []
 def atexit(func, *targs, **kargs):
-    """Function that behaves exactly like Python's atexit, but runs atexit functions
-    in the order in which they were registered, not reversed
-    """
     _exithandlers.append((func, targs, kargs))
     return func
 
 
-@python_atexit.register
-def _run_exitfuncs():
+def run_exitfuncs():
+    """Function that behaves exactly like Python's atexit, but runs atexit functions
+    in the order in which they were registered, not reversed.
+    """
     exc_info = None
     for func, targs, kargs in _exithandlers:
         try:
@@ -115,12 +113,7 @@ def _run_exitfuncs():
         except SystemExit:
             exc_info = sys.exc_info()
         except:
-            # ignore command exceptions to not print tracebacks if atexit commands fail,
-            #  this can happen and it's expected
-            if not isinstance(sys.exc_info()[1], exceptions.CommandException):
-                print("Error in atexit._run_exitfuncs:", file=sys.stderr)
-                traceback.print_exc()
-                exc_info = sys.exc_info()
+            exc_info = sys.exc_info()
 
     if exc_info is not None:
         six.reraise(exc_info[0], exc_info[1], exc_info[2])

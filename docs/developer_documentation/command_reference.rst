@@ -528,12 +528,12 @@ Arguments:
 
 .. _run_atexit_ref:
 
-Running Commands At DevAssistant Exit
--------------------------------------
+Running Commands After Assistant Exits
+--------------------------------------
 
-Register commands to be run at DevAssistant exit.
+Register commands to be run when assistant exits (this is not necessarily DevAssistant exit).
 
-- Input: list of commands to run
+- Input: section (list of commands to run)
 - RES: the passed list of commands (raw, unformatted)
 - LRES: True
 - Example::
@@ -543,12 +543,13 @@ Register commands to be run at DevAssistant exit.
      - cl: kill $server
      - log_i: Server gets killed even if the assistant failed at some point.'
 
-Sections registered to be run at DevAssistant exit are run at the very end of DevAssistant
-execution, even after the ``post_run`` section.
+Sections registered by ``atexit`` are run at the very end of assistant execution
+even after the ``post_run`` section. There are some differencies compared to ``post_run``:
 
-The ``atexit`` command creates a "closure", meaning the values of arguments will be
-the same as they were at the time the command was run (even if you change them in the run
-section subsequently).
-
-If you ``atexit`` multiple times, the registered sections will run independently, meaning
-that if some fail, the others will still be executed.
+- ``atexit`` command creates a "closure", meaning the values of variables in time of
+  the actual section invocation are the same as they were at the time the ``atexit`` command
+  was used (meaning that even if you change variable values during the ``run`` section after
+  running ``atexit``, the values are preserved).
+- You can use multiple ``atexit`` command calls to register multiple sections. These are run
+  in the order in which they were registered.
+- Even if some of the sections registered with ``atexit`` fail, the others are still invoked.
