@@ -531,7 +531,7 @@ Arguments:
 Running Commands At DevAssistant Exit
 -------------------------------------
 
-Run commands at DevAssistant exit.
+Register commands to be run at DevAssistant exit.
 
 - Input: list of commands to run
 - RES: the passed list of commands (raw, unformatted)
@@ -542,6 +542,9 @@ Run commands at DevAssistant exit.
    - atexit:
      - cl: kill $server
      - log_i: Server gets killed even if the assistant failed at some point.'
+
+Sections registered to be run at DevAssistant exit are run at the very end of DevAssistant
+execution, even after the ``post_run`` section.
 
 The ``atexit`` command creates a "closure", meaning the values of arguments will be
 the same as they were at the time the command was run (even if you change them in the run
