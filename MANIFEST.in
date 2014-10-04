@@ -1,6 +1,7 @@
 include CHANGELOG
 include LICENSE
 include README.rst
+include requirements.txt requirements-devel.txt
 
 include manpages/*
 include da.bash
