@@ -619,8 +619,9 @@ def evaluate_expression(expression, names):
 
         cmd = " ".join(cmd)
 
-        # Substitute the variables
-        formatted_cmd = format_str(cmd, interpr.names)
+        if (cmd.startswith('"') and cmd.endswith('"')) or \
+            (cmd.startswith("'") and cmd.endswith("'")):
+            cmd = cmd[1:-1]
 
         success = True
         exec_mode = 'cl_r' if interpr.as_root else 'cl'
