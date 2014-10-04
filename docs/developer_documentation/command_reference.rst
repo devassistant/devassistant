@@ -525,3 +525,27 @@ Arguments:
   DevAssistant if directory specified by ``from`` already exists; if ``pass``, nothing will
   happen; note, that this is always considered ``pass``, if ``create_topdir`` is ``False``
   (in which case the assistant is in full control and responsible for checking everything itself)
+
+.. _run_atexit_ref:
+
+Running Commands At DevAssistant Exit
+-------------------------------------
+
+Run commands at DevAssistant exit.
+
+- Input: list of commands to run
+- RES: the passed list of commands (raw, unformatted)
+- LRES: True
+- Example::
+
+   - $server: $(get server pid)
+   - atexit:
+     - cl: kill $server
+     - log_i: Server gets killed even if the assistant failed at some point.'
+
+The ``atexit`` command creates a "closure", meaning the values of arguments will be
+the same as they were at the time the command was run (even if you change them in the run
+section subsequently).
+
+If you ``atexit`` multiple times, the registered sections will run independently, meaning
+that if some fail, the others will still be executed.

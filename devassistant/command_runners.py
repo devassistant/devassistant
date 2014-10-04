@@ -68,6 +68,19 @@ class CommandRunner(object):
 
 
 @register_command_runner
+class AtExitCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'atexit'
+
+    @classmethod
+    def run(cls, c):
+        utils.atexit(lang.run_section, copy.deepcopy(c.comm), copy.deepcopy(c.kwargs),
+            copy.deepcopy(c.kwargs['__assistant__']))
+        return (True, c.comm)
+
+
+@register_command_runner
 class AskCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):

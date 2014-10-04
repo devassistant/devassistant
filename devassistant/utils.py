@@ -24,6 +24,8 @@ except ImportError:
     importlib.import_module = import_module
     del import_module
 
+from devassistant import exceptions
+
 
 def import_module(module):
     return importlib.import_module(module)
@@ -113,9 +115,12 @@ def _run_exitfuncs():
         except SystemExit:
             exc_info = sys.exc_info()
         except:
-            print("Error in atexit._run_exitfuncs:", file=sys.stderr)
-            traceback.print_exc()
-            exc_info = sys.exc_info()
+            # ignore command exceptions to not print tracebacks if atexit commands fail,
+            #  this can happen and it's expected
+            if not isinstance(sys.exc_info()[1], exceptions.CommandException):
+                print("Error in atexit._run_exitfuncs:", file=sys.stderr)
+                traceback.print_exc()
+                exc_info = sys.exc_info()
 
     if exc_info is not None:
         six.reraise(exc_info[0], exc_info[1], exc_info[2])
