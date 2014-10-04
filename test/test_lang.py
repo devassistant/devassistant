@@ -163,6 +163,11 @@ class TestEvaluate(object):
         # (True, '` a : s = d ...)
         assert evaluate_expression('$(echo \`a:s!=d\`\~\&\|)', {}) == (True, '`a:s!=d`~&|')
 
+    def test_workaround_for_more_special_symbols(self):
+        # see https://github.com/devassistant/devassistant/issues/271
+        assert evaluate_expression('$("echo +-")', {}) == (True, '+-')
+        assert evaluate_expression("$('echo +-')", {}) == (True, '+-')
+
     def test_variables_in_subshell_invocation(self):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
         assert evaluate_expression('$(echo ${exists} ${doesnt})', {'exists': 'X'}) == (True, 'X')

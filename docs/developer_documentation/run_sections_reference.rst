@@ -244,6 +244,12 @@ Syntax and semantics:
   - regardless of *logical result*, *result* always contains both stdout
     and stderr lines in the order they were printed by ``commandline command``
 
+  - *note*: Due to the way the expression parser works, DevAssistant may sometimes add spaces
+    around special characters between ``$(`` and ``)``. This is a known issue, but we don't have
+    any systematic solution right now. The problem can be worked around by putting quotes (single
+    or double) around the whole commandline invocation, e.g. you can use ``$("echo +-")``. See
+    `issue 271 <https://github.com/devassistant/devassistant/issues/271>`.
+
 - ``as_root $(commandline command)`` runs ``commandline command`` as superuser; DevAssistant
   may achieve this differently on different platforms, so the actual way how this is done
   is considered to be an implementation detail
