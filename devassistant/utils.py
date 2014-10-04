@@ -1,6 +1,12 @@
+from __future__ import print_function
+
+import atexit as python_atexit
 import os
 import platform
 import sys
+import traceback
+
+import six
 import yaml
 try:
     from yaml import CDumper as Dumper
@@ -39,7 +45,6 @@ def get_distro_name():
       return 'darwin'
   else:
       return ''
-
 
 
 def get_distro_version():
@@ -88,3 +93,29 @@ def cl_string_for_da_eval(section, context=None):
                           'eval - <<',
                           dumped_in_heredoc])
     return cl_string
+
+
+_exithandlers = []
+def atexit(func, *targs, **kargs):
+    """Function that behaves exactly like Python's atexit, but runs atexit functions
+    in the order in which they were registered, not reversed
+    """
+    _exithandlers.append((func, targs, kargs))
+    return func
+
+
+@python_atexit.register
+def _run_exitfuncs():
+    exc_info = None
+    for func, targs, kargs in _exithandlers:
+        try:
+            func(*targs, **kargs)
+        except SystemExit:
+            exc_info = sys.exc_info()
+        except:
+            print("Error in atexit._run_exitfuncs:", file=sys.stderr)
+            traceback.print_exc()
+            exc_info = sys.exc_info()
+
+    if exc_info is not None:
+        six.reraise(exc_info[0], exc_info[1], exc_info[2])
