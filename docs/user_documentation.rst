@@ -31,7 +31,7 @@ Each assistant specifies a way to achieve a single task, e.g. create a new
 project in framework X of language Y.
 
 If you want to know more about how this all works, consult
-:ref:`yaml_assistant_reference`.
+:ref:`create_your_own_assistant`.
 
 Assistant Roles
 ~~~~~~~~~~~~~~~

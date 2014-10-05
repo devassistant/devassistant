@@ -1,9 +1,9 @@
 .. _assistants in our Github repo: https://github.com/devassistant/devassistant-assistants-fedora/
 
-.. _yaml_assistant_reference:
+.. _dsl_reference:
 
-Yaml Assistant Reference
-========================
+Yaml DSL Reference
+==================
 
 *Note: The Yaml DSL has changed significantly in 0.9.0 in backwards incompatible manner.
 This documentation is only for version 0.9.0 and later.*

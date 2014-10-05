@@ -3,23 +3,22 @@ Developer Documentation
 
 .. toctree::
    :titlesonly:
-   :maxdepth: 2
 
    developer_documentation/devassistant_core
-   developer_documentation/tutorial_creating_assistant
-   developer_documentation/packaging_your_assistant
-   developer_documentation/yaml_assistant_reference
-   developer_documentation/run_sections_reference
+   developer_documentation/create_assistant
    developer_documentation/command_reference
    developer_documentation/common_assistant_behaviour
-   developer_documentation/snippets
    developer_documentation/dot_devassistant
    developer_documentation/project_types
 
 Talk to Us!
 -----------
 
-If you want to see where DevAssistant development is going and you want to influence it and send your suggestions and comments, you should *really* join our ML: https://lists.fedoraproject.org/mailman/listinfo/devassistant.
+If you want to see where DevAssistant development is going and you want to influence it
+and send your suggestions and comments, you should join our ML:
+https://lists.fedoraproject.org/mailman/listinfo/devassistant. We also have IRC channel
+#devassistant on Freenode and you can join our
+`Google+ community <https://plus.google.com/communities/112692240128429771916>`_.
 
 Overall Design
 --------------
@@ -38,7 +37,7 @@ GUI
   Assistant from GTK based GUI; it consumes the Core API.
 Assistants
   Assistants are Yaml files with special syntax and semantics (defined
-  in :ref:`yaml_assistant_reference`). They are indepent of the Core,
+  in :ref:`dsl_reference`). They are indepent of the Core,
   therefore any software distribution can carry its own assistants
   and drop them into the directory from where DevAssistant
   loads them - they will be loaded on next invocation.
@@ -80,7 +79,7 @@ wouldn't be usable on its own any more, etc.
 Assistant Roles
 ~~~~~~~~~~~~~~~
 
-The ``crt`` in the above example means, that we're running an assistant that
+The ``create`` in the above example means, that we're running an assistant that
 creates a project.
 
 .. include:: assistant-roles.txt

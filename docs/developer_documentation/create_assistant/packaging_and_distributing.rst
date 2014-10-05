@@ -1,9 +1,9 @@
-Packaging Your Assistant
-========================
+Packaging and Distributing Your Assistant
+=========================================
 
 **Note: this functionality is under heavy development and is not fully implemented yet.**
 
-So now you know how to :ref:`create an assistant <tutorial>`.
+So now you know how to :ref:`create an assistant <create_your_own_assistant>`.
 But what if you want to share your assistant with others?
 
 For that you could send them all the files from your assistant and tell them where they belong.
@@ -46,12 +46,13 @@ Note several things:
 
 - Each of this is optional, i.e. you don't create ``files`` or ``snippets`` folder if you provide
   no files or snippets. Only mandatory thing is ``meta.yaml`` (see below).
-- Everything goes to the particular folder, just like you've learn in the
-  :ref:`Tutorial <tutorial>`. However, you can only add stuff named as your
-  dap (means either a folder or a file with a particular extension). If you have more levels of
-  assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level assistants (in this
-  case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to preserve the structure
-  in other folders as well (i.e. no ``icons/crt/foo/spam.svg`` but ``icons/crt/foo/bar/spam.svg``).
+- Everything goes to the particular folder, just like you've learned in the chapter about
+  :ref:`creating assistants <create_your_own_assistant>`. However, you can only add stuff named
+  as your dap (means either a folder or a file with a particular extension). If you have more
+  levels of assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level
+  assistants (in this case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to
+  preserve the structure in other folders as well (i.e. no ``icons/crt/foo/spam.svg`` but
+  ``icons/crt/foo/bar/spam.svg``).
 - The top level folder is named ``<package_name>-<version>``.
 
 meta.yaml

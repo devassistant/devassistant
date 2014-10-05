@@ -1,7 +1,7 @@
-.. _tutorial:
+.. _tutorial_dsl:
 
-Tutorial: Creating Your Own Assistant
-=====================================
+Tutorial: Creating Your Own Assistant in Yaml DSL
+=================================================
 
 So you want to create your own assistant? There is nothing easier... They say
 that in all tutorials, right?
@@ -10,7 +10,7 @@ This tutorial will guide you through the process of creating simple assistants
 of :ref:`different roles <assistant_roles_devel>` - Creator, Modifier,
 Preparer.
 
-This tutorial doesn't cover everything. Consult :ref:`yaml_assistant_reference`
+This tutorial doesn't cover everything. Consult :ref:`dsl_reference`
 when you're missing something you really need to achieve. If you think
 that DevAssistant misses some functionality that would be useful, open
 a bug at https://www.github.com/devassistant/devassistant/issues or send us
