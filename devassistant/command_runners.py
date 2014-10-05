@@ -8,9 +8,11 @@ import os
 import re
 import time
 import string
+import subprocess
 import sys
 import threading
 
+import dapp
 import jinja2
 import six
 import yaml
@@ -1360,3 +1362,86 @@ class SetupProjectDirCommandRunner(CommandRunner):
         c.kwargs[args['topdir_normalized_var']] = normalized_topdir
 
         return (True, topdir_fullpath if args['create_topdir'] else contdir)
+
+
+@register_command_runner
+class PingPongCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'pingpong'
+
+    @classmethod
+    def run(cls, c):
+        run = c.input_res
+        if isinstance(c.input_res, dict):
+            # input_res is a referenced file from files section
+            run = os.path.join(c.kwargs['__files_dir__'][-1], c.input_res['source'])
+
+        # TODO: if there is an exception, the subprocess can just keep running, fix this
+        proc = subprocess.Popen(run, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, shell=True)
+        @utils.atexit
+        def kill_atexit_if_alive():
+            if proc.poll() is None:
+                # if pingpong process is the last command, it may take some time to
+                #  terminate, so give it one second
+                logger.debug('Waiting for PingPong process invoked by "{0}" to terminate ...'.\
+                    format(run))
+                time.sleep(1)
+                if proc.poll() is None:
+                    logger.debug('Process didn\'t terminate, killing ...')
+                    proc.kill()
+                    logger.debug('Killed.')
+                else:
+                    logger.debug('Process terminated OK.')
+        server = dapp.DAPPServer(proc, logger=logger)
+        return cls._play_pingpong(server, c.kwargs)
+
+    @classmethod
+    def _play_pingpong(cls, server, ctxt):
+        # note: ctxt must always be updated with dapp.update_ctxt, so that all changes
+        #  are done on the same object and therefore available for subsequent Yaml commands
+        # 1) send "run" message
+        # 2) recieve first message from the subprocess
+        try:
+            server.send_msg_run(ctxt)
+            msg = server.recv_msg()
+        except dapp.DAPPException as e:
+            raise exceptions.CommandException(e)
+
+        # 3) receive messages and do whatever the subprocess asks
+        while msg:
+            if msg['msg_type'] in ['finished', 'failed']:
+                break
+            elif msg['msg_type'] == 'call_command':
+                ct, ci = msg['command_type'], msg['command_input']
+                dapp.update_ctxt(ctxt, msg['ctxt'])
+                try:
+                    lres, res = lang.Command(ct, ci, ctxt).run()
+                    server.send_msg_command_result(ctxt, lres=lres, res=res)
+                except BaseException as e:
+                    server.send_msg_command_exception(ctxt, str(e))
+                try:
+                    msg = server.recv_msg()
+                except dapp.DAPPException as e:
+                    raise exceptions.CommandException(e)
+            else:
+                msg = 'PingPong script sent unexpected message type "{0}".'.format(msg['msg_type'])
+                raise exceptions.CommandException(msg)
+
+        # 4) check the last message from subprocess and return proper values
+        if not msg:
+            raise exceptions.CommandException('Last message from PingPong script was empty!')
+        lres = False
+        res = ''
+        if msg['msg_type'] == 'finished':
+            lres = msg['lres']
+            res = msg['res']
+            dapp.update_ctxt(ctxt, msg['ctxt'])
+        elif msg['msg_type'] == 'failed':
+            e = 'PingPong script failed:\n{e}'.format(e=msg['fail_desc'])
+            raise exceptions.CommandException(e)
+        else:
+            e = 'Wrong message from PingPong script:\n{m}'.format(m=msg)
+            raise exceptions.CommandException(e)
+        return (lres, res)

@@ -1,5 +1,6 @@
 PyGithub
 PyYAML
+dapp
 flexmock
 jinja2
 progress
