@@ -39,10 +39,9 @@ Some things are common for all assistant types:
   distribution/packaging system and you shouldn't touch or add files in
   this path. The "local" path can be used by system admins to add system-wide
   assistants while not touching "system" path. Lastly, "user" path can be
-  used by users to create and use their own assistants. It is up to you where
-  you place your assistant, but "user" path is usually best for playing around
-  and development of new assistants. It is also the path that we will use
-  throughout these tutorials.
+  used by users to create and use their own assistants.
+- When developing new assistants, that you e.g. put in a Git repo, it is best to utilize
+  ``DEVASSISTANT_PATH`` bash environment variable, see :ref:`load_paths` for more info.
 
 Creating a Simple Creator
 -------------------------
@@ -53,24 +52,42 @@ We will write an assistant that creates a project containing a simple Python
 script that uses ``argh`` Python module. Let's suppose that we're writing
 this assistant for an RPM based system like Fedora, CentOS or RHEL.
 
-This assistant is a "creator", so we have to put it somewhere into
-``~/.devassistant/assistants/crt/``. Since the standard DevAssistant
-distribution has a ``python`` assistant, it seems logical to make this new
-assistant a subassistant of ``python``. That means that the assistant file
-will be ``~/.devassistant/assistants/crt/python/argh.yaml``. It doesn't
-matter that the ``python`` assistant actually lives in a different load path,
-DevAssistant will hook the ``argh`` subassistant properly anyway.
+To start, we'll create a file hierarchy for our new assistant repo, say in
+``~/programming`` and modify ``DEVASSISTANT_PATH`` accordingly
+(TODO: create an assistant that does all this)::
+
+   mkdir -p ~/programming/pyargh/assistants/crt/
+   mkdir -p ~/programming/pyargh/files/crt/pyargh/
+   export DEVASSISTANT_PATH=~/programming/pyargh/
+
+Since this assistant is a "creator", we need to put it somewhere under
+``~/programming/assistants/crt/``. Assistants can be organized in a hierarchical
+structure, so you could have e.g. ``~/programming/pyargh/assistants/crt/python-scripts.yaml``
+as a superassistant and ``~/programming/pyargh/assistants/crt/python-scripts/pyargs.yaml``
+as its subassistant, but for this example we'll keep things simple and put ``pyargh.yaml``
+directly under ``~/programming/pyargh/assistants/crt/``.
+
+Note, that in pre-0.10.0 DevAssistant versions, it was recommended to hook such assistants
+in already existing hierarchies (e.g. using superassistants provided by someone else).
+Since 0.10.0, this is no longer recommended. The main reason for this is that we are introducing
+a simple upstream packaging and distribution format, as well as "DevAssistant package index" -
+a central repository of upstream assistant packages. See :ref:`packaging_and_distributing`
+for more details. In this concept, each package can only have one superassistant (named
+as the whole package is named) in each ``crt``, ``mod``, ``prep`` and ``task`` and can only
+place subassistants into hierarchies defined by these. Package names have to be unique
+in the DevAssistant Package Index.
 
 Setting it Up
 ~~~~~~~~~~~~~
 
-So, let's start writing our assistant by providing some initial metadata::
+So, let's start writing ``~/programming/pyargh/assistants/crt/pyargh.yaml`` by providing
+some initial metadata::
 
    fullname: Argh Script Template
    description: Create a template of simple script that uses argh library
    project_type: [python]
 
-If you now save the file and run ``da create python argh -h``, you'll see that
+If you now save the file and run ``da create pyargh -h``, you'll see that
 your assistant was already recognized by DevAssistant, although it doesn't
 provide any functionality yet. (Including project type in your Creator assistant
 is not necessary, but it may bring some benefits - see :ref:`project_types_ref`.
@@ -85,7 +102,7 @@ package is called e.g. on Fedora). You can do this just by adding::
    - rpm: [python-argh]
 
 Now, if you save the file and actually try to run your assistant with
-``da create python argh``, it will install ``python-argh``! (Well, assuming
+``da create pyargh``, it will install ``python-argh``! (Well, assuming
 it's not already installed, in which case it will do nothing.) This is
 really super-cool, but the assistant still doesn't do any project setup,
 so let's get on with it.
@@ -95,8 +112,8 @@ Files
 
 Since we want the script to always look the same, we will create a file that
 our assistant will copy into proper place. This file should be put into
-into ``crt/python/argh`` subdirectory the files directory
-(``~/.devassistant/files/crt/python/argh``). The file will be called
+into ``crt/python/pyargh`` subdirectory the files directory
+(``~/programming/files/crt/pyargh``). The file will be called
 ``arghscript.py`` and will have this content::
 
    #!/usr/bin/python2
@@ -116,10 +133,11 @@ We will need to refer to this file from our assistant, so let's open
        source: arghscript.py
 
 DevAssistant will automatically search for this file in the correct directory,
-that is ``~/.devassistant/files/crt/python/argh``.
-If there are e.g. some files common to multiple ``python`` subassistants, it
-is reasonable to place them into ``~/.devassistant/files/crt/python`` and
-refer to them with relative path like ``../file.foo``
+that is ``~/programming/files/crt/pyargh``.
+If an assistant has more subassistants, e.g. ``crt/pyargh/someassistant`` and
+these assistants need to share some files, it is reasonable to place them into
+``~/programming/files/crt/pyargh`` and refer to them with relative path like
+``../file.foo`` from the subassistants.
 
 Run
 ~~~
@@ -261,7 +279,7 @@ run sections can call each other, consult*
 Something About Snippets
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Wait, did we say git? Wouldn't it be nice if we could setup a git repository
+Wait, did we say Git? Wouldn't it be nice if we could setup a Git repository
 inside the project directory and do an initial commit? These things are always
 the same, which is exactly the type of task that DevAssistant should do for
 you.
@@ -269,7 +287,9 @@ you.
 Previously, we've seen usage of argument from snippet. But what if you could
 use a part of ``run`` section from there? Well, you can. And you're lucky,
 since there is a snippet called ``git_init_add_commit``, which does exactly
-what we need. We'll use it like this::
+what we need. TODO: we need to explain how to add dependencies between dapi packages here,
+since this will be in a package at DAPI.
+We'll use it like this::
 
    - cl: cd "$name"
    - use: git_init_add_commit.run

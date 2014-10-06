@@ -17,9 +17,12 @@ at `assistants in our Github repo`_.
   work in various languages whether they'd consider contributing assistants
   for those languages, we hit the "I'm not touching Python" barrier. Since
   we wanted to keep the assistants consistent (centralized logging, sharing
-  common functionality, same backtraces, etc...), we created a new DSL.
-  So now we have something that everyone complains about, including Pythonists,
-  which seems to be consistent too ;)
+  common functionality, same backtraces, etc...), we created a new DSL. This DSL
+  is very well suited for what it's supposed to do, but we understand that some
+  people don't want to learn it for various reasons. That is why, in 0.10.0, we
+  introduced a concept called :ref:`DevAssistant PingPong <create_pingpong_assistant>`.
+  Using PingPong, you can write assistants in scripting languages, while still
+  utilizing DevAssistant as a "library of functions".
 
 Assistant Roles
 ---------------

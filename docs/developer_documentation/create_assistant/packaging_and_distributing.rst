@@ -1,3 +1,5 @@
+.. _packaging_and_distributing:
+
 Packaging and Distributing Your Assistant
 =========================================
 
