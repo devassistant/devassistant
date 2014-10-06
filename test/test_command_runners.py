@@ -1,5 +1,6 @@
 import copy
 import os
+import sys
 
 import pytest
 from flexmock import flexmock
@@ -10,7 +11,7 @@ from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
-    SetupProjectDirCommandRunner
+    SetupProjectDirCommandRunner, PingPongCommandRunner
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 from devassistant.yaml_assistant import YamlAssistant
@@ -432,3 +433,39 @@ class TestSetupProjectDirCommandRunner(object):
             assert kwargs[varnames[0]] == (os.path.dirname(path) or '.')
             assert kwargs[varnames[1]] == os.path.basename(path)
             assert kwargs[varnames[2]] == normalized
+
+
+class TestPingPongCommandRunner(object):
+    fixtures = os.path.join(os.path.dirname(__file__), 'fixtures', 'pingpong')
+
+    def setup_method(self, method):
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def _run_pingpong(self, script, ctxt):
+        return Command('pingpong',
+            '{0} {1}'.format(sys.executable, os.path.join(self.fixtures, script)),
+            ctxt).run()
+
+    def test_ok_run(self):
+        ctxt = {'foo': 'bar'}
+        res = self._run_pingpong('ok_run.py', ctxt)
+
+        assert res == (True, 'Everything OK')
+        assert 'foo' not in ctxt
+        assert ctxt['set_by_pp_client'] == 'bar'
+
+        assert ('INFO', 'from var: bar') in self.tlh.msgs
+        assert ('INFO', 'from ctxt: bar') in self.tlh.msgs
+        assert ('DEBUG', 'foo') in self.tlh.msgs
+
+    def test_no_return(self):
+        with pytest.raises(CommandException) as e:
+            self._run_pingpong('no_return.py', {})
+        assert 'PingPong run method ended with unexpected result: None (expected 2-tuple)' in \
+            str(e.value)
+
+    def test_tracebacks(self):
+        with pytest.raises(CommandException) as e:
+            self._run_pingpong('tracebacks.py', {})
+        assert 'PingPong run method ended with an exception:' in str(e.value)
+        assert 'BaseException: problem' in str(e.value)
