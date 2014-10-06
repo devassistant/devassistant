@@ -3,7 +3,9 @@
 Command Reference
 =================
 
-This page serves as a reference for commands of the DevAssistant Yaml DSL.
+This page serves as a reference for commands of the DevAssistant
+:ref:`Yaml DSL <create_yaml_assistant>`. These commands
+are also callable from :ref:`PingPong scripts <create_pingpong_assistant>`.
 Every command consists of a **command_type** and **command_input**. After it gets executed,
 it sets the ``LAST_LRES`` and ``LAST_RES`` variables. These are also its return values,
 similar to :ref:`expressions_ref` **logical result** and **result**.
