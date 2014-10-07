@@ -555,3 +555,17 @@ even after the ``post_run`` section. There are some differencies compared to ``p
 - You can use multiple ``atexit`` command calls to register multiple sections. These are run
   in the order in which they were registered.
 - Even if some of the sections registered with ``atexit`` fail, the others are still invoked.
+
+.. _pingpong_command_ref:
+
+DevAssistant PingPong
+---------------------
+
+Run :ref:`DevAssistant PingPong scripts <create_pingpong_assistant>`.
+
+- Input: a string to line on commandlie
+- RES: Result computed by the PingPong script
+- LRES: Logical result computed by the PingPong script
+- Example::
+
+   - pingpong: python3 *file_from_files_section

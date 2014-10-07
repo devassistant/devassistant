@@ -1399,6 +1399,7 @@ class PingPongCommandRunner(CommandRunner):
 
     @classmethod
     def _play_pingpong(cls, server, ctxt):
+        # TODO: if we encounter an error on client side, we should terminate it
         # note: ctxt must always be updated with dapp.update_ctxt, so that all changes
         #  are done on the same object and therefore available for subsequent Yaml commands
         # 1) send "run" message
