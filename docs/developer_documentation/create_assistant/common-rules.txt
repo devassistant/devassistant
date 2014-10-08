@@ -1,0 +1,28 @@
+General Rules
+-------------
+
+Some things are common for all assistant types:
+
+- Each assistant is one Yaml file, that must contain exactly one mapping -
+  the so-called assistant attributes::
+
+   fullname: My Assistant
+   description: This will be part of help for this assistant
+   ...
+
+- You have to place them in a proper place, see :ref:`load_paths` and
+  :ref:`assistants_loading_mechanism`.
+- Files (e.g. templates, scripts, :ref:`PingPong script files <create_pingpong_assistant>` etc.)
+  used by assistant should be placed in the same load dir, e.g. if your assistant is placed at
+  ``~/.devassistant/assistants``, DevAssistant will look for files under
+  ``~/.devassistant/files``.
+- As mentioned in :ref:`load_paths`, there are three main load paths in
+  standard DevAssistant installation, "system", "local" and "user".
+  The "system" dir is used for assistants delivered by your
+  distribution/packaging system and you shouldn't touch or add files in
+  this path. The "local" path can be used by system admin to add system-wide
+  assistants while not touching "system" path. Lastly, "user" path can be
+  used by user to install assistants just for himself.
+- When developing new assistants, that you e.g. put in a separate Git repo and want to work on it,
+  commit, push, etc, it is best to utilize ``DEVASSISTANT_PATH`` bash environment variable,
+  see :ref:`load_paths` for more info.

@@ -8,7 +8,7 @@ that in all tutorials, right?
 
 This tutorial will guide you through the process of creating simple assistants
 of :ref:`different roles <assistant_roles_devel>` - Creator, Modifier,
-Preparer.
+Preparer, Task.
 
 This tutorial doesn't cover everything. Consult :ref:`dsl_reference`
 when you're missing something you really need to achieve. If you think
@@ -16,32 +16,9 @@ that DevAssistant misses some functionality that would be useful, open
 a bug at https://www.github.com/devassistant/devassistant/issues or send us
 a pull request.
 
-Common Rules and Gotchas
-------------------------
+.. include:: ../common-rules.txt
 
-Some things are common for all assistant types:
-
-- Each assistant is one Yaml file, that must contain exactly one mapping -
-  the so-called assistant attributes::
-
-   fullname: My Assistant
-   description: This will be part of help for this assistant
-   ...
-
-- You have to place them in a proper place, see :ref:`load_paths` and
-  :ref:`assistants_loading_mechanism`.
-- Files (e.g. templates, scripts, etc.) used by assistant should be placed in the same
-  load dir, e.g. if your assistant is placed at ``~/.devassistant/assistants``, DevAssistant
-  will look for files under ``~/.devassistant/files``.
-- As mentioned in :ref:`load_paths`, there are three main load paths in
-  standard DevAssistant installation, "system", "local" and "user".
-  The "system" dir is used for assistants delivered by your
-  distribution/packaging system and you shouldn't touch or add files in
-  this path. The "local" path can be used by system admins to add system-wide
-  assistants while not touching "system" path. Lastly, "user" path can be
-  used by users to create and use their own assistants.
-- When developing new assistants, that you e.g. put in a Git repo, it is best to utilize
-  ``DEVASSISTANT_PATH`` bash environment variable, see :ref:`load_paths` for more info.
+.. _creating_yaml_creator:
 
 Creating a Simple Creator
 -------------------------
@@ -52,7 +29,7 @@ We will write an assistant that creates a project containing a simple Python
 script that uses ``argh`` Python module. Let's suppose that we're writing
 this assistant for an RPM based system like Fedora, CentOS or RHEL.
 
-To start, we'll create a file hierarchy for our new assistant repo, say in
+To start, we'll create a file hierarchy for our new assistant, say in
 ``~/programming`` and modify ``DEVASSISTANT_PATH`` accordingly
 (TODO: create an assistant that does all this)::
 

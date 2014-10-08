@@ -1,0 +1,2 @@
+**Note on terminology: The PingPong script is not the assistant. Even if you're using
+the PingPong approach, the assistant is still a Yaml file (very simple in this case).**

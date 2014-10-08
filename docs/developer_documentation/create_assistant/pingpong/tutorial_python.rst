@@ -1,4 +1,5 @@
-Python Tutorial: Creating Python Assistant
-==========================================
+Tutorial: Python PingPong Script
+================================
 
-Tutorial
+This tutorial explains how to write a Python assistant using PingPong protocol.
+
