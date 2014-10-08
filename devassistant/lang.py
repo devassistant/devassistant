@@ -52,8 +52,8 @@ class Command(object):
             if cr.matches(self):
                 return cr.run(self)
 
-        raise exceptions.CommandException('No runner for command "{ct}: {c}".'.\
-            format(ct=self.comm_type, c=self.input_res))
+        raise exceptions.CommandException('No runner for command "{ct}: {c}".'.
+                                          format(ct=self.comm_type, c=self.input_res))
 
     @property
     def input_log_res(self):
@@ -183,8 +183,8 @@ def eval_exec_section(section, kwargs, runner=None):
                 retval = Command(comm_type, comm, kwargs=kwargs).run()
 
             if not isinstance(retval, (list, tuple)) or len(retval) != 2:
-                raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.\
-                        format(ct=comm_type, c=comm, r=retval))
+                raise exceptions.RunException('Bad return value of last command ({ct}: {c}): {r}'.
+                                              format(ct=comm_type, c=comm, r=retval))
             assign_last_result(kwargs, *retval)
 
     return retval
@@ -281,8 +281,8 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
     iterval = []
     if len(control_vars) == 2:
         if not isinstance(eval_expression, dict):
-            raise exceptions.YamlSyntaxError('Can\'t expand {t} to two control variables.'.\
-                    format(t=type(eval_expression)))
+            raise exceptions.YamlSyntaxError('Can\'t expand {t} to two control variables.'.
+                                             format(t=type(eval_expression)))
         else:
             iterval = list(eval_expression.items())
     elif isinstance(eval_expression, six.string_types):
@@ -371,7 +371,7 @@ def get_var_name(dollar_variable):
     return matched.group(1)
 
 
-### Expression evaluation
+# Expression evaluation
 class Interpreter(object):
     """
     Interpreter for DevAssistants DSL implemented using Pratt's parser.
@@ -507,7 +507,7 @@ class Interpreter(object):
 def evaluate_expression(expression, names):
     interpr = Interpreter(names)
 
-    ## Language definition
+    # Language definition
     # First, add all the symbols, along with their binding power
     interpr.symbol("and", 10)
     interpr.symbol("or", 10)
@@ -620,7 +620,7 @@ def evaluate_expression(expression, names):
         cmd = " ".join(cmd)
 
         if (cmd.startswith('"') and cmd.endswith('"')) or \
-            (cmd.startswith("'") and cmd.endswith("'")):
+                (cmd.startswith("'") and cmd.endswith("'")):
             cmd = cmd[1:-1]
 
         success = True

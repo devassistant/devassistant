@@ -36,13 +36,13 @@ def get_system_version():
 
 
 def get_distro_name():
-  system = get_system_name()
-  if system == 'linux':
-    return platform.linux_distribution()[0].lower() or _get_os_release_content('ID')
-  elif system == 'darwin':
-      return 'darwin'
-  else:
-      return ''
+    system = get_system_name()
+    if system == 'linux':
+        return platform.linux_distribution()[0].lower() or _get_os_release_content('ID')
+    elif system == 'darwin':
+        return 'darwin'
+    else:
+        return ''
 
 
 def get_distro_version():
@@ -94,6 +94,8 @@ def cl_string_for_da_eval(section, context=None):
 
 
 _exithandlers = []
+
+
 def atexit(func, *targs, **kargs):
     _exithandlers.append((func, targs, kargs))
     return func

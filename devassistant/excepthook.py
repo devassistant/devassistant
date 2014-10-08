@@ -38,8 +38,8 @@ def excepthook(type, value, traceback):
     record_frames_in = ['eval_exec_section', 'eval_literal_section']
     while curr_tb:
         if 'lang.py' in curr_tb.tb_frame.f_code.co_filename and \
-            curr_tb.tb_frame.f_code.co_name in record_frames_in:
-            run_section_frames.append(curr_tb.tb_frame)
+                curr_tb.tb_frame.f_code.co_name in record_frames_in:
+                run_section_frames.append(curr_tb.tb_frame)
 
         curr_tb = curr_tb.tb_next
 

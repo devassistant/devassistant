@@ -35,7 +35,7 @@ class YamlSnippetLoader(object):
         if loaded:
             return cls._create_snippet(name, *loaded)
 
-        raise exceptions.SnippetNotFoundException('no such snippet: {name}'.\
+        raise exceptions.SnippetNotFoundException('no such snippet: {name}'.
                                                   format(name=name_with_dir_separators))
 
     @classmethod

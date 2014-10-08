@@ -49,10 +49,10 @@ class PathRunner(object):
         # run 'pre_run', 'logging', 'dependencies' and 'run'
         try:  # serve as a central place for error logging
             self._logging(parsed_args)
-            if not 'deps_only' in parsed_args:
+            if 'deps_only' not in parsed_args:
                 self._run_path_run('pre', parsed_args)
             self._run_path_dependencies(parsed_args)
-            if not 'deps_only' in parsed_args:
+            if 'deps_only' not in parsed_args:
                 self._run_path_run('', parsed_args)
         except exceptions.ExecutionException as e:
             error = self._log_if_not_logged(e)

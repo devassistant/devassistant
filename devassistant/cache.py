@@ -83,7 +83,7 @@ class Cache(object):
             file_hierarchy: hierarchy as returned by devassistant.yaml_assistant_loader.\
                             YamlAssistantLoader.get_assistants_file_hierarchy
         """
-        if not role in self.cache:
+        if role not in self.cache:
             self.cache[role] = {}
         was_change = self._refresh_hierarchy_recursive(self.cache[role], file_hierarchy)
         if was_change:

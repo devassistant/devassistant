@@ -82,7 +82,7 @@ class ClHelper(object):
                 if output_callback:
                     output_callback(output)
             except IOError as e:
-                if e.errno == errno.EINTR: # Interrupted system call in Python 2.6
+                if e.errno == errno.EINTR:  # Interrupted system call in Python 2.6
                     sys.stderr.write('Can\'t interrupt this process!\n')
                 else:
                     raise e
@@ -132,7 +132,7 @@ class ClHelper(object):
         cmd = '\n'.join([' '.join(heredoc_firstline),
                          cmd_str,
                          delimiter
-        ])
+                         ])
         return cmd
 
     @classmethod

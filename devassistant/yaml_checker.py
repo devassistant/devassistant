@@ -2,9 +2,10 @@ import six
 
 from devassistant import exceptions
 
-LEGAL_SECTION_NAMES = ['fullname', 'description', 'dependencies', 'args', \
-                       'files', 'project_type', 'run', 'pre_run', 'post_run', \
+LEGAL_SECTION_NAMES = ['fullname', 'description', 'dependencies', 'args',
+                       'files', 'project_type', 'run', 'pre_run', 'post_run',
                        'files_dir', 'icon_path', ]
+
 
 class YamlChecker(object):
     _yaml_typenames = {dict: 'mapping',
@@ -207,7 +208,7 @@ class YamlChecker(object):
             raise exceptions.YamlSyntaxError('\n'.join(err))
 
     def _assert_key_in(self, key, struct, name, path=None, extra_info=None):
-        if not key in struct:
+        if key not in struct:
             err = []
             if path:
                 err.append(self._format_error_path(path + [name]))
@@ -240,11 +241,11 @@ class YamlChecker(object):
             err = []
             if path:
                 err.append(self._format_error_path(path + [name]))
-            err.append('  Expected {w} value for "{n}", got value of type {a}: "{v}"'.\
-                    format(w=wanted_yaml_typenames,
-                           n=name,
-                           a=actual_yaml_typename,
-                           v=struct))
+            err.append('  Expected {w} value for "{n}", got value of type {a}: "{v}"'.
+                       format(w=wanted_yaml_typenames,
+                              n=name,
+                              a=actual_yaml_typename,
+                              v=struct))
             if extra_info:
                 err.append('Tip: ' + extra_info)
             raise exceptions.YamlTypeError('\n'.join(err))

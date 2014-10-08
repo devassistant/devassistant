@@ -4,6 +4,7 @@ import csv
 from devassistant.logger import logger_gui
 from devassistant import settings
 
+
 class ConfigManager(object):
     """
     Stores all configuration values which should be preserved across multiple
@@ -24,15 +25,17 @@ class ConfigManager(object):
         if not os.path.exists(self.config_file):
             return
         try:
-            with open(self.config_file,'r') as file:
-                csvreader = csv.reader(file, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+            with open(self.config_file, 'r') as file:
+                csvreader = csv.reader(file, delimiter='=',
+                                       escapechar='\\', quoting=csv.QUOTE_NONE)
                 for line in csvreader:
                     if len(line) == 2:
                         key, value = line
                         self.config_dict[key] = value
                     else:
                         self.config_dict = dict()
-                        self.logger.warning("Malformed configuration file {0}, ignoring it.".format(self.config_file))
+                        self.logger.warning("Malformed configuration file {0}, ignoring it.".
+                                            format(self.config_file))
                         return
         except (OSError, IOError) as e:
             self.logger.warning("Could not load configuration file: {0}".format(str(e)))
@@ -49,11 +52,13 @@ class ConfigManager(object):
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
         except (OSError, IOError) as e:
-            self.logger.warning("Could not make directory for configuration file: {0}".format(str(e)))
+            self.logger.warning("Could not make directory for configuration file: {0}".
+                                format(str(e)))
             return
         try:
-            with open(self.config_file,'w') as file:
-                csvwriter = csv.writer(file, delimiter='=', escapechar='\\', lineterminator='\n', quoting=csv.QUOTE_NONE)
+            with open(self.config_file, 'w') as file:
+                csvwriter = csv.writer(file, delimiter='=', escapechar='\\',
+                                       lineterminator='\n', quoting=csv.QUOTE_NONE)
                 for key, value in self.config_dict.items():
                     csvwriter.writerow([key, value])
             self.config_changed = False
@@ -71,14 +76,14 @@ class ConfigManager(object):
         Set configuration value with given name.
         Value can be string or boolean type.
         """
-        if value == True:
+        if value is True:
             value = "True"
-        elif value == False:
+        elif value is False:
             if name in self.config_dict:
                 del self.config_dict[name]
                 self.config_changed = True
             return
-        if not name in self.config_dict or self.config_dict[name] != value:
+        if name in not self.config_dict or self.config_dict[name] != value:
             self.config_changed = True
             self.config_dict[name] = value
 

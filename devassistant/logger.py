@@ -26,6 +26,7 @@ class DevassistantClFormatter(logging.Formatter):
             settings.LOG_FORMATS_MAP['log_cmd']
         return fmt_str.format(**vars(record))
 
+
 class DevassistantClColorFormatter(DevassistantClFormatter):
     color_str = {'ERROR': u'\033[1;31m{0}\033[0m',
                  'WARNING': u'\033[1m{0}\033[0m'}
@@ -33,7 +34,7 @@ class DevassistantClColorFormatter(DevassistantClFormatter):
     def format(self, record):
         if record.levelname in self.color_str:
             return self.color_str[record.levelname].\
-                    format(DevassistantClFormatter.format(self, record))
+                format(DevassistantClFormatter.format(self, record))
         else:
             return DevassistantClFormatter.format(self, record)
 

@@ -60,7 +60,7 @@ class AssistantBase(object):
             a tree-like structure (see above) representing assistant hierarchy going down
             from this assistant to leaf assistants
         """
-        if not '_tree' in dir(self):
+        if '_tree' not in dir(self):
             subassistant_tree = []
             subassistants = self.get_subassistants()
             for subassistant in subassistants:
@@ -84,7 +84,7 @@ class AssistantBase(object):
 
         # len(path) - 1 always points to next subassistant_N, so we can use it to control iteration
         while settings.SUBASSISTANT_N_STRING.format(len(path) - 1) in kwargs and \
-              kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
+                kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
             for sa, subas_list in currently_searching:
                 if sa.name == kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)]:
                     currently_searching = subas_list
@@ -92,8 +92,8 @@ class AssistantBase(object):
                     break  # sorry if you shed a tear ;)
 
             if subas_list == previous_subas_list:
-                raise exceptions.AssistantNotFoundException('No assistant {n} after path {p}.'.\
-                    format(
+                raise exceptions.AssistantNotFoundException(
+                    'No assistant {n} after path {p}.'.format(
                         n=kwargs[settings.SUBASSISTANT_N_STRING.format(len(path) - 1)],
                         p=path))
             previous_subas_list = subas_list

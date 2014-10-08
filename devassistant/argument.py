@@ -96,7 +96,7 @@ class Argument(object):
                     format(arg=name, snip=snippet.name)
                 raise exceptions.ExecutionException(problem)
 
-        if not 'flags' in params:
+        if 'flags' not in params:
             msg = 'Couldn\'t find "flags" in arg {arg}'.format(arg=name)
             raise exceptions.ExecutionException(msg)
         return cls(name, *params.pop('flags'), **params)

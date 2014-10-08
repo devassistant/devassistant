@@ -125,7 +125,7 @@ class RPMPackageManager(PackageManager):
     @classmethod
     def is_rpm_installed(cls, rpm_name):
         logger.info('Checking for presence of {0}...'.format(rpm_name),
-            extra={'event_type': 'dep_check'})
+                    extra={'event_type': 'dep_check'})
 
         found_rpm = cls.rpm_q(rpm_name)
         if found_rpm:
@@ -142,7 +142,6 @@ class RPMPackageManager(PackageManager):
         return found_rpm
 
 
-
 @register_manager
 class YUMPackageManager(RPMPackageManager):
     """Package manager for managing rpm packages from repositories by Yum.
@@ -151,7 +150,6 @@ class YUMPackageManager(RPMPackageManager):
     permission_prompt = "Installing {num} RPM package{plural} by Yum. Is this ok?"
 
     c_yum = 'yum'
-
 
     @classmethod
     def is_group_installed(cls, group):
@@ -206,9 +204,9 @@ class YUMPackageManager(RPMPackageManager):
                     raise exceptions.DependencyException(msg)
         try:
             y.resolveDeps()
-        except yum.Errors.PackageSackError as e: # Resolution of Issue 154
-            raise exceptions.DependencyException('Error resolving RPM dependencies: {0}'.\
-                format(str(e)))
+        except yum.Errors.PackageSackError as e:  # Resolution of Issue 154
+            raise exceptions.DependencyException('Error resolving RPM dependencies: {0}'.
+                                                 format(str(e)))
 
         logger.debug('Installing/Updating:')
         to_install = []
@@ -258,7 +256,8 @@ class DNFPackageManager(RPMPackageManager):
     @classmethod
     def works(cls):
         try:
-            import dnf, hawkey
+            import dnf
+            import hawkey
             return True
         except ImportError:
             return False
@@ -270,7 +269,8 @@ class DNFPackageManager(RPMPackageManager):
     @classmethod
     def resolve(cls, *args):
         logger.info('Resolving RPM dependencies with DNF...')
-        import dnf, hawkey
+        import dnf
+        import hawkey
         base = dnf.Base()
         base.conf.cachedir = tempfile.mkdtemp()
         base.conf.substitutions['releasever'] = platform.linux_distribution()[1]
@@ -289,8 +289,8 @@ class DNFPackageManager(RPMPackageManager):
         try:
             base.resolve()
         except dnf.exceptions.Error as e:
-            raise exceptions.DependencyException('Error resolving RPM dependencies with DNF: {0}'.\
-                format(str(e)))
+            raise exceptions.DependencyException('Error resolving RPM dependencies with DNF: {0}'.
+                                                 format(str(e)))
 
         logger.debug('Installing/Updating:')
         to_install = []
@@ -302,6 +302,7 @@ class DNFPackageManager(RPMPackageManager):
 
     def __str__(self):
         return "DNF package manager"
+
 
 @register_manager
 class PacmanPackageManager(PackageManager):
@@ -325,10 +326,10 @@ class PacmanPackageManager(PackageManager):
     @classmethod
     def is_pacmanpkg_installed(cls, pkg_name):
         logger.info('Checking for presence of {0}...'.format(pkg_name),
-            extra={'event_type': 'dep_check'})
+                    extra={'event_type': 'dep_check'})
 
         try:
-            found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.\
+            found_pkg = ClHelper.run_command('{pacman} -Q "{pkg}"'.
                                              format(pacman=cls.c_pacman, pkg=pkg_name))
             logger.info('Found {0}'.format(found_pkg), extra={'event_type': 'dep_found'})
             return found_pkg
@@ -341,7 +342,7 @@ class PacmanPackageManager(PackageManager):
         logger.info('Checking for presence of group {0}...'.format(group))
 
         try:
-            ClHelper.run_command('{pacman} -Qg "{group}"'.\
+            ClHelper.run_command('{pacman} -Qg "{group}"'.
                                  format(pacman=cls.c_pacman,
                                         group=group))
             return group
@@ -400,7 +401,6 @@ class HomebrewPackageManager(PackageManager):
 
         return len(search) > 0
 
-
     @classmethod
     def works(cls):
         try:
@@ -411,17 +411,17 @@ class HomebrewPackageManager(PackageManager):
 
     @classmethod
     def resolve(cls, *args):
-      logger.info('Resolving Homebrew dependencies ...')
-      for pkg in args:
-        logger.debug('Looking at {0}'.format(pkg))
+        logger.info('Resolving Homebrew dependencies ...')
+        for pkg in args:
+            logger.debug('Looking at {0}'.format(pkg))
 
-      logger.debug('Installing/Updating:')
-      to_install = set()
-      for pkg in args:
-          query = ClHelper.run_command(' '.join([cls.c_homebrew, 'deps -n', pkg]))
-          to_install.update(query.split('\n'))
+        logger.debug('Installing/Updating:')
+        to_install = set()
+        for pkg in args:
+            query = ClHelper.run_command(' '.join([cls.c_homebrew, 'deps -n', pkg]))
+            to_install.update(query.split('\n'))
 
-      return list(to_install)
+        return list(to_install)
 
 
 @register_manager
@@ -682,8 +682,8 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
             r = vartree.dbapi.match(pkg)
             logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
         except portage.exception.InvalidAtom:
-            raise exceptions.DependencyException('Invalid dependency specification: {0}'.\
-                format(pkg))
+            raise exceptions.DependencyException('Invalid dependency specification: {0}'.
+                                                 format(pkg))
         # TODO Compare package version!
         return bool(r)
 
@@ -872,8 +872,8 @@ class DependencyInstaller(object):
 
     def _ask_to_confirm(self, ui, pac_man, *to_install):
         """ Return True if user wants to install packages, False otherwise """
-        ret = DialogHelper.ask_for_package_list_confirm(ui,
-            prompt=pac_man.get_perm_prompt(to_install),
+        ret = DialogHelper.ask_for_package_list_confirm(
+            ui, prompt=pac_man.get_perm_prompt(to_install),
             package_list=to_install,
         )
         return bool(ret)

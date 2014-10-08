@@ -58,8 +58,8 @@ class GitHubAuth(object):
         user = None
 
         for i in range(0, ntimes):
-            password = DialogHelper.ask_for_password(ui,
-                prompt='Github Password for {username}:'.format(username=login))
+            password = DialogHelper.ask_for_password(
+                ui, prompt='Github Password for {username}:'.format(username=login))
 
             # user pressed Ctrl + D
             if password is None:
@@ -114,12 +114,13 @@ class GitHubAuth(object):
         """Creates a local ssh key, if it doesn't exist already, and uploads it to Github."""
         try:
             login = cls._user.login
-            pkey_path = '{home}/.ssh/{keyname}'.format(home=os.path.expanduser('~'),
-                        keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
+            pkey_path = '{home}/.ssh/{keyname}'.format(
+                home=os.path.expanduser('~'),
+                keyname=settings.GITHUB_SSH_KEYNAME.format(login=login))
             # generate ssh key only if it doesn't exist
             if not os.path.exists(pkey_path):
                 ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
-                                     -N \"\" -C \"DevAssistant\"'.\
+                                     -N \"\" -C \"DevAssistant\"'.
                                      format(pkey_path=pkey_path))
             ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
             public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))

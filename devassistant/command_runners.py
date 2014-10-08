@@ -77,7 +77,7 @@ class AtExitCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         utils.atexit(lang.run_section, copy.deepcopy(c.comm), copy.deepcopy(c.kwargs),
-            copy.deepcopy(c.kwargs['__assistant__']))
+                     copy.deepcopy(c.kwargs['__assistant__']))
         return (True, c.comm)
 
 
@@ -136,10 +136,10 @@ class UseCommandRunner(CommandRunner):
         else:
             msg = '"use" command runner expects string or mapping as an argument.'
             raise exceptions.CommandException(msg)
-        
+
         # check that sect is a string with at least one dot
         if '.' not in sect:
-            msg ='"use" command section specification must be in form "what.which_section".'
+            msg = '"use" command section specification must be in form "what.which_section".'
             raise exceptions.CommandException(msg)
         # else everything is fine
 
@@ -209,7 +209,7 @@ class UseCommandRunner(CommandRunner):
             section = snip.get_dependencies_section(section_name) if snip else None
 
         if not section:
-            raise exceptions.CommandException('Couldn\'t find section "{t}" in snippet "{n}".'.\
+            raise exceptions.CommandException('Couldn\'t find section "{t}" in snippet "{n}".'.
                                               format(t=section_name, n=snip.dotted_name))
         return section
 
@@ -217,7 +217,7 @@ class UseCommandRunner(CommandRunner):
     def get_assistant(cls, assistant_name, section_name, origin_assistant):
         if assistant_name == 'self':
             if not hasattr(origin_assistant, '_' + section_name):
-                raise exceptions.CommandException('Assistant "{a}" has no section "{s}"'.\
+                raise exceptions.CommandException('Assistant "{a}" has no section "{s}"'.
                                                   format(a=origin_assistant.name,
                                                          s=section_name))
             return origin_assistant
@@ -229,16 +229,16 @@ class UseCommandRunner(CommandRunner):
                 if hasattr(a, '_' + section_name):
                     return a
                 a = a.superassistant
-            raise exceptions.CommandException('No superassistant of {a} has section {s}'.\
+            raise exceptions.CommandException('No superassistant of {a} has section {s}'.
                                               format(a=origin_assistant.name,
                                                      s=section_name))
 
     @classmethod
     def get_assistant_section(cls, section_name, assistant):
         if not hasattr(assistant, '_' + section_name):
-            raise exceptions.CommandException('Assistant {a} has no section {s}'.\
-                                                format(a=assistant.name,
-                                                       s=section_name))
+            raise exceptions.CommandException('Assistant {a} has no section {s}'.
+                                              format(a=assistant.name,
+                                                     s=section_name))
         return getattr(assistant, '_' + section_name)
 
 
@@ -360,8 +360,8 @@ class DotDevassistantCommandRunner(CommandRunner):
         to_write = {'devassistant_version': devassistant.__version__,
                     'original_kwargs': original_kwargs,
                     'project_type': kwargs['__assistant__'].project_type,
-                    'dependencies': kwargs['__assistant__'].\
-                        dependencies(kwargs=copy.deepcopy(original_kwargs), expand_only=True)}
+                    'dependencies': kwargs['__assistant__'].
+                    dependencies(kwargs=copy.deepcopy(original_kwargs), expand_only=True)}
         cls.__dot_devassistant_write_struct(directory, to_write)
 
     @classmethod
@@ -561,8 +561,8 @@ class GitHubCommandRunner(CommandRunner):
             dash_login = '-' + login
         try:
             logger.info('Adding Github repo as git remote ...')
-            ret = ClHelper.run_command("git remote add origin git@github.com{dl}:{l}/{r}.git".\
-                format(dl=dash_login, l=login, r=reponame))
+            ret = ClHelper.run_command("git remote add origin git@github.com{dl}:{l}/{r}.git".
+                                       format(dl=dash_login, l=login, r=reponame))
             logger.info('Successfully added Github repo as git remote.')
             return (True, ret)
         except exceptions.ClException as e:
@@ -630,10 +630,10 @@ class GitHubCommandRunner(CommandRunner):
     def _github_create_and_push(cls, **kwargs):
         """Note: the kwargs are not the global context here, but what cls.format_args returns."""
         # we assume we're in the project directory
-        logger.info('Registering your {priv}project on GitHub as {login}/{repo}...'.\
-                format(priv='private ' if kwargs['private'] else '',
-                       login=kwargs['login'],
-                       repo=kwargs['reponame']))
+        logger.info('Registering your {priv}project on GitHub as {login}/{repo}...'.
+                    format(priv='private ' if kwargs['private'] else '',
+                           login=kwargs['login'],
+                           repo=kwargs['reponame']))
         ret = cls._github_create_repo(**kwargs)
         if ret[0]:  # on success push the sources
             ret = cls._github_add_remote_and_push(**kwargs)
@@ -648,10 +648,10 @@ class GitHubCommandRunner(CommandRunner):
         Raises:
             devassistant.exceptions.CommandException on error
         """
-        timeout = 300 # 5 minutes
+        timeout = 300  # 5 minutes
         fork_login, fork_reponame = kwargs['repo_url'].split('/')
-        logger.info('Forking {repo} for user {login} on Github ...'.\
-            format(login=kwargs['login'], repo=kwargs['repo_url']))
+        logger.info('Forking {repo} for user {login} on Github ...'.
+                    format(login=kwargs['login'], repo=kwargs['repo_url']))
         success = False
         msg = ''
         try:
@@ -661,7 +661,7 @@ class GitHubCommandRunner(CommandRunner):
                 time.sleep(5)
                 timeout -= 5
                 try:
-                    fork.get_contents('/') # This function doesn't throw an exception when clonable
+                    fork.get_contents('/')  # This function doesn't throw exception when clonable
                     success = True
                     break
                 except cls._gh_module.GithubException as e:
@@ -839,8 +839,8 @@ class Jinja2Runner(CommandRunner):
         if c.comm_type == 'jinja_render':
             given_output = args.get('output', '')
             if not isinstance(given_output, six.string_types):
-                raise exceptions.CommandException('Jinja2Runner: output must be string, got {0}'.\
-                    format(given_output))
+                raise exceptions.CommandException('Jinja2Runner: output must be string, got {0}'.
+                                                  format(given_output))
             result_fn = cls._make_output_file_name(destination, template, given_output)
             cls._render_one_template(env, template, result_fn, data, overwrite)
         elif c.comm_type == 'jinja_render_dir':
@@ -856,8 +856,8 @@ class Jinja2Runner(CommandRunner):
             logger.debug('Using template file: {0}'.format(template))
             tpl = env.get_template(template)
         except jinja2.TemplateNotFound as e:
-            raise exceptions.CommandException('Template {t} not found in path {p}.'.\
-                    format(t=template, p=env.loader.searchpath))
+            raise exceptions.CommandException('Template {t} not found in path {p}.'.
+                                              format(t=template, p=env.loader.searchpath))
         except jinja2.TemplateError as e:
             raise exceptions.CommandException('Template file failure: {0}'.format(e.message))
 
@@ -867,8 +867,8 @@ class Jinja2Runner(CommandRunner):
                 logger.info('Overwriting the destination file {0}'.format(result_filename))
                 os.remove(result_filename)
             else:
-                raise exceptions.CommandException('The destination file already exists: {0}'.\
-                    format(result_filename))
+                raise exceptions.CommandException('The destination file already exists: {0}'.
+                                                  format(result_filename))
 
         # Generate an output file finally...
         with open(result_filename, 'w') as out:
@@ -885,8 +885,9 @@ class Jinja2Runner(CommandRunner):
             for f in filenames:
                 # get filename of template relative to template_dir
                 tpl_name = cls._strip_dir_prefix(template_basedir, os.path.join(dirpath, f))
-                dest_name = cls._make_output_file_name(destination,
-                                         cls._strip_dir_prefix(template_dir, tpl_name))
+                dest_name = cls._make_output_file_name(
+                    destination,
+                    cls._strip_dir_prefix(template_dir, tpl_name))
                 # if needed, create the dir that will contain the template
                 dest_dir = os.path.dirname(dest_name)
                 if not os.path.exists(dest_dir):
@@ -920,6 +921,7 @@ class AsUserCommandRunner(CommandRunner):
     def run(cls, c):
         user = cls.get_user_from_comm_type(c.comm_type)
         to_run = utils.cl_string_for_da_eval(c.comm, c.kwargs)
+
         def sub_da_logger(msg):
             logger.info(msg, extra={'event_type': 'sub_da'})
 
@@ -1123,7 +1125,7 @@ class DockerCommandRunner(object):
     def _get_docker_run_args(cls, inp):
         if not isinstance(inp, dict):
             raise exceptions.CommandException('docker_r expects mapping as input.')
-        if not 'image' in inp:
+        if 'image' not in inp:
             raise exceptions.CommandException('docker_r requires "image" argument.')
 
         return {'image': inp['image'], 'args': inp.get('args', '')}
@@ -1273,8 +1275,8 @@ class NormalizeCommandRunner(CommandRunner):
         """
         to_norm = c.input_res
         if not isinstance(to_norm, six.string_types):
-            raise exceptions.CommandException('"normalize" expects string input, got {0}'.\
-                format(to_norm))
+            raise exceptions.CommandException('"normalize" expects string input, got {0}'.
+                                              format(to_norm))
 
         normalized = to_norm.lstrip('0123456789')
         badchars = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
@@ -1342,7 +1344,8 @@ class SetupProjectDirCommandRunner(CommandRunner):
             if args['create_topdir']:
                 if os.path.exists(topdir_fullpath):
                     if args['on_existing'] == 'fail':
-                        msg = 'Directory "{0}" already exists, can\'t proceed'.format(topdir_fullpath)
+                        msg = 'Directory "{0}" already exists, can\'t proceed'.\
+                            format(topdir_fullpath)
                         raise exceptions.CommandException(msg)
                     elif not os.path.isdir(topdir_fullpath):
                         msg = 'Location "{0}" exists, but is not a directory, can\'t proceed'.\
@@ -1378,14 +1381,15 @@ class PingPongCommandRunner(CommandRunner):
 
         # TODO: if there is an exception, the subprocess can just keep running, fix this
         proc = subprocess.Popen(run, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, shell=True)
+                                stderr=subprocess.STDOUT, shell=True)
+
         @utils.atexit
         def kill_atexit_if_alive():
             if proc.poll() is None:
                 # if pingpong process is the last command, it may take some time to
                 #  terminate, so give it one second
-                logger.debug('Waiting for PingPong process invoked by "{0}" to terminate ...'.\
-                    format(run))
+                logger.debug('Waiting for PingPong process invoked by "{0}" to terminate ...'.
+                             format(run))
                 time.sleep(1)
                 if proc.poll() is None:
                     logger.debug('Process didn\'t terminate, killing ...')

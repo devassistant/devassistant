@@ -130,7 +130,7 @@ class HelpAction(Action):
             max(*map(lambda x: len(x.name), top_visible_actions))
         ) + 2
         text = ['You can either run assistants with:']
-        text.append(cls.format_text('da [--debug] {create,modify,prepare,task} ' +\
+        text.append(cls.format_text('da [--debug] {create,modify,prepare,task} ' +
                                     '[ASSISTANT [ARGUMENTS]] ...',
                                     'bold',
                                     format_type))
@@ -146,14 +146,15 @@ class HelpAction(Action):
                                            format_type))
         text.append(cls.format_action_line('prepare',
                                            'used for preparing environment for upstream projects',
-                                            just,
-                                            format_type))
+                                           just,
+                                           format_type))
         text.append(cls.format_action_line('task',
                                            'used for performing custom tasks not related to a '
                                            'specific project',
-                                            just,
-                                            format_type))
-        text.append('You can shorten "create" to "crt", "modify" to "mod" and "prepare" to "prep".')
+                                           just,
+                                           format_type))
+        text.append('You can shorten "create" to "crt", "modify" to "mod" ' +
+                    'and "prepare" to "prep".')
         text.append('')
         text.append('Or you can run a custom action:')
         text.append(cls.format_text('da [--debug] [ACTION] [ARGUMENTS]',
@@ -273,7 +274,7 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating {pkg}...'.format(pkg=pkg))
             try:
-                dapicli.install_dap(pkg,update=True)
+                dapicli.install_dap(pkg, update=True)
                 logger.info('{pkg} successfully updated'.format(pkg=pkg))
             except Exception as e:
                 exs.append(str(e))
@@ -331,7 +332,8 @@ class PkgLintAction(Action):
     name = 'lint'
     description = 'Checks local packages for sanity'
     args = [
-        argument.Argument('package', 'package', nargs='+', help='One or multiple packages to check (path)'),
+        argument.Argument('package', 'package', nargs='+',
+                          help='One or multiple packages to check (path)'),
         argument.Argument('network', '-n', '--network', action='store_true', default=False,
                           help='Perform checks that require Internet connection'),
         argument.Argument('nowarnings', '-w', '--nowarnings', action='store_true', default=False,
@@ -355,7 +357,6 @@ class PkgLintAction(Action):
         logger.setLevel(old_level)
         if error:
             raise exceptions.ExecutionException('One or more packages are not sane')
-
 
 
 @register_action

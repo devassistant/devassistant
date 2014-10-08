@@ -48,7 +48,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
     @parsed_yaml.setter
     def parsed_yaml(self, value):
-        ### Use value.get(...) or <default> for all argument settings,
+        # Use value.get(...) or <default> for all argument settings,
         # so that we are sure that <default> replaces "None" if needed
         # see: https://bugzilla.redhat.com/show_bug.cgi?id=1059305
         self._parsed_yaml = value
