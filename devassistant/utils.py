@@ -3,7 +3,6 @@ from __future__ import print_function
 import os
 import platform
 import sys
-import traceback
 
 import six
 import yaml
@@ -22,8 +21,6 @@ except ImportError:
         return importlib.load_module(name, fp, pathname, description)
     importlib.import_module = import_module
     del import_module
-
-from devassistant import exceptions
 
 
 def import_module(module):

@@ -7,7 +7,6 @@ import glob
 import shutil
 import tempfile
 import urllib
-import tarfile
 from devassistant import dapi
 from devassistant.dapi import dapver
 from devassistant.logger import logger

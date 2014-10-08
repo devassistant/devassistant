@@ -1,5 +1,4 @@
 import os
-import sys
 import tarfile
 import yaml
 import re
@@ -10,7 +9,7 @@ try:
 except:
     from yaml import Loader
 from . import licenses
-from devassistant.exceptions import DapError, DapFileError, DapMetaError, DapInvalid
+from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
 from devassistant.logger import logger
 
 

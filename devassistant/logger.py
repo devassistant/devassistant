@@ -1,7 +1,5 @@
 import logging
 import os
-import six
-import sys
 
 from devassistant import settings
 

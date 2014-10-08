@@ -1,5 +1,4 @@
 import copy
-import functools
 import getpass
 import grp
 import json
@@ -1354,7 +1353,7 @@ class SetupProjectDirCommandRunner(CommandRunner):
 
         except OSError as e:
             msg = 'Failed to create directory {0}: {1}'.format(args['from'], e.message)
-            raise CommandException(msg)
+            raise exceptions.CommandException(msg)
 
         # if contdir == '', then return current dir ('.')
         c.kwargs[args['contdir_var']] = contdir or '.'
