@@ -1440,8 +1440,8 @@ class PingPongCommandRunner(CommandRunner):
             res = msg['res']
             dapp.update_ctxt(ctxt, msg['ctxt'])
         elif msg['msg_type'] == 'failed':
-            e = 'PingPong script failed:\n{e}'.format(e=msg['fail_desc'])
-            raise exceptions.CommandException(e)
+            logger.debug('PingPong script failed, failure description logged below as error.')
+            raise exceptions.CommandException(msg['fail_desc'])
         else:
             e = 'Wrong message from PingPong script:\n{m}'.format(m=msg)
             raise exceptions.CommandException(e)
