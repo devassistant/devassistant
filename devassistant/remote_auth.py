@@ -29,7 +29,7 @@ class GitHubAuth(object):
         if not cls._token:
             try:
                 cls._token = ClHelper.run_command("git config github.token.{login}".format(
-                    login=login))
+                    login=login), log_secret=True)
             except exceptions.ClException:
                 pass  # token is not available yet
 
@@ -103,8 +103,7 @@ class GitHubAuth(object):
                         scopes=['repo', 'user', 'admin:public_key'],
                         note="DevAssistant")
                 ClHelper.run_command("git config --global github.token.{login} {token}".format(
-                    login=cls._user.login,
-                    token=auth.token))
+                    login=cls._user.login, token=auth.token), log_secret=True)
                 ClHelper.run_command("git config --global github.user.{login} {login}".format(
                     login=cls._user.login))
             except cls._gh_module.GithubException as e:

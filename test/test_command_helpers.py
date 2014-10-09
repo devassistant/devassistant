@@ -1,8 +1,12 @@
+from io import StringIO
+import logging
 import os
-import pytest
 import sys
 import tempfile
 from io import StringIO
+
+from flexmock import flexmock
+import pytest
 
 from devassistant.command_helpers import ClHelper, CliDialogHelper
 from devassistant.exceptions import ClException
@@ -11,7 +15,7 @@ from test.logger import TestLoggingHandler
 
 class TestClHelper(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler()
+        self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_command_processors(self):
         def foo(cmd_str):
@@ -61,6 +65,25 @@ class TestClHelper(object):
         finally:
             os.chdir(cwd)
 
+    @pytest.mark.parametrize(('correct', 'wrong', 'system_exe'), [
+        ('bash', '/usr/libexec/da_auth', False),
+        ('/usr/libexec/da_auth', 'bash', True),
+    ])
+    # TODO: remove
+    # Skipping tests in Python 3.4 due to https://github.com/has207/flexmock/pull/100
+    @pytest.mark.skipif(sys.version_info[:2] == (3, 4), reason='Skipped due to flexmock bug in Python 3.4')
+    def test_format_as_another_user_picks_the_right_exe(self, correct, wrong, system_exe):
+        flexmock(os.path).should_receive('isfile').with_args('/usr/libexec/da_auth').and_return(system_exe)
+        flexmock(os).should_receive('access').with_args('/usr/libexec/da_auth', 1).and_return(system_exe)
+
+        assert correct in ClHelper.format_for_another_user('foo', 'root')
+        assert wrong not in ClHelper.format_for_another_user('foo', 'root')
+
+    def test_log_secret(self):
+        ClHelper.run_command('id', log_level=logging.INFO, log_secret=True)
+        assert len(self.tlh.msgs)
+        assert ('INFO', 'LOGGING PREVENTED FOR SECURITY REASONS') in self.tlh.msgs
+        assert ('DEBUG', '0') in self.tlh.msgs
 
 class TestCliDialogHelper(object):
     def setup_method(self, method):
