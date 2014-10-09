@@ -313,7 +313,7 @@ class DependenciesCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
-        di.install(c.input_res, c.kwargs['__ui__'])
+        di.install(c.input_res, c.kwargs['__ui__'], debug=c.kwargs.get('da_debug', False))
         return [True, c.input_res]
 
 

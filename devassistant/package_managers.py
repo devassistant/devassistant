@@ -20,13 +20,13 @@ on other platforms, e.g. Zypper on OpenSuse. PackageManager subclasses should al
 represent these high-level tools like YUM or Zypper, not RPM itself.
 """
 from __future__ import print_function
+import math
 import os
 import platform
+import sys
 import tempfile
 import time
 import threading
-
-import progress.spinner
 
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.logger import logger
@@ -878,7 +878,7 @@ class DependencyInstaller(object):
         )
         return bool(ret)
 
-    def _install_dependencies(self, ui):
+    def _install_dependencies(self, ui, debug):
         """Install missing dependencies"""
         for dep_t, dep_l in self.dependencies:
             if not dep_l:
@@ -902,14 +902,15 @@ class DependencyInstaller(object):
             # TODO: we should do this more systematically (send signal to cl/gui?)
             logger.info('Installing dependencies, sit back and relax ...',
                         extra={'event_type': 'dep_installation_start'})
-            if ui == 'cli':  # TODO: maybe let every manager to decide when to start
+            if ui == 'cli' and not debug:  # TODO: maybe let every manager to decide when to start
                 event = threading.Event()
                 t = EndlessProgressThread(event)
                 t.start()
             installed = pkg_mgr.install(*to_install)
-            if ui == 'cli':
+            if ui == 'cli' and not debug:
                 event.set()
                 t.join()
+                print(' Done.')
             type(self).install_lock = False
 
             log_extra = {'event_type': 'dep_installation_end'}
@@ -920,7 +921,7 @@ class DependencyInstaller(object):
             else:
                 logger.info('Successfully installed dependencies!', extra=log_extra)
 
-    def install(self, struct, ui):
+    def install(self, struct, ui, debug=False):
         """
         This is the only method that should be called from outside. Call it
         like:
@@ -934,7 +935,7 @@ class DependencyInstaller(object):
             for dep_t, dep_l in dep_dict.items():
                 self._process_dependency(dep_t, dep_l)
         if self.dependencies:
-            self._install_dependencies(ui)
+            self._install_dependencies(ui, debug)
 
     def get_system_deptype_shortcut(self):
         local_distro = utils.get_distro_name()
@@ -951,12 +952,12 @@ class EndlessProgressThread(threading.Thread):
     def __init__(self, finish_event):
         super(EndlessProgressThread, self).__init__()
         self.finish_event = finish_event
-        self.spinner = progress.spinner.Spinner('Installing dependencies ...')
 
     def run(self):
+        print('Installing dependencies ', end='')
+        sleep = 1
         while not self.finish_event.isSet():
-            self.spinner.next()
-            time.sleep(1)
-        self.spinner.finish()
-        # print newline to workaround https://github.com/verigak/progress/issues/12
-        print()
+            print('.', end='')
+            sys.stdout.flush()
+            time.sleep(int(math.log(sleep)))
+            sleep += 2

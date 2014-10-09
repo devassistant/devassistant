@@ -643,7 +643,7 @@ class TestDependencyInstaller(object):
         self.di.dependencies = [('foomgr', [])]
         flexmock(self.di).should_call('get_package_manager').never()
 
-        self.di._install_dependencies(ui='cli')
+        self.di._install_dependencies(ui='cli', debug=False)
 
     def test_install_dependencies_already_installed(self):
         self.di.dependencies = [('foomgr', ['foo', 'bar'])]
@@ -653,7 +653,7 @@ class TestDependencyInstaller(object):
                                   .and_return({'foomgr': [pkg_mgr]})
         flexmock(pkg_mgr).should_call('resolve').never()
 
-        self.di._install_dependencies(ui='cli')
+        self.di._install_dependencies(ui='cli', debug=False)
 
     def test_install_dependencies_denied(self):
         self.di.dependencies = [('foomgr', ['foo', 'bar'])]
@@ -664,7 +664,7 @@ class TestDependencyInstaller(object):
         flexmock(self.di).should_receive('_ask_to_confirm')\
                         .with_args('cli', object, *['foo', 'bar', 'baz']).and_return(False)
         with pytest.raises(DependencyException):
-            self.di._install_dependencies(ui='cli')
+            self.di._install_dependencies(ui='cli', debug=False)
 
     @pytest.mark.parametrize('ui', ['cli', 'foo'])
     def test_install_dependencies(self, ui):
@@ -679,13 +679,13 @@ class TestDependencyInstaller(object):
         # Successful run
         pkg_mgr.should_receive('install').with_args('foo', 'bar', 'baz')\
                .and_return(('foo', 'bar', 'baz')).at_least().once()
-        self.di._install_dependencies(ui=ui)
+        self.di._install_dependencies(ui=ui, debug=False)
 
         # Unsuccessful run
         pkg_mgr.should_receive('install').with_args('foo', 'bar', 'baz')\
                .and_return(False).at_least().once()
         with pytest.raises(DependencyException):
-            self.di._install_dependencies(ui=ui)
+            self.di._install_dependencies(ui=ui, debug=False)
 
     @pytest.mark.parametrize(('distro', 'dep_t'), [
         ('foodistro', 'foomgr'),
