@@ -83,7 +83,7 @@ class ConfigManager(object):
                 del self.config_dict[name]
                 self.config_changed = True
             return
-        if name in not self.config_dict or self.config_dict[name] != value:
+        if name not in self.config_dict or self.config_dict[name] != value:
             self.config_changed = True
             self.config_dict[name] = value
 
