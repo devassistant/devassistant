@@ -1,9 +1,11 @@
+from io import StringIO
+import logging
 import os
-import pytest
 import sys
 import tempfile
+
 from flexmock import flexmock
-from io import StringIO
+import pytest
 
 from devassistant.command_helpers import ClHelper, CliDialogHelper
 from devassistant.exceptions import ClException
@@ -12,7 +14,7 @@ from test.logger import TestLoggingHandler
 
 class TestClHelper(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler()
+        self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_command_processors(self):
         def foo(cmd_str):
@@ -76,6 +78,11 @@ class TestClHelper(object):
         assert correct in ClHelper.format_for_another_user('foo', 'root')
         assert wrong not in ClHelper.format_for_another_user('foo', 'root')
 
+    def test_log_secret(self):
+        ClHelper.run_command('id', log_level=logging.INFO, log_secret=True)
+        assert len(self.tlh.msgs)
+        assert ('INFO', 'LOGGING PREVENTED FOR SECURITY REASONS') in self.tlh.msgs
+        assert ('DEBUG', '0') in self.tlh.msgs
 
 
 class TestCliDialogHelper(object):

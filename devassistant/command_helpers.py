@@ -27,7 +27,8 @@ class ClHelper(object):
                     log_level=logging.DEBUG,
                     ignore_sigint=False,
                     output_callback=None,
-                    as_user=None):
+                    as_user=None,
+                    log_secret=False):
         """Runs a command from string, e.g. "cp foo bar"
         Args:
             cmd_str: the command to run as string
@@ -36,6 +37,8 @@ class ClHelper(object):
             output_callback: function that gets called with every line of output as argument
             as_user: run as specified user (the best way to do this will be deduced by DA)
                 runs as current user if as_user == None
+            log_secret: if True, the command invocation will only be logged as
+                "LOGGING PREVENTED FOR SECURITY REASONS", no output will be logged
         """
         # run format processors on cmd_str
         for name, cmd_proc in cls.command_processors.items():
@@ -44,7 +47,7 @@ class ClHelper(object):
         # TODO: how to do cd with as_user?
         if as_user and not cmd_str.startswith('cd '):
             cmd_str = cls.format_for_another_user(cmd_str, as_user)
-        logger.log(log_level, cmd_str, extra={'event_type': 'cmd_call'})
+        cls.log(log_level, cmd_str, 'cmd_call', log_secret)
 
         if cmd_str.startswith('cd '):
             # special-case cd to behave like shell cd and stay in the directory
@@ -78,7 +81,7 @@ class ClHelper(object):
                 if output:
                     output = output.strip()
                     stdout.append(output)
-                    logger.log(log_level, output, extra={'event_type': 'cmd_out'})
+                    cls.log(log_level, output, 'cmd_out', log_secret)
                 if output_callback:
                     output_callback(output)
             except IOError as e:
@@ -98,7 +101,7 @@ class ClHelper(object):
         # we want to log lines separately, not as one big chunk
         output_rest_lines = output_rest.splitlines()
         for i, l in enumerate(output_rest_lines):
-            logger.log(log_level, l, extra={'event_type': 'cmd_out'})
+            cls.log(log_level, l, 'cmd_out', log_secret)
             # add newline for every line - for last line, only add it if it was originally present
             if i != len(output_rest_lines) - 1 or output_rest.endswith('\n'):
                 l += '\n'
@@ -107,7 +110,7 @@ class ClHelper(object):
                 output_callback(l)
 
         # log return code always on debug level
-        logger.log(logging.DEBUG, proc.returncode, extra={'event_type': 'cmd_retcode'})
+        cls.log(logging.DEBUG, proc.returncode, 'cmd_retcode', log_secret)
         stdout = stdout.strip()
 
         if proc.returncode == 0:
@@ -144,6 +147,18 @@ class ClHelper(object):
         for pid, proc in cls.subprocesses.items():
             logger.info('Killing still running process {pid} ...'.format(pid=pid))
             proc.kill()
+
+    @classmethod
+    def log(cls, level, msg, event_type, secret):
+        extra = {'event_type': event_type}
+        if secret:
+            if event_type == 'cmd_call':
+                logger.log(level, 'LOGGING PREVENTED FOR SECURITY REASONS', extra=extra)
+            elif event_type == 'cmd_retcode':
+                logger.log(level, msg, extra=extra)
+            # no output logging for secret commands
+        else:
+            logger.log(level, msg, extra=extra)
 
 
 atexit.register(ClHelper.kill_subprocesses)
