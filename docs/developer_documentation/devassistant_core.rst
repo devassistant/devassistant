@@ -75,6 +75,7 @@ For example, loading process for Creator assistants looks like this:
 
 Command Runners
 ---------------
+
 Command runners... well, they run commands. They are the functionality that 
 makes DevAssistant powerful, since they effectively allow you to create
 callbacks to Python, where you can cope with the hard parts unsuitable for
@@ -93,12 +94,16 @@ much like with :ref:`expressions_ref`.
 For reference of current commands, see :ref:`command_ref`.
 
 If you're missing some cool functionality, you can implement your own command
-runner and send us a pull request. (We're thinking of creating some sort of
-import hook that would allow assistants to import command runners from Python
-files outside of DevAssistant, but it's not on the priority list right now.)
+runner and send us a pull request or include it in ``files`` shipped with your assistants.
+Command runners shipped with assistants must be loaded with
+:ref:`load_cmd command runner <load_cmd_command_ref>`.
 Each command must be a class with two classmethods::
 
-   @register_command_runner
+   from devassistant.command_runners import command_runners
+   from devassistant.logger import logger
+
+   # NOTE: Command runners included in DA itself are decorated with @register_command_runner
+   #  wrapper. If you're shipping your own commands runners with assistants, don't do this.
    class MyCommandRunner(CommandRunner):
        @classmethod
        def matches(cls, c):
@@ -115,6 +120,7 @@ This command runner will run all commands with command type ``mycomm``.
 For example if your assistant contains::
 
    run:
+   - load_cmd: *file_from_files_section
    - $foo: $(echo "using DevAssistant")
    - mycomm: You are $foo!
 
@@ -126,8 +132,8 @@ When run, this command returns a tuple with *logical result* and *result*. This 
 you can assign the length of a string to a variable like this::
 
    run:
-   $thiswillbetrue, $length~:
-   - mycomm: Some string.
+   - $thiswillbetrue, $length~:
+     - mycomm: Some string.
 
 (Also, ``LAST_LRES`` will be set to ``True`` and ``LAST_RES`` to length of the input string.)
 

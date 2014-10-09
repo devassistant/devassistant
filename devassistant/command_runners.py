@@ -28,12 +28,37 @@ from devassistant import settings
 from devassistant import utils
 from devassistant import yaml_snippet_loader
 
-command_runners = []
+"""Mapping of prefixes to command runner lists, e.g.:
+
+'': [CR1, CR2], # default prefix is empty
+'some_prefix': [CR3]
+
+Lists should be traversed in reversed order, so that dynamically loaded command
+runners can outrun (and hence "override") the default ones.
+"""
+command_runners = {}
 
 
-def register_command_runner(command_runner):
-    command_runners.append(command_runner)
-    return command_runner
+def register_command_runner(arg):
+    """Decorator that registers a command runner. Accepts either:
+
+    - CommandRunner directly or
+    - String prefix to register a command runner under (returning a decorator)
+    """
+    if isinstance(arg, str):
+        def inner(command_runner):
+            command_runners.setdefault(arg, [])
+            command_runners[arg].append(command_runner)
+            return command_runner
+        return inner
+    elif issubclass(arg, CommandRunner):
+        command_runners.setdefault('', [])
+        command_runners[''].append(arg)
+        return arg
+    else:
+        msg = 'register_command_runner expects str or CommandRunner as argument, got: {0}'.\
+            format(arg)
+        raise ValueError(arg)
 
 
 class CommandRunner(object):
@@ -935,7 +960,7 @@ class AsUserCommandRunner(CommandRunner):
 
 
 @register_command_runner
-class DockerCommandRunner(object):
+class DockerCommandRunner(CommandRunner):
     _has_docker_group = None
     _client = None
     try:
@@ -1449,3 +1474,74 @@ class PingPongCommandRunner(CommandRunner):
             e = 'Wrong message from PingPong script:\n{m}'.format(m=msg)
             raise exceptions.CommandException(e)
         return (lres, res)
+
+
+@register_command_runner
+class LoadCmdCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'load_cmd'
+
+    @classmethod
+    def _get_args(cls, c):
+        load_only = []
+        prefix = ''
+        from_files_section = False
+        if isinstance(c.input_res, dict):
+            if 'source' in c.input_res:  # just a file from "files" was passed
+                from_file = c.input_res['source']
+                from_files_section = True
+            elif 'from_file' not in c.input_res:
+                msg = '"load_msg" requires "from_file" argument or file from "files" section.'
+                raise exceptions.CommandException(msg)
+            else:
+                load_only = c.input_res.get('load_only', load_only)
+                prefix = c.input_res.get('prefix', prefix)
+                if isinstance(c.input_res['from_file'], dict):
+                    # from_file is "files" section file
+                    from_file = c.input_res['from_file']['source']
+                    from_files_section = True
+                else:
+                    from_file = c.input_res['from_file']
+        elif isinstance(c.input_res, six.string_types):
+            from_file = c.input_res
+        else:
+            raise exceptions.CommandException('"load_cmd" requires dict or string.')
+
+        if from_files_section:
+            # if we have file from "files" section, we can resolve the full path right now
+            abs_path = os.path.join(c.kwargs['__files_dir__'][-1], from_file)
+            if not os.path.exists(abs_path):
+                abs_path = None
+        else:
+            # else we try to find it in load paths
+            abs_path = os.path.join('files', from_file.lstrip(os.path.sep))
+            abs_path = utils.find_file_in_load_dirs(abs_path)
+
+        if abs_path is None:
+            msg = 'Can\'t load commands from "{0}", file not found.'.format(from_file)
+            raise exceptions.CommandException(msg)
+
+        return prefix, abs_path, load_only
+
+    @classmethod
+    def run(cls, c):
+        prefix, from_file, load_only = cls._get_args(c)
+        try:
+            # use from_file as module name, but replaces dots, otherwise Python
+            #  will think that it separates parent module and complain that the
+            #  parent module doesn't exist
+            mod_name = from_file.replace('.', '_dot_')
+            mod = utils.import_by_path(mod_name, from_file)
+        except BaseException as e:
+            msg = 'Failed to load commands from "{0}": {1}'.format(from_file, e)
+            raise exceptions.CommandException(msg)
+
+        crs = []
+        for k, v in vars(mod).items():
+            if isinstance(v, type) and issubclass(v, CommandRunner) and v != CommandRunner:
+                if not load_only or (k in load_only):
+                    register_command_runner(prefix)(v)
+                    crs.append(k)
+
+        return (len(crs) > 0, crs)

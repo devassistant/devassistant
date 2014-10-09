@@ -11,7 +11,9 @@ from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
-    SetupProjectDirCommandRunner, PingPongCommandRunner
+    SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner
+# also import just command_runners to have access to command_runners.command_runners
+from devassistant import command_runners
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 from devassistant.yaml_assistant import YamlAssistant
@@ -469,3 +471,71 @@ class TestPingPongCommandRunner(object):
             self._run_pingpong('tracebacks.py', {})
         assert 'PingPong run method ended with an exception:' in str(e.value)
         assert 'BaseException: problem' in str(e.value)
+
+
+class TestLoadCmdCommandRunner(object):
+    fixtures = os.path.join(os.path.dirname(__file__), 'fixtures', 'files', 'crt', 'commands')
+
+    def setup_method(self, method):
+        self.old_command_runners = command_runners.command_runners
+        command_runners.command_runners = copy.deepcopy(self.old_command_runners)
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def teardown_method(self, method):
+        command_runners.command_runners = self.old_command_runners
+
+    def _test_loaded_commands_work(self, prefix='', which=['CR1', 'CR2']):
+        if 'CR1' in which:
+            r1 = Command(prefix + 'barbarbar', 'foo').run()
+            assert ('INFO', 'CR1: Doing something ...') in self.tlh.msgs
+            assert r1 == (True, 'foobar')
+        else:
+            with pytest.raises(CommandException):
+                Command(prefix + 'barbarbar', 'foo').run()
+
+        if 'CR2' in which:
+            r2 = Command(prefix + 'spamspamspam', 'foo').run()
+            assert ('INFO', 'CR2: Doing something ...') in self.tlh.msgs
+            assert r2 == (True, 'foospam')
+        else:
+            with pytest.raises(CommandException):
+                Command(prefix + 'spamspamspam', 'foo').run()
+
+    def test_basic(self):
+        r = Command('load_cmd', {'source': 'a.py'},
+                    {'__files_dir__': [self.fixtures]}).run()
+        assert r[0] == True
+        assert set(r[1]) == set(['CR1', 'CR2'])
+
+        self._test_loaded_commands_work()
+
+    def test_specified_by_string(self):
+        r = Command('load_cmd', 'crt/commands/a.py').run()
+        assert r[0] == True
+        assert set(r[1]) == set(['CR1', 'CR2'])
+
+        self._test_loaded_commands_work()
+
+    def test_load_only(self):
+        r = Command('load_cmd', {'from_file': {'source': 'a.py'}, 'load_only': 'CR1'},
+                    {'__files_dir__': [self.fixtures]}).run()
+        assert r == (True, ['CR1'])
+
+        self._test_loaded_commands_work(which=['CR1'])
+
+    def test_prefix(self):
+        r = Command('load_cmd', {'from_file': 'crt/commands/a.py', 'prefix': 'prefix'}).run()
+        assert r[0] == True
+        assert set(r[1]) == set(['CR1', 'CR2'])
+
+        self._test_loaded_commands_work(prefix='prefix.')
+        # also test that they're not loaded in the '' prefix
+        self._test_loaded_commands_work(which=[])
+
+    def test_overrides_core_runners(self):
+        Command('load_cmd', 'crt/commands/log.py').run()
+        r = Command('log_i', 'message').run()
+
+        assert ('INFO', 'Got you!') in self.tlh.msgs
+        assert ('INFO', 'message') not in self.tlh.msgs
+        assert r == (True, 'heee heee')

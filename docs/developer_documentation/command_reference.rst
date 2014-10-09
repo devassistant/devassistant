@@ -28,7 +28,9 @@ This reference summarizes commands included in DevAssistant itself in the follow
 
 *Missing something?* Commands are your entry point for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
-:ref:`write a command runner <command_runners>` and send us a pull request.
+:ref:`write a command runner <command_runners>` and either
+:ref:`include it with your assistant <load_cmd_command_ref>` or send us a pull request
+to get it merged in DevAssistant core.
 
 Builtin Commands
 ----------------
@@ -569,3 +571,44 @@ Run :ref:`DevAssistant PingPong scripts <create_pingpong_assistant>`.
 - Example::
 
    - pingpong: python3 *file_from_files_section
+
+.. _load_cmd_command_ref:
+
+Loading Custom Command Runners
+------------------------------
+
+Load DevAssistant command runner(s) from a file.
+
+- Input: string or mapping, see below
+- RES: List of classnames of loaded command runners
+- LRES: True if at least one command runner was loaded, False otherwise
+- Example::
+
+   files:
+     my_cr: &my_cr
+       source: cr.py
+
+   run:
+   - load_cmd: *my_cr
+   # assuming that there is a command runner that runs "mycommand" in the file,
+   #  we can do this as of now until the end of this assistant
+   #  this is equivalent of
+   #  - load_cmd:
+   #      from_file: *my_cr
+   - mycommand: foo
+
+   # load command runner from file provided in hierarchy of a different assistant
+   # - make it prefixed to make sure it doesn't conflict with any core command runners
+   # - load only BlahCommandRunner even if the file includes more runners
+   - load_cmd:
+       from_file: crt/someotherassistant/crs.py
+       prefix: foo
+       only: BlahCommandRunner
+   - foo.blah: input  # runs ok
+   - blah: input  # will fail, the command runner was registered with "foo" prefix
+
+Note: since command runners loaded by ``load_cmd`` have higher priority than DevAssistant
+builtin command runners, you can use this to *override* the builtins. E.g. you can have
+a command runner that overrides ``log_i``. If someone wants to use this command runner
+of yours but also keep the original one, he can provide a ``prefix``, so that your logging
+command is only available as ``some_prefix.log_i``.

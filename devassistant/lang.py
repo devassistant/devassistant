@@ -35,7 +35,10 @@ class Command(object):
         return cls.command_runners
 
     def __init__(self, comm_type, comm, kwargs={}):
-        self.comm_type = comm_type
+        if '.' in comm_type:
+            self.prefix, self.comm_type = comm_type.rsplit('.', 1)
+        else:
+            self.prefix, self.comm_type = '', comm_type
         self.comm = comm
         self.had_exec_flag = False
         if comm_type.endswith('~'):
@@ -48,12 +51,18 @@ class Command(object):
         self.kwargs = kwargs
 
     def run(self):
-        for cr in type(self).load_command_runners().command_runners:
-            if cr.matches(self):
-                return cr.run(self)
+        for crs_prefix, crs in type(self).load_command_runners().command_runners.items():
+            if self.prefix == crs_prefix:
+                # traverse in reversed order, so that dynamically loaded user command runners
+                #  can outrun (=> override) the builtin ones
+                for cr in reversed(crs):
+                    if cr.matches(self):
+                        return cr.run(self)
 
-        raise exceptions.CommandException('No runner for command "{ct}: {c}".'.
-                                          format(ct=self.comm_type, c=self.input_res))
+        prefix_with_colon = self.prefix + '.' if self.prefix else self.prefix
+        raise exceptions.CommandException(
+            'No runner for command "{p}{ct}: {c}".'.
+            format(p=prefix_with_colon, ct=self.comm_type, c=self.input_res))
 
     @property
     def input_log_res(self):
