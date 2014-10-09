@@ -36,13 +36,18 @@ def _install_path():
     return os.path.expanduser(DAPI_DEFAULT_USER_INSTALL)
 
 
-def _process_req(req):
+def _process_req_txt(req):
     '''Returns a processed request or raises an exception'''
     if req.status_code == 404:
         return {}
     if req.status_code != 200:
         raise Exception('Response of the server was {code}'.format(code=req.status_code))
-    return yaml.load(req.text)
+    return req.text
+
+
+def _process_req(req):
+    '''Returns a YAML decoded request'''
+    return yaml.load(_process_req_txt(req))
 
 
 def data(link):
@@ -310,6 +315,7 @@ def install_dap_from_path(path, update=False):
     except:
         pass
 
+
 def get_installed_version_of(name):
     '''Gets the installed version of the given dap or None if not installed'''
     if name not in get_installed_daps():
@@ -318,6 +324,7 @@ def get_installed_version_of(name):
     with open(meta) as f:
         data = yaml.load(f.read(), Loader=Loader)
     return data['version']
+
 
 def install_dap(name, version='', update=False):
     '''Install a dap from dapi
@@ -348,8 +355,12 @@ def install_dap(name, version='', update=False):
     except:
         pass
 
-
 def _eshout(e):
     '''Prints the Exception's message to stderr'''
     sys.stderr.write(str(e))
     sys.stderr.write('\n')
+
+def get_dependency_metadata():
+    '''Returns list of strings with dependency metadata from Dapi'''
+    link = os.path.join(_api_url(),'meta.txt')
+    return _process_req_txt(requests.get(link)).split('\n')
