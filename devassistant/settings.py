@@ -29,10 +29,6 @@ SUBASSISTANT_N_STRING = 'subassistant_{0}'
 
 DEPS_ONLY_FLAG = '--deps-only'
 
-USE_CACHE = True
-CACHE_FILE = os.path.expanduser('~/.devassistant/.cache.yaml')
-CONFIG_FILE = os.path.expanduser('~/.devassistant/.config')
-LOG_FILE = os.path.expanduser('~/.devassistant/lastrun.log')
 # NOTE: data directories should always be absolute paths, since
 # - theoretically, if DevAssistant would change working directory and *then* try to
 #   load assistants, the relative path would point in an unwanted location
@@ -42,8 +38,16 @@ DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
                     '/usr/local/share/devassistant',
                     os.path.expanduser('~/.devassistant')]
 if 'DEVASSISTANT_PATH' in os.environ:
-    DATA_DIRECTORIES = [os.path.abspath(p) for p in os.environ['DEVASSISTANT_PATH'].split(':')] +\
-        DATA_DIRECTORIES
+    DATA_DIRECTORIES = [os.path.abspath(os.path.expanduser(p))
+        for p in os.environ['DEVASSISTANT_PATH'].split(':')] + DATA_DIRECTORIES
+DEVASSISTANT_HOME = DATA_DIRECTORIES[-1]
+if 'DEVASSISTANT_HOME' in os.environ:
+    DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
+
+USE_CACHE = True
+CACHE_FILE = os.path.join(DEVASSISTANT_HOME, '.cache.yaml')
+CONFIG_FILE = os.path.join(DEVASSISTANT_HOME, '.config')
+LOG_FILE = os.path.join(DEVASSISTANT_HOME, 'lastrun.log')
 
 ASSISTANT_ROLES = ['crt', 'mod', 'prep', 'task']
 DEFAULT_ASSISTANT_ROLE = 'crt'
