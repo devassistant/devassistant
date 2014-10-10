@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import copy
 import os
 import sys
@@ -335,6 +336,12 @@ class TestNormalizeCommandRunner(object):
     def test_replaces_bad_chars_with_underscores(self):
         bad_string = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
         self.n.run(Command('normalize', bad_string)) == (True, '_' * len(bad_string))
+
+    def test_unicode_chars(self):
+        s = 'ěšč'
+        assert self.n.run(Command('normalize', s)) == (True, 'esc')
+        s = u'ěšč'
+        assert self.n.run(Command('normalize', s)) == (True, 'esc')
 
 
 class TestSCLCommandRunner(object):

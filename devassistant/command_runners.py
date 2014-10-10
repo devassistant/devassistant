@@ -10,6 +10,7 @@ import string
 import subprocess
 import sys
 import threading
+import unicodedata
 
 import dapp
 import jinja2
@@ -1303,13 +1304,22 @@ class NormalizeCommandRunner(CommandRunner):
             raise exceptions.CommandException('"normalize" expects string input, got {0}'.
                                               format(to_norm))
 
-        normalized = to_norm.lstrip('0123456789')
+        if six.PY2 and isinstance(to_norm, str):
+            to_norm = to_norm.decode('utf8')
+        normalized = unicodedata.normalize('NFKD', to_norm)
+        if six.PY2:
+            normalized = normalized.encode('ascii', 'ignore')
+        normalized = normalized.lstrip('0123456789')
         badchars = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
-        if sys.version_info[0] < 3:
+        if six.PY2:
             tt = string.maketrans(badchars, '_' * len(badchars))
         else:
             tt = str.maketrans(badchars, '_' * len(badchars))
         normalized = normalized.translate(tt)
+
+        # due to unicodedata.normalize, we have to encode and decode as ascii
+        #  to actually get a proper string
+        normalized = normalized.encode('ascii', 'ignore').decode('ascii')
         return (True, normalized)
 
 

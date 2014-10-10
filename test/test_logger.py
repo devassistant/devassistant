@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import io
 import logging
 import pytest
@@ -40,3 +41,7 @@ class TestLogger(object):
         getattr(logger, level)(log_str) # e. g. logger.error(log_str)
         assert self.log.getvalue() == output.format(log_str)
 
+    def test_unicode_chars(self):
+        logger.info('ěšč')
+        logger.info(u'čřž')
+        assert self.log.getvalue() == u'INFO: ěšč\nINFO: čřž\n'

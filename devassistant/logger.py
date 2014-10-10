@@ -1,6 +1,8 @@
 import logging
 import os
 
+import six
+
 from devassistant import settings
 
 logger = logging.getLogger('devassistant')
@@ -24,7 +26,14 @@ class DevassistantClFormatter(logging.Formatter):
         event_type = getattr(record, 'event_type', '')
         fmt_str = settings.LOG_FORMATS_MAP.get(event_type, None) or \
             settings.LOG_FORMATS_MAP['log_cmd']
-        return fmt_str.format(**vars(record))
+
+        record_vars = vars(record)
+        if six.PY2:
+            if isinstance(record_vars['msg'], BaseException):
+                record_vars['msg'] = record_vars['msg'].message
+            if isinstance(record_vars['msg'], str):
+                record_vars['msg'] = record_vars['msg'].decode('utf8')
+        return fmt_str.format(**record_vars)
 
 
 class DevassistantClColorFormatter(DevassistantClFormatter):
