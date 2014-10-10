@@ -32,6 +32,13 @@ class PathRunner(object):
         """
         self.path[-1].run(stage, parsed_args)
 
+    def _log_if_not_logged(self, err):
+        if not getattr(err, 'already_logged', False):
+            # this is here primarily because of log_ command, that logs the message itself
+            logger.error(err)
+
+        return err
+
     def run(self, **parsed_args):
         """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.
         Raises:

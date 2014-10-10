@@ -462,7 +462,8 @@ This can be used to run:
 Normalizing User Input
 ----------------------
 
-Replace "weird characters" in user input by underscores.
+Replace "weird characters" (whitespace, colons, equals...) by underscores and unicode chars
+by their ascii counterparts.
 
 - Input: a string
 - RES: a string with weird characters (e.g. brackets/braces, whitespace, etc) replaced by underscores
@@ -470,8 +471,8 @@ Replace "weird characters" in user input by underscores.
 - Example::
 
    - $dir~:
-     - normalize: foo!@#$%^bar
-   - cl: mkdir $dir  # creates dir named foo______bar
+     - normalize: foo!@#$%^bar_ěšč
+   - cl: mkdir $dir  # creates dir named foo______bar_esc
 
 Setting up Project Directory
 ----------------------------
