@@ -8,6 +8,7 @@ Created on Wed Apr  3 13:16:47 2013
 import os
 from gi.repository import Gtk
 from devassistant.config_manager import config_manager
+from devassistant import utils
 
 
 class PathWindow(object):
@@ -166,17 +167,12 @@ class PathWindow(object):
         for btn in self.grid:
             self.grid.remove(btn)
 
-    def get_user_path(self):
+    def get_default_project_dir(self):
+        """Returns a project directory to prefill in GUI.
+        It is either stored value or current directory (if exists) or home directory.
         """
-        Function returns a path either user home directory
-        or empty directory
-        """
-        try:
-            path = os.path.expanduser('~')
-        except Exception:
-            path = ''
-        if os.path.isdir(path):
-            return path
+        ret = config_manager.get_config_value('da.project_dir')
+        return ret or utils.get_cwd_or_homedir()
 
     def open_window(self, data=None):
         """
@@ -188,9 +184,9 @@ class PathWindow(object):
             self.current_main_assistant = data.get('current_main_assistant', None)
             self.kwargs = data.get('kwargs', None)
             self.data['debugging'] = data.get('debugging', False)
-        text = config_manager.get_config_value("da.project_dir") or self.get_user_path()
-        self.dir_name.set_text(text)
-        self.label_full_prj_dir.set_text(text)
+        project_dir = self.get_default_project_dir()
+        self.dir_name.set_text(project_dir)
+        self.label_full_prj_dir.set_text(project_dir)
         self.dir_name.set_sensitive(True)
         self.dir_name_browse_btn.set_sensitive(True)
         self._remove_widget_items()

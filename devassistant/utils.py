@@ -88,6 +88,13 @@ def get_assistant_attrs_from_dict(d, source):
         return None
 
 
+def get_cwd_or_homedir():
+    try:
+        return os.getcwd()
+    except:
+        return os.path.expanduser('~')
+
+
 def cl_string_for_da_eval(section, context=None):
     if context is None:
         context = {}

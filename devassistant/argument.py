@@ -2,6 +2,7 @@ import getpass
 import os
 
 from devassistant import exceptions
+from devassistant import utils
 from devassistant import yaml_snippet_loader
 from devassistant.config_manager import config_manager
 
@@ -65,7 +66,7 @@ class Argument(object):
                 if preserved_value is not None:
                     default = preserved_value
                 elif hint_default is not None:
-                    default = hint_default.replace('$(pwd)', os.getcwd())
+                    default = hint_default.replace('$(pwd)', utils.get_cwd_or_homedir())
                 else:
                     default = arg_default or '~'
                 return os.path.abspath(os.path.expanduser(default))
