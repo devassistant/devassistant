@@ -1099,6 +1099,8 @@ class DockerCommandRunner(CommandRunner):
             ret = cls._docker_get_container_attr('Name', c.input_res)
         elif c.comm_type == 'docker_start':
             ret = cls._docker_start(c.input_res)
+        elif c.comm_type == 'docker_stop':
+            ret = cls._docker_stop(c.input_res)
         elif c.comm_type == 'docker_cc':
             ret = cls._docker_cc(c.input_res)
         else:
@@ -1150,9 +1152,9 @@ class DockerCommandRunner(CommandRunner):
     @classmethod
     def _get_docker_run_args(cls, inp):
         if not isinstance(inp, dict):
-            raise exceptions.CommandException('docker_r expects mapping as input.')
+            raise exceptions.CommandException('docker_run expects mapping as input.')
         if 'image' not in inp:
-            raise exceptions.CommandException('docker_r requires "image" argument.')
+            raise exceptions.CommandException('docker_run requires "image" argument.')
 
         return {'image': inp['image'], 'args': inp.get('args', '')}
 
@@ -1187,6 +1189,20 @@ class DockerCommandRunner(CommandRunner):
         cls._client.start(**inp)
         # there is no real result here, so just return container hash again
         return (True, inp['container'])
+
+    @classmethod
+    def _docker_stop(cls, inp):
+        if isinstance(inp, dict):
+            if 'container' not in inp:
+                msg = 'docker_stop requires you to specify "container" when providing mapping.'
+                raise exceptions.CommandException(msg)
+            container = inp['container']
+            time = inp['time']
+        else:
+            container = inp
+            time = 10
+        cls._client.stop(container, time)
+        return (True, container)
 
     @classmethod
     def _docker_attach(cls, container_ids):
