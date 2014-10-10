@@ -155,18 +155,25 @@ want to create a literal that starts with ``~``, just use the escape value for i
 
 Each command specifies its return value in a different way, see :ref:`command_ref`.
 
-Variables Explained
--------------------
+.. _variables_ctxt_ref:
 
-Initially, variables are populated with values of arguments from the
-commandline/gui and there are no other variables defined for creator
-assistants. For modifier assistants global variables are prepopulated
-with some values read from ``.devassistant``. You can either define
-(and assign to) your own variables or change the values of current ones.
+Variables and Context
+---------------------
+
+The set of all variables existing during an assistant ``run`` section is referred to as
+*global context* or just *context* (it is implemented as dictionary, Python's associative
+array type). This means, that it is in fact mapping of variable names to their values.
+
+Initially, the context is populated with values of arguments from the
+commandline/gui and some other useful values, see :ref:`global_variables_ref` below.
+You can of course define (and assign to) your own variables or change the values
+of current ones - see :ref:`variable_assignment_ref`. Names of some of the preset
+variables start and end with double underscores. You shouldn't modify these, as they
+can be used internally by DevAssistant.
 
 Additionally, after each command, variables ``$LAST_RES`` and ``$LAST_LRES`` are populated
 with the result of the last command (these are also the return values of the command) -
-see :ref:`command_ref`
+see :ref:`command_ref`.
 
 The variable scope works as follows:
 
@@ -186,6 +193,8 @@ When using variables that contain user input, they should always be
 quoted in the places where they are used for bash execution. That
 includes ``cl*`` commands, conditions that use bash return values and
 variable assignment that uses bash.
+
+.. _global_variables_ref:
 
 Global Variables
 ~~~~~~~~~~~~~~~~

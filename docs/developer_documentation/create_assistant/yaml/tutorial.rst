@@ -171,11 +171,10 @@ obsolete and will be removed in 0.9.0.*
 Run Again
 ~~~~~~~~~
 
-Now that we can obtain the desired name, let's continue. Now that we have the
-project name (let's assume that it's an arbitrary path to a directory where
-the argh script should be placed), we can continue. First, we will make sure
-that the directory doesn't already exist. If so, we need to exit, because we
-don't want to overwrite or break something::
+Now that we're able to obtain project name (let's assume that it's an arbitrary
+path to a directory where the argh script should be placed), we can continue.
+First, we will make sure that the directory doesn't already exist. If so,
+we need to exit, because we don't want to overwrite or break something::
 
    run:
    - log_i: Hello, I'm Argh assistant and I will create an argh project for you.
@@ -211,7 +210,8 @@ What just happened? We assigned output of command ``basename "$name"`` to
 a new variable ``proj_name`` that we can use from now on. Note the ``~`` at the end
 of ``$proj_name~``. This is called **execution flag** and it says that the command input
 should be executed as an expression, not taken as a literal. See :ref:`expressions_ref`
-for detailed expressions reference.
+for detailed expressions reference and :ref:`variables_ctxt_ref` to find out more
+about variables.
 
 *Note: the execution flag makes DevAssistant execute the input as a so-called "execution
 section". The input can either be a string, evaluated as an expression, or a list of commands,

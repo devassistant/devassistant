@@ -44,6 +44,7 @@ There are three builtin commands that are inherent part of DevAssistant Yaml DSL
 All of these builtin commands utilize expressions in some way - these must follow rules in
 :ref:`expressions_ref`.
 
+.. _variable_assignment_ref:
 
 Variable Assignment
 ~~~~~~~~~~~~~~~~~~~
