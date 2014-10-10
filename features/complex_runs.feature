@@ -5,6 +5,7 @@ Feature: Complex DevAssistant scenarios
       and "Create Project" is the current tab
       When user clicks "Creator 1" assistant
       # TODO: check for prefilled default values (@whoami@, @pwd@, defaults)
+      # TODO: check default "(No help provided)" help for "xxx" argument
       When user fills "myproject" in "Project name"
        and user fills "/tmp/" in "Create in"
        and user clicks "Run" button

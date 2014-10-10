@@ -32,6 +32,9 @@ args:
     const: spam
     default: ''
 
+  nohelp:
+    flags: [-x, --xxx]
+
 run:
 - log_i: "name: $name"
 - log_i: "make_awesome: $make_awesome"

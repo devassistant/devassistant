@@ -60,3 +60,7 @@ class TestArgument(object):
     def test_construct_arg_exceptions(self, name, params, exception):
         with pytest.raises(exception):
             Argument.construct_arg(name, params)
+
+
+    def test_argument_gets_default_help(self):
+        assert self.c.kwargs['help'] == '(No help provided)'

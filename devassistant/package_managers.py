@@ -910,7 +910,10 @@ class DependencyInstaller(object):
             if ui == 'cli' and not debug:
                 event.set()
                 t.join()
-                print(' Done.')
+                if installed:
+                    print(' Done.')
+                else:
+                    print(' Failed.')
             type(self).install_lock = False
 
             log_extra = {'event_type': 'dep_installation_end'}

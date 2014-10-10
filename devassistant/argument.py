@@ -15,6 +15,8 @@ class Argument(object):
         self.flags = args
         self.gui_hints = kwargs.pop('gui_hints', {})
         self.kwargs = kwargs
+        if 'help' not in self.kwargs:
+            self.kwargs['help'] = '(No help provided)'
 
     def add_argument_to(self, parser):
         """Used by cli to add this as an argument to argparse parser.
