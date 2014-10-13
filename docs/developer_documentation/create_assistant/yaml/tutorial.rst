@@ -115,6 +115,8 @@ If an assistant has more subassistants, e.g. ``crt/pyargh/someassistant`` and
 these assistants need to share some files, it is reasonable to place them into
 ``~/programming/files/crt/pyargh`` and refer to them with relative path like
 ``../file.foo`` from the subassistants.
+Note, that the two ``arghs`` in ``arghs: &arghs`` should be the same because of
+`issue 74 <https://github.com/devassistant/devassistant/issues/74>`_.
 
 Run
 ~~~

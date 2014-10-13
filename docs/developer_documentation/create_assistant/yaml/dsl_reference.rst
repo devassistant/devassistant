@@ -264,15 +264,18 @@ This section serves as a list of aliases of files stored in one of the
 ``files`` dirs of DevAssistant. E.g. if your assistant is
 ``assistants/crt/foo/bar.yaml``, then files are taken relative to
 ``files/crt/foo/bar/`` directory. So if you have a file
-``files/crt/foo/bar/spam``, you can use::
+``files/crt/foo/bar/spam.foo``, you can use::
 
    files:
      spam: &spam
-       source: spam
+       source: spam.foo
 
-This will allow you to reference the ``spam`` file in ``run`` section as
+This will allow you to reference the ``spam.foo`` file in ``run`` section as
 ``*spam`` without having to know where exactly it is located in your
-installation of DevAssistant.
+installation of DevAssistant. Note, that the Yaml anchor name should be
+the same as mapping name, e.g. the two ``spam`` in ``spam: &spam`` should
+match. This is because of `issue 74 <https://github.com/devassistant/devassistant/issues/74>`_,
+that can't really be reasonably fixed.
 
 Run
 ---
