@@ -9,19 +9,23 @@ from devassistant.argument import Argument
 from devassistant.cli.devassistant_argparse import ArgumentParser
 
 class TestArgument(object):
-    p = Argument('-p', '--path',
+    p = Argument('path', '-p', '--path',
                  help='helptext',
                  nargs='?',
                  gui_hints={'type': 'path',
                             'default': '$(pwd)/foo'})
 
-    b = Argument('-b', '--boolean',
+    b = Argument('bool', '-b', '--boolean',
                  action='store_true',
                  default=True)
 
-    c = Argument('-c', '--const',
+    c = Argument('constant', '-c', '--const',
                  action='store_const',
                  const=42)
+
+    d = Argument('posit+-ional', 'pos')
+
+    e = Argument('+weird-ch$a#r%s', '--foo')
 
     def test_argument_returns_correct_gui_hints(self):
         assert self.p.get_gui_hint('type') == 'path'
@@ -40,7 +44,7 @@ class TestArgument(object):
         self.p.add_argument_to(parser)
         parser.print_help()
         output = capsys.readouterr()[0] # captured stdout
-        assert re.compile('-p.*helptext').search(output)
+        assert re.compile(r'-p.*--path.*helptext', re.DOTALL).search(output)
 
     def test_argument_whoami_gui_hint(self):
         a = Argument.construct_arg('some_arg',{'use':'snippet1'})
@@ -64,3 +68,7 @@ class TestArgument(object):
 
     def test_argument_gets_default_help(self):
         assert self.c.kwargs['help'] == '(No help provided)'
+
+    def test_proper_dest(self):
+        assert self.d.get_dest() == 'posit_ional'
+        assert self.e.get_dest() == 'weird_chars'

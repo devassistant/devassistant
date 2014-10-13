@@ -1,5 +1,6 @@
 import getpass
 import os
+import re
 
 from devassistant import exceptions
 from devassistant import utils
@@ -10,6 +11,7 @@ from devassistant.config_manager import config_manager
 class Argument(object):
     """Represents assistant argument, that can either be added to argparse parser
     or interpreted otherwise by any frontend."""
+    create_dest_pattern = re.compile(r'[\W]+')
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
@@ -18,6 +20,16 @@ class Argument(object):
         self.kwargs = kwargs
         if 'help' not in self.kwargs:
             self.kwargs['help'] = '(No help provided)'
+        if 'dest' not in self.kwargs:
+            dest = self.name.replace('-', '_')
+            dest = self.create_dest_pattern.sub('', dest)
+            if len(args) == 1 and args[0][0] != '-':
+                # positional argument => we have to replace the "flag" and not provide dest
+                self.positional = True
+                self.flags = [dest]
+            else:
+                self.positional = False
+                self.kwargs['dest'] = dest
 
     def add_argument_to(self, parser):
         """Used by cli to add this as an argument to argparse parser.
@@ -35,6 +47,15 @@ class Argument(object):
         # It needs to be removed because it is unknown for argparse.
         self.kwargs.pop('preserved', None)
         parser.add_argument(*self.flags, **self.kwargs)
+
+    def get_dest(self):
+        """Get "dest", which represents the name of this argument translated
+        to proper name of Yaml DSL variable.
+        """
+        if self.positional:
+            return self.flags[0]
+        else:
+            return self.kwargs['dest']
 
     def get_gui_hint(self, hint):
         """Returns the value for specified gui hint (or a sensible default value,

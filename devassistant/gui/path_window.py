@@ -141,7 +141,7 @@ class PathWindow(object):
 
         # Check for active CheckButtons
         for arg_dict in [x for x in self.args.values() if self.arg_is_selected(x)]:
-            arg_name = arg_dict['label'].lower().replace("-", "_")
+            arg_name = arg_dict['arg'].get_dest()
             if 'entry' in arg_dict:
                 self.kwargs[arg_name] = arg_dict['entry'].get_text()
             else:
@@ -152,7 +152,7 @@ class PathWindow(object):
 
         # Check for non active CheckButtons but with defaults flag
         for arg_dict in [x for x in self.args.values() if not self.arg_is_selected(x)]:
-            arg_name = arg_dict['label'].lower().replace("-", "_")
+            arg_name = arg_dict['arg'].get_dest()
             if 'default' in arg_dict['arg'].kwargs:
                 self.kwargs[arg_name] = arg_dict['arg'].get_gui_hint('default')
             elif arg_name in self.kwargs:
