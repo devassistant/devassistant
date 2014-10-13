@@ -116,10 +116,13 @@ We will need to refer to this file from our assistant, so let's open
        source: arghscript.py
 
 DevAssistant will automatically search for this file in the correct directory,
-that is ``~/.devassistant/files/crt/python/argh``.
-If there are e.g. some files common to multiple ``python`` subassistants, it
-is reasonable to place them into ``~/.devassistant/files/crt/python`` and
-refer to them with relative path like ``../file.foo``
+that is ``~/programming/files/crt/pyargh``.
+If an assistant has more subassistants, e.g. ``crt/pyargh/someassistant`` and
+these assistants need to share some files, it is reasonable to place them into
+``~/programming/files/crt/pyargh`` and refer to them with relative path like
+``../file.foo`` from the subassistants.
+Note, that the two ``arghs`` in ``arghs: &arghs`` should be the same because of
+`issue 74 <https://github.com/devassistant/devassistant/issues/74>`_.
 
 Run
 ~~~
