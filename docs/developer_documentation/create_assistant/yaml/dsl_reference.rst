@@ -214,6 +214,9 @@ Available argument attributes:
   parameters; the ``[default_iff_used, value]`` will cause the argument to
   be set to default value ``value`` **iff** it was used without parameters
   (if it wasn't used, it won't be defined at all)
+``metavar``
+  a name of variable to show in help on command line, e.g. with ``metavar: META``, you'll
+  get a help line ``--some-arg META <help>``.
 ``use`` / ``snippet`` (these two do completely same, ``snippet`` is obsolete and will be removed in 0.9.0)
   name of the snippet to load this argument from; any other specified attributes
   will override those from the snippet By convention, some arguments
