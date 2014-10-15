@@ -60,6 +60,7 @@ And install dependencies from requirements-devel.txt:
 .. code:: sh
 
   pip install -r requirements-devel.txt
+  pip install -r requirements-py2.txt # Only on Python 2
 
 Apart from git, DevAssistant also assumes that polkit is installed on your machine (provides pkexec binary). If you want to work with GUI, you'll need pygobject3.
 

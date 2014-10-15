@@ -121,6 +121,12 @@ to write and run tests (you should!), install dependencies from ``requirements-d
 
    pip install -r requirements-devel.txt
 
-On top of that, you'll need ``polkit`` for requesting root privileges for dependency installation
-etc. If you want to play around with GUI, you have to install ``pygobject``, too (see how
-hard this is compared to ``da prepare devassistant``?)
+If you develop on Python 2, you'll also need to install extra dependencies::
+
+   pip install -r requirements-py2.txt
+
+Regardless of Python version, you'll need ``polkit`` for requesting root privileges for dependency installation
+etc. If you want to play around with GUI, you have to install ``pygobject``, too.
+To run guitest, you also need to install `behave <https://pypi.python.org/pypi/behave>`_ from PyPI and dogtail
+(not on PyPI, get it from `Fedora Hosted <https://fedorahosted.org/dogtail/>`_ or from your favorite package manager).
+(See how hard this is compared to ``da prepare devassistant``?)
