@@ -3,5 +3,5 @@ PyYAML
 dapp
 jinja2
 progress
-requests
+requests>=2.3.0
 six

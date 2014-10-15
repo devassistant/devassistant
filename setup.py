@@ -88,6 +88,22 @@ class GUITest(GeneralTest):
         raise SystemExit(t.returncode)
 
 
+def _get_requirements(path):
+    with open(path) as f:
+        packages = f.read().splitlines()
+    packages = (p.strip() for p in packages if not p.startswith('#'))
+    packages = list(filter(None, packages))
+    return packages
+
+def _install_requirements():
+    requirements = _get_requirements('requirements.txt')
+
+    if sys.version_info[0] < 3:
+        requirements += _get_requirements('requirements-py2.txt')
+
+    return requirements
+
+
 description = ''.join(open('README.rst').readlines())
 
 setup(
@@ -106,7 +122,7 @@ setup(
                                        'da-gui=devassistant.gui:run_gui',
                                        'devassistant=devassistant.cli.cli_runner:CliRunner.run',
                                        'devassistant-gui=devassistant.gui:run_gui']},
-    install_requires=open('requirements.txt').read().splitlines(),
+    install_requires=_install_requirements(),
     setup_requires = [],
     classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Console',
