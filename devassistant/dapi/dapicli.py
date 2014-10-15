@@ -39,7 +39,7 @@ def _install_path():
 def _process_req_txt(req):
     '''Returns a processed request or raises an exception'''
     if req.status_code == 404:
-        return {}
+        return ''
     if req.status_code != 200:
         raise Exception('Response of the server was {code}'.format(code=req.status_code))
     return req.text

@@ -300,7 +300,7 @@ class PkgSearchAction(Action):
     description = 'Searches packages from Dapi and prints the result'
     args = [
         argument.Argument('query', 'query', nargs='+', help='One or multiple search queries'),
-        argument.Argument('-p', '--page', metavar='P', type=int, default=1, help='Page number'),
+        argument.Argument('page', '-p', '--page', metavar='P', type=int, default=1, help='Page number'),
     ]
 
     @classmethod
@@ -308,6 +308,7 @@ class PkgSearchAction(Action):
         try:
             dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
         except Exception as e:
+            raise e
             logger.error(str(e))
             raise exceptions.ExecutionException(str(e))
 
