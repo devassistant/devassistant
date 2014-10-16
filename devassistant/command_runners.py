@@ -1004,28 +1004,6 @@ class DockerCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
 
     @classmethod
-    def _cmd_for_newgrp(cls, command):
-        """This formats given command to run under docker group, assuming that user has
-        been added to it without logging out. If user has already re-logged, it doesn't
-        alter the command.
-        It uses double newgrp call (the first one adds user to docker group, but also
-        sets docker to primary group, so we need to set the primary group back using
-        another newgrp call.
-        """
-        if cls._docker_group_active():
-            return command
-
-        curgrp = grp.getgrgid(os.getegid()).gr_name
-        template = [
-            'cat << DA_DOCKER_OUTER_EOF | newgrp docker',
-            'cat << DA_DOCKER_INNER_EOF | newgrp {curgrp}',
-            '{command}',
-            'DA_DOCKER_INNER_EOF',
-            'DA_DOCKER_OUTER_EOF',
-        ]
-        return '\n'.join(template).format(curgrp=curgrp, command=command)
-
-    @classmethod
     def _docker_service_running(cls):
         try:
             ClHelper.run_command('systemctl status docker')
@@ -1061,25 +1039,15 @@ class DockerCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        """Only users in "docker" group can use docker; there are three possible situations:
-        1) user is not added to docker group => we need to add him there and then go to 2)
-        2) user has been added to docker group, but would need to log out for it to
-           take effect => use "newgrp" (_cmd_for_newgrp) for all docker commands
-        3) user has been added to docker group in a previous login session => all ok
-        """
         if not cls._d_module:
             logger.warning('docker-py not installed, cannot execute docker command.')
             return [False, '']
 
-        if not cls._docker_group_active() and not cls._docker_group_added():
-            # situation 1
-            cls._docker_group_add()
-        # else situation 3
+        # this will raise if something is inproperly set
+        cls._docker_check_setup()
+        if c.comm_type == 'docker_check_setup':
+            return (True, '')
 
-        if not cls._docker_service_running():
-            cls._docker_service_enable_and_run()
-
-        # TODO: how do we do analogy to "_cmd_for_newgrp" with the docker-py client?
         if not cls._client:
             cls._client = cls._d_module.Client()
         client = cls._client
@@ -1109,6 +1077,26 @@ class DockerCommandRunner(CommandRunner):
         return ret
 
     @classmethod
+    def _docker_check_setup(cls):
+        """Only users in "docker" group can use docker; there are three possible situations:
+        1) user is not added to docker group => we need to add him there and then go to 2)
+        2) user has been added to docker group, but would need to log out for it to
+           take effect => inform and raise exception
+        3) user has been added to docker group in a previous login session => all ok
+        """
+        if not cls._docker_group_active():
+            if not cls._docker_group_added():
+                # situation 1
+                cls._docker_group_add()
+            msg = 'Your user has just been added to "docker" group. Please log out and in ' +\
+                'and rerun this command.'
+            raise exceptions.CommandException(msg)
+        # else situation 3
+
+        if not cls._docker_service_running():
+            cls._docker_service_enable_and_run()
+
+    @classmethod
     def _docker_build(cls, args):
         # TODO: check that only correct args were passed
         logger.info('Building Docker image, this may take a while ...')
@@ -1136,7 +1124,7 @@ class DockerCommandRunner(CommandRunner):
                     final_image = success_found.group(1)
         else:
             # TODO: remove this whole else clause in version following 0.10
-            cmd_str = cls._cmd_for_newgrp('docker build --rm {0}'.format(args))
+            cmd_str = 'docker build --rm {0}'.format(args)
             try:
                 result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
 
@@ -1167,7 +1155,7 @@ class DockerCommandRunner(CommandRunner):
         logres = False
         res = ''
 
-        cmd_str = cls._cmd_for_newgrp('docker run {args} {image}'.format(**run_args))
+        cmd_str = 'docker run {args} {image}'.format(**run_args)
         try:
             res = ClHelper.run_command(cmd_str)
             logres = True
