@@ -1185,7 +1185,7 @@ class DockerCommandRunner(CommandRunner):
                 msg = 'docker_stop requires you to specify "container" when providing mapping.'
                 raise exceptions.CommandException(msg)
             container = inp['container']
-            time = inp['time']
+            time = int(inp.get('time', 10))
         else:
             container = inp
             time = 10
