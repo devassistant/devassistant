@@ -246,8 +246,7 @@ project to a git repository, one just needs to run
 from git and use information stored in ``.devassistant`` to reinstall
 dependencies. (There is more to this, you can for example add a custom
 ``run`` section to ``.devassistant`` file or add custom dependencies,
-but this is not covered by this tutorial (not even by reference, so I need to
-place TODO here to document it).)
+but this is not covered by this tutorial (see :ref:`dot_devassistant_ref`).
 
 *Note: There can be more dependencies sections and run sections in one
 assistant. To find out more about the rules of when they're used and how

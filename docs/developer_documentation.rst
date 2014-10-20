@@ -90,7 +90,8 @@ Writing Assistants: Yaml or Scripting Languages
 
 There are two ways to write assistants. You can either use our
 :ref:`Yaml based DSL <create_yaml_assistant>` or
-write assistants in popular scripting languages (for list of supported languages see TODO).
+write assistants in popular scripting languages (for list of supported languages see
+:ref:`pingpong_supported_languages`).
 This method is referred to as :ref:`DevAssistant PingPong <create_pingpong_assistant>`.
 
 Contributing

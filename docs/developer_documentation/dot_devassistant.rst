@@ -1,3 +1,5 @@
+.. _dot_devassistant_ref:
+
 Project Metainfo: the .devassistant File
 ========================================
 

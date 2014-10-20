@@ -218,7 +218,9 @@ and in :ref:`expressions_ref`.
 
    - env_set:
        FOO: bar
-   - cl_i: echo $FOO  # if FOO is not in local context, the string is passed unmodified to shell
+   # If FOO is not in local DevAssistant context, DevAssistant does no substitution.
+   #  This measn that the shell still gets "echo $FOO" to execute and prints "bar".
+   - cl_i: echo $FOO
    - env_unset: FOO
 
 Note: If some variables to be unset are not defined, their names are just ignored.

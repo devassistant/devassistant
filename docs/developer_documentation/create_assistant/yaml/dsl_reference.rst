@@ -285,13 +285,25 @@ Run
 
 Reference for run sections has a separate page: :ref:`run_sections_ref`.
 
+.. _creator_assistants_ref:
+
+Creator Assistants
+------------------
+
+Creator assistants are assistants that *create* something, be it a source file,
+a configuration file template or a whole new project. They must be placed under
+``assistants/crt`` subdirectory or one of the load paths, as mentioned in
+:ref:`assistants_loading_mechanism`.
+
+They usually create ``.devassistant`` file (see :ref:`dot_devassistant_ref`).
+
 .. _modifier_assistants_ref:
 
 Modifier Assistants
 -------------------
 
 Modifier assistants are assistants that are supposed to work with
-already created project. They must be placed under ``mod``
+already created project. They must be placed under ``assistants/mod``
 subdirectory of one of the load paths, as mentioned in
 :ref:`assistants_loading_mechanism`.
 
@@ -327,8 +339,8 @@ Preparer Assistants
 
 Preparer assistants are assistants that are supposed to checkout sources of upstream
 projects and set up environment for them (possibly utilizing their ``.devassistant`` file,
-if they have one). Preparers must be placed under ``prep`` subdirectory of one of the load
-paths, as mentioned in :ref:`assistants_loading_mechanism`.
+if they have one). Preparers must be placed under ``assistants/prep`` subdirectory of one
+of the load paths, as mentioned in :ref:`assistants_loading_mechanism`.
 
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.
@@ -339,4 +351,6 @@ Task Assistants
 ---------------
 
 Task assistants are supposed to carry out arbitrary task that are not related to a specific
-project. <TODO>
+project. They must be placed under ``assistants/task`` subdirectory of one of the load paths,
+as mentioned in :ref:`assistants_loading_mechanism`. Otherwise, there is nothing special about
+task assistants in terms of execution by DevAssistant.
