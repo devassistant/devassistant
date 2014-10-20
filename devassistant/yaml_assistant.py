@@ -1,3 +1,4 @@
+import copy
 import functools
 import logging
 import os
@@ -128,6 +129,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         """
         kwargs['__section__'] = section
         kwargs['__assistant__'] = self
+        kwargs['__env__'] = copy.deepcopy(os.environ)
         kwargs['__files__'] = [self._files]
         kwargs['__files_dir__'] = [self.files_dir]
         kwargs['__scls__'] = []

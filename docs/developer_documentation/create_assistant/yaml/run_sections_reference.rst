@@ -205,6 +205,7 @@ In all assistants, a few useful global variables are available. These include:
 - ``$__system_version__`` - version of the system, e.g. "3.13.3-201.fc20.x86_64"
 - ``$__distro_name__`` - name of Linux distro, e.g. "fedora"
 - ``$__distro_version__`` - version of Linux distro, e.g. "20"
+- ``$__env__`` - mapping of environment variables that get passed to subprocess shell
 
 Note: if any of this information is not available, the corresponding variable will be empty.
 Also note, that you can rely on all the variables having lowercase content.

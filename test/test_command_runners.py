@@ -12,7 +12,8 @@ from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
-    SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner
+    SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner, \
+    EnvCommandRunner
 # also import just command_runners to have access to command_runners.command_runners
 from devassistant import command_runners
 from devassistant.exceptions import CommandException, RunException
@@ -200,6 +201,11 @@ class TestClCommandRunner(object):
     def test_p_flag_pasesses_even_if_subcommand_fails(self):
         self.cl.run(Command('cl_ip', 'false'))
         assert ('INFO', 'false') in self.tlh.msgs
+
+    def test_passes_env(self):
+        self.cl.run(Command('cl_i', 'echo $DEVASSISTANTTESTFOO',
+            kwargs={'__env__': {'DEVASSISTANTTESTFOO': 'foo'}}))
+        assert ('INFO', 'foo') in self.tlh.msgs
 
 
 class TestDependenciesCommandRunner(object):
@@ -546,3 +552,24 @@ class TestLoadCmdCommandRunner(object):
         assert ('INFO', 'Got you!') in self.tlh.msgs
         assert ('INFO', 'message') not in self.tlh.msgs
         assert r == (True, 'heee heee')
+
+
+class TestEnvCommandRunner(object):
+    def setup_method(self, method):
+        self.kwargs = {'__env__': {'foo': 'bar', 'spam': 'spam'}}
+
+    def test_set(self):
+        res = EnvCommandRunner.run(Command('env_set', {'foo': 'changed', 'some': 'value'},
+            self.kwargs))
+        assert res == (True, {'foo': 'changed', 'some': 'value'})
+        assert self.kwargs == {'__env__': {'foo': 'changed', 'some': 'value', 'spam': 'spam'}}
+
+    def test_unset_one(self):
+        res = EnvCommandRunner.run(Command('env_unset', 'spam', self.kwargs))
+        assert res == (True, {'spam': 'spam'})
+        assert self.kwargs == {'__env__': {'foo': 'bar'}}
+
+    def test_unset_more(self):
+        res = EnvCommandRunner.run(Command('env_unset', ['foo', 'spam'], self.kwargs))
+        assert res == (True, {'foo': 'bar', 'spam': 'spam'})
+        assert self.kwargs == {'__env__': {}}

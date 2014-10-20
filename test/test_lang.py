@@ -172,6 +172,10 @@ class TestEvaluate(object):
         assert evaluate_expression('$(echo $exists $doesnt)', {'exists': 'X'}) == (True, 'X')
         assert evaluate_expression('$(echo ${exists} ${doesnt})', {'exists': 'X'}) == (True, 'X')
 
+    def test_env(self):
+        res = evaluate_expression('$(echo $DEVASSISTANTTESTFOO)', {'DEVASSISTANTTESTFOO': 'foo'})
+        assert res == (True, 'foo')
+
 
 class TestRunSection(object):
     def assert_run_section_result(self, actual, expected):

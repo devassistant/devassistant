@@ -28,7 +28,8 @@ class ClHelper(object):
                     ignore_sigint=False,
                     output_callback=None,
                     as_user=None,
-                    log_secret=False):
+                    log_secret=False,
+                    env=None):
         """Runs a command from string, e.g. "cp foo bar"
         Args:
             cmd_str: the command to run as string
@@ -39,6 +40,8 @@ class ClHelper(object):
                 runs as current user if as_user == None
             log_secret: if True, the command invocation will only be logged as
                 "LOGGING PREVENTED FOR SECURITY REASONS", no output will be logged
+            env: if not None, pass to subprocess as shell environment; else use
+                original DevAssistant environment
         """
         # run format processors on cmd_str
         for name, cmd_proc in cls.command_processors.items():
@@ -65,12 +68,14 @@ class ClHelper(object):
         stdout_pipe = subprocess.PIPE
         stderr_pipe = subprocess.STDOUT
         preexec_fn = cls.ignore_sigint if ignore_sigint else None
+        env = os.environ if env is None else env
         proc = subprocess.Popen(cmd_str,
                                 stdin=stdin_pipe,
                                 stdout=stdout_pipe,
                                 stderr=stderr_pipe,
                                 shell=True,
-                                preexec_fn=preexec_fn)
+                                preexec_fn=preexec_fn,
+                                env=env)
         # register process to cls.subprocesses
         cls.subprocesses[proc.pid] = proc
 

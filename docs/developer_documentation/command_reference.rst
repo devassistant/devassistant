@@ -163,6 +163,8 @@ User interaction commands, let you ask for password and various other input.
            prompt: "Please provide your password"
 
 
+.. _cl_command_ref:
+
 Command Line Commands
 ---------------------
 
@@ -185,6 +187,9 @@ e.g. execution continues normally even if subcommand return code is non-zero)
     $lres, $res:
     - cl_ip: cmd -this -will -log -in -realtime -and -save -lres -and -res -and -then -continue
 
+If you need to set environment variables for multiple subsequent commands, consult
+:ref:`env_command_ref`.
+
 Note: when using ``r``, it's job of DevAssistant core to figure out what to use as authentication
 method. Consider this an implementation detail.
 
@@ -193,6 +198,30 @@ DevAssistant has to specialcase "cd <dir>" command, since it needs to call a spe
 method for changing current working directory of the running interpreter. Therefore you
 must always use "cd <dir>" as a single command (do not use "ls foo && cd foo");
 also, using pushd/popd is not supported for now.*
+
+.. _env_command_ref:
+
+Modifying Subprocess Environment Variables
+------------------------------------------
+
+Globaly set/unset shell variables for subprocesses invoked by :ref:`cl_command_ref`
+and in :ref:`expressions_ref`.
+
+``env_set``, ``env_unset``
+
+- Input: a mapping of variables to set if using ``env_set``, name (string) or names (list)
+  of variables to unset if using ``env_unset``
+- RES: mapping of newly set variable name(s) to their new values (for ``env_set``)
+  or unset variables to their last values (for ``env_unset``)
+- LRES: always ``True``
+- Example::
+
+   - env_set:
+       FOO: bar
+   - cl_i: echo $FOO  # if FOO is not in local context, the string is passed unmodified to shell
+   - env_unset: FOO
+
+Note: If some variables to be unset are not defined, their names are just ignored.
 
 .. _dependencies_command_ref:
 

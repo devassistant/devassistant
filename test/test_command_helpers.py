@@ -153,3 +153,10 @@ class TestCliDialogHelper(object):
         if message:
             assert message in stdout
         assert result == expected
+
+    def test_env(self):
+        out = ClHelper.run_command('echo $DEVASSISTANTTESTFOO', env={'DEVASSISTANTTESTFOO': 'foo'})
+        assert out == 'foo'
+        # if the variable is not specified, check that there's nothing printed
+        out = ClHelper.run_command('echo $DEVASSISTANTTESTFOO')
+        assert out == ''

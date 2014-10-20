@@ -291,7 +291,8 @@ class ClCommandRunner(CommandRunner):
             reraise = False
 
         try:
-            result = ClHelper.run_command(c.input_res, log_level, as_user=as_user)
+            result = ClHelper.run_command(c.input_res, log_level, as_user=as_user,
+                env=c.kwargs.get('__env__', None))
         except exceptions.ClException as e:
             if reraise:
                 raise
@@ -952,7 +953,8 @@ class AsUserCommandRunner(CommandRunner):
             logger.info(msg, extra={'event_type': 'sub_da'})
 
         try:
-            out = ClHelper.run_command(to_run, output_callback=sub_da_logger, as_user=user)
+            out = ClHelper.run_command(to_run, output_callback=sub_da_logger, as_user=user,
+                env=c.kwargs.get('__env__', {}))
             ret = True
         except exceptions.ClException as e:
             out = e.output
@@ -1559,3 +1561,35 @@ class LoadCmdCommandRunner(CommandRunner):
                     crs.append(k)
 
         return (len(crs) > 0, crs)
+
+
+@register_command_runner
+class EnvCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type in ['env_set', 'env_unset']
+
+    @classmethod
+    def run(cls, c):
+        c.kwargs.setdefault('__env__', {})
+        res = None
+        if c.comm_type == 'env_set':
+            if not isinstance(c.input_res, dict):
+                raise exceptions.CommandException('env_set expects mapping as input')
+            c.kwargs['__env__'].update(c.input_res)
+            res = c.input_res
+        else:
+            res = {}
+            # accept a single variable name or a list of names
+            if isinstance(c.input_res, six.string_types):
+                unset = [c.input_res]
+            elif isinstance(c.input_res, list):
+                unset = c.input_res
+            else:
+                raise exceptions.CommandException('env_unset expects string or list as input')
+            for k in unset:
+                if k in c.kwargs['__env__']:
+                    res[k] = c.kwargs['__env__'][k]
+                    del c.kwargs['__env__'][k]
+
+        return (True, res)
