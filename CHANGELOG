@@ -1,3 +1,5 @@
+- GitHub two-factor authentication now supported
+
 0.9.1
 - Mainly bugfixes
 - New command ask_input - requests interactive input from user. Usable in both

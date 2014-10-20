@@ -70,9 +70,10 @@ This line will do the following:
 - The ``-g`` switch will make DevAssistant register the project on Github and push
   sources there. DevAssistant will ask you for your Github password the first time
   you're doing this and then it will create a Github API token and new SSH keys, so
-  on any further invocation, this will be fully automatic. Note, that if your
-  system username differs from your Github username, you must specify the Github username
-  as an argument to ``-g``.
+  on any further invocation, this will be fully automatic. If you are using
+  two-factor authentication with GitHub, DevAssistant will ask you for your
+  one-time password once. Note that if your system username differs from your
+  Github username, you must specify the Github username as an argument to ``-g``.
 
 .. _modifying_projects_cli:
 

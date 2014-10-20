@@ -20,8 +20,11 @@ class GitHubAuth(object):
     _token = None
     try:
         _gh_module = utils.import_module('github')
+        _gh_exceptions = utils.import_module('github.GithubException')
+
     except:
         _gh_module = None
+        _gh_exceptions = None
 
     @classmethod
     def _github_token(cls, login):
@@ -36,22 +39,34 @@ class GitHubAuth(object):
 
     @classmethod
     def _get_github_user(cls, login, ui):
-        if not cls._user:
-            try:
-                # try logging with token
+        if not cls._github_token(login):
+            cls._user = cls._try_login_with_password_ntimes(login, 3, ui)
+        else:
+            try: # try logging with token
                 token = cls._github_token(login)
                 gh = cls._gh_module.Github(login_or_token=token)
-                cls._user = gh.get_user()
-                # try if the authentication was successful
-                cls._user.login
+                user = gh.get_user()
+                user.login # throws unless the authentication was successful
+                cls._user = user
             except cls._gh_module.GithubException:
                 # if the token was set, it was wrong, so make sure it's reset
                 cls._token = None
-                # try login with username/password 3 times
                 cls._user = cls._try_login_with_password_ntimes(login, 3, ui)
-                if cls._user is not None:
-                    cls._github_create_auth()  # create auth for future use
+
+        if cls._token is None:
+            cls._github_create_authorization(ui)
+
         return cls._user
+
+    @classmethod
+    def _github_create_authorization(cls, ui):
+        try:
+            cls._user.login
+            cls._github_create_simple_authorization()
+        except cls._gh_exceptions.TwoFactorException:
+            cls._github_create_twofactor_authorization(ui)
+        except cls._gh_exceptions.GithubException:
+            raise
 
     @classmethod
     def _try_login_with_password_ntimes(cls, login, ntimes, ui):
@@ -69,7 +84,9 @@ class GitHubAuth(object):
             user = gh.get_user()
             try:
                 user.login
-                break  # if user.login doesn't raise, authentication has been successful
+                break # if user.login doesn't raise, authentication has been successful
+            except cls._gh_exceptions.TwoFactorException:
+                break # two-factor auth is used
             except cls._gh_module.GithubException as e:
                 user = None
                 msg = 'Wrong Github username or password; message from Github: {0}\n'.\
@@ -84,29 +101,59 @@ class GitHubAuth(object):
         return user
 
     @classmethod
-    def _github_create_auth(cls):
-        """ Store token into ~/.gitconfig.
+    def _github_create_twofactor_authorization(cls, ui):
+        """Create an authorization for a GitHub user using two-factor
+           authentication. Unlike its non-two-factor counterpart, this method
+           does not traverse the available authentications as they are not
+           visible until the user logs in.
 
-        Note: this uses cls._user.get_authorizations(), which only works if cls._user
-        was authorized by login/password, doesn't work for token auth (TODO: why?).
-        If token is not defined then store it into ~/.gitconfig file
+           Please note: cls._user's attributes are not accessible until the
+           authorization is created due to the way (py)github works.
         """
-        if not cls._token:
-            try:
-                auth = None
-                for a in cls._user.get_authorizations():
-                    if a.note == 'DevAssistant':
-                        auth = a
-                if not auth:
-                    auth = cls._user.create_authorization(
-                        scopes=['repo', 'user', 'admin:public_key'],
-                        note="DevAssistant")
-                ClHelper.run_command("git config --global github.token.{login} {token}".format(
-                    login=cls._user.login, token=auth.token), log_secret=True)
-                ClHelper.run_command("git config --global github.user.{login} {login}".format(
-                    login=cls._user.login))
-            except cls._gh_module.GithubException as e:
-                logger.warning('Creating authorization failed: {0}'.format(e))
+        try:
+            try: # This is necessary to trigger sending a 2FA key to the user
+                auth = cls._user.create_authorization()
+            except cls._gh_exceptions.GithubException:
+                onetime_pw = DialogHelper.ask_for_password(ui, prompt='Your one time password:')
+                auth = cls._user.create_authorization(scopes=['repo', 'user', 'admin:public_key'],
+                                            note="DevAssistant",
+                                            onetime_password=onetime_pw)
+                cls._user = cls._gh_module.Github(login_or_token=auth.token).get_user()
+                logger.debug('Two-factor authorization for user "{0}" created'.format(cls._user.login))
+                cls._github_store_authorization(cls._user, auth)
+                logger.debug('Two-factor authorization token stored')
+        except cls._gh_exceptions.GithubException as e:
+            logger.warning('Creating two-factor authorization failed: {0}'.format(e))
+
+
+    @classmethod
+    def _github_create_simple_authorization(cls):
+        """Create a GitHub authorization for the given user in case they don't
+           already have one.
+        """
+        try:
+            auth = None
+            for a in cls._user.get_authorizations():
+                if a.note == 'DevAssistant':
+                    auth = a
+            if not auth:
+                auth = cls._user.create_authorization(
+                    scopes=['repo', 'user', 'admin:public_key'],
+                    note="DevAssistant")
+                cls._github_store_authorization(cls._user, auth)
+        except cls._gh_exceptions.GithubException as e:
+            logger.warning('Creating authorization failed: {0}'.format(e))
+
+    @classmethod
+    def _github_store_authorization(cls, user, auth):
+        """Store an authorization token for the given GitHub user in the git
+           global config file.
+        """
+        ClHelper.run_command("git config --global github.token.{login} {token}".format(
+            login=user.login, token=auth.token), log_secret=True)
+        ClHelper.run_command("git config --global github.user.{login} {login}".format(
+            login=user.login))
+
 
     @classmethod
     def _github_create_ssh_key(cls):

@@ -317,7 +317,8 @@ creator.
 Github Command
 --------------
 
-Manipulate Github repositories.
+Manipulate Github repositories. Two factor authentication is supported out of
+the box.
 
 Github command (``github``) has many "subcommands". Subcommands are part of the command input,
 see below.
