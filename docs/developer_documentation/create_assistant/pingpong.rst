@@ -1,7 +1,7 @@
 .. _create_pingpong_assistant:
 
-Create Assistant Using DevAssistant PingPong
-============================================
+Create Assistant Using Scripting Language (a.k.a DevAssistant PingPong)
+=======================================================================
 
 .. toctree::
    :titlesonly:
