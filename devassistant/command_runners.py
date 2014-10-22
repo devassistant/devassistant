@@ -1293,6 +1293,56 @@ class DockerCommandRunner(CommandRunner):
 
 
 @register_command_runner
+class VagrantDockerCommandRunner(CommandRunner):
+    @classmethod
+    def matches(cls, c):
+        return c.comm_type == 'vagrant_docker'
+
+    @classmethod
+    def run(cls, c):
+        prev_env_vdp = c.kwargs['__env__'].get('VAGRANT_DEFAULT_PROVIDER', None)
+        c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+
+        vagrant_cmd = c.input_res.split()[0]
+        if vagrant_cmd == 'up':
+            res = cls._vagrant_run_cmd(c, 'start', logging.INFO)
+        elif vagrant_cmd in ['halt', 'destroy', 'reload']:
+            res = cls._vagrant_run_cmd(c, vagrant_cmd)
+        else:
+            msg = 'Unsupported vagrant docker command {c}, use "cl: vagrant {c}"'.\
+                format(c=c.input_res)
+            raise exceptions.CommandException(msg)
+
+        if prev_env_vdp is not None:
+            c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = prev_env_vdp
+        return res
+
+    @classmethod
+    def _vagrant_run_cmd(cls, c, what, log_level=logging.DEBUG):
+        try:
+            out = ClHelper.run_command('vagrant ' + c.input_res, log_level=log_level,
+                env=c.kwargs['__env__'])
+        except exceptions.ClException as e:
+            msg = 'Failed to {what} docker containers:\n{out}'.\
+                format(what=what, out=e.output)
+            raise exceptions.CommandException(msg)
+
+        return (True, cls._docker_containers_from_vagrant_output(out))
+
+    @classmethod
+    def _docker_containers_from_vagrant_output(cls, output):
+        """Returns list of containers from output of vagrant commands like
+        halt, destroy, run, ... (e.g. from lines "==> container_name: blahblah")."""
+        c_name_regex = re.compile(r'^\s*=*>\s*([\w]+):\s+')
+        containers = []
+        for line in output.splitlines():
+            match = c_name_regex.search(line)
+            if match is not None and match.group(1) not in containers:
+                containers.append(match.group(1))
+        return containers
+
+
+@register_command_runner
 class NormalizeCommandRunner(CommandRunner):
     @classmethod
     def matches(cls, c):
