@@ -290,6 +290,9 @@ def get_for_control_var_and_eval_expr(comm_type, kwargs):
             iterval = eval_expression.split()
         else:
             iterval = eval_expression
+    else:
+        iterval = eval_expression
+
     return control_vars, iterval
 
 

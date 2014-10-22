@@ -174,6 +174,9 @@ class TestEvaluate(object):
 
 
 class TestRunSection(object):
+    def setup_method(self, method):
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
     def assert_run_section_result(self, actual, expected):
         # "actual" can possibly be a tuple, not a list, so we need to unify the value
         assert list(actual) == list(expected)
@@ -236,6 +239,12 @@ class TestRunSection(object):
         kwargs = {}
         run_section([{'for $i in $(echo "")': [{'$foo': '$i'}]}], kwargs)
         assert 'foo' not in kwargs
+
+    def test_for_list(self):
+        kwargs = {'a': ['asd', 'sdf']}
+        run_section([{'for $i in $a': [{'log_i': '$i'}]}], kwargs)
+        assert ('INFO', 'asd') in self.tlh.msgs
+        assert ('INFO', 'sdf') in self.tlh.msgs
 
     @pytest.mark.parametrize('iter_type', [
         'in',
