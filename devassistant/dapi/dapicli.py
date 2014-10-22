@@ -210,7 +210,7 @@ def print_search(query, page=''):
 
 def get_installed_daps():
     '''Returns a set of all installed daps'''
-    g = glob.glob('{d}/*.yaml'.format(d=_install_path()))
+    g = glob.glob('{d}/meta/*.yaml'.format(d=_install_path()))
     s = set()
     for a in g:
         s.add(a.split('/')[-1][:-len('.yaml')])
@@ -221,7 +221,7 @@ def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
             'Cannot unisnatll {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
-    g = ['{d}/{dap}.yaml'.format(d=_install_path(), dap=name)]
+    g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
         g += glob.glob('{d}/{loc}/*/{dap}'.format(d=_install_path(), loc=loc, dap=name))
@@ -292,9 +292,10 @@ def install_dap_from_path(path, update=False):
     if will_uninstall:
         uninstall_dap(dap_obj.meta['package_name'])
     _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
-    os.rename(os.path.join(_dapdir, 'meta.yaml'), os.path.join(_dapdir, dap_obj.meta['package_name'] + '.yaml'))
     if not os.path.isdir(_install_path()):
         os.makedirs(_install_path())
+    os.mkdir(os.path.join(_dapdir, 'meta'))
+    os.rename(os.path.join(_dapdir, 'meta.yaml'), os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
     for f in glob.glob(_dapdir + '/*'):
         dst = os.path.join(_install_path(), os.path.basename(f))
         if os.path.isdir(f):
