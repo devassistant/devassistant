@@ -36,6 +36,7 @@ Each dap has an unique name (lat's say ``foo``) and it can only contain assistan
        {crt,mod,prep,task,snippets}/
          foo/
      snippets/
+       foo.yaml
        foo/
      icons/
        {crt,mod,prep,task,snippets}/
