@@ -1,6 +1,7 @@
 PyGithub>=1.14.2
 PyYAML
 dapp
+docker
 jinja2
 progress
 requests>=2.3.0

@@ -13,6 +13,7 @@ import threading
 import unicodedata
 
 import dapp
+import docker
 import jinja2
 import six
 import yaml
@@ -966,10 +967,6 @@ class AsUserCommandRunner(CommandRunner):
 class DockerCommandRunner(CommandRunner):
     _has_docker_group = None
     _client = None
-    try:
-        _d_module = utils.import_module('docker')
-    except:
-        _d_module = None
 
     @classmethod
     def matches(cls, c):
@@ -1041,38 +1038,23 @@ class DockerCommandRunner(CommandRunner):
 
     @classmethod
     def run(cls, c):
-        if not cls._d_module:
-            logger.warning('docker-py not installed, cannot execute docker command.')
-            return [False, '']
-
         # this will raise if something is inproperly set
         cls._docker_check_setup()
         if c.comm_type == 'docker_check_setup':
             return (True, '')
 
         if not cls._client:
-            cls._client = cls._d_module.Client()
+            cls._client = docker.Client()
         client = cls._client
 
-        if c.comm_type == 'docker_build':
-            # TODO: allow providing another argument - a repository name/tag for the built image
-            ret = cls._docker_build(c.input_res)
-        elif c.comm_type == 'docker_run':
-            ret = cls._docker_run(c.input_res)
-        elif c.comm_type == 'docker_attach':
-            ret = cls._docker_attach(c.input_res)
-        elif c.comm_type == 'docker_find_img':
-            ret = cls._docker_find_image(c.input_res)
+        if c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
+            'docker_stop', 'docker_cc', 'docker_build']:
+            method = getattr(cls, '_' + c.comm_type)
+            ret = method(c.input_res)
         elif c.comm_type == 'docker_container_ip':
             ret = cls._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
         elif c.comm_type == 'docker_container_name':
             ret = cls._docker_get_container_attr('Name', c.input_res)
-        elif c.comm_type == 'docker_start':
-            ret = cls._docker_start(c.input_res)
-        elif c.comm_type == 'docker_stop':
-            ret = cls._docker_stop(c.input_res)
-        elif c.comm_type == 'docker_cc':
-            ret = cls._docker_cc(c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
@@ -1099,83 +1081,111 @@ class DockerCommandRunner(CommandRunner):
             cls._docker_service_enable_and_run()
 
     @classmethod
+    def _check_docker_method_args(cls, method, args, required, yaml_method):
+        """Checks that items in iterable args are subset of method arguments and
+        that required arguments are present in args.
+
+        Args:
+            method: instance of method of docker client
+            args: iterable containing args to check
+            required: iterable of required arguments
+            yaml_method: name of yaml method for possible exception message
+
+        Raises:
+            exceptions.CommandException if args are not subset of method arguments
+                or one or more required arguments are not present
+        """
+        args = set(args)
+        margs = set(method.func_code.co_varnames)
+        rargs = set(required)
+
+        dif = args - margs
+        if dif:
+            msg = '"{ym}" does not expect "{dif}" in input mapping.'.format(
+                ym=yaml_method, dif=', '.join(dif))
+            raise exceptions.CommandException(msg)
+
+        dif = rargs - args
+        if dif:
+            msg = '"{ym}" is missing required "{dif}" in input mapping.'.format(
+                ym=yaml_method, dif=', '.join(dif))
+            raise exceptions.CommandException(msg)
+
+    @classmethod
     def _docker_build(cls, args):
-        # TODO: check that only correct args were passed
+        if isinstance(args, six.string_types):
+            raise exception.CommandException('docker_build now needs a mapping to pass' +
+                'to a docker-py client, please consult command reference for details.')
+
+        cls._check_docker_method_args(cls._client.build, args.keys(), ['path'], 'docker_build')
+
         logger.info('Building Docker image, this may take a while ...')
         success_re = re.compile(r'Successfully built ([0-9a-f]+)')
         logres = False
         final_image = ''
 
-        # support both old and new way of accepting args
-        #  (e.g. new way = dict of args to pass to build,
-        #   old way = just pass directory to "docker build" subprocess)
-        if isinstance(args, dict):
-            if 'rm' not in args:
-                args['rm'] = True
-            args['stream'] = False
+        if 'rm' not in args:
+            args['rm'] = True
+        args['stream'] = False
 
-            output = cls._client.build(**args)
-            for chunk in output:
-                # chunk is a JSON chunk, for explanation see
-                #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
-                l = json.loads(chunk).get('stream', '').strip()
+        output = cls._client.build(**args)
+        base_images = {}
+        # docker duplicates "Download complete" messages for few reasons,
+        #  we want to deduplicate them
+        base_images_downloaded = []
+        for chunk in output:
+            # chunk is a JSON chunk, for explanation see
+            #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
+            parsed_json = json.loads(chunk)
+            if 'status' in parsed_json and parsed_json['status'].startswith('Download'):
+                i = parsed_json['id']
+                # we're downloading base images
+                if parsed_json['status'] == 'Downloading':
+                    current = parsed_json['progressDetail']['current']
+                    total = parsed_json['progressDetail']['total']
+                    if i not in base_images:
+                        # starting download
+                        logger.info('Downloading base image {0} ...'.format(i))
+                        base_images[i] = 0
+                    else:
+                        # download progress - print when we're in half
+                        if base_images[i] < total / 2 and current > total / 2:
+                            logger.info('50 % of image {0} downloaded ...'.format(i))
+                        base_images[i] = current
+                elif parsed_json['status'] == 'Download complete':
+                    # download complete
+                    if i not in base_images_downloaded:
+                        logger.info('Base image {0} downloaded.'.format(i))
+                        base_images_downloaded.append(i)
+            elif 'stream' in parsed_json:
+                # we're actually building
+                l = parsed_json.get('stream', '').strip()
                 logger.info(l, extra={'event_type': 'cmd_out'})
                 success_found = success_re.search(l)
                 if success_found:
                     logres = True
                     final_image = success_found.group(1)
-        else:
-            # TODO: remove this whole else clause in version following 0.10
-            cmd_str = 'docker build --rm {0}'.format(args)
-            try:
-                result = ClHelper.run_command(cmd_str, log_level=logging.INFO)
-
-                success_found = success_re.search(result)
-                if success_found:
-                    logres = True
-                    final_image = success_found.group(1)
-            except exceptions.ClException:
-                pass  # no-op
 
         return (logres, final_image)
 
     @classmethod
-    def _get_docker_run_args(cls, inp):
-        if not isinstance(inp, dict):
-            raise exceptions.CommandException('docker_run expects mapping as input.')
-        if 'image' not in inp:
-            raise exceptions.CommandException('docker_run requires "image" argument.')
-
-        return {'image': inp['image'], 'args': inp.get('args', '')}
-
-    @classmethod
     def _docker_run(cls, inp):
-        logger.warning('docker_run command will be obsoleted in next version')
-        logger.warning('use docker_cc and docker_start')
-        # TODO: we need to register the container for shutdown at DA exit, if run as daemon
-        run_args = cls._get_docker_run_args(inp)
-        logres = False
-        res = ''
-
-        cmd_str = 'docker run {args} {image}'.format(**run_args)
-        try:
-            res = ClHelper.run_command(cmd_str)
-            logres = True
-        except exceptions.ClException:
-            pass  # no-op
-
-        return (logres, res)
+        # TODO: remove in 1.0.0
+        raise exceptions.CommandException('docker_run command has been removed, see command' +
+            'reference for details on replacing it.')
 
     @classmethod
     def _docker_cc(cls, inp):
         """Creates a docker container"""
-        # TODO: check args, most importantly check that image is specified
+        cls._check_docker_method_args(cls._client.create_container, inp.keys(),
+            ['image'], 'docker_cc')
         res = cls._client.create_container(**inp)
         return (True, res['Id'])
 
     @classmethod
     def _docker_start(cls, inp):
-        # TODO: check args, most importantly check that container is specified
+        cls._check_docker_method_args(cls._client.start, inp.keys(),
+            ['container'], 'docker_start')
         cls._client.start(**inp)
         # there is no real result here, so just return container hash again
         return (True, inp['container'])
@@ -1183,6 +1193,8 @@ class DockerCommandRunner(CommandRunner):
     @classmethod
     def _docker_stop(cls, inp):
         if isinstance(inp, dict):
+            cls._check_docker_method_args(cls._client.stop, inp.keys(),
+                ['container'], 'docker_stop')
             if 'container' not in inp:
                 msg = 'docker_stop requires you to specify "container" when providing mapping.'
                 raise exceptions.CommandException(msg)
@@ -1259,7 +1271,7 @@ class DockerCommandRunner(CommandRunner):
         return (logres, '\n'.join(result))
 
     @classmethod
-    def _docker_find_image(cls, hash_start):
+    def _docker_find_img(cls, hash_start):
         # hash start can theoretically be an int, so convert to unicode string either way
         hash_start = six.text_type(hash_start)
         hashes = cls._client.images(quiet=True)
@@ -1285,7 +1297,7 @@ class DockerCommandRunner(CommandRunner):
                     res = 'Container doesn\'t have attribute {a}'.format(a=attr)
                 else:
                     res = res[a]
-        except cls._d_module.errors.APIError as e:
+        except docker.errors.APIError as e:
             logres = False
             res = 'Failed to obtain container attribute: {e}'.format(e=e)
 
