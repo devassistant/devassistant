@@ -137,6 +137,14 @@ class MainWindow(object):
                 # If assistant has more subassistants then create button with menu
                 self.gui_helper.add_submenu(grid_lang, ass, row, column)
             column += 1
+
+        # Install More Assistants button
+        if column > 2:
+            row += 1
+            column = 0
+        self.gui_helper.add_install_button(grid_lang, row, column)
+        column += 1
+
         if row == 0 and len(sub_as) < 3:
             while column < 3:
                 btn = self.gui_helper.create_button(style=Gtk.ReliefStyle.NONE)
