@@ -158,7 +158,7 @@ argument is required, it will refuse to run without it.
 You can now try running ``da create python argh -h`` and you'll see that the
 argument is printed out in commandline help.
 
-Since there are some common arguments, the standard installation of
+Since there are some common arguments that the standard installation of
 DevAssistant ships with so called "snippets", that contain (among other
 things) definitions of frequentyl used arguments. You can use name argument
 for Creator assistants like this::
@@ -167,8 +167,7 @@ for Creator assistants like this::
      name:
        use: common_args
 
-*Note: up to version 0.8.0, "snippet" can also be used in place of "use"; "snippet" is
-obsolete and will be removed in 0.9.0.*
+See :ref:`common_assistant_behaviour` for more information.
 
 Run Again
 ~~~~~~~~~

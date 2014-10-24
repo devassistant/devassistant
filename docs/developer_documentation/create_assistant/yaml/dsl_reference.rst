@@ -77,7 +77,7 @@ sort of reasonable default, it's up to your consideration which of them to use):
 ``dependencies`` (and ``dependencies_*``)
   specification of dependencies, see below `Dependencies`_
 ``args``
-  specification of arguments, see below `Args`_
+  specification of arguments, see below `Arguments`_
 ``files``
   specification of used files, see below `Files`_
 ``project_type``
@@ -176,10 +176,10 @@ Sometimes your dependencies may get terribly complex - they depend on many
 parameters, you need to use them dynamically during ``run``, etc. In these
 cases, consider using :ref:`dependencies_command_ref` in ``run`` section.
 
-Args
-----
+Arguments
+---------
 
-Arguments are used for specifying commandline arguments or gui inputs.
+Arguments are used for specifying commandline arguments or GUI inputs.
 Every assistant can have zero to multiple arguments.
 
 The ``args`` section of each yaml assistant is a mapping of arguments to
@@ -217,7 +217,7 @@ Available argument attributes:
 ``metavar``
   a name of variable to show in help on command line, e.g. with ``metavar: META``, you'll
   get a help line ``--some-arg META <help>``.
-``use`` / ``snippet`` (these two do completely same, ``snippet`` is obsolete and will be removed in 0.9.0)
+``use``
   name of the snippet to load this argument from; any other specified attributes
   will override those from the snippet By convention, some arguments
   should be common to all or most of the assistants.

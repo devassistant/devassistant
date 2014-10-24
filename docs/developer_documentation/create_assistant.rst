@@ -8,6 +8,7 @@ Create Your Own Assistant
 
    create_assistant/yaml
    create_assistant/pingpong
+   create_assistant/common_assistant_behaviour
    create_assistant/packaging_and_distributing
 
 There are two basic ways to create your own assistants. You can either learn
