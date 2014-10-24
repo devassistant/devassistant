@@ -59,7 +59,6 @@ class Cache(object):
         # snippets are shared across many assistants, so we remember their ctimes
         # here, because doing it again for each assistant would be very costly
         self.snip_ctimes = {}
-        # TODO: try/catch creating the cache file, on failure don't use it
         reset_cache = False
         if os.path.exists(self.cache_file):
             self.cache = yaml_loader.YamlLoader.load_yaml_by_path(cache_file) or {}
@@ -70,6 +69,8 @@ class Cache(object):
                 os.makedirs(os.path.dirname(cache_file))
             reset_cache = True
 
+        # if writing the file raises, YamlAssistantLoader catches the exception
+        #  and doesn't use cache at all
         if reset_cache:
             f = open(cache_file, 'w')
             self.cache = {'version': devassistant.__version__}

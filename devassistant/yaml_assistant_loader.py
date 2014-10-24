@@ -58,7 +58,8 @@ class YamlAssistantLoader(object):
                                                                                   superas_dict[tl],
                                                                                   role=tl)
                 except BaseException as e:
-                    logger.debug(e)
+                    logger.debug('Failed to use DevAssistant cachefile {0}: {1}'.format(
+                        settings.CACHE_FILE, e))
                     load_all = True
             if load_all:
                 cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy,
