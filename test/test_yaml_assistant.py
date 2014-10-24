@@ -122,9 +122,9 @@ class TestYamlAssistant(object):
         assert self.ya.dependencies() == self.ya._dependencies
 
     @pytest.mark.parametrize('stage, result', [
-        ('pre', [True, 'pre']),
-        ('', [True, 'run']),
-        ('post', [True, 'post']),
+        ('pre', (True, 'pre')),
+        ('', (True, 'run')),
+        ('post', (True, 'post')),
     ])
     def test_run_uses_proper_section(self, stage, result):
         assert self.ya.run(stage) == result

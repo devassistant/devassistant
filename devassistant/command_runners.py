@@ -85,7 +85,7 @@ class CommandRunner(object):
             c - command to run, instance of devassistant.command.Command
 
         Returns:
-            Tuple/list [logical_result, result] of the run (e.g. [True, 'output']). Usually,
+            Tuple (logical_result, result) of the run (e.g. (True, 'output')). Usually,
             assistant should rather return [False, 'something'] then raise exception, so that
             execution could continue.
 
@@ -127,7 +127,7 @@ class AskCommandRunner(CommandRunner):
             res = DialogHelper.ask_for_input_with_prompt(ui, **c.input_res)
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
-        return bool(res), res
+        return (bool(res), res)
 
 
 @register_command_runner
@@ -298,9 +298,9 @@ class ClCommandRunner(CommandRunner):
             if reraise:
                 raise
             else:
-                return [False, e.output]
+                return (False, e.output)
 
-        return [True, result]
+        return (True, result)
 
 
 @register_command_runner
@@ -317,7 +317,7 @@ class DependenciesCommandRunner(CommandRunner):
 
         di = DependencyInstaller()
         di.install(c.input_res, c.kwargs['__ui__'], debug=c.kwargs.get('da_debug', False))
-        return [True, c.input_res]
+        return (True, c.input_res)
 
 
 @register_command_runner
@@ -343,7 +343,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
-        return [True, '']
+        return (True, '')
 
     @classmethod
     def check_args(cls, c):
@@ -727,7 +727,7 @@ class LogCommandRunner(CommandRunner):
         else:
             raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
 
-        return [True, c.input_res]
+        return (True, c.input_res)
 
 
 @register_command_runner
@@ -960,7 +960,7 @@ class AsUserCommandRunner(CommandRunner):
         except exceptions.ClException as e:
             out = e.output
             ret = False
-        return [ret, out]
+        return (ret, out)
 
 
 @register_command_runner

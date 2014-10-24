@@ -147,7 +147,7 @@ def run_section(section, kwargs=None, runner=None):
 
 def eval_exec_section(section, kwargs, runner=None):
     skip_else = False
-    retval = [False, '']
+    retval = (False, '')
 
     if isinstance(section, six.string_types):
         return evaluate_expression(section, kwargs)
