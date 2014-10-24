@@ -354,14 +354,6 @@ class TestSCLCommandRunner(object):
     def setup_method(self, method):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
-    def test_scl_passes_scls_list_to_command_invocation(self):
-        # please don't use $__scls__ in actual assistants :)
-        # scl runner has to use the unformatted input
-        inp = [{'log_i': '$__scls__'}]
-        c = Command('scl enable foo bar', inp)
-        c.run()
-        assert ('INFO', "[['enable', 'foo', 'bar']]") in self.tlh.msgs
-
     def test_scl_with_nested_calls(self):
         # https://github.com/bkabrda/devassistant/issues/234
         # tests proper nesting of SCL commands and also elimination of identical calls

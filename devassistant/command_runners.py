@@ -756,11 +756,7 @@ class SCLCommandRunner(CommandRunner):
         """SCLCommandRunner adds command processors to ClHelper in order to wrap
         commands in possibly multiple nested calls of "scl <action> <collection>".
         Note: Identical calls are ignored."""
-        # TODO: in 0.10.0, we can actually remove global __scls__, since we don't need them
-        #  due to the fact that we're creating closure in _get_scl_command_processor
-        c.kwargs.setdefault('__scls__', [])
         c.kwargs.setdefault('__assistant__', None)
-        c.kwargs['__scls__'].append(c.comm_type.split()[1:])
         # a unique name for command processor
         comproc_name = c.comm_type
         # if such a command processor is already there, don't re-push/re-pop
@@ -768,7 +764,7 @@ class SCLCommandRunner(CommandRunner):
 
         if pushpop:
             ClHelper.command_processors[comproc_name] =\
-                cls._get_scl_command_processor(c.kwargs['__scls__'][-1])
+                cls._get_scl_command_processor(c.comm_type.split()[1:])
 
         # use "c.comm", not "c.input_res" - we need unformatted input here
         retval = lang.run_section(c.comm,
