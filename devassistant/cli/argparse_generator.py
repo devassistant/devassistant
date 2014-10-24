@@ -2,6 +2,7 @@ import argparse
 
 from devassistant.cli import devassistant_argparse
 from devassistant import settings
+from devassistant import utils
 
 
 class ArgparseGenerator(object):
@@ -57,16 +58,7 @@ class ArgparseGenerator(object):
                             action='store_true',
                             dest='da_debug',
                             default=False)
-        # TODO: should gui also get --no-cache?
-        # This really only stores the True/False value. We need to set
-        # settings.USE_CACHE before we create the parser, but for creating
-        # the parser, we need to load assistants. That means we set
-        # settings.USE_CACHE in cli_runner according to sys.argv.
-        parser.add_argument('--no-cache',
-                            help='Don\'t use assistants cache (useful for debugging).',
-                            action='store_true',
-                            dest='da_no_cache',
-                            default=False)
+        utils.add_no_cache_argument(parser)
 
     @classmethod
     def add_subassistants_to(cls, parser, assistant_tuple, level, alias=None):

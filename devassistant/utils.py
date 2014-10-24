@@ -117,6 +117,18 @@ def find_file_in_load_dirs(relpath):
             return possible_path
 
 
+def add_no_cache_argument(parser):
+    # This really only stores the True/False value. We need to set
+    # settings.USE_CACHE before we create the parser, but for creating
+    # the parser, we need to load assistants. That means we set
+    # settings.USE_CACHE in cli_runner and gui/__init__ according to sys.argv.
+    parser.add_argument('--no-cache',
+                        help='Don\'t use assistants cache (useful for debugging).',
+                        action='store_true',
+                        dest='da_no_cache',
+                        default=False)
+
+
 _exithandlers = []
 
 

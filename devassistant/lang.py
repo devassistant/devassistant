@@ -225,14 +225,12 @@ def eval_literal_section(section, kwargs, runner=None):
     elif isinstance(section, list):
         retlist = []
         for item in section:
-            # TODO: check for stop flag
             retlist.append(eval_literal_section(item, kwargs)[1])
         retval = (bool(retlist), retlist)
     elif isinstance(section, dict):
         retdict = {}
         for k, v in section.items():
             k = format_str(k, kwargs)
-            # TODO: check for stop flag
             if k.endswith('~'):
                 retdict[k[:-1]] = eval_exec_section(v, kwargs, runner)[1]
             else:
