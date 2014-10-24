@@ -134,13 +134,6 @@ class RPMPackageManager(PackageManager):
             logger.info('Not found, will install', extra={'event_type': 'dep_not_found'})
         return found_rpm
 
-    @classmethod
-    def was_rpm_installed(cls, rpm_name):
-        # TODO: handle failure
-        found_rpm = cls.rpm_q(rpm_name)
-        logger.info('Installed {0}'.format(found_rpm), extra={'event_type': 'dep_installed'})
-        return found_rpm
-
 
 @register_manager
 class YUMPackageManager(RPMPackageManager):
