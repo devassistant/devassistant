@@ -177,7 +177,6 @@ class GitHubAuth(object):
 
     @classmethod
     def _create_ssh_config_entry(cls):
-        # TODO: some duplication with _ssh_key_needs_config_entry, maybe refactor a bit
         ssh_config = os.path.expanduser('~/.ssh/config')
         fh = os.fdopen(os.open(ssh_config, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600), 'a')
         fh.write(settings.GITHUB_SSH_CONFIG.format(

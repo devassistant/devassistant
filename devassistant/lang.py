@@ -703,13 +703,9 @@ def format_str(s, kwargs):
     new_comm = []
     parts_list = _command_splitter.findall(comm)
 
-    # replace parts that match something from _files (can be either name
-    # if "&" didn't expand in yaml; or the dict if "&" did expand)
+    # replace parts that match something from _files
     for c in parts_list:
-        if isinstance(c, dict):
-            # TODO: raise a proper error if c['source'] is not present
-            new_comm.append(os.path.join(files_dir, c['source']))
-        elif c.startswith('*'):
+        if c.startswith('*'):
             c_file = c[1:].strip('{}')
             if c_file in files:
                 new_comm.append(os.path.join(files_dir, files[c_file]['source']))
