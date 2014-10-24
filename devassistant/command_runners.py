@@ -1136,6 +1136,7 @@ class DockerCommandRunner(CommandRunner):
         for chunk in output:
             # chunk is a JSON chunk, for explanation see
             #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
+            logger.debug('Got message from Docker client: {0}'.format(chunk))
             parsed_json = json.loads(chunk)
             if 'status' in parsed_json and parsed_json['status'].startswith('Download'):
                 i = parsed_json['id']
@@ -1199,11 +1200,11 @@ class DockerCommandRunner(CommandRunner):
                 msg = 'docker_stop requires you to specify "container" when providing mapping.'
                 raise exceptions.CommandException(msg)
             container = inp['container']
-            time = int(inp.get('time', 10))
+            timeout = int(inp.get('timeout', 10))
         else:
             container = inp
-            time = 10
-        cls._client.stop(container, time)
+            timeout = 10
+        cls._client.stop(container, timeout)
         return (True, container)
 
     @classmethod
@@ -1298,8 +1299,8 @@ class DockerCommandRunner(CommandRunner):
                 else:
                     res = res[a]
         except docker.errors.APIError as e:
-            logres = False
-            res = 'Failed to obtain container attribute: {e}'.format(e=e)
+            msg = 'Failed to obtain container attribute: {e}'.format(e=e)
+            raise exceptions.CommandException(msg)
 
         return (logres, res)
 

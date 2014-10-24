@@ -15,7 +15,7 @@ similar to :ref:`expressions_ref` **logical result** and **result**.
 
 In the Yaml DSL, commands are called like this::
 
-   command_type: command_input
+   - command_type: command_input
 
 This reference summarizes commands included in DevAssistant itself in the following format:
 
@@ -61,13 +61,13 @@ second *result*.
 - LRES: *logical result* of the expression
 - Example::
 
-    $foo: "bar"
-    $spam:
-    - spam
-    - spam
-    - spam
-    $bar: $baz
-    $success, $list~: $(ls "$foo")
+   - $foo: "bar"
+   - $spam:
+     - spam
+     - spam
+     - spam
+   - $bar: $baz
+   - $success, $list~: $(ls "$foo")
 
 Condition
 ~~~~~~~~~
@@ -84,10 +84,10 @@ stand alone, of course)
   LRES remains untouched.
 - Example::
 
-    if defined $foo:
-    - log_i: Foo is $foo!
-    else:
-    - log_i: Foo is not defined!
+   - if defined $foo:
+     - log_i: Foo is $foo!
+   - else:
+     - log_i: Foo is not defined!
 
 Loop
 ~~~~
@@ -107,13 +107,13 @@ over mapping, two control variables may be provided to get both key and its valu
   RES remains untouched.
 - Example::
 
-     for $i word_in $(ls):
+   - for $i word_in $(ls):
      - log_i: File: $i
 
-     $foo:
+   - $foo:
        1: one
        2: two
-     for $k, $v in $foo:
+   - for $k, $v in $foo:
      - log_i: $k, $v
 
 
@@ -131,10 +131,10 @@ User interaction commands, let you ask for password and various other input.
 - LRES: same as RES
 - Example::
 
-    - $confirmed~:
-      - ask_confirm:
-          message: "Do you think DevAssistant is great?"
-          prompt: "Please select yes."
+   - $confirmed~:
+     - ask_confirm:
+         message: "Do you think DevAssistant is great?"
+         prompt: "Please select yes."
 
 ``ask_input``
 
@@ -144,9 +144,9 @@ User interaction commands, let you ask for password and various other input.
 - LRES: ``True`` if non-empty string was provided
 - Example::
 
-     - $variable:
-       - ask_input:
-           prompt: "Your name"
+    - $variable:
+      - ask_input:
+          prompt: "Your name"
 
 ``ask_password``
 
@@ -158,9 +158,9 @@ User interaction commands, let you ask for password and various other input.
 - LRES: ``True`` if non-empty password was provided
 - Example::
 
-     - $passwd:
-       - ask_password:
-           prompt: "Please provide your password"
+   - $passwd:
+     - ask_password:
+         prompt: "Please provide your password"
 
 
 .. _cl_command_ref:
@@ -179,13 +179,13 @@ e.g. execution continues normally even if subcommand return code is non-zero)
 - LRES: always ``True`` (if the command fails, the whole DevAssistant execution fails)
 - Example::
 
-    cl: mkdir ${name}
-    cl: cp *file ${name}/foo
-    cl_i: echo "Hey!"
-    cl_ir: echo "Echoing this as root"
-    cl_r: mkdir /var/lib/foo
-    $lres, $res:
-    - cl_ip: cmd -this -will -log -in -realtime -and -save -lres -and -res -and -then -continue
+   - cl: mkdir ${name}
+   - cl: cp *file ${name}/foo
+   - cl_i: echo "Hey!"
+   - cl_ir: echo "Echoing this as root"
+   - cl_r: mkdir /var/lib/foo
+   - $lres, $res:
+     - cl_ip: cmd -this -will -log -in -realtime -and -save -lres -and -res -and -then -continue
 
 If you need to set environment variables for multiple subsequent commands, consult
 :ref:`env_command_ref`.
@@ -240,13 +240,13 @@ Install dependencies from given **command input**.
 - LRES: always ``True`` (terminates DevAssistant if dependency installation fails)
 - Example::
 
-    if $foo:
-    - $rpmdeps: [foo, bar]
-    else:
-    - $rpmdeps: []
+   - if $foo:
+     - $rpmdeps: [foo, bar]
+   - else:
+     - $rpmdeps: []
 
-    dependencies:
-    - rpm: $rpmdeps
+   - dependencies:
+     - rpm: $rpmdeps
 
 .. _dda_commands_ref:
 
@@ -262,7 +262,7 @@ Commands that operate with ``.devassistant`` file.
 - LRES: always empty string
 - Example::
 
-    dda_c: ${path}/to/project
+   - dda_c: ${path}/to/project
 
 ``dda_r`` - reads an existing ``.devassistant`` file, should be used by modifier and preparer
 assistants.Sets some global variables accordingly, most importantly ``original_kwargs`` (arguments
@@ -274,7 +274,7 @@ that's double underscore).
 - LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
-    dda_r: ${path}/to/project
+   - dda_r: ${path}/to/project
 
 ``dda_w`` - writes a mapping (dict in Python terms) to ``.devassistant``
 
@@ -285,11 +285,11 @@ that's double underscore).
 - LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
-    dda_w:
-    - ${path}/to/project
-    - run:
-      - $$foo: $name # name will get substituted from current variable
-      - log_i: $$foo
+   - dda_w:
+     - ${path}/to/project
+     - run:
+       - $$foo: $name # name will get substituted from current variable
+       - log_i: $$foo
 
 ``dda_dependencies`` - installs dependencies from ``.devassistant`` file, should be used by
 preparer assistants. Utilizes both dependencies of creator assistants that created this project
@@ -301,7 +301,7 @@ context of current assistant, not the creator).
 - LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
-    dda_dependencies: ${path}/to/project
+   - dda_dependencies: ${path}/to/project
 
 ``dda_run`` - run ``run`` section from from ``.devassistant`` file, should be used by
 preparer assistants. This section is evaluated in the context of current assistant, not the
@@ -312,7 +312,7 @@ creator.
 - LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
-    dda_run: ${path}/to/project
+   - dda_run: ${path}/to/project
 
 Github Command
 --------------
@@ -331,16 +331,16 @@ see below.
 - LRES: ``True`` if the Github operation succeeds, ``False`` otherwise
 - Example::
 
-    github: create_repo
+   - github: create_repo
 
-    github:
-    - create_and_push
-    - login: bkabrda
-      reponame: devassistant
+   - github:
+     - create_and_push
+     - login: bkabrda
+       reponame: devassistant
 
-    github: push
+   - github: push
 
-    github: create_fork
+   - github: create_fork
 
 Explanation of individual subcommands follows. Each subcommand takes defined arguments,
 whose default values are taken from global context. E.g. ``create_and_push`` takes an argument
@@ -385,21 +385,21 @@ more templates
 - LRES: always ``True``, terminates DevAssistant if something goes wrong
 - Example::
 
-    jinja_render:
-      template: *somefile
-      destination: ${dest}/foo
-      overwrite: yes
-      output: filename.foo
-      data:
-        foo: bar
-        spam: spam
+   - jinja_render:
+       template: *somefile
+       destination: ${dest}/foo
+       overwrite: yes
+       output: filename.foo
+       data:
+         foo: bar
+         spam: spam
 
-    jinja_render_dir:
-      template: *somedir
-      destination: ${dest}/somedir
-      data:
-        foo: foo!
-        spam: my_spam
+   - jinja_render_dir:
+       template: *somedir
+       destination: ${dest}/somedir
+       data:
+         foo: foo!
+         spam: my_spam
 
 The filename of the rendered template is created in this way (the first step is omitted
 with ``jinja_render_dir``:
@@ -422,8 +422,74 @@ Log commands on various levels. Logging on ERROR or CRITICAL logs the message an
 - LRES: always ``True``
 - Example::
 
-    log_i: Hello $name!
-    log_e: Yay, something has gone wrong, exiting.
+   - log_i: Hello $name!
+   - log_e: Yay, something has gone wrong, exiting.
+
+Docker Commands
+---------------
+
+Control docker from assistants.
+
+``docker_[build,cc,start,stop,attach,find_img,container_ip,container_name]``
+
+- Input:
+
+  - ``attach`` - list or string with names/hashes of container(s) (if string is provided,
+    it's split on whitespaces to get names/hashes)
+  - ``build`` - mapping with arguments same as ``build`` method from docker_py_api_,
+    but ``path`` is required and ``fileobj`` is ignored
+  - ``cc`` - mapping with arguments same as ``create_container`` method from
+    docker_py_api_, ``image`` is required
+  - ``container_ip`` - string (container hash/name)
+  - ``container_name`` - string (container hash)
+  - ``find_img`` - string (a start of hash of image to find)
+  - ``start`` - mapping with arguments same as ``start`` method from docker_py_api_,
+    ``container`` is required
+  - ``stop`` - mapping with arguments same as ``stop`` method from docker_py_api_,
+    ``container`` is required
+
+- LRES and RES:
+
+  - ``attach`` - LRES is ``True`` if all attached containers end with success, ``False``
+    otherwise; RES is always a string composed of outputs of all containers
+  - ``build`` - ``True`` and hash of built image on success, otherwise fails
+  - ``cc`` - ``True`` and hash of created container, otherwise fails
+  - ``container_ip`` - ``True`` and IPv4 container address on success, otherwise fails
+  - ``container_name`` - ``True`` and container name on success, otherwise fails
+  - ``find_img`` - ``True`` and image hash on success if there is only one image that starts
+    with provided input; ``False`` and string with space separated image hashes if there are
+    none or more than one images
+  - ``start`` - ``True`` and container hash on success, fails otherwise
+  - ``stop`` - ``True`` and container hash on success, fails otherwise
+
+- Example (build an image, create container, start it and attach to output; stop it on
+  DevAssistant shutdown)::
+
+   run:
+   # build image
+   - $image~:
+     - docker_build:
+         path: .
+   # create container
+   - $container~:
+     - docker_cc:
+         image: $image
+   # start container
+   - docker_start:
+       container: $container
+   - log_i~:
+     - docker_container_ip: $container
+   # register container to be shutdown on DevAssistant exit
+   - atexit:
+     - docker_stop:
+         container: $container
+         timeout: 3
+   # attach to container output - this can be interrupted by Ctrl+C in terminal,
+   #  but currently not in GUI, see https://github.com/devassistant/devassistant/issues/284
+   - docker_attach: $container
+
+.. _docker-py library API: https://github.com/docker/docker-py/#api
+.. _docker_py_api: `docker-py library API`_
 
 SCL Command
 -----------
@@ -438,9 +504,9 @@ because it might vary)
 - LRES: LRES of the last command in the given section
 - Example::
 
-    - scl enable python33 postgresql92: 
-      - cl_i: python --version 
-      - cl_i: pgsql --version
+   - scl enable python33 postgresql92:
+     - cl_i: python --version
+     - cl_i: pgsql --version
 
 Note: currently, this command can't be nested, e.g. you can't run ``scl enable`` in another
 ``scl enable``.
@@ -457,10 +523,10 @@ an implementation detail).
 - LRES: LRES of the last command in the given section
 - Example::
 
-    - as root:
-      - cl: ls /root
-    - as joe:
-      - log_i~: $(echo "this is run as joe")
+   - as root:
+     - cl: ls /root
+   - as joe:
+     - log_i~: $(echo "this is run as joe")
 
 Note: This command invokes DevAssistant under another user and passes the whole section to it.
 This means some behaviour differences from e.g. ``scl`` command, where each command is run in
@@ -487,20 +553,20 @@ This can be used to run:
 - LRES: LRES of the last command in the given section
 - Example::
 
-    - use: self.run_foo
-    - use: super.run
-    - use: a_snippet.run_spam
+   - use: self.run_foo
+   - use: super.run
+   - use: a_snippet.run_spam
 
 This way, the whole context (all variables) are passed into the section run
 (by value, so they don't get modified).
 
 Another, more function-like usage is also available::
 
-    - use:
-        sect: self.run_foo
-        args:
-          foo: $bar
-          baz: $spam
+   - use:
+       sect: self.run_foo
+         args:
+           foo: $bar
+           baz: $spam
 
 Using this approach, the assistant/snippet and section name is taken from ``sect`` and 
 only arguments listed in ``args`` are passed to the section (plus all "magic" variables,
