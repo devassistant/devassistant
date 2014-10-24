@@ -1,16 +1,15 @@
-f:
-  fullname: F Language Tool
+fullname: F Language Tool
 
-  dependencies:
-  - default:
-    - rpm: [foobarbaz]
-  args:
-    name:
-      flags:
-      - -n
-      - --name
-      help:
-        'Name of project to create'
+dependencies:
+- default:
+  - rpm: [foobarbaz]
+args:
+  name:
+    flags:
+    - -n
+    - --name
+    help:
+      'Name of project to create'
 
-  run:
-  - cl: ls foo/bar
+run:
+- cl: ls foo/bar

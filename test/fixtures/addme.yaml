@@ -1,8 +1,7 @@
 # this assistant should be added/replaced by addme*/removed
 # to assistants to see if cache can add/change/remove assistants
 
-addme:
-  fullname: Add me and watch miracles happen
-  args:
-    some_arg:
-      use: addme_snippet
+fullname: Add me and watch miracles happen
+args:
+  some_arg:
+    use: addme_snippet

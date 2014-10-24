@@ -1,32 +1,31 @@
-d:
-  fullname: D Language Tool
+fullname: D Language Tool
 
-  dependencies:
-  - default:
-    - rpm: [python]
-  args:
-    name:
-      flags:
-      - -n
-      - --name
-      help:
-        'Name of project to create'
-    python:
-      flags:
-      - mock
-      help:
-        'Display python version'
-      nargs:
-        '?'
-    some_arg:
-      use: snippet1
+dependencies:
+- default:
+  - rpm: [python]
+args:
+  name:
+    flags:
+    - -n
+    - --name
+    help:
+      'Name of project to create'
+  python:
+    flags:
+    - mock
+    help:
+      'Display python version'
+    nargs:
+      '?'
+  some_arg:
+    use: snippet1
 
-  run:
-  - cl: mkdir -p $name
-  - cl: cp &clientc $name
+run:
+- cl: mkdir -p $name
+- cl: cp &clientc $name
 
-  run_python:
-  - if python -v:
-    - cl: kaboom
-  - else:
-    - foo
+run_python:
+- if python -v:
+  - cl: kaboom
+- else:
+  - foo

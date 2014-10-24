@@ -25,7 +25,7 @@ def needs_fully_loaded(method):
     def inner(self, *args, **kwargs):
         if not self.fully_loaded:
             loaded_yaml = yaml_loader.YamlLoader.load_yaml_by_path(self.path)
-            self.parsed_yaml = utils.get_assistant_attrs_from_dict(loaded_yaml, self.path)
+            self.parsed_yaml = loaded_yaml
             self.fully_loaded = True
         return method(self, *args, **kwargs)
 

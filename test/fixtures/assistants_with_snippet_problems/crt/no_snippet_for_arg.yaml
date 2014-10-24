@@ -1,4 +1,3 @@
-no_snippet_for_arg:
-  args:
-    bar:
-      use: doesnt_exist
+args:
+  bar:
+    use: doesnt_exist

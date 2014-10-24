@@ -187,13 +187,8 @@ class YamlAssistantLoader(object):
         # now we allow that, but we also allow omitting the assistant name and putting
         # the attributes to top_level, too.
         name = os.path.splitext(os.path.basename(source))[0]
-        attrs = utils.get_assistant_attrs_from_dict(y, source)
-        yaml_checker.check(source, attrs)
-        assistant = yaml_assistant.YamlAssistant(name,
-                                                 attrs,
-                                                 source,
-                                                 superassistant,
-                                                 fully_loaded=fully_loaded,
-                                                 role=role)
+        yaml_checker.check(source, y)
+        assistant = yaml_assistant.YamlAssistant(name, y, source, superassistant,
+            fully_loaded=fully_loaded, role=role)
 
         return assistant

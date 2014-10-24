@@ -132,7 +132,7 @@ class TestYamlAssistantLoader(object):
                                   'assistants_malformed',
                                   'crt',
                                   'a2.yaml')
-        err = 'In {src}:\nAssistants and snippets must be Yaml mappings, not "None"!'.\
+        err = 'In {src}:\nAssistants and snippets must be Yaml mappings, not "asd"!'.\
             format(src=bad_syntax)
         self.yl.assistants_dirs = [os.path.join(os.path.split(bad_syntax[:-2]))]
         res = self.yl.get_assistants_from_file_hierarchy({'a1': {'source': bad_syntax,
