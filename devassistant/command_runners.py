@@ -8,7 +8,6 @@ import re
 import time
 import string
 import subprocess
-import sys
 import threading
 import unicodedata
 
@@ -60,7 +59,7 @@ def register_command_runner(arg):
     else:
         msg = 'register_command_runner expects str or CommandRunner as argument, got: {0}'.\
             format(arg)
-        raise ValueError(arg)
+        raise ValueError(msg)
 
 
 class CommandRunner(object):
@@ -1041,7 +1040,6 @@ class DockerCommandRunner(CommandRunner):
 
         if not cls._client:
             cls._client = docker.Client()
-        client = cls._client
 
         if c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
             'docker_stop', 'docker_cc', 'docker_build']:
@@ -1110,7 +1108,7 @@ class DockerCommandRunner(CommandRunner):
     @classmethod
     def _docker_build(cls, args):
         if isinstance(args, six.string_types):
-            raise exception.CommandException('docker_build now needs a mapping to pass' +
+            raise exceptions.CommandException('docker_build now needs a mapping to pass' +
                 'to a docker-py client, please consult command reference for details.')
 
         cls._check_docker_method_args(cls._client.build, args.keys(), ['path'], 'docker_build')

@@ -9,7 +9,6 @@ except ImportError:
 import devassistant
 
 from devassistant import settings
-from devassistant import utils
 from devassistant import yaml_checker
 from devassistant import yaml_loader
 from devassistant import yaml_snippet_loader

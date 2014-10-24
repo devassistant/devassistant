@@ -1,5 +1,3 @@
-import six
-
 from devassistant import lang
 from devassistant.logger import logger
 from devassistant import exceptions
