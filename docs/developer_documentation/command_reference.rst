@@ -26,6 +26,9 @@ This reference summarizes commands included in DevAssistant itself in the follow
 - LRES: what is ``LAST_LRES`` set to after this command?
 - Example: example usage
 
+Note: if a command explanation says that command "*raises exception*" under some circumstances,
+it means that it makes DevAssistant immediately exit with non-zero return code (or end in GUI).
+
 *Missing something?* Commands are your entry point for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
 :ref:`write a command runner <command_runners>` and either
@@ -176,7 +179,7 @@ e.g. execution continues normally even if subcommand return code is non-zero)
 
 - Input: a string, possibly containing variables and references to files
 - RES: stdout + stdin interleaved as they were returned by the executed process
-- LRES: always ``True`` (if the command fails, the whole DevAssistant execution fails)
+- LRES: always ``True``, *raises exception* on non-zero return code
 - Example::
 
    - cl: mkdir ${name}
@@ -237,7 +240,7 @@ Install dependencies from given **command input**.
 - Input: list of mappings, similar to :ref:`Dependencies section <dependencies_ref>`, but without
   conditions and usage of sections from snippets etc.
 - RES: **command input**, but with expanded variables
-- LRES: always ``True`` (terminates DevAssistant if dependency installation fails)
+- LRES: always ``True`` if everything is ok, *raises exception* otherwise
 - Example::
 
    - if $foo:
@@ -271,7 +274,7 @@ that's double underscore).
 
 - Input: directory where the file is supposed to be
 - RES: always empty string
-- LRES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - dda_r: ${path}/to/project
@@ -282,7 +285,7 @@ that's double underscore).
   to write as the second item. Variables in the mapping will be substituted, you have to use
   ``$$foo`` (two dollars instead of one) to get them as variables in ``.devassistant``.
 - RES: always empty string
-- LRES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - dda_w:
@@ -298,7 +301,7 @@ context of current assistant, not the creator).
 
 - Input: directory where the file is supposed to be
 - RES: always empty string
-- LRES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - dda_dependencies: ${path}/to/project
@@ -309,7 +312,7 @@ creator.
 
 - Input: directory where the file is supposed to be
 - RES: always empty string
-- LRES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - dda_run: ${path}/to/project
@@ -382,7 +385,7 @@ more templates
     ``jinja_render_dir``
 
 - RES: always ``success`` string
-- LRES: always ``True``, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - jinja_render:
@@ -428,7 +431,7 @@ Log commands on various levels. Logging on ERROR or CRITICAL logs the message an
 Docker Commands
 ---------------
 
-Control docker from assistants.
+Control Docker from assistants.
 
 ``docker_[build,cc,start,stop,attach,find_img,container_ip,container_name]``
 
@@ -452,15 +455,16 @@ Control docker from assistants.
 
   - ``attach`` - LRES is ``True`` if all attached containers end with success, ``False``
     otherwise; RES is always a string composed of outputs of all containers
-  - ``build`` - ``True`` and hash of built image on success, otherwise fails
-  - ``cc`` - ``True`` and hash of created container, otherwise fails
-  - ``container_ip`` - ``True`` and IPv4 container address on success, otherwise fails
-  - ``container_name`` - ``True`` and container name on success, otherwise fails
+  - ``build`` - ``True`` and hash of built image on success, otherwise *raises exception*
+  - ``cc`` - ``True`` and hash of created container, otherwise *raises exception*
+  - ``container_ip`` - ``True`` and IPv4 container address on success, otherwise
+    *raises exception*
+  - ``container_name`` - ``True`` and container name on success, otherwise *raises exception*
   - ``find_img`` - ``True`` and image hash on success if there is only one image that starts
     with provided input; ``False`` and string with space separated image hashes if there are
     none or more than one images
-  - ``start`` - ``True`` and container hash on success, fails otherwise
-  - ``stop`` - ``True`` and container hash on success, fails otherwise
+  - ``start`` - ``True`` and container hash on success, *raises exception* otherwise
+  - ``stop`` - ``True`` and container hash on success, *raises exception* otherwise
 
 - Example (build an image, create container, start it and attach to output; stop it on
   DevAssistant shutdown)::
@@ -490,6 +494,24 @@ Control docker from assistants.
 
 .. _docker-py library API: https://github.com/docker/docker-py/#api
 .. _docker_py_api: `docker-py library API`_
+
+Vagrant-Docker Commands
+-----------------------
+
+Control Docker using Vagrant from assistants.
+
+``vagrant_docker``
+
+- Input: string with vagrant command to run, must start with one of ``up``, ``halt``,
+  ``destroy``, ``reload``
+- RES: hashes/names of containers from Vagrantfile (not all of these were necessarily
+  manipulated with, for example if you use ``halt``, all container hashes are returned
+  even if no containers were previously running)
+- LRES: ``True``, *raises exception* if something goes wrong
+- Example::
+
+   - vagrant_docker: halt
+   - vagrant_docker: up
 
 SCL Command
 -----------
@@ -596,7 +618,7 @@ Creates a project directory (possibly with a directory containing it) and sets s
 
 - Input: a mapping of input options, see below
 - RES: path of project directory or a directory containing it, if ``create_topdir`` is ``False``
-- LRES: always True, terminates DevAssistant if something goes wrong
+- LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - $dir: foo/bar/baz
@@ -677,7 +699,7 @@ Run :ref:`DevAssistant PingPong scripts <create_pingpong_assistant>`.
 Loading Custom Command Runners
 ------------------------------
 
-Load DevAssistant command runner(s) from a file.
+Load DevAssistant :ref:`command runner(s) <command_runners>` from a file.
 
 - Input: string or mapping, see below
 - RES: List of classnames of loaded command runners

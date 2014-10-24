@@ -146,12 +146,14 @@ messages and it can also raise any exception that's subclass of
 The ``c`` argument of both methods is a ``devassistant.lang.Command``
 object. You can use various attributes of ``Command``:
 
-- **comm_type** - command type, e.g. ``mycomm``
+- ``comm_type`` - command type, e.g. ``mycomm``
   (this will always be stripped of exec flag ``~``).
-- **comm** - raw command input. The input is raw in the sense that it is uninterpreted.
+- ``comm`` - raw command input. The input is raw in the sense that it is uninterpreted.
   It's literally the same as what's written in assistant yaml file.
-- **had_exec_flag** - ``True`` if the command type had exec flag, ``False`` otherwise.
-- **input_log_res** and **input_res** - return values of input, see :ref:`section_results_ref`.
+- ``input_res`` and ``input_log_res`` - result and logical result of ``comm``, i.e.
+  interpreted input. This is what you usually want to use to examine what was
+  passed to your command. See :ref:`section_results_ref` for rules on interpreting command input.
+- ``had_exec_flag`` - ``True`` if the command type had exec flag, ``False`` otherwise.
 
 *Note: input only gets evaluated one time - at time of using input_log_res or input_res. This
 means, among other things, that if exec flag is used, the command runner still has to access
