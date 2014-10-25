@@ -290,7 +290,11 @@ class Dap(object):
         for f in files:
             if self._is_dir(f):
                 if f.startswith(os.path.join(dirname, 'files/')):
-                    folders.add(f[len(os.path.join(dirname, 'files/')):])
+                    name = f[len(os.path.join(dirname, 'files/')):]
+                    # name is crt/foo/bah/eggs
+                    name = '/'.join(name.split('/')[:2])
+                    # name is crt/foo
+                    folders.add(name)
             else:
                 for t in 'crt mod prep task'.split():
                     if f.startswith(os.path.join(dirname, 'assistants', t, '')):
