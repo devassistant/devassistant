@@ -202,6 +202,19 @@ class MainWindow(object):
             del self.kwargs['subassistant_2']
         self._open_path_window()
 
+    def install_btn_clicked(self, data=None):
+#        self.install_window.open_window()
+        text = 'To install new Assistants from the DevAssistant Index, you must ' \
+               'go to the terminal and run "devassistant pkg install [PACKAGE]" ' \
+               '(without the quotation marks), where [PACKAGE] is the name of ' \
+               'the package you want to install.\n\n' \
+               'This is a temporary measure, you will be able to install Assistants ' \
+               'from the GUI soon.'
+        dialog = self.gui_helper.create_message_dialog(text, buttons=Gtk.ButtonsType.OK, icon=Gtk.MessageType.WARNING)
+        dialog.run()
+        dialog.destroy()
+
+
     def browse_path(self, window):
         self.path_window.browse_path()
 

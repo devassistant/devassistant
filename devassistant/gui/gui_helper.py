@@ -194,6 +194,7 @@ class GuiHelper(object):
             grid_lang.add(btn)
         else:
             grid_lang.attach(btn, column, row, 1, 1)
+        btn.connect("clicked", self.parent.install_btn_clicked)
         return btn
 
 
