@@ -204,10 +204,13 @@ class MainWindow(object):
 
     def install_btn_clicked(self, data=None):
 #        self.install_window.open_window()
-        text = 'To install new Assistants from the DevAssistant Index, you must ' \
-               'go to the terminal and run "devassistant pkg install [PACKAGE]" ' \
+        text = 'To install new Assistants from the DevAssistant Package Index, ' \
+               'you must go to the terminal and run "da pkg install [PACKAGE]" ' \
                '(without the quotation marks), where [PACKAGE] is the name of ' \
                'the package you want to install.\n\n' \
+               'If you do not know what package you are looking for, use\n"da '\
+               'pkg search [NAME]", or browse the Index at ' \
+               'https://dapi.devassistant.org.\n\n' \
                'This is a temporary measure, you will be able to install Assistants ' \
                'from the GUI soon.'
         dialog = self.gui_helper.create_message_dialog(text, buttons=Gtk.ButtonsType.OK, icon=Gtk.MessageType.WARNING)
