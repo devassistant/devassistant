@@ -137,6 +137,14 @@ class MainWindow(object):
                 # If assistant has more subassistants then create button with menu
                 self.gui_helper.add_submenu(grid_lang, ass, row, column)
             column += 1
+
+        # Install More Assistants button
+        if column > 2:
+            row += 1
+            column = 0
+        self.gui_helper.add_install_button(grid_lang, row, column)
+        column += 1
+
         if row == 0 and len(sub_as) < 3:
             while column < 3:
                 btn = self.gui_helper.create_button(style=Gtk.ReliefStyle.NONE)
@@ -193,6 +201,22 @@ class MainWindow(object):
         if 'subassistant_2' in self.kwargs:
             del self.kwargs['subassistant_2']
         self._open_path_window()
+
+    def install_btn_clicked(self, data=None):
+#        self.install_window.open_window()
+        text = 'To install new Assistants from the DevAssistant Package Index, ' \
+               'you must go to the terminal and run "da pkg install [PACKAGE]" ' \
+               '(without the quotation marks), where [PACKAGE] is the name of ' \
+               'the package you want to install.\n\n' \
+               'If you do not know what package you are looking for, use\n"da '\
+               'pkg search [NAME]", or browse the Index at ' \
+               'https://dapi.devassistant.org.\n\n' \
+               'This is a temporary measure, you will be able to install Assistants ' \
+               'from the GUI soon.'
+        dialog = self.gui_helper.create_message_dialog(text, buttons=Gtk.ButtonsType.OK, icon=Gtk.MessageType.WARNING)
+        dialog.run()
+        dialog.destroy()
+
 
     def browse_path(self, window):
         self.path_window.browse_path()
