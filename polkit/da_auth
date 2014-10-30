@@ -1,3 +1,10 @@
 #!/usr/bin/bash
 
-$*
+if [ $# -ne 0 ]; then
+    echo 'This utility does not accept arguments'
+    exit 1
+fi
+
+while read line; do
+    eval $line
+done
