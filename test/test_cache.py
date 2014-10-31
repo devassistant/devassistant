@@ -61,9 +61,9 @@ correct_cache = \
                                           'ctime': 'dontcheck',
                                           'source': 'test/fixtures/assistants/crt/f/g.yaml',
                                           'subhierarchy': {}}}}},
- 'mod': {},
+ 'twk': {},
  'prep': {},
- 'task': {},
+ 'extra': {},
  'version': devassistant.__version__}
 
 class TestCache(object):

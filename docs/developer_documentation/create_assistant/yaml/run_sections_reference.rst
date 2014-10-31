@@ -6,7 +6,7 @@ Run Sections Reference
 Run sections are the essence of DevAssistant. They are responsible for
 performing all the tasks and actions to set up the environment and
 the project itself. For Creator and Preparer assistants, the section named ``run``
-is always invoked, :ref:`modifier_assistants_ref` may invoke different sections
+is always invoked, :ref:`tweak_assistants_ref` may invoke different sections
 based on metadata in a ``.devassistant`` file.
 
 Note, that ``pre_run`` and ``post_run`` follow the same rules as ``run`` sections.

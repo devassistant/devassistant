@@ -23,7 +23,7 @@ A Brief Intro
 So What is an Assistant?
 ------------------------
 
-In short, assistant is a recipe for creating/modifying a project or setting up
+In short, assistant is a recipe for creating/tweaking a project or setting up
 the environment in a certain way. DevAssistant is in fact just a core that "runs"
 assistants according to certain rules.
 
@@ -40,7 +40,8 @@ Assistant Roles
 
 You can learn about how to invoke the
 respective roles below in :ref:`creating_projects_cli`,
-:ref:`modifying_projects_cli` and :ref:`preparing_environment_cli`.
+:ref:`tweaking_projects_cli`, :ref:`preparing_environment_cli` and
+:ref:`extras_cli`.
 
 Using Commandline Interface
 ---------------------------
@@ -75,15 +76,15 @@ This line will do the following:
   one-time password once. Note that if your system username differs from your
   Github username, you must specify the Github username as an argument to ``-g``.
 
-.. _modifying_projects_cli:
+.. _tweaking_projects_cli:
 
-Modifying Existing Projects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Working with Existing Projects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 DevAssistant allows you to work with previously created projects. You can do
-this by using ``da modify``, as opposed to ``da create`` for creating::
+this by using ``da tweak``, as opposed to ``da create`` for creating::
 
-   $ da modify eclipse
+   $ da tweak eclipse
 
 This will import a previously created project into Eclipse (and possibly install
 Eclipse and other dependencies implied by the project language). Optionally,
@@ -115,19 +116,21 @@ able to do something like::
 and it should do everything needed to get you started developing OpenStack in a way
 that others do. But this is still somewhere in the future...
 
-Tasks
-~~~~~
+.. _extras_cli:
+
+Extras
+~~~~~~
 
 The last piece of functionality is performing arbitrary tasks that are not related to a specific
 projects. E.g.::
 
-   $ da task <TODO:NOTHING YET>
+   $ da extras <TODO:NOTHING YET>
 
 Custom Actions
 ~~~~~~~~~~~~~~
-There are also some custom actions besides ``crt``, ``mod`` and ``prep``. For
-the time being, these are not of high importance, but in future, these will
-bring more functionality, such as making coffee for you.
+There are also some custom actions besides ``create``, ``tweak``, ``prepare`` and ``extras``.
+For the time being, these are not of high importance, but in future, these will
+bring more functionality, such as making coffee for you. TODO: document ``pkg`` action.
 
 ``help``
   Displays help, what else?
@@ -140,9 +143,8 @@ Using the GUI
 The DevAssistant GUI provides the full functionality of
 :ref:`Commandline Interface <cli_interface>` through a Gtk based application.
 
-As opposed to the CLI, which consists of three binaries, the GUI provides all
-assistant types (creating, modifying, preparing) in one, each type having
-its own page.
+The GUI provides all assistant of the same type (creating, tweaking, preparing and extras)
+in one tab to keep things organized.
 
 The GUI workflow is dead simple:
 
@@ -186,8 +188,8 @@ Creating
 - Ruby
   - Rails - Initial Ruby on Rails project
 
-Modifying
-~~~~~~~~~
+Tweaking
+~~~~~~~~
 
 - Eclipse - add an existing project into Eclipse (doesn't work for some languages/frameworks)
 - Vim - install some interesting Vim extensions and make some changes in ``.vimrc`` (these
@@ -200,7 +202,7 @@ Preparing
 - Custom - checkout a custom previously created project from SCM (git only so far) and
   install needed dependencies
 
-Tasks
-~~~~~
+Extras
+~~~~~~
 
 <TODO: NOTHING YET>

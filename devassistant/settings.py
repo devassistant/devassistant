@@ -49,7 +49,7 @@ CACHE_FILE = os.path.join(DEVASSISTANT_HOME, '.cache.yaml')
 CONFIG_FILE = os.path.join(DEVASSISTANT_HOME, '.config')
 LOG_FILE = os.path.join(DEVASSISTANT_HOME, 'lastrun.log')
 
-ASSISTANT_ROLES = ['crt', 'mod', 'prep', 'task']
+ASSISTANT_ROLES = ['crt', 'twk', 'prep', 'extra']
 DEFAULT_ASSISTANT_ROLE = 'crt'
 
 # system dependency types and package managers for various distros

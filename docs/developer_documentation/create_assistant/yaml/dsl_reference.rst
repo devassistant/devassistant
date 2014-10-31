@@ -33,8 +33,8 @@ The role is implied by assistant location in one of the load path directories,
 as mentioned in :ref:`assistants_loading_mechanism`.
 
 All the rules mentioned in this document apply to all types of assistants,
-with exception of sections :ref:`modifier_assistants_ref`, :ref:`preparer_assistants_ref` and
-:ref:`task_assistants_ref` that talk about specifics of Modifier, resp. Preparer, resp. Task
+with exception of sections :ref:`tweak_assistants_ref`, :ref:`preparer_assistants_ref` and
+:ref:`extras_assistants_ref` that talk about specifics of Tweak, resp. Preparer, resp. Extras
 assistants.
 
 Assistant Name
@@ -108,7 +108,7 @@ When you invoke DevAssistant with it will run following assistants sections in f
 
 - ``pre_run``
 - ``dependencies``
-- ``run`` (possibly different section for `Modifier Assistants`_)
+- ``run`` (possibly different section for `Tweak Assistants`_)
 - ``post_run``
 
 If any of the first three sections fails in any step, DevAssistant will immediately skip to
@@ -128,7 +128,7 @@ Yaml assistants can express their dependencies in multiple sections.
 
    $ da python --foo
 
-- These rules differ for `Modifier Assistants`_
+- These rules differ for `Tweak Assistants`_
 
 Each section contains a list of mappings ``dependency type: [list, of, deps]``.
 If you provide more mappings like this::
@@ -297,22 +297,22 @@ a configuration file template or a whole new project. They must be placed under
 
 They usually create ``.devassistant`` file (see :ref:`dot_devassistant_ref`).
 
-.. _modifier_assistants_ref:
+.. _tweak_assistants_ref:
 
-Modifier Assistants
--------------------
+Tweak Assistants
+----------------
 
-Modifier assistants are assistants that are supposed to work with
-already created project. They must be placed under ``assistants/mod``
+Tweak assistants are assistants that are supposed to work with
+already created project. They must be placed under ``assistants/twk``
 subdirectory of one of the load paths, as mentioned in
 :ref:`assistants_loading_mechanism`.
 
-There are few special things about modifier assistants:
+There are few special things about tweak assistants:
 
 - They usually utilize ``dda_r`` to read the whole ``.devassistant`` file (usually from directory
-  specified by ``path`` variable or from current directory). *Since version 0.8.0, every modifier
+  specified by ``path`` variable or from current directory). *Since version 0.8.0, every tweak
   assistant has to do this on its own, be it in pre_run or run section*. This also allows you
-  to modify non-devassistant projects - just don't use ``dda_r``.
+  to work non-devassistant projects - just don't use ``dda_r``.
 
 The special rules below *only apply if you use dda_t in pre_run section*.
 
@@ -322,7 +322,7 @@ The special rules below *only apply if you use dda_t in pre_run section*.
   ``dependencies``, ``dependencies_foo`` and ``dependencies_foo_bar`` will
   be used as well as any sections that would get installed according to
   specified parameters. The rationale behind this is, that if you have e.g.
-  ``eclipse`` modifier that should work for both ``python django`` and
+  ``eclipse`` tweak assistant that should work for both ``python django`` and
   ``python flask`` projects, chance is that they have some common dependencies,
   e.g. ``eclipse-pydev``. So you can just place these common dependencies in
   ``dependencies_python`` and you're done (you can possibly place special
@@ -345,12 +345,12 @@ of the load paths, as mentioned in :ref:`assistants_loading_mechanism`.
 Preparer assistants commonly utilize the ``dda_dependencies`` and ``dda_run``
 commands in ``run`` section.
 
-.. _task_assistants_ref:
+.. _extras_assistants_ref:
 
-Task Assistants
----------------
+Extras Assistants
+-----------------
 
-Task assistants are supposed to carry out arbitrary task that are not related to a specific
-project. They must be placed under ``assistants/task`` subdirectory of one of the load paths,
+Extras assistants are supposed to carry out arbitrary task that are not related to a specific
+project. They must be placed under ``assistants/extra`` subdirectory of one of the load paths,
 as mentioned in :ref:`assistants_loading_mechanism`. Otherwise, there is nothing special about
-task assistants in terms of execution by DevAssistant.
+extras assistants in terms of execution by DevAssistant.

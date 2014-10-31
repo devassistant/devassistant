@@ -5,7 +5,7 @@ Project Types
 
 This is a list of official project types that projects should use in their
 ``.devassistant`` file and Creator assistants should state. If you choose one
-of the official project types, there is a good chance that Modifier and Preparer
+of the official project types, there is a good chance that Tweak and Preparer
 assistants written by others will work well with projects created by your Creator.
 
 The project type is given as a list of strings - these describe the project from
@@ -14,8 +14,8 @@ the most general type to the most specific. E.g::
    project_type: [python, django]
 
 If you don't use ``project_type`` in your Creator assistant, it will be automatically
-supported to ``.devassistant``: If your assistant is ``crt/footest/foobar.yaml``, project
-type in ``.devassistant`` will be ``[footest, foobar]``. This means that Modifier and
+generated: If your assistant is ``crt/footest/foobar.yaml``, project
+type in ``.devassistant`` will be ``[footest, foobar]``. This means that Tweak and
 Preparer assistants written by others may not work well with your project, but otherwise
 it does no harm.
 

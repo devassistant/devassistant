@@ -88,8 +88,8 @@ class CliRunner(object):
     @classmethod
     def transform_executable_assistant_alias(cls, parsed_args):
         key = settings.SUBASSISTANT_N_STRING.format(0)
-        for assistant in [bin.CreatorAssistant, bin.ModifierAssistant,
-                          bin.PreparerAssistant, bin.TaskAssistant]:
+        for assistant in [bin.CreatorAssistant, bin.TweakAssistant,
+                          bin.PreparerAssistant, bin.ExtrasAssistant]:
             if parsed_args[key] in assistant.aliases:
                 parsed_args[key] = assistant.name
         return parsed_args

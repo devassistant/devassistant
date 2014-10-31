@@ -145,10 +145,10 @@ class TestYamlAssistant(object):
             assert isinstance(getattr(self.ya, k), v)
 
 
-class TestYamlAssistantModifier(object):
+class TestYamlAssistantTweak(object):
     def setup_method(self, method):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '', None)
-        self.ya.role = 'mod'
+        self.ya.role = 'twk'
         self.ya._files = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
         self.dda = {'project_type': ['foo', 'bar', 'baz']}

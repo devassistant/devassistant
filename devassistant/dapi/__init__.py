@@ -240,11 +240,11 @@ class Dap(object):
         if self.meta['package_name']:
             name = self.meta['package_name']
 
-            dirs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))?|snippets)(/' +
-                              name + ')?|icons(/(crt|mod|prep|task|snippets)(/' + name + ')?)?|files|(files/(crt|mod|prep|task|snippets)|doc)(/' + name + '(/.+)?)?)$')
-            regs = re.compile('^' + dirname + '((assistants(/(crt|mod|prep|task))|snippets)/' +
-                              name + r'(/[^/]+)?\.yaml|icons/(crt|mod|prep|task|snippets)/' + name + r'(/[^/]+)?\.(' +
-                              Dap._icons + ')|(files/(crt|mod|prep|task|snippets)|doc)/' + name + '/.+)$')
+            dirs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))?|snippets)(/' +
+                              name + ')?|icons(/(crt|twk|prep|extra|snippets)(/' + name + ')?)?|files|(files/(crt|twk|prep|extra|snippets)|doc)(/' + name + '(/.+)?)?)$')
+            regs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))|snippets)/' +
+                              name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' + name + r'(/[^/]+)?\.(' +
+                              Dap._icons + ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
 
             remove = []
             for f in files:
@@ -258,7 +258,7 @@ class Dap(object):
                 files.remove(r)
 
             # Subdir yamls need a chief
-            for directory in ['assistants/' + t for t in 'crt mod prep task'.split()] + ['snippets']:
+            for directory in ['assistants/' + t for t in 'crt twk prep extra'.split()] + ['snippets']:
                 prefix = dirname + directory + '/'
                 for f in files:
                     if f.startswith(prefix) and self._is_dir(f) and f + '.yaml' not in files:
@@ -296,13 +296,13 @@ class Dap(object):
                     # name is crt/foo
                     folders.add(name)
             else:
-                for t in 'crt mod prep task'.split():
+                for t in 'crt twk prep extra'.split():
                     if f.startswith(os.path.join(dirname, 'assistants', t, '')):
                         # extension is .yaml only, so we don't need to split
                         assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
                 if f.startswith(os.path.join(dirname, 'snippets/')):
                     assistants.add(f[len(os.path.join(dirname, '')):-len('.yaml')])
-        folders -= set('crt mod prep task snippets'.split())
+        folders -= set('crt twk prep extra snippets'.split())
         for f in folders - assistants:
             self._report_problem('Useless files for non-exisiting assistant ' + f, logging.WARNING)
 

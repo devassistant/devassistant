@@ -25,20 +25,20 @@ Each load path entry has this structure::
 
    assistants/
      crt/
-     mod/
+     twk/
      prep/
-     task/
+     extra/
    files/
      crt/
-     mod/
+     twk/
      prep/
-     task/
+     extra/
      snippets/
    icons/
      crt/
-     mod/
+     twk/
      prep/
-     task/
+     extra/
    snippets/
 
 Icons under ``icons`` directory and files in ``files`` directory "copy"
@@ -56,7 +56,7 @@ order "system", "local", "user".
 
 When DevAssistant starts up, it loads all assistants from all these paths. It
 assumes, that Creator assistants are located under ``crt`` subdirectories
-the same applies to Modifier (``mod``), Preparer (``prep``) and Task (``task``) assistants.
+the same applies to Tweak (``twk``), Preparer (``prep``) and Extras (``extra``) assistants.
 
 For example, loading process for Creator assistants looks like this:
 

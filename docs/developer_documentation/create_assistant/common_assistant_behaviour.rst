@@ -16,7 +16,7 @@ Common Parameters of Assistants and Their Meanings
   Name of the project to create, mandatory. Should also be able to accept full or
   relative path.
 ``-p``
-  Path to existing project supplied to modifier assistants (optional, defaults to ``.``).
+  Path to existing project supplied to tweak assistants (optional, defaults to ``.``).
 
 To include these parameters in your assistant with common help strings etc., include
 them from ``common_args.yaml`` (``-n``, ``-g``) or ``eclipse.yaml`` (``-e``) snippet::

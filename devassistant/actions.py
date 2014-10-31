@@ -130,7 +130,7 @@ class HelpAction(Action):
             max(*map(lambda x: len(x.name), top_visible_actions))
         ) + 2
         text = ['You can either run assistants with:']
-        text.append(cls.format_text('da [--debug] {create,modify,prepare,task} ' +
+        text.append(cls.format_text('da [--debug] {create,tweak,prepare,extras} ' +
                                     '[ASSISTANT [ARGUMENTS]] ...',
                                     'bold',
                                     format_type))
@@ -140,7 +140,7 @@ class HelpAction(Action):
                                            'used for creating new projects',
                                            just,
                                            format_type))
-        text.append(cls.format_action_line('modify',
+        text.append(cls.format_action_line('tweak',
                                            'used for working with existing projects',
                                            just,
                                            format_type))
@@ -148,13 +148,13 @@ class HelpAction(Action):
                                            'used for preparing environment for upstream projects',
                                            just,
                                            format_type))
-        text.append(cls.format_action_line('task',
+        text.append(cls.format_action_line('extras',
                                            'used for performing custom tasks not related to a '
                                            'specific project',
                                            just,
                                            format_type))
-        text.append('You can shorten "create" to "crt", "modify" to "mod" ' +
-                    'and "prepare" to "prep".')
+        text.append('You can shorten "create" to "crt", "tweak" to "twk" ' +
+                    'and "extras" to "extra".')
         text.append('')
         text.append('Or you can run a custom action:')
         text.append(cls.format_text('da [--debug] [ACTION] [ARGUMENTS]',

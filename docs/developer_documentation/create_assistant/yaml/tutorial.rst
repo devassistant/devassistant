@@ -7,8 +7,8 @@ So you want to create your own assistant? There is nothing easier... They say
 that in all tutorials, right?
 
 This tutorial will guide you through the process of creating simple assistants
-of :ref:`different roles <assistant_roles_devel>` - Creator, Modifier,
-Preparer, Task.
+of :ref:`different roles <assistant_roles_devel>` - Creator, Tweak,
+Preparer, Extras.
 
 This tutorial doesn't cover everything. Consult :ref:`dsl_reference`
 when you're missing something you really need to achieve. If you think
@@ -50,7 +50,7 @@ Since 0.10.0, this is no longer recommended. The main reason for this is that we
 a simple upstream packaging and distribution format, as well as "DevAssistant package index" -
 a central repository of upstream assistant packages. See :ref:`packaging_and_distributing`
 for more details. In this concept, each package can only have one superassistant (named
-as the whole package is named) in each ``crt``, ``mod``, ``prep`` and ``task`` and can only
+as the whole package is named) in each ``crt``, ``twk``, ``prep`` and ``extra`` and can only
 place subassistants into hierarchies defined by these. Package names have to be unique
 in the DevAssistant Package Index.
 
@@ -323,24 +323,23 @@ The Whole Assistant
 And can be run like this: ``da create python argh -n foo/bar``.
 
 
-Creating a Modifier
--------------------
+Creating a Tweak Assistant
+--------------------------
 
 *This section assumes that you've read the previous tutorial and are therefore
 familiar with DevAssistant basics.*
-Modifiers are meant to modify existing projects, that means projects with
-``.devassistant`` file (there is also an option to write assistant that
-modifies an arbitrary project without ``.devassistant``, read on).
+Tweak assistants are meant to work with existing projects. They usually try to look
+for ``.devassistant`` file of the project, but it is not necessary.
 
-Modifier Specialties
-~~~~~~~~~~~~~~~~~~~~
+Tweak Assistant Specialties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**The special behaviour of modifiers only applies if you use dda_r in pre_run
+**The special behaviour of tweak assistants only applies if you use dda_r in pre_run
 section. This command reads .devassistant file from given directory and
 puts the read variables in global variable context, so they're available from
 all the following dependencies and run section.**
 
-If modifier reads ``.devassistant`` file in ``pre_run`` section, DevAssistant
+If tweak assistant reads ``.devassistant`` file in ``pre_run`` section, DevAssistant
 tries to search for more ``dependencies`` sections to use. If the project was
 previously created by ``crt python django``, the engine will install dependencies
 from sections ``dependencies_python_django``, ``dependencies_python`` and ``dependencies``.

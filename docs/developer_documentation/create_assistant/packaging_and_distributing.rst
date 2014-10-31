@@ -29,17 +29,17 @@ Each dap has an unique name (lat's say ``foo``) and it can only contain assistan
    foo-0.0.1/
      meta.yaml
      assistants/
-       {crt,mod,prep,task}/
+       {crt,twk,prep,extra}/
          foo.yaml
          foo/
      files/
-       {crt,mod,prep,task,snippets}/
+       {crt,twk,prep,extra,snippets}/
          foo/
      snippets/
        foo.yaml
        foo/
      icons/
-       {crt,mod,prep,task,snippets}/
+       {crt,twk,prep,extra,snippets}/
          foo.{png,svg}
          foo/
      doc/

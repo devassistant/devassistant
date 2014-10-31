@@ -24,15 +24,15 @@ class CreatorAssistant(ExecutableAssistant):
     description = 'Kickstart new projects easily with DevAssistant.'
 
 
-class ModifierAssistant(ExecutableAssistant):
+class TweakAssistant(ExecutableAssistant):
     def get_subassistants(self):
         sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
         return sa
 
-    name = 'mod'
-    aliases = ['modify']
-    fullname = 'Modify Project'
-    description = 'Modify existing projects with DevAssistant.'
+    name = 'twk'
+    aliases = ['tweak']
+    fullname = 'Tweak Existing Project'
+    description = 'Tweak existing projects with DevAssistant.'
 
 
 class PreparerAssistant(ExecutableAssistant):
@@ -46,14 +46,15 @@ class PreparerAssistant(ExecutableAssistant):
     description = 'Prepare environment for upstream projects with DevAssistant.'
 
 
-class TaskAssistant(ExecutableAssistant):
+class ExtrasAssistant(ExecutableAssistant):
     def get_subassistants(self):
         sa = yaml_assistant_loader.YamlAssistantLoader.get_assistants(superassistants=[self])
         return sa
 
-    name = 'task'
-    fullname = 'Custom Task'
-    description = 'Perform a custom task not related to a specific project with DevAssistant.'
+    name = 'extra'
+    aliases = ['extras']
+    fullname = 'Extras'
+    description = 'Perform a custom task not related to a specific project.'
 
 
 class TopAssistant(assistant_base.AssistantBase):
@@ -62,6 +63,6 @@ class TopAssistant(assistant_base.AssistantBase):
     def get_subassistants(self):
         # cache assistants to always return the same instances
         if not self._assistants:
-            self._assistants = [CreatorAssistant(), ModifierAssistant(),
-                                PreparerAssistant(), TaskAssistant()]
+            self._assistants = [CreatorAssistant(), TweakAssistant(),
+                                PreparerAssistant(), ExtrasAssistant()]
         return self._assistants

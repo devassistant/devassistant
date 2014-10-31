@@ -2,11 +2,11 @@ There are four assistant roles:
 
 creator (``create`` or ``crt`` on command line)
   creates new projects
-modifier (``modify`` or ``mod`` on command line)
+tweak (``tweak`` or ``twk`` on command line)
   works with existing projects
 preparer (``prepare`` or ``prep`` on command line)
   prepares environment for development of upstream projects
-task (``task`` on command line)
+extras (``extras`` or ``extra`` on command line)
   performs arbitrary tasks not related to a specific project
 
 The main purpose of having roles is separating different types of tasks.

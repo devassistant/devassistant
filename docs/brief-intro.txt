@@ -5,12 +5,12 @@ in various languages, installing dependencies, setting up environment etc. There
 types of functionality provided:
 
 - ``da create`` - create new project from scratch
-- ``da modify`` - take local project and do something with it (e.g. import it to Eclipse)
-- ``da prepare`` - prepare development environment for an upstream project or a custom task
-- ``da task`` - perform a custom task not related to a specific project
+- ``da tweak`` - work with local existing project (e.g. import it to Eclipse, register on GitHub)
+- ``da prepare`` - prepare development environment for an upstream project
+- ``da extras`` - perform a custom task not related to a specific project
 
 The first three of these have shortcuts for faster use: "create" can be shortened as "crt",
-"modify" as "mod" and "prepare" as "prep".
+"tweak" as "twk", "prepare" as "prep" and "extras" as "extra".
 
 DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical
 structure. E.g. you can run::
@@ -22,7 +22,7 @@ structure. E.g. you can run::
 DevAssistant also allows you to work with a previously created project, for example
 import it to Eclipse::
 
-   $ da modify eclipse # run in project dir or use -p to specify path
+   $ da tweak eclipse # run in project dir or use -p to specify path
 
 With DevAssistant, you can also prepare environment for developing upstream projects -
 either using project-specific assistants or using "custom" assistant for arbitrary projects
@@ -37,7 +37,7 @@ and use this **only with projects whose authors you trust**.
 Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific
 project::
 
-   $ da task <TODO:NOTHING YET>
+   $ da extras <TODO:NOTHING YET>
 
 Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our
 mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join

@@ -23,10 +23,10 @@ When .devassistant is used
 
 Generally, there are two use cases for ``.devassistant``:
 
-- Modifier assistants read the ``.devassistant`` file to get project type
+- Tweak assistants read the ``.devassistant`` file to get project type
   (which is specified by ``project_type`` entry) and decide what to
   do with this type of project (by choosing a proper ``run`` section to
-  execute and proper ``dependencies`` section, see :ref:`modifier_assistants_ref`).
+  execute and proper ``dependencies`` section, see :ref:`tweak_assistants_ref`).
 - When you use the ``custom`` preparer with URL to this project
   (``da prepare custom -u <url>``), DevAssistant will checkout the project,
   read the data from ``.devassistant`` and do few things:

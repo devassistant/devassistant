@@ -6,9 +6,9 @@ class TestActions(object):
     def test_get_help_contains_task_keywords(self):
         gh = self.ha.get_help()
         assert 'crt' in gh
-        assert 'mod' in gh
+        assert 'twk' in gh
         assert 'prep' in gh
-        assert 'task' in gh
+        assert 'extra' in gh
 
     def test_get_help_contains_action_name(self):
         a = actions.Action()

@@ -8,7 +8,7 @@ you should read this section. It provides general information about specifying m
 dependencies, arguments and file placement for the PingPong scripts.
 
 DevAssistant distinguishes four different :ref:`assistant roles <assistant_roles_devel>` -
-Creator, Modifier, Preparer, Task. From the point of view of this tutorial, the roles
+Creator, Tweak, Preparer, Extras. From the point of view of this tutorial, the roles
 only differ in file placement and where they'll be presented to user on command line/in GUI.
 Therefore we choose to create a simple Creator. We'll be implementing an assistant, that
 creates a simple `reStructuredText <http://docutils.sourceforge.net/rst.html>`_ document.

@@ -100,10 +100,10 @@ Currently, the only assistant that supports creating new projects with Dockerfil
 
   da create python django -n foo --docker
 
-but we also have ``mod docker develop`` assistant, which is generally usable for any type of
+but we also have ``tweak docker develop`` assistant, which is generally usable for any type of
 project that ships a Dockerfile. Use it like this::
 
-  da modify docker develop [-m MOUNTPOINT] [-i REUSE_IMAGE] [-p PATH]
+  da tweak docker develop [-m MOUNTPOINT] [-i REUSE_IMAGE] [-p PATH]
 
 If used with no arguments, this assistant searches for Dockerfile in current directory,
 builds a Docker image, mounts source code (the directory that contains Dockerfile) into it

@@ -167,7 +167,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
     @needs_fully_loaded
     def _get_dependency_sections_to_use(self, kwargs):
         sections = [getattr(self, '_dependencies', [])]
-        if self.role == 'mod':
+        if self.role == 'twk':
             proj_type = kwargs.get('project_type', [])
             # if project_type is "foo bar baz", then search for dependency sections
             # _dependencies_foo, _dependencies_foo_bar, _dependencies_foo_bar_baz
@@ -222,7 +222,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
         to_run = '_run'
         if stage:  # if we have stage, always use that
             to_run = '_' + stage + '_run'
-        elif self.role == 'mod':
+        elif self.role == 'twk':
             # try to get a section to run from the most specialized one to the least
             # specialized one, e.g. first run_python_django, then run_python and then just run
             proj_type = kwargs.get('project_type', [])

@@ -267,7 +267,7 @@ Commands that operate with ``.devassistant`` file.
 
    - dda_c: ${path}/to/project
 
-``dda_r`` - reads an existing ``.devassistant`` file, should be used by modifier and preparer
+``dda_r`` - reads an existing ``.devassistant`` file, should be used by tweak and preparer
 assistants.Sets some global variables accordingly, most importantly ``original_kwargs`` (arguments
 used when the project was created) - these are also made available with ``dda__`` prefix (yes,
 that's double underscore).

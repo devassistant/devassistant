@@ -39,9 +39,9 @@ class Cache(object):
             'source': '/foo/bar/assistants/crt/c.yaml',
             # hierarchy of subassistants of this assistant
             'subhierarchy': {'d': {...}},
-     'mod': {...},
+     'twk': {...},
      'prep': {...},
-     'task': {...},
+     'extra': {...},
      # version of devassistant that cache has been created with
      'version': devassistant.__version__}
     """
