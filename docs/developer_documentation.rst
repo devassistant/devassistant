@@ -111,19 +111,15 @@ If you don't have DevAssistant installed, you can checkout the sources
 like this (just copy&paste this to get the job done)::
 
    git clone https://github.com/devassistant/devassistant
-   # get the official set of assistants
-   cd devassistant
-   git submodule init
-   git submodule update
 
 You can find list of core Python dependencies in file ``requirements.txt``. If you want
 to write and run tests (you should!), install dependencies from ``requirements-devel.txt``::
 
-   pip install -r requirements-devel.txt
+   pip install --user -r requirements-devel.txt
 
 If you develop on Python 2, you'll also need to install extra dependencies::
 
-   pip install -r requirements-py2.txt
+   pip install --user -r requirements-py2.txt
 
 Regardless of Python version, you'll need ``polkit`` for requesting root privileges for dependency installation
 etc. If you want to play around with GUI, you have to install ``pygobject``, too.

@@ -26,7 +26,7 @@ DevAssistant also allows you to work with a previously created project, for exam
 
 .. code:: sh
 
-  $ da modify eclipse # run in project dir or use -p to specify path
+  $ da tweak eclipse # run in project dir or use -p to specify path
 
 With DevAssistant, you can also prepare environment for developing upstream projects - either using project-specific assistants or using "custom" assistant for arbitrary projects (even those not created by DevAssistant):
 
@@ -38,7 +38,7 @@ Last but not least, DevAssistant allows you to perform arbitrary tasks not relat
 
 .. code:: sh
 
-  $ da task <TODO:NOTHING YET>
+  $ da extras <TODO:NOTHING YET>
 
 For full documentation, see http://doc.devassistant.org/
 
@@ -51,16 +51,13 @@ To start developing, do:
 .. code:: sh
 
   git clone https://github.com/devassistant/devassistant
-  cd devassistant
-  git submodule init
-  git submodule update
 
 And install dependencies from requirements-devel.txt:
 
 .. code:: sh
 
-  pip install -r requirements-devel.txt
-  pip install -r requirements-py2.txt # Only on Python 2
+  pip install --user -r requirements-devel.txt
+  pip install --user -r requirements-py2.txt # Only on Python 2
 
 Apart from git, DevAssistant also assumes that polkit is installed on your machine (provides pkexec binary). If you want to work with GUI, you'll need pygobject3.
 
