@@ -11,6 +11,7 @@ from devassistant import yaml_checker
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
+    print(assistants_dirs)
     # mapping of assistant roles to lists of top-level assistant instances
     _assistants = {}
 

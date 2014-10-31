@@ -34,13 +34,13 @@ DEPS_ONLY_FLAG = '--deps-only'
 #   load assistants, the relative path would point in an unwanted location
 # - command runners should be allowed to rely on this (e.g. if we pass a file from files
 #   section to Jinja2Runner, we need to make sure it's fullpath)
-DATA_DIRECTORIES = [os.path.join(os.path.dirname(__file__), 'data'),
+DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
                     '/usr/local/share/devassistant',
-                    os.path.expanduser('~/.devassistant')]
+                    '/usr/share/devassistant/']
 if 'DEVASSISTANT_PATH' in os.environ:
     DATA_DIRECTORIES = [os.path.abspath(os.path.expanduser(p))
         for p in os.environ['DEVASSISTANT_PATH'].split(':')] + DATA_DIRECTORIES
-DEVASSISTANT_HOME = DATA_DIRECTORIES[-1]
+DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
 if 'DEVASSISTANT_HOME' in os.environ:
     DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
 

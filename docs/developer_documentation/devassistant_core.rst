@@ -11,11 +11,9 @@ DevAssistant has couple of load path entries, that are searched for assistants,
 snippets, icons and files used by assistants. In standard installations,
 there are three paths:
 
-1. "system" path, which is defined by OS distribution (usually
-   ``/usr/share/devassistant/``) or by Python installation
-   (sth. like ``/usr/share/pythonX.Y/devassistant/data/``)
+1. "user" path, ``~/.devassistant/``
 2. "local" path, ``/usr/local/share/devassistant/``
-3. "user" path, ``~/.devassistant/``
+3. "system" path, ``/usr/share/devassistant/``
 
 Another path(s) can be added by specifying ``DEVASSISTANT_PATH`` environment
 variable (if more paths are used, they must be separated by colon). These paths
@@ -52,7 +50,7 @@ Assistants Loading Mechanism
 ----------------------------
 DevAssistant loads assistants from all load paths mentioned above (more
 specifically from ``<load_path>/assistants/`` only), traversing them in
-order "system", "local", "user".
+order "user", "local", "system".
 
 When DevAssistant starts up, it loads all assistants from all these paths. It
 assumes, that Creator assistants are located under ``crt`` subdirectories
