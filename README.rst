@@ -22,8 +22,9 @@ structure.
 *Note: prior to version 0.10.0, DevAssistant has been shipped with a default set of assistants
 that only worked on Fedora. We decided to drop this default set and create
 DAPI, DevAssistant Package Index,* https://dapi.devassistant.org/ *- an upstream
-PyPI/Rubygems-like repository of packagedassistants. DAPI's main aim is to create a community
-around DevAssistant and provide various assistants for various platforms.*
+PyPI/Rubygems-like repository of packaged assistants. DAPI's main aim is to create a community
+around DevAssistant and provide various assistants with good support for various platforms -
+a task that DevAssistant core team alone is not able to achieve for a large set of assistants.*
 
 *This all means that if you get DevAssistant from upstream repo or from PyPI, you will have
 no assistants installed by default. To get assistants, search DAPI through web browser or run*
@@ -63,9 +64,14 @@ These are some examples of what you can do assuming you have the right DAPs inst
 
 For full documentation, see http://doc.devassistant.org/
 
-Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join our G+ community (https://plus.google.com/u/0/communities/112692240128429771916) or follow us on Twitter (https://twitter.com/dev_assistant).
+Should you have some questions, feel free to ask us at Freenode channel #devassistant
+or on our mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant).
+You can also join our G+ community (https://plus.google.com/u/0/communities/112692240128429771916)
+or follow us on Twitter (https://twitter.com/dev_assistant).
 
-If you want to see where DevAssistant development is going and you want to influence it and send your suggestions and comments, you should *really* join our ML: https://lists.fedoraproject.org/mailman/listinfo/devassistant.
+If you want to see where DevAssistant development is going and you want to influence it and send
+your suggestions and comments, you should *really* join our ML:
+https://lists.fedoraproject.org/mailman/listinfo/devassistant.
 
 To start developing, do:
 
@@ -80,9 +86,10 @@ And install dependencies from requirements-devel.txt:
   pip install --user -r requirements-devel.txt
   pip install --user -r requirements-py2.txt # Only on Python 2
 
-Apart from git, DevAssistant also assumes that polkit is installed on your machine (provides pkexec binary). If you want to work with GUI, you'll need pygobject3.
+Apart from git, DevAssistant also assumes that polkit is installed on your machine
+(provides pkexec binary). If you want to work with GUI, you'll need pygobject3.
 
-Or, assuming that you have DevAssistant version 0.8.0 or higher installed, you just need to do:
+Or, assuming that you have "devassistant" DAP installed [TODO:link], you just need to do:
 
 .. code:: sh
 
