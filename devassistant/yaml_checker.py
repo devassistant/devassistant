@@ -103,6 +103,13 @@ class YamlChecker(object):
             elif attrn == 'gui_hints':
                 # TODO: maybe check this more thoroughly
                 self._assert_dict(attrval, attrn, path)
+            elif attrn == 'required':
+                self._assert_struct_type(attrval, attrn, (bool,), path)
+            elif attrn == 'preserved':
+                self._assert_str(attrval, attrn, path)
+            else:
+                raise exceptions.YamlTypeError('Invalid attribute of argument: {0}: {1}'.format(
+                                                 self._format_error_path(path), attrn))
 
     def _check_files(self, source):
         path = [source]
