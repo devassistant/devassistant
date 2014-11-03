@@ -829,8 +829,9 @@ class DependencyInstaller(object):
             err = 'No package manager for dependency type "{dep_t}"'.format(dep_t=dep_t)
             raise exceptions.NoPackageManagerException(err)
         else:
-            err = 'No working package manager for "{dep_t}" in {mgrs}'.format(dep_t=dep_t,
-                                                                              mgrs=mgrs)
+            mgrs_nice = ', '.join([type(mgr).__name__ for mgr in mgrs])
+            err = 'No working package manager for "{dep_t}" in: {mgrs}'.format(dep_t=dep_t,
+                                                                              mgrs=mgrs_nice)
             raise exceptions.NoPackageManagerOperationalException(err)
 
     def _process_dependency(self, dep_t, dep_l):
