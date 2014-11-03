@@ -10,35 +10,56 @@ DevAssistant
 .. image:: https://pypip.in/d/devassistant/badge.png
         :target: https://pypi.python.org/pypi/devassistant
 
-DevAssistant - making life easier for developers
+DevAssistant - start developing with ease
 
-DevAssistant (http://devassistant.org) project is a helper for all developers using (not-only) Fedora. It helps with creating and setting up basic projects in various languages, installing dependencies, setting up environment etc.
+DevAssistant (http://devassistant.org) project is a helper for all developers using (not-only)
+Fedora. It helps with creating and setting up basic projects in various languages, installing
+dependencies, setting up environment etc.
 
-DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical structure. E.g. you can create projects like this:
+It is based on idea of per-{language/framework/...} "assistants" (plugins) with hierarchical
+structure.
+
+*Note: prior to version 0.10.0, DevAssistant has been shipped with a default set of assistants
+that only worked on Fedora. We decided to drop this default set and create
+DAPI, DevAssistant Package Index,* https://dapi.devassistant.org/ *- an upstream
+PyPI/Rubygems-like repository of packagedassistants. DAPI's main aim is to create a community
+around DevAssistant and provide various assistants for various platforms.*
+
+*This all means that if you get DevAssistant from upstream repo or from PyPI, you will have
+no assistants installed by default. To get assistants, search DAPI through web browser or run*
+``da pkg search <term>`` *and* ``da pkg install <assistant package>`` *. This will install
+one or more DAPs (DevAssistant Packages) with the desired assistants.*
+
+If you want to create your own assistants and upload them to DAPI, see
+http://docs.devassistant.org/en/latest/developer_documentation/create_assistant.html and
+http://docs.devassistant.org/en/latest/developer_documentation/create_assistant/packaging_and_distributing.html.
+
+There are four main modes of DevAssistant execution. Explanations are provided to better
+illustrate what each mode is supposed to do:
+
+``create``
+  Create new projects - scaffold source code, install dependencies, initialize SCM repos ...
+``tweak``
+  Work with existing projects - add source files, import to IDEs, push to GitHub, ...
+``prepare``
+  Prepare environment for working with existing upstream projects - install dependencies,
+  set up services, ...
+``extras``
+  Tasks not related to a specific project, e.g. enabling services, setting up IDEs, ...
+
+These are some examples of what you can do assuming you have the right DAPs installed:
 
 .. code:: sh
 
+  # create a new Django project and import it to Eclipse
   $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-  $ da create python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-  $ da create ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+  $ da tweak eclipse -p ~/myproject # run in project dir or use -p to specify path
 
-DevAssistant also allows you to work with a previously created project, for example import it to Eclipse:
-
-.. code:: sh
-
-  $ da tweak eclipse # run in project dir or use -p to specify path
-
-With DevAssistant, you can also prepare environment for developing upstream projects - either using project-specific assistants or using "custom" assistant for arbitrary projects (even those not created by DevAssistant):
-
-.. code:: sh
-
+  # Prepare environment for a custom upstream project, read the specific setup from its .devassistant file
   $ da prepare custom -u scm_url -p directory_to_save_to
 
-Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific project:
-
-.. code:: sh
-
-  $ da extras <TODO:NOTHING YET>
+  # Make a coffee
+  $ da extras make-coffee
 
 For full documentation, see http://doc.devassistant.org/
 
