@@ -9,10 +9,10 @@ Feature: Tabs switching
 
   Scenario: Tab switching works
     Given da-gui is running
-     When user clicks "Modify Project" tab
-     Then "Modify Project" is the current tab
-      and "Modifier 1" assistant should be listed
+     When user clicks "Tweak Existing Project" tab
+     Then "Tweak Existing Project" is the current tab
+      and "Tweak Assistant 1" assistant should be listed
      When user clicks "Prepare Environment" tab
      Then "Preparer 1" assistant should be listed
-     When user clicks "Custom Task" tab
-     Then "Task 1" assistant should be listed
+     When user clicks "Extras" tab
+     Then "Extras Assistant 1" assistant should be listed
