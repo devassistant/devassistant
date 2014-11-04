@@ -1,7 +1,7 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-include requirements.txt requirements-devel.txt
+include requirements.txt requirements-devel.txt requirements-py2.txt
 
 include manpages/*
 include da.bash
