@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
 import os
+import six
 import sys
+import yaml
+from flexmock import flexmock
+
 from devassistant.dapi import dapicli
 
 
@@ -73,3 +77,28 @@ results:
         dapicli.print_search('python')
         out, err = out, err = capfd.readouterr()
         assert out == desired
+
+    def test_get_installed_version_of_missing_package(self):
+        '''Testing updating a DAP'''
+        flexmock(dapicli).should_receive('get_installed_daps').and_return(['foo'])
+        assert dapicli.get_installed_version_of('bar') is None
+
+    def test_get_installed_version_of(self, capsys):
+        install_path = '/foo/bar'
+        yaml_path = install_path + 'meta/baz.yaml'
+        version = '123'
+        flexmock(dapicli).should_receive('get_installed_daps').and_return(['foo'])
+        flexmock(dapicli).should_receive('_install_path').and_return(install_path)
+        flexmock(yaml).should_receive('load').and_return({'version': version})
+
+        # Everything goes fine
+        flexmock(six.moves.builtins).should_receive('open').and_return(flexmock(read=lambda: u'qux'))
+        assert dapicli.get_installed_version_of('foo') == version
+
+        # File does not exist
+        ioerror = IOError("[Errno 2] No such file or directory: '{}'".format(yaml_path))
+        flexmock(six.moves.builtins).should_receive('open').and_raise(ioerror)
+
+        with pytest.raises(Exception): # TODO maybe change to IOError
+            dapicli.get_installed_version_of('foo')
+
