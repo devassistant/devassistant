@@ -60,7 +60,7 @@ def data(link):
 
 
 def _paginated(what, page=''):
-    '''Returns a dictionary with all <waht>, paginated'''
+    '''Returns a dictionary with all <what>, paginated'''
     if page:
         page = '?page={page}'.format(page=page)
     return data(_api_url() + what + '/' + page)
@@ -220,7 +220,7 @@ def get_installed_daps():
 def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
-            'Cannot unisnatll {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
+            'Cannot uninstall {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
     g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
