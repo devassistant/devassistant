@@ -308,7 +308,6 @@ class PkgSearchAction(Action):
         try:
             dapicli.print_search(' '.join(kwargs['query']), kwargs['page'])
         except Exception as e:
-            raise e
             logger.error(str(e))
             raise exceptions.ExecutionException(str(e))
 

@@ -1,4 +1,9 @@
-from devassistant import actions
+
+import pytest
+from flexmock import flexmock
+
+from devassistant import actions, exceptions
+from devassistant.dapi import dapicli
 
 class TestActions(object):
     ha = actions.HelpAction
@@ -31,3 +36,12 @@ class TestActions(object):
         from devassistant import __version__ as VERSION
         va.run()
         assert VERSION in capsys.readouterr()[0]
+
+class TestPkgSearchAction(object):
+
+    def test_raising_exceptions(self):
+        flexmock(dapicli).should_receive('print_search').and_raise(Exception)
+
+        with pytest.raises(exceptions.ExecutionException):
+            actions.PkgSearchAction.run(query='foo', page='bar')
+
