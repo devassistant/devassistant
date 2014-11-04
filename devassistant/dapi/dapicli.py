@@ -321,7 +321,7 @@ def get_installed_version_of(name):
     '''Gets the installed version of the given dap or None if not installed'''
     if name not in get_installed_daps():
         return None
-    meta = '{d}/{dap}.yaml'.format(d=_install_path(), dap=name)
+    meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
     with open(meta) as f:
         data = yaml.load(f.read(), Loader=Loader)
     return data['version']
