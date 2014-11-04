@@ -96,7 +96,7 @@ results:
         assert dapicli.get_installed_version_of('foo') == version
 
         # File does not exist
-        ioerror = IOError("[Errno 2] No such file or directory: '{}'".format(yaml_path))
+        ioerror = IOError("[Errno 2] No such file or directory: '{0}'".format(yaml_path))
         flexmock(six.moves.builtins).should_receive('open').and_raise(ioerror)
 
         with pytest.raises(Exception): # TODO maybe change to IOError
