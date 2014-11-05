@@ -45,7 +45,7 @@ the basic usage of the most important commands here. Note, that when you use var
   You can use similar commands to log at different log levels: ``log_d`` for ``DEBUG``,
   ``log_w`` for ``WARNING``, ``log_e`` for ``ERROR`` and ``log_c`` for ``CRITICAL``. By default,
   messages of level ``INFO`` and higher are logged. Log messages with levels ``ERROR`` and
-  ``CRITICAL`` emit the message and then terminate execution of DevAssistant immediately.
+  ``CRITICAL`` emit the message and then :ref:`raise an exception <run_section_exceptions_ref>`.
 
 - conditions::
 
@@ -154,6 +154,21 @@ want to create a literal that starts with ``~``, just use the escape value for i
    - log_i: The tilde character (~) only needs to be escaped when starting a string.
 
 Each command specifies its return value in a different way, see :ref:`command_ref`.
+
+.. _run_section_exceptions_ref:
+
+Exceptions
+~~~~~~~~~~
+
+If an unexpected error happens in a command runner, then this command runner *raises
+exception*. This means that execution of the current section is immediately terminated -
+in fact, the whole assistant run is terminated at that moment. In terminology terms, this
+is called *raising exception* even for a run section. As of version 0.10.0, there is
+no way to recover from these errors, but it may be added in future versions.
+
+For command line execution of DevAssistant, raising exception means ending DevAssistant
+with non-zero return code immediately. In GUI, this means ending the execution of
+an assistant, but keeping the GUI running.
 
 .. _variables_ctxt_ref:
 

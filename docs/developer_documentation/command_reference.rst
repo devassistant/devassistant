@@ -27,7 +27,10 @@ This reference summarizes commands included in DevAssistant itself in the follow
 - Example: example usage
 
 Note: if a command explanation says that command "*raises exception*" under some circumstances,
-it means that it makes DevAssistant immediately exit with non-zero return code (or end in GUI).
+it means that a critical error has occured and assistant execution has to be interrupted
+immediately. See documentation for :ref:`exceptions in run sections <run_section_exceptions_ref>`
+for details on how this reflects on command line and in GUI. In terms of the underlying Python
+source code, this means that ``exceptions.CommandException`` has been raised.
 
 *Missing something?* Commands are your entry point for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
