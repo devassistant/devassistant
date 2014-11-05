@@ -12,9 +12,8 @@ DevAssistant
 
 DevAssistant - start developing with ease
 
-DevAssistant (http://devassistant.org) project is a helper for all developers using (not-only)
-Fedora. It helps with creating and setting up basic projects in various languages, installing
-dependencies, setting up environment etc.
+DevAssistant (http://devassistant.org) can help you with creating and setting up basic projects
+in various languages, installing dependencies, setting up environment etc.
 
 It is based on idea of per-{language/framework/...} "assistants" (plugins) with hierarchical
 structure.
@@ -48,18 +47,39 @@ illustrate what each mode is supposed to do:
 ``extras``
   Tasks not related to a specific project, e.g. enabling services, setting up IDEs, ...
 
-These are some examples of what you can do assuming you have the right DAPs installed:
+These are some examples of what you can do:
 
 .. code:: sh
 
-  # create a new Django project and import it to Eclipse
+  # search for assistants that have "Django" in their description
+  $ da pkg search django
+  python - Python assistants (library, Django, Flask, GTK3)
+
+  # install the found "python" assistant, assuming it supports your OS/distro
+  $ da pkg install python
+
+  # find out if there is a "create" assistant in the installed "python" DAP
+  $ da create -h
+  <help text>
+  # assuming there is, find out how it works
+  $ da create python -h
+  <help text>
+  # we found out that there is "django" subassistant, let's find out how to use it
+  $ da create python django -h
+  <help text>
+  # help text tells us that django assistant doesn't have subassistants and is runnable
   $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+
+  # using the same approach with "pkg search", "pkg install" and "da tweak -h",
+  #  we find, install and read help for "tweak" assistant that imports projects to eclipse
   $ da tweak eclipse -p ~/myproject # run in project dir or use -p to specify path
 
-  # Prepare environment for a custom upstream project, read the specific setup from its .devassistant file
+  # using the same approach, we find, install and read help for assistant
+  #  that tries to prepare environment for a custom upstream project, possibly utilizing
+  #  its ".devassistant" file
   $ da prepare custom -u scm_url -p directory_to_save_to
 
-  # Make a coffee
+  # sometimes, DevAssistant can really do a very special thing for you ...
   $ da extras make-coffee
 
 For full documentation, see http://doc.devassistant.org/

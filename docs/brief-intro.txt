@@ -1,45 +1,83 @@
-DevAssistant is developer's best friend (right after coffee).
+DevAssistant - start developing with ease
 
 DevAssistant (http://devassistant.org) can help you with creating and setting up basic projects
-in various languages, installing dependencies, setting up environment etc. There are four main
-types of functionality provided:
+in various languages, installing dependencies, setting up environment etc.
 
-- ``da create`` - create new project from scratch
-- ``da tweak`` - work with local existing project (e.g. import it to Eclipse, register on GitHub)
-- ``da prepare`` - prepare development environment for an upstream project
-- ``da extras`` - perform a custom task not related to a specific project
+It is based on idea of per-{language/framework/...} "assistants" (plugins) with hierarchical
+structure.
 
-The first three of these have shortcuts for faster use: "create" can be shortened as "crt",
-"tweak" as "twk", "prepare" as "prep" and "extras" as "extra".
+*Note: prior to version 0.10.0, DevAssistant has been shipped with a default set of assistants
+that only worked on Fedora. We decided to drop this default set and create
+DAPI, DevAssistant Package Index,* https://dapi.devassistant.org/ *- an upstream
+PyPI/Rubygems-like repository of packaged assistants. DAPI's main aim is to create a community
+around DevAssistant and provide various assistants with good support for various platforms -
+a task that DevAssistant core team alone is not able to achieve for a large set of assistants.*
 
-DevAssistant is based on idea of per-{language/framework/...} "assistants" with hierarchical
-structure. E.g. you can run::
+*This all means that if you get DevAssistant from upstream repo or from PyPI, you will have
+no assistants installed by default. To get assistants, search DAPI through web browser or run*
+``da pkg search <term>`` *and* ``da pkg install <assistant package>`` *. This will install
+one or more DAPs (DevAssistant Packages) with the desired assistants.*
 
-   $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
-   $ da create python flask -n ~/flaskproject # sets up Flask project named "flaskproject" inside your home dir
-   $ da create ruby rails -n ~/alsomyproject # sets up RoR project named "alsomyproject" inside your home dir
+If you want to create your own assistants and upload them to DAPI, see
+http://docs.devassistant.org/en/latest/developer_documentation/create_assistant.html and
+http://docs.devassistant.org/en/latest/developer_documentation/create_assistant/packaging_and_distributing.html.
 
-DevAssistant also allows you to work with a previously created project, for example
-import it to Eclipse::
+There are four main modes of DevAssistant execution. Explanations are provided to better
+illustrate what each mode is supposed to do:
 
-   $ da tweak eclipse # run in project dir or use -p to specify path
+``create``
+  Create new projects - scaffold source code, install dependencies, initialize SCM repos ...
+``tweak``
+  Work with existing projects - add source files, import to IDEs, push to GitHub, ...
+``prepare``
+  Prepare environment for working with existing upstream projects - install dependencies,
+  set up services, ...
+``extras``
+  Tasks not related to a specific project, e.g. enabling services, setting up IDEs, ...
 
-With DevAssistant, you can also prepare environment for developing upstream projects -
-either using project-specific assistants or using "custom" assistant for arbitrary projects
-(even those not created by DevAssistant)::
+These are some examples of what you can do:
 
-   $ da prepare custom custom -u scm_url
+.. code:: sh
 
-**Warning:** The ``custom`` assistant executes custom pieces of code from
-``.devassistant`` file of the project. Therefore you have to be extra careful
-and use this **only with projects whose authors you trust**.
+  # search for assistants that have "Django" in their description
+  $ da pkg search django
+  python - Python assistants (library, Django, Flask, GTK3)
 
-Last but not least, DevAssistant allows you to perform arbitrary tasks not related to a specific
-project::
+  # install the found "python" assistant, assuming it supports your OS/distro
+  $ da pkg install python
 
-   $ da extras <TODO:NOTHING YET>
+  # find out if there is a "create" assistant in the installed "python" DAP
+  $ da create -h
+  ...
+  {..., python, ...}
+  ...
 
-Should you have some questions, feel free to ask us at Freenode channel #devassistant or on our
-mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant). You can also join
-our G+ community (https://plus.google.com/u/0/communities/112692240128429771916) or follow us on
-Twitter (https://twitter.com/dev_assistant).
+  # there is, so let's find out if it has any subassistants
+  $ da create python -h
+  ...
+  {..., django, ...}
+  ...
+
+  # we found out that there is "django" subassistant, let's find out how to use it
+  $ da create python django -h
+  <help text with commandline options>
+
+  # help text tells us that django assistant doesn't have subassistants and is runnable, let's do it
+  $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
+
+  # using the same approach with "pkg search", "pkg install" and "da tweak -h",
+  #  we find, install and read help for "tweak" assistant that imports projects to eclipse
+  $ da tweak eclipse -p ~/myproject # run in project dir or use -p to specify path
+
+  # using the same approach, we find, install and read help for assistant
+  #  that tries to prepare environment for a custom upstream project, possibly utilizing
+  #  its ".devassistant" file
+  $ da prepare custom -u scm_url -p directory_to_save_to
+
+  # sometimes, DevAssistant can really do a very special thing for you ...
+  $ da extras make-coffee
+
+Should you have some questions, feel free to ask us at Freenode channel #devassistant
+or on our mailing list (https://lists.fedoraproject.org/mailman/listinfo/devassistant).
+You can also join our G+ community (https://plus.google.com/u/0/communities/112692240128429771916)
+or follow us on Twitter (https://twitter.com/dev_assistant).

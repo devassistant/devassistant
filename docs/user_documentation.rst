@@ -3,16 +3,6 @@
 User Documentation
 ==================
 
-Subtopics
----------
-
-.. toctree::
-   :titlesonly:
-   :maxdepth: 2
-
-   user_documentation/docker
-
-
 A Brief Intro
 -------------
 
@@ -51,30 +41,25 @@ Using Commandline Interface
 Creating New Projects
 ~~~~~~~~~~~~~~~~~~~~~
 
-DevAssistant can help you create (that's ``crt`` in the commands below) your
-projects with one line in a terminal. For example::
+DevAssistant can help you create your projects with one line in a terminal. For example::
 
    $ da create python django -n foo -e -g
 
 ``da`` is the short form of ``devassistant``. You can use either of them, but ``da`` is preferred.
 
-This line will do the following:
+What this line does precisely depends on the author of the assistant. You can always
+display help by using ``da create python django -h``. Running the above command line
+*may* do something like this:
 
-- Install Django (RPM packaged) and all needed dependencies.
+- Install Django and all needed dependencies.
 - Create a Django project named ``foo`` in the current working directory.
 - Make any necessary adjustments so that you can run the project and start developing
   right away.
 - The ``-e`` switch will make DevAssistant register the newly created projects into
-  Eclipse (tries ``~/workspace`` by default, if you have any other, you need to specify
-  it as an argument to ``-e``). This will also cause installation of Eclipse and PyDev,
+  Eclipse. This will also cause installation of Eclipse and PyDev,
   unless already installed.
 - The ``-g`` switch will make DevAssistant register the project on Github and push
-  sources there. DevAssistant will ask you for your Github password the first time
-  you're doing this and then it will create a Github API token and new SSH keys, so
-  on any further invocation, this will be fully automatic. If you are using
-  two-factor authentication with GitHub, DevAssistant will ask you for your
-  one-time password once. Note that if your system username differs from your
-  Github username, you must specify the Github username as an argument to ``-g``.
+  sources there.
 
 .. _tweaking_projects_cli:
 
@@ -86,10 +71,10 @@ this by using ``da tweak``, as opposed to ``da create`` for creating::
 
    $ da tweak eclipse
 
-This will import a previously created project into Eclipse (and possibly install
-Eclipse and other dependencies implied by the project language). Optionally,
-you can pass ``-p path/to/project`` if your current working directory is not
-the project directory.
+As noted above, what an assistant does depends on its author. In this case,
+it seems that the assistant will import an existing project into Eclipse,
+possibly installing missing dependencies - to find out if this assumption
+is correct, run ``da tweak eclipse -h`` and read the help.
 
 .. _preparing_environment_cli:
 
@@ -98,23 +83,25 @@ Preparing Environment
 
 DevAssistant can set up the environment and install dependencies for
 development of an already existing project located
-in a remote SCM (e.g. Github). For custom projects you can use the ``custom`` assistant.
-Note that for projects that don't have ``.devassistant`` file, this will just checkout
-the sources::
+in a remote SCM (e.g. Github). There is, for example, the so-called
+`custom <https://dapi.devassistant.org/dap/custom/>`_ prepare
+assistant, that is supposed to prepare environment for arbitrary upstream projects.
+This means that it will checkout the source code from given git repo and if there
+is a ``.devassistant`` file in the repo, it'll install dependencies and prepare
+environment according to it::
 
    $ da prepare custom -u scm_url
 
 **Warning:** The ``custom`` assistant executes custom pieces of code from a ``.devassistant`` file,
 so use this only for projects whose upstreams you trust.
 
-The plan is to also include assistants for well known and largely developed projects
-(that, of course, don't contain a ``.devassistant`` file). So in future you should be
-able to do something like::
+We hope that existance of DAPI will attract people from various upstreams to
+create prepare assistants for their specific projects, so that people could do
+something like::
 
    $ da prepare openstack
 
-and it should do everything needed to get you started developing OpenStack in a way
-that others do. But this is still somewhere in the future...
+To get development environment prepared for development of OpenStack, etc...
 
 .. _extras_cli:
 
@@ -124,7 +111,7 @@ Extras
 The last piece of functionality is performing arbitrary tasks that are not related to a specific
 projects. E.g.::
 
-   $ da extras <TODO:NOTHING YET>
+   $ da extras make-coffee
 
 Custom Actions
 ~~~~~~~~~~~~~~
@@ -156,53 +143,3 @@ The GUI workflow is dead simple:
   is needed (such as confirming dependencies to install), DevAssistant will
   ask you, so don't go get your coffee just yet.
 - After all is done, get your coffee and enjoy.
-
-Currently Supported Assistants
-------------------------------
-
-*Please note that list of currently supported assistants may vary greatly in different
-distributions, depending on available packages etc.*
-
-Currently supported assistants with their specialties (if any):
-
-Creating
-~~~~~~~~
-
-- C - a simple C project, allows you to create an SRPM and build an RPM by specifying ``-b``
-- C++
-- Java
-  - JSF - Java Server Faces project
-  - Maven - A simple Apache Maven project
-- Perl
-  - Class - Simple class in Perl
-  - Dancer - Dancer framework project
-- PHP
-  - LAMP - Apache/MySQL/PHP project
-- Python - all Python assistants allow you to use ``--venv`` switch, which will make
-  DevAssistant create a project inside a Python virtualenv and install dependencies
-  there, rather then installing them system-wide from RPM
-  - Django - Initial Django project, set up to be runnable right away
-  - Flask - A minimal Flask project with a simple view and script for managing the application
-  - Library - A custom Python library
-  - PyGTK - Sample PyGTK project
-- Ruby
-  - Rails - Initial Ruby on Rails project
-
-Tweaking
-~~~~~~~~
-
-- Eclipse - add an existing project into Eclipse (doesn't work for some languages/frameworks)
-- Vim - install some interesting Vim extensions and make some changes in ``.vimrc`` (these
-  changes will not affect your default configuration, instead you have to use the command
-  ``let devassistant=1`` after invoking Vim)
-
-Preparing
-~~~~~~~~~
-
-- Custom - checkout a custom previously created project from SCM (git only so far) and
-  install needed dependencies
-
-Extras
-~~~~~~
-
-<TODO: NOTHING YET>
