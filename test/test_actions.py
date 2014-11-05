@@ -1,4 +1,5 @@
 
+import os
 import pytest
 from flexmock import flexmock
 
@@ -44,4 +45,34 @@ class TestPkgSearchAction(object):
 
         with pytest.raises(exceptions.ExecutionException):
             actions.PkgSearchAction.run(query='foo', page='bar')
+
+class TestPkgInstallAction(object):
+
+    def setup_class(self):
+        self.pkg = 'foo'
+        self.exc_string = 'bar'
+
+    @pytest.mark.parametrize(('isfile', 'method'), [
+        (True, 'install_dap_from_path'),
+        (False, 'install_dap')
+    ])
+    def test_pkg_install(self, isfile, method):
+        flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
+                         .and_return(isfile).at_least().once()
+        flexmock(dapicli).should_receive(method)\
+                         .and_return(None).at_least().once()
+
+        # Install from path, everything goes well
+        actions.PkgInstallAction.run(package=[self.pkg])
+
+    def test_pkg_install_fails(self):
+        flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
+                         .and_return(True).at_least().once()
+        flexmock(dapicli).should_receive('install_dap_from_path')\
+                         .and_raise(Exception(self.exc_string)).at_least().once()
+
+        with pytest.raises(exceptions.ExecutionException) as excinfo:
+            actions.PkgInstallAction.run(package=[self.pkg])
+
+        assert self.exc_string in str(excinfo.value)
 
