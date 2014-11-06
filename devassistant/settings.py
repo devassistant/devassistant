@@ -37,10 +37,10 @@ DEPS_ONLY_FLAG = '--deps-only'
 DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
                     '/usr/local/share/devassistant',
                     '/usr/share/devassistant/']
+DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
 if 'DEVASSISTANT_PATH' in os.environ:
     DATA_DIRECTORIES = [os.path.abspath(os.path.expanduser(p))
         for p in os.environ['DEVASSISTANT_PATH'].split(':')] + DATA_DIRECTORIES
-DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
 if 'DEVASSISTANT_HOME' in os.environ:
     DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
 
