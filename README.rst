@@ -60,14 +60,21 @@ These are some examples of what you can do:
 
   # find out if there is a "create" assistant in the installed "python" DAP
   $ da create -h
-  <help text>
-  # assuming there is, find out how it works
+  ...
+  {..., python, ...}
+  ...
+
+  # there is, so let's find out if it has any subassistants
   $ da create python -h
-  <help text>
+  ...
+  {..., django, ...}
+  ...
+
   # we found out that there is "django" subassistant, let's find out how to use it
   $ da create python django -h
-  <help text>
-  # help text tells us that django assistant doesn't have subassistants and is runnable
+  <help text with commandline options>
+
+  # help text tells us that django assistant doesn't have subassistants and is runnable, let's do it
   $ da create python django -n ~/myproject # sets up Django project named "myproject" inside your home dir
 
   # using the same approach with "pkg search", "pkg install" and "da tweak -h",
