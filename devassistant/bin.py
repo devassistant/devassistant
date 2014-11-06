@@ -30,7 +30,8 @@ class TweakAssistant(ExecutableAssistant):
         return sa
 
     name = 'twk'
-    aliases = ['tweak']
+    # TODO: in 1.0.0, remove mod and modify
+    aliases = ['tweak', 'mod', 'modify']
     fullname = 'Tweak Existing Project'
     description = 'Tweak existing projects with DevAssistant.'
 
@@ -52,7 +53,8 @@ class ExtrasAssistant(ExecutableAssistant):
         return sa
 
     name = 'extra'
-    aliases = ['extras']
+    # TODO: in 1.0.0, remove task
+    aliases = ['extras', 'task']
     fullname = 'Extras'
     description = 'Perform a custom task not related to a specific project.'
 
