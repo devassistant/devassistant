@@ -221,6 +221,12 @@ def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
             'Cannot uninstall {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
+    for dap in get_installed_daps():
+        deps = _get_dependencies_of(dap)
+        if deps:
+            deps = [_strip_version_from_dependency(dep) for dep in deps]
+            if name in deps:
+                uninstall_dap(dap, confirm=confirm)
     g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
@@ -229,7 +235,7 @@ def uninstall_dap(name, confirm=False):
         g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=_install_path(), loc=loc, dap=name))
         g += glob.glob('{d}/{loc}/{dap}'.format(d=_install_path(), loc=loc, dap=name))
     if confirm:
-        print('The following files and directories will be removed:')
+        print('{name} and the following files and directories will be removed:'.format(name=name))
         for f in g:
             print('    ' + f)
         ok = raw_input('Is that OK? [y/N] ')
@@ -316,6 +322,26 @@ def install_dap_from_path(path, update=False):
     except:
         pass
 
+    ret = [dap_obj.meta['package_name']]
+
+    for dep in _get_dependencies_of(dap_obj.meta['package_name']):
+        dep = _strip_version_from_dependency(dep)
+        if dep not in get_installed_daps():
+            ret += install_dap(dep)
+    return ret
+
+def _strip_version_from_dependency(dep):
+    '''For given dependency string, return only the package name'''
+    usedmark = ''
+    for mark in '< > ='.split():
+        split = dep.split(mark)
+        if len(split) > 1:
+            usedmark = mark
+            break
+    if usedmark:
+        return split[0].strip()
+    else:
+        return dep.strip()
 
 def get_installed_version_of(name):
     '''Gets the installed version of the given dap or None if not installed'''
@@ -326,6 +352,14 @@ def get_installed_version_of(name):
         data = yaml.load(f.read(), Loader=Loader)
     return data['version']
 
+def _get_dependencies_of(name):
+    '''Returns list of dependiencies of the given installed dap or None if not installed'''
+    if name not in get_installed_daps():
+        return None
+    meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
+    with open(meta) as f:
+        data = yaml.load(f.read(), Loader=Loader)
+    return data.get('dependencies', [])
 
 def install_dap(name, version='', update=False):
     '''Install a dap from dapi
@@ -346,7 +380,7 @@ def install_dap(name, version='', update=False):
                 .format(c=current))
     path, remove_dir = download_dap(name, d=d)
 
-    install_dap_from_path(path, update=update)
+    ret = install_dap_from_path(path, update=update)
 
     try:
         if remove_dir:
@@ -355,6 +389,8 @@ def install_dap(name, version='', update=False):
             os.remove(path)
     except:
         pass
+    
+    return ret
 
 def get_dependency_metadata():
     '''Returns list of strings with dependency metadata from Dapi'''

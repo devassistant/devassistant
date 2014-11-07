@@ -278,8 +278,8 @@ class PkgInstallAction(Action):
             else:
                 method = dapicli.install_dap
             try:
-                method(pkg)
-                logger.info('{pkg} successfully installed'.format(pkg=pkg))
+                pkgs = method(pkg)
+                logger.info('Successfully installed {pkgs}'.format(pkgs=', '.join(pkgs)))
             except Exception as e:
                 exs.append(str(e))
                 logger.error(str(e))

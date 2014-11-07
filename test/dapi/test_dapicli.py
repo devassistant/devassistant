@@ -102,3 +102,13 @@ results:
         with pytest.raises(Exception): # TODO maybe change to IOError
             dapicli.get_installed_version_of('foo')
 
+    def test_strip_version_from_dependency(self):
+        '''Test a helper funcion _strip_version_from_dependency(dep)'''
+        s = dapicli._strip_version_from_dependency
+        assert s('foo >= 1') == 'foo'
+        assert s('foo>=1') == 'foo'
+        assert s('foo == 1') == 'foo'
+        assert s('foo==1') == 'foo'
+        assert s('foo <=1 ') == 'foo'
+        assert s('foo<=1') == 'foo'
+        
