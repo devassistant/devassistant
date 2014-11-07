@@ -221,6 +221,12 @@ def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
             'Cannot uninstall {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
+    for dap in get_installed_daps():
+        deps = _get_dependencies_of(dap)
+        if deps:
+            deps = [_strip_version_from_dependency(dep) for dep in deps]
+            if name in deps:
+                uninstall_dap(dap, confirm=confirm)
     g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
@@ -229,7 +235,7 @@ def uninstall_dap(name, confirm=False):
         g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=_install_path(), loc=loc, dap=name))
         g += glob.glob('{d}/{loc}/{dap}'.format(d=_install_path(), loc=loc, dap=name))
     if confirm:
-        print('The following files and directories will be removed:')
+        print('{name} and the following files and directories will be removed:'.format(name=name))
         for f in g:
             print('    ' + f)
         ok = raw_input('Is that OK? [y/N] ')
