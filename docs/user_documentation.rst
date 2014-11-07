@@ -116,7 +116,6 @@ projects. E.g.::
 Custom Actions
 ~~~~~~~~~~~~~~
 There are also some custom actions besides ``create``, ``tweak``, ``prepare`` and ``extras``.
-TODO: document ``pkg`` action.
 
 - ``doc`` - Displays documentation for given DAP. Uses ``less`` as pager, if available.::
 
@@ -132,6 +131,16 @@ TODO: document ``pkg`` action.
    $ da doc python docsubdir/someotherdoc.txt
 
 - ``help``- Displays help :)
+- ``pkg`` - Manipulate dap packages, communicate with DAPI. Has several subactions:
+
+  - ``info`` - prints information about packages from DAPI
+  - ``install`` - installs packages from DAPI
+  - ``lint`` - runs sanity checks on local DAP package
+  - ``list`` - lists installed DAPs
+  - ``search`` - searches DAPs on DAPI for given term
+  - ``uninstall`` - uninstalls given package(s)
+  - ``update`` - updates all or given package(s)
+
 - ``version``- Displays current DevAssistant version.
 
 Using the GUI
