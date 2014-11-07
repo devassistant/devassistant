@@ -30,11 +30,11 @@ script that uses ``argh`` Python module. Let's suppose that we're writing
 this assistant for an RPM based system like Fedora, CentOS or RHEL.
 
 To start, we'll create a file hierarchy for our new assistant, say in
-``~/programming`` and modify ``DEVASSISTANT_PATH`` accordingly
-(TODO: create an assistant that does all this)::
+``~/programming`` and modify ``DEVASSISTANT_PATH`` accordingly. Luckily,
+there is an assistant that does all this - `dap <https://dapi.devassistant.org/dap/dap/>`_::
 
-   mkdir -p ~/programming/pyargh/assistants/crt/
-   mkdir -p ~/programming/pyargh/files/crt/pyargh/
+   da pkg install dap
+   da create dap -n ~/programming/pyargh --crt
    export DEVASSISTANT_PATH=~/programming/pyargh/
 
 Since this assistant is a "creator", we need to put it somewhere under
@@ -89,7 +89,7 @@ Files
 
 Since we want the script to always look the same, we will create a file that
 our assistant will copy into proper place. This file should be put into
-into ``crt/python/pyargh`` subdirectory the files directory
+into ``crt/pyargh`` subdirectory the files directory
 (``~/programming/files/crt/pyargh``). The file will be called
 ``arghscript.py`` and will have this content::
 
@@ -155,7 +155,7 @@ This means that this assistant will have one argument called ``name``. On
 commandline, it will expect ``-n foo`` or ``--name foo`` and since the
 argument is required, it will refuse to run without it.
 
-You can now try running ``da create python argh -h`` and you'll see that the
+You can now try running ``da create pyargh -h`` and you'll see that the
 argument is printed out in commandline help.
 
 Since there are some common arguments that the standard installation of
@@ -276,9 +276,6 @@ Note, that all variables are "global" and the snippet will have access to them
 and will be able to change their values. However, variables defined in called
 snippet section will not propagate into current section.
 
-*Note: up to version 0.8.0, "call" can also be used in place of "use"; "call" is
-obsolete and will be removed in 0.9.0.*
-
 Finished!
 ~~~~~~~~~
 
@@ -320,7 +317,7 @@ The Whole Assistant
    - use: git_init_add_commit.run
    - log_i: Project "$proj_name" has been created in "$name".
 
-And can be run like this: ``da create python argh -n foo/bar``.
+And can be run like this: ``da create pyargh -n foo/bar``.
 
 
 Creating a Tweak Assistant

@@ -22,11 +22,11 @@ Getting Set Up
 
 To get started, we'll create a file hierarchy for our new assistant, say in
 ``~/programming``. We'll also modify ``DEVASSISTANT_PATH`` so that DevAssistant
-can see this assistant in directory outside of standard load paths
-(TODO: create an assistant for this)::
+can see this assistant in directory outside of standard load paths. Luckily,
+there is assistant that does all this - `dap <https://dapi.devassistant.org/dap/dap/>`_::
 
-   mkdir -p ~/programming/rstcreate/assistants/crt/
-   mkdir -p ~/programming/rstcreate/files/crt/rstcreate/
+   da pkg install dap
+   da create dap -n ~/programming/rstcreate --crt
    export DEVASSISTANT_PATH=~/programming/rstcreate/
 
 Since this assistant is a Creator, we need to put it somewhere under ``assistants/crt``
