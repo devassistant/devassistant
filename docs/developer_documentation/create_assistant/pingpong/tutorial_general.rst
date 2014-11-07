@@ -29,6 +29,10 @@ there is assistant that does all this - `dap <https://dapi.devassistant.org/dap/
    da create dap -n ~/programming/rstcreate --crt
    export DEVASSISTANT_PATH=~/programming/rstcreate/
 
+Running ``da create dap`` scaffolds everything that's needed to create a DAP package
+that can be distributed on `DevAssistant Package Index, DAPI <https://dapi.devassistant.org/>`_,
+see :ref:`packaging_and_distributing` for more information.
+
 Since this assistant is a Creator, we need to put it somewhere under ``assistants/crt``
 directory. The related files (if any), including the PingPong script have to go under
 ``files/crt/rstcreate`` (assuming, of course, we name the assistant ``rstcreate.yaml``).

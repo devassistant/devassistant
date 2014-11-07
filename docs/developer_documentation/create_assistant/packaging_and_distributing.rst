@@ -58,6 +58,8 @@ Note several things:
   ``icons/crt/foo/bar/spam.svg``).
 - The top level folder is named ``<package_name>-<version>``.
 
+.. _meta_yaml_ref:
+
 meta.yaml
 ---------
 
@@ -71,6 +73,7 @@ meta.yaml
     summary: Some brief one line text # required
     bugreports: <a single URL or email address> # optional
     dependencies:
+      # for now, dependencies are possible, but the version specifiers are ignored
       - bar
       - eggs >= 1.0
       - spam== 0.1     # as you can see, spaces are optional
@@ -95,7 +98,7 @@ meta.yaml
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
 
-* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional
+* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional; note, that versions are ignored for now, they'll start working in one of the future DevAssistant releases
 
 Checking your dap for sanity
 ----------------------------

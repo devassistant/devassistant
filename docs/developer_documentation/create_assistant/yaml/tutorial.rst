@@ -37,6 +37,10 @@ there is an assistant that does all this - `dap <https://dapi.devassistant.org/d
    da create dap -n ~/programming/pyargh --crt
    export DEVASSISTANT_PATH=~/programming/pyargh/
 
+Running ``da create dap`` scaffolds everything that's needed to create a DAP package
+that can be distributed on `DevAssistant Package Index, DAPI <https://dapi.devassistant.org/>`_,
+see :ref:`packaging_and_distributing` for more information.
+
 Since this assistant is a "creator", we need to put it somewhere under
 ``~/programming/assistants/crt/``. Assistants can be organized in a hierarchical
 structure, so you could have e.g. ``~/programming/pyargh/assistants/crt/python-scripts.yaml``
@@ -263,13 +267,15 @@ you.
 
 Previously, we've seen usage of argument from snippet. But what if you could
 use a part of ``run`` section from there? Well, you can. And you're lucky,
-since there is a snippet called ``git_init_add_commit``, which does exactly
-what we need. TODO: we need to explain how to add dependencies between dapi packages here,
-since this will be in a package at DAPI.
-We'll use it like this::
+since there is a snippet called ``git.init_add_commit``, which does exactly
+what we need. This snippet can be found in the `git <https://dapi.devassistant.org/dap/git/>`_
+DAP. During development, you can install ``git`` DAP using ``da pkg install git``.
+For runtime, you'll need to add it as dependency to ``meta.yaml`` - see
+:ref:`meta_yaml_ref` for more info on dependencies.
+We'll use the snippet like this::
 
    - cl: cd "$name"
-   - use: git_init_add_commit.run
+   - use: git.init_add_commit.run
 
 This calls section ``run`` from snippet ``git_init_add_commit`` in this place.
 Note, that all variables are "global" and the snippet will have access to them
