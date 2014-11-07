@@ -1356,16 +1356,25 @@ class NormalizeCommandRunner(CommandRunner):
         return c.comm_type == 'normalize'
 
     @classmethod
+    def _get_args(cls, inp):
+        if isinstance(inp, six.string_types):
+            return (inp, '')
+        elif isinstance(inp, dict):
+            if 'what' not in inp:
+                raise exceptions.CommandException('"normalize" command expects "what" as input')
+            return (inp['what'], inp.get('ok_chars', ''))
+        else:
+            msg = '"normalize" command expects string or mapping as input'
+            raise exceptions.CommandException(msg)
+
+    @classmethod
     def run(cls, c):
         """Normalizes c.input_res (string):
 
         - removes digit from start
         - replaces dashes and whitespaces with underscores
         """
-        to_norm = c.input_res
-        if not isinstance(to_norm, six.string_types):
-            raise exceptions.CommandException('"normalize" expects string input, got {0}'.
-                                              format(to_norm))
+        to_norm, ok_chars = cls._get_args(c.input_res)
 
         if six.PY2 and isinstance(to_norm, str):
             to_norm = to_norm.decode('utf8')
@@ -1373,7 +1382,7 @@ class NormalizeCommandRunner(CommandRunner):
         if six.PY2:
             normalized = normalized.encode('ascii', 'ignore')
         normalized = normalized.lstrip('0123456789')
-        badchars = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
+        badchars = ''.join(set('-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*') - set(ok_chars))
         if six.PY2:
             tt = string.maketrans(badchars, '_' * len(badchars))
         else:
@@ -1407,6 +1416,7 @@ class SetupProjectDirCommandRunner(CommandRunner):
         args['topdir_normalized_var'] = inp.get('topdir_normalized_var', 'topdir_normalized')
         args['accept_path'] = bool(inp.get('accept_path', True))
         args['create_topdir'] = inp.get('create_topdir', True)
+        args['normalize_ok_chars'] = inp.get('normalize_ok_chars', '')
         if not args['create_topdir'] in [True, False, 'normalized']:
             msg = '"setup_project_dir" expects "create_topdir" to be one of: ' +\
                 'True, False, normalized'
@@ -1424,7 +1434,9 @@ class SetupProjectDirCommandRunner(CommandRunner):
         if not six.PY3:
             args['from'] = args['from'].encode('utf-8')
         contdir, topdir = os.path.split(args['from'])
-        normalized_topdir = lang.Command('normalize', topdir).run()[1]
+        normalized_topdir = lang.Command('normalize',
+            {'what': topdir, 'ok_chars': args['normalize_ok_chars']}).run()[1]
+
         try:  # ok, this is a bit ugly, but we need to check multiple calls for the exception
             if contdir:  # we need to create containing directory
                 if not args['accept_path']:

@@ -349,6 +349,10 @@ class TestNormalizeCommandRunner(object):
         s = u'ěšč'
         assert self.n.run(Command('normalize', s)) == (True, 'esc')
 
+    def test_ok_chars(self):
+        i = {'what': 'foo-bar.+*', 'ok_chars': '-.'}
+        assert self.n.run(Command('normalize', i)) == (True, 'foo-bar.__')
+
 
 class TestSCLCommandRunner(object):
     def setup_method(self, method):

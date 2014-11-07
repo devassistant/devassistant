@@ -605,7 +605,8 @@ Normalizing User Input
 Replace "weird characters" (whitespace, colons, equals...) by underscores and unicode chars
 by their ascii counterparts.
 
-- Input: a string
+- Input: a string or a mapping containing keys ``what`` and ``ok_chars`` (``ok_chars`` is a string
+  containing characters that should not be normalized)
 - RES: a string with weird characters (e.g. brackets/braces, whitespace, etc) replaced by underscores
 - LRES: True
 - Example::
@@ -613,6 +614,11 @@ by their ascii counterparts.
    - $dir~:
      - normalize: foo!@#$%^bar_ěšč
    - cl: mkdir $dir  # creates dir named foo______bar_esc
+   - $dir~:
+     - normalize:
+         what: f-o.o-@#$baz
+         ok_chars: "-."
+   - cl: mkdir $dir  # creates dir named f-o.o-___baz
 
 Setting up Project Directory
 ----------------------------
@@ -646,6 +652,8 @@ Arguments:
   (e.g. it would create only ``foo/bar`` in example above, but not the ``baz`` directory);
   if ``True``, it also creates the project directory itself; if ``normalized``, it creates
   the project directory itself, but runs it's name through :ref:`normalize_commands_ref` first
+- ``normalize_ok_chars`` - string containing characters that should not be normalized,
+  assuming that ``create_topdir: normalized`` is used
 - ``contdir_var``, ``topdir_var``, ``topdir_normalized_var`` - names to which the global
   variables should be assigned to - *note: you have to use variable names without dollar sign here*
 - ``accept_path`` - either ``True`` (default) or ``False`` - if ``False``, this will terminate
