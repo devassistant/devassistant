@@ -326,6 +326,14 @@ def get_installed_version_of(name):
         data = yaml.load(f.read(), Loader=Loader)
     return data['version']
 
+def _get_dependencies_of(name):
+    '''Returns list of dependiencies of the given installed dap or None if not installed'''
+    if name not in get_installed_daps():
+        return None
+    meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
+    with open(meta) as f:
+        data = yaml.load(f.read(), Loader=Loader)
+    return data.get('dependencies', [])
 
 def install_dap(name, version='', update=False):
     '''Install a dap from dapi
