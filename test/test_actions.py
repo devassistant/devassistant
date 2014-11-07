@@ -60,7 +60,7 @@ class TestPkgInstallAction(object):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
                          .and_return(isfile).at_least().once()
         flexmock(dapicli).should_receive(method)\
-                         .and_return(None).at_least().once()
+                         .and_return([self.pkg]).at_least().once()
 
         # Install from path, everything goes well
         actions.PkgInstallAction.run(package=[self.pkg])

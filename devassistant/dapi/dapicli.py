@@ -316,6 +316,26 @@ def install_dap_from_path(path, update=False):
     except:
         pass
 
+    ret = [dap_obj.meta['package_name']]
+
+    for dep in _get_dependencies_of(dap_obj.meta['package_name']):
+        dep = _strip_version_from_dependency(dep)
+        if dep not in get_installed_daps():
+            ret += install_dap(dep)
+    return ret
+
+def _strip_version_from_dependency(dep):
+    '''For given dependency string, return only the package name'''
+    usedmark = ''
+    for mark in '< > ='.split():
+        split = dep.split(mark)
+        if len(split) > 1:
+            usedmark = mark
+            break
+    if usedmark:
+        return split[0].strip()
+    else:
+        return dep.strip()
 
 def get_installed_version_of(name):
     '''Gets the installed version of the given dap or None if not installed'''
@@ -354,7 +374,7 @@ def install_dap(name, version='', update=False):
                 .format(c=current))
     path, remove_dir = download_dap(name, d=d)
 
-    install_dap_from_path(path, update=update)
+    ret = install_dap_from_path(path, update=update)
 
     try:
         if remove_dir:
@@ -363,6 +383,8 @@ def install_dap(name, version='', update=False):
             os.remove(path)
     except:
         pass
+    
+    return ret
 
 def get_dependency_metadata():
     '''Returns list of strings with dependency metadata from Dapi'''
