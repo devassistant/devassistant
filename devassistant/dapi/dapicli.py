@@ -6,10 +6,10 @@ import os
 import glob
 import shutil
 import tempfile
-import urllib
 from devassistant import dapi
 from devassistant.dapi import dapver
 from devassistant.logger import logger
+from six.moves import urllib
 import sys
 import logging
 import hashlib
@@ -265,7 +265,7 @@ def download_dap(name, version='', d='', directory=''):
         raise Exception('{dap} has no version to download'.format(dap=name))
     filename = url.split('/')[-1]
     path = os.path.join(_dir, filename)
-    urllib.urlretrieve(url, path)
+    urllib.request.urlretrieve(url, path)
     dapisum = d['sha256sum']
     downloadedsum = hashlib.sha256(open(path, 'rb').read()).hexdigest()
     if dapisum != downloadedsum:
