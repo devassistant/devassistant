@@ -116,13 +116,23 @@ projects. E.g.::
 Custom Actions
 ~~~~~~~~~~~~~~
 There are also some custom actions besides ``create``, ``tweak``, ``prepare`` and ``extras``.
-For the time being, these are not of high importance, but in future, these will
-bring more functionality, such as making coffee for you. TODO: document ``pkg`` action.
+TODO: document ``pkg`` action.
 
-``help``
-  Displays help, what else?
-``version``
-  Displays current DevAssistant version.
+- ``doc`` - Displays documentation for given DAP. Uses ``less`` as pager, if available.::
+
+   # finds out if "python" DAP has documentation, lists documents if yes
+   $ da doc python
+   ...
+   INFO: LICENSE
+   INFO: somedoc.txt
+   INFO: docsubdir/someotherdoc.txt
+   ...
+
+   # displays specific document for "python" DAP
+   $ da doc python docsubdir/someotherdoc.txt
+
+- ``help``- Displays help :)
+- ``version``- Displays current DevAssistant version.
 
 Using the GUI
 -------------

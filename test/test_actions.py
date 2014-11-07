@@ -1,10 +1,13 @@
-
 import os
+import subprocess
+
 import pytest
 from flexmock import flexmock
 
 from devassistant import actions, exceptions
 from devassistant.dapi import dapicli
+
+from test.logger import TestLoggingHandler
 
 class TestActions(object):
     ha = actions.HelpAction
@@ -37,6 +40,34 @@ class TestActions(object):
         from devassistant import __version__ as VERSION
         va.run()
         assert VERSION in capsys.readouterr()[0]
+
+
+class TestDocAction(object):
+    def setup_method(self, method):
+        self.da = actions.DocAction
+        self.tlh = TestLoggingHandler.create_fresh_handler()
+
+    def test_no_docs(self):
+        self.da.run(dap='f')
+        assert ('INFO', 'DAP "f" has no documentation.') in self.tlh.msgs
+
+    def test_lists_docs(self):
+        self.da.run(dap='c')
+        assert self.tlh.msgs == [
+            ('INFO', 'DAP "c" has these docs:'),
+            ('INFO', 'LICENSE'),
+            ('INFO', 'doc1'),
+            ('INFO', 'something/foo/doc2'),
+            ('INFO', 'Use "da doc c <DOC>" to see a specific document')
+        ]
+
+    def test_displays_docs(self):
+        # we only test displaying without "less" - e.g. simple logging
+        flexmock(subprocess).should_receive('check_call').\
+            and_raise(subprocess.CalledProcessError, None, None)
+        self.da.run(dap='c', doc='doc1')
+        assert ('INFO', 'Bar!\n') in self.tlh.msgs
+
 
 class TestPkgSearchAction(object):
 

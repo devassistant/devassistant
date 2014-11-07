@@ -43,10 +43,20 @@ These are some examples of what you can do:
   $ da pkg search django
   python - Python assistants (library, Django, Flask, GTK3)
 
-  # install the found "python" assistant, assuming it supports your OS/distro
+  # install the found "python" DAP, assuming it supports your OS/distro
   $ da pkg install python
 
-  # find out if there is a "create" assistant in the installed "python" DAP
+  # find out if the installed package has documentation
+  $ da doc python
+  INFO: DAP "python" has these docs:
+  ...
+  INFO: usage.txt
+  ...
+  # show help
+  $ da doc python usage.txt
+
+  # if the documentation doesn't say it specifically, find out if there is a "create"
+  #  assistant in the installed "python" DAP
   $ da create -h
   ...
   {..., python, ...}

@@ -1,3 +1,5 @@
+import os
+import subprocess
 import sys
 
 import yaml
@@ -10,6 +12,7 @@ from devassistant import argument
 from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
+from devassistant import utils
 from devassistant.logger import logger
 from devassistant import dapi
 from devassistant.dapi import dapicli
@@ -77,6 +80,59 @@ class Action(object):
             devassistant.exceptions.ExecutionExceptions if something goes wrong
         """
         raise NotImplementedError()
+
+
+@register_action
+class DocAction(Action):
+    name = 'doc'
+    description = 'Display documentation for a DAP package.'
+    args = [argument.Argument('dap', 'dap', choices=sorted(dapicli.get_installed_daps())),
+            argument.Argument('doc', 'doc', nargs='?')]
+
+    @classmethod
+    def run(cls, **kwargs):
+        dap = kwargs['dap']
+        doc = kwargs.get('doc', None)
+        docdir = utils.find_file_in_load_dirs(os.path.join('doc', dap))
+        all_docs = []
+        if docdir is not None:
+            all_docs = cls._get_doc_files(docdir)
+        if not all_docs:
+            logger.info('DAP "{0}" has no documentation.'.format(dap))
+        elif doc is not None:
+            doc_fullpath = os.path.join(docdir, doc)
+            if doc_fullpath in all_docs:
+                cls._show_doc(doc_fullpath)
+            else:
+                msg = 'DAP "{0}" has no document "{1}".'.format(dap, doc)
+                logger.error(msg)
+                raise exceptions.ExecutionException(msg)
+        else:
+            logger.info('DAP "{0}" has these docs:'.format(dap))
+            for d in all_docs:
+                logger.info(d[len(docdir):].strip(os.path.sep))
+            logger.info('Use "da doc {0} <DOC>" to see a specific document'.format(dap))
+
+    @classmethod
+    def _get_doc_files(cls, docdir):
+        found = []
+        for root, dirs, files in os.walk(docdir):
+            found.extend([os.path.join(root, f) for f in files])
+        return sorted(found)
+
+    @classmethod
+    def _show_doc(cls, fullpath):
+        have_less = True
+        try:
+            subprocess.check_call(['which', 'less'], stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+        except (subprocess.CalledProcessError, OSError):
+            have_less = False
+        if have_less:
+            subprocess.Popen(['less', '-F', '-R', '-S', '-X', '-K', fullpath],
+                stdin=subprocess.PIPE, stdout=sys.stdout).communicate()
+        else:
+            logger.info(open(fullpath).read())
 
 
 @register_action
