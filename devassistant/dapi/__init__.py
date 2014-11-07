@@ -90,6 +90,14 @@ class Dap(object):
         '''Load data from meta.yaml to a dictionary'''
         self.meta = yaml.load(meta.read(), Loader=Loader)
 
+        # Versions are often specified in a format that is convertible to an
+        # int or a float, so we want to make sure it is interpreted as a str.
+        # Fix for the bug #300.
+        try:
+            self.meta['version'] = str(self.meta['version'])
+        except KeyError:
+            pass
+
     def _report_problem(self, problem, level=logging.ERROR):
         '''Report a given problem'''
         problem = self.basename + ': ' + problem

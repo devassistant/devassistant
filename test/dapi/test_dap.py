@@ -90,6 +90,11 @@ class TestDap(object):
             d.meta['version'] = version
             assert not d._isvalid('version')
 
+    def test_loading_float_version(self):
+        '''Test that loading doesn't fail if version is loaded from YAML as float'''
+        out = StringIO()
+        assert Dap(dap_path('meta_only/bad_version-0.1.dap')).check(logger=l(output=out, level=logging.ERROR))
+
     def test_valid_urls(self):
         '''Test if valid URLs are valid'''
         d = Dap('', fake=True)
