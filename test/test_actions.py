@@ -107,3 +107,22 @@ class TestPkgInstallAction(object):
 
         assert self.exc_string in str(excinfo.value)
 
+
+class TestPkgUninstallAction(object):
+
+    def test_pkg_uninstall_dependent(self):
+        '''Uninstall two packages, but the first depend on the latter'''
+        flexmock(dapicli).should_receive('uninstall_dap')\
+                         .and_return(['first', 'second']).at_least().once()
+
+        actions.PkgUninstallAction.run(package=['first', 'second'], force=True)
+
+    def test_pkg_uninstall_not_installed(self):
+        '''Uninstall package that is not installed'''
+        flexmock(dapicli).should_receive('get_installed_daps')\
+                         .and_return(['bar']).at_least().once()
+
+        with pytest.raises(exceptions.ExecutionException) as excinfo:
+            actions.PkgUninstallAction.run(package=['foo'], force=True)
+
+        assert 'Cannot uninstall foo' in str(excinfo.value)
