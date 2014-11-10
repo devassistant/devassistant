@@ -1,5 +1,5 @@
-Tips and rules for contributing to DevAssistant
-===============================================
+Contributing to DevAssistant
+============================
 
 We are very happy that you want to contribute to DevAssistant, and we want to
 make this as easy as possible for you - that's what DevAssistant is all about
@@ -44,9 +44,11 @@ If you go by these rules, there is very little chance that your code breaks
 some other part of DevAssistant, and at the same time, you make your part of
 code less likely to break in the future.
 
+For testing, we use `pytest <http://pytest.org/latest/contents.html#toc>`_.
+
 
 When testing, use mocking (namely flexmock)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Often when you need to test some object's behaviour, you need to "pretend" that
 something works somehow, for example that the network is up or that a specific
@@ -73,8 +75,7 @@ An example::
     from flexmock import flexmock
 
     def test_something(self):
-        flexmock(os.path).should_receive('isfile').with_args('/foo/bar/baz')\
-                        .and_return(True)
+        flexmock(os.path).should_receive('isfile').with_args('/foo/bar/baz').and_return(True)
         do_something_assuming_foobarbaz_is_a_valid_file()
 
 What you did here is modify the behaviour of the method ``os.path.isfile()`` so
@@ -83,12 +84,14 @@ works only within the current code block, so you can mock something in one
 test, and then just forget about it. The next test will have clean environment
 again.
 
+Here is `flexmock documentation <http://has207.github.io/flexmock/user-guide.html>`_.
+
 Just a note here: Mocking doesn't work well in setup and teardown methods,
 because they are different code blocks.
 
 
 Parameterize tests
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 It makes perfect sense to feed multiple values to a method to see how it works
 in different situations. Very often it's done like this::
@@ -109,13 +112,14 @@ functionality is this::
         ('baz', 3),
     ])
     def test_something(self, value, number):
-        do_something(value_number)
+        do_something(value, number)
 
 The second example is much better especially if you're doing more than just
-calling one method - for example mocking, catching exceptions etc. Pytest also
-automatically outputs the test parameters if a test fails, so debugging is much
-easier. We strongly encourage you to use the second example, and might not
-accept your pull request if you don't, unless you present a good reason why.
+calling one method - for example mocking, running a setup/teardown method etc.
+Pytest also automatically outputs the test parameters if a test fails, so
+debugging is much easier. We strongly encourage you to use the second example,
+and might not accept your pull request if you don't, unless you present a good
+reason why.
 
 
 Use six for Python 2 + 3 compatibility
@@ -162,18 +166,18 @@ undeclared variables and other errors detectable without actually running the
 code.
 
 
-Always talk to us when:
-=======================
+Always `talk to us <https://devassistant.org/contact>`_ when:
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Your contribution changes dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We try to keep DevAssistant's dependency chain as small as possible, so if your
 code adds a dependency, it is a big deal for us. For this reason, we urge you
-to talk to us first (on the mailing list, on the IRC etc.). If we decide that
-the new dependency is necessary, we'll gladly give you a green light and accept
-your contribution. If we think that your idea can do without adding the new
-package, we'll do our best to help you modify your idea.
+to talk to us first (`here's how <https://devassistant.org/contact>`_). If we
+decide that the new dependency is necessary, we'll gladly give you a green
+light and accept your contribution. If we think that your idea can do without
+adding the new package, we'll do our best to help you modify your idea.
 
 However, if you do not talk to us and implement your feature right away, there
 is a risk that we will reject your contribution and you will have to throw your
@@ -181,7 +185,7 @@ existing code away and start from scratch.
 
 
 You want to implement a large feature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We welcome large contributions, and are very happy that you take the interest
 and time to make them. However, we have certain plans where DevAssistant should
@@ -195,7 +199,7 @@ them first.
 
 
 You want to include your contribution in an upcoming release
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We do have a release plan, but this doesn't mean we couldn't occasionally wait
 a few days for your feature to be included. If you tell us about your
