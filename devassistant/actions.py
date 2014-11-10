@@ -300,12 +300,17 @@ class PkgUninstallAction(Action):
     @classmethod
     def run(cls, **kwargs):
         exs = []
+        uninstalled = []
         for pkg in kwargs['package']:
+            if pkg in uninstalled:
+                logger.info('{pkg} already uninstalled'.format(pkg=pkg))
+                continue
             logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
             try:
                 done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
                 if done:
-                    logger.info('{pkg} successfully uninstalled'.format(pkg=pkg))
+                    logger.info('{pkgs} successfully uninstalled'.format(pkgs=', '.join(done)))
+                    uninstalled += done
             except Exception as e:
                 exs.append(str(e))
                 logger.error(str(e))
