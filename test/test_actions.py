@@ -107,3 +107,37 @@ class TestPkgInstallAction(object):
 
         assert self.exc_string in str(excinfo.value)
 
+
+class TestPkgUpdateAction(object):
+
+    def test_pkg_update_all(self):
+        '''Run update without args to update all, but everything is up to-date'''
+        flexmock(dapicli).should_receive('get_installed_daps')\
+                         .and_return(['foo']).at_least().once()
+        flexmock(dapicli).should_receive('install_dap')\
+                         .and_return([]).at_least().once()
+
+        # Update all, everything is up to date
+        actions.PkgUpdateAction.run()
+
+    def test_pkg_update_no_dapi(self):
+        '''Run update of package that is not on Dapi'''
+        flexmock(dapicli).should_receive('metadap')\
+                         .and_return(None).at_least().once()
+        
+        with pytest.raises(exceptions.ExecutionException) as excinfo:
+            actions.PkgUpdateAction.run(package=['foo'])
+
+        assert 'foo not found' in str(excinfo.value)
+
+    def test_pkg_update_no_installed(self):
+        '''Run update of package that is not installed'''
+        flexmock(dapicli).should_receive('_get_metadap_dap')\
+                         .and_return(({}, {'version': '0.0.1'})).at_least().once()
+        flexmock(dapicli).should_receive('get_installed_version_of')\
+                         .and_return(None).at_least().once()
+        
+        with pytest.raises(exceptions.ExecutionException) as excinfo:
+            actions.PkgUpdateAction.run(package=['foo'])
+
+        assert 'Cannot update not yet installed dap' in str(excinfo.value)

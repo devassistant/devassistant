@@ -370,14 +370,8 @@ def install_dap(name, version='', update=False):
         current = get_installed_version_of(name)
         if not current:
             raise Exception('Cannot update not yet installed dap')
-        if dapver.compare(available, current) < 0:
-            raise Exception(
-                'Currently installed version {c} is newer than version {a} available on Dapi'
-                .format(c=current, a=available))
-        if dapver.compare(available, current) == 0:
-            raise Exception(
-                'Currently installed version {c} is the same as the version available on Dapi'
-                .format(c=current))
+        if dapver.compare(available, current) <= 0:
+            return []
     path, remove_dir = download_dap(name, d=d)
 
     ret = install_dap_from_path(path, update=update)

@@ -326,13 +326,19 @@ class PkgUpdateAction(Action):
         try:
             pkgs = kwargs['package']
         except KeyError:
-            logger.info('Updating all packages')
             pkgs = dapicli.get_installed_daps()
+            if pkgs:
+                logger.info('Updating all packages')
+            else:
+                logger.info('No installed packages found, nothing to update')
         for pkg in pkgs:
             logger.info('Updating {pkg}...'.format(pkg=pkg))
             try:
-                dapicli.install_dap(pkg, update=True)
-                logger.info('{pkg} successfully updated'.format(pkg=pkg))
+                updated = dapicli.install_dap(pkg, update=True)
+                if updated:
+                    logger.info('{pkg} successfully updated'.format(pkg=pkg))
+                else:
+                    logger.info('{pkg} is already up to date'.format(pkg=pkg))
             except Exception as e:
                 exs.append(str(e))
                 logger.error(str(e))
