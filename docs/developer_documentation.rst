@@ -15,6 +15,7 @@ Developer Documentation
    developer_documentation/snippets
    developer_documentation/dot_devassistant
    developer_documentation/project_types
+   developer_documentation/contributing
 
 Talk to Us!
 -----------
