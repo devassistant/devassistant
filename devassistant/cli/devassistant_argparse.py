@@ -28,7 +28,19 @@ class ArgumentParser(argparse.ArgumentParser):
                 for action in self._get_positional_actions():
                     if isinstance(action, argparse._SubParsersAction):
                         if message == _('too few arguments') and len(action.choices) == 0:
-                            self.exit(2, _('No subassistants available.\n'))
+                            msg = ['No subassistants available.',
+                                '',
+                                'To search DevAssistant Package Index (DAPI) for new assistants,',
+                                'you can either browse https://dapi.devassistant.org/ or run',
+                                '',
+                                '"da pkg search <term>".',
+                                '',
+                                'Then you can run',
+                                '',
+                                '"da pkg install <DAP-name>"',
+                                '',
+                                'to install the desired DevAssistant package (DAP).\n']
+                            self.exit(2, _('\n'.join(msg)))
                         else:
                             self.print_usage(_sys.stderr)
                             self.exit(2, _('You have to select a subassistant.\n'))
