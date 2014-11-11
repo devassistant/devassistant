@@ -251,10 +251,7 @@ class CliDialogHelper(object):
     yes_list = ['y', 'yes']
     yesno_list = yes_list + ['n', 'no']
 
-    if sys.version_info[0] < 3:
-        inp = raw_input
-    else:
-        inp = input
+    inp = raw_input if not six.PY3 else input
 
     @classmethod
     def is_available(cls):

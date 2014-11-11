@@ -111,4 +111,22 @@ results:
         assert s('foo==1') == 'foo'
         assert s('foo <=1 ') == 'foo'
         assert s('foo<=1') == 'foo'
-        
+
+class TestUninstall(object):
+
+    def setup_class(self):
+        self.installed_daps = ['foo', 'bar', 'baz']
+
+    @pytest.mark.parametrize(('confirm', 'result'), [
+        ('y', ['foo']),
+        ('n', False)
+    ])
+    def test_uninstall_prompt_works(self, confirm, result, monkeypatch):
+        inp = 'input' if six.PY3 else 'raw_input'
+        monkeypatch.setattr(six.moves.builtins, inp, lambda x: confirm) # Putting 'y' on fake stdin
+        flexmock(dapicli).should_receive('get_installed_daps').and_return(self.installed_daps)
+        flexmock(dapicli).should_receive('_get_dependencies_of').and_return([])
+        flexmock(dapicli).should_receive('_install_path').and_return('.')
+        flexmock(os).should_receive('remove').and_return(None)
+
+        assert dapicli.uninstall_dap('foo', True) == result

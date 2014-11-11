@@ -5,6 +5,7 @@ import yaml
 import os
 import glob
 import shutil
+import six
 import tempfile
 from devassistant import dapi
 from devassistant.dapi import dapver
@@ -239,7 +240,8 @@ def uninstall_dap(name, confirm=False):
         print('{name} and the following files and directories will be removed:'.format(name=name))
         for f in g:
             print('    ' + f)
-        ok = raw_input('Is that OK? [y/N] ')
+        inp = raw_input if not six.PY3 else input
+        ok = inp('Is that OK? [y/N] ')
         if ok.lower() != 'y':
             print('Aborting')
             return False
