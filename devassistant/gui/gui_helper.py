@@ -5,7 +5,7 @@ so that user can used already predefined functions
 """
 import os
 
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GdkPixbuf
 from textwrap import wrap
 
 
@@ -60,8 +60,9 @@ class GuiHelper(object):
         """
             The function creates a image from name defined in image_name
         """
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(image_name, 48, 48, 1)
         image = Gtk.Image()
-        image.set_from_file(image_name)
+        image.set_from_pixbuf(pixbuf)
         return image
 
     def button_with_image(self, description, image=None, sensitive=True):
@@ -167,7 +168,7 @@ class GuiHelper(object):
         #print "gui_helper add_button"
         image_name = ass[0].icon_path
         label = "<b>" + ass[0].fullname + "</b>"
-        if not os.path.exists(image_name):
+        if image_name is None:
             btn = self.button_with_label(label)
         else:
             btn = self.button_with_image(label, image=ass[0].icon_path)
@@ -198,7 +199,7 @@ class GuiHelper(object):
         and assigns signal like select and button-press-event for
         manipulation with menu_item. sub_assistant and path
         """
-        if not os.path.exists(sub_assistant[0].icon_path):
+        if sub_assistant[0].icon_path is None:
             menu_item = self.create_menu_item(sub_assistant[0].fullname)
         else:
             menu_item = self.create_image_menu_item(
@@ -254,7 +255,7 @@ class GuiHelper(object):
         description += text.replace('|', '\n')
         image_name = ass[0].icon_path
         lbl_text = "<b>" + ass[0].fullname + "</b>"
-        if not os.path.exists(image_name):
+        if image_name is None:
             btn = self.button_with_label(lbl_text)
         else:
             btn = self.button_with_image(lbl_text, image=image_name)
