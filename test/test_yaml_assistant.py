@@ -25,10 +25,21 @@ class TestYamlAssistant(object):
         self.ya._post_run = [{'log_i': 'post'}]
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
-    def test_default_icon_path(self):
+    def test_icon_path_is_empty_if_no_icon(self):
         self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/b/b.yaml')
-        assert self.ya.default_icon_path == os.path.join(settings.DATA_DIRECTORIES[0],
-                                                         'icons/crt/b/b.svg')
+        assert self.ya.icon_path == ''
+        assert self.ya.default_icon_path == ''
+
+    @pytest.mark.parametrize('a, f', [
+        ('c', '.svg'),
+        ('f', '.png'),
+    ])
+    def test_finds_supported_icon_formats(self, a, f):
+        ya = yaml_assistant.YamlAssistant(a, {},
+            os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/{0}.yaml').format(a), None)
+        assert ya.icon_path == os.path.join(settings.DATA_DIRECTORIES[0], 'icons/crt',
+            a + f)
+        assert ya.default_icon_path == ya.icon_path
 
     def test_snippet_uses_its_own_files_section(self):
         self.ya._run = [{'use': 'mysnippet.run'}, {'log_w': '*first'}]

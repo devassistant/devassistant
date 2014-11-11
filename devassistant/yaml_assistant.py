@@ -104,7 +104,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             3) Prepend self.load_path + 'icons'
                (=> "/foo/icons/crt/python/django.<image format>")
             4) If file from 3) exists, return it
-        Return None if no icon found.
+        Return empty string if no icon found.
         """
         supported_exts = ['.png', '.svg']
         stripped = self.path.replace(os.path.join(self.load_path, 'assistants'), '').strip(os.sep)
@@ -113,7 +113,7 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
             icon_fullpath = os.path.join(self.load_path, 'icons', icon_with_ext)
             if os.path.exists(icon_fullpath):
                 return icon_fullpath
-        return None
+        return ''
 
     def _construct_args(self, struct):
         args = []
