@@ -276,7 +276,7 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, update=False):
+def install_dap_from_path(path, update=False, first=True):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
@@ -288,6 +288,7 @@ def install_dap_from_path(path, update=False):
     if os.path.isfile(_install_path()):
         raise Exception(
             '{i} is a file, not a directory'.format(i=_install_path()))
+
     _dir = tempfile.mkdtemp()
     old_level = logger.getEffectiveLevel()
     logger.setLevel(logging.ERROR)
@@ -295,6 +296,18 @@ def install_dap_from_path(path, update=False):
     logger.setLevel(old_level)
     if not ok:
         raise Exception('The dap you want to install has errors, won\'t do it')
+
+    installed = []
+    if first:
+        deps = set()
+        for dep in dap_obj.meta['dependencies']:
+            dep = _strip_version_from_dependency(dep)
+            if dep not in get_installed_daps():
+                deps |= _get_all_dependencies_of(dep)
+        for dep in deps:
+            if dep not in get_installed_daps():
+                installed += install_dap(dep, first=False)
+
     dap_obj.extract(_dir)
     if will_uninstall:
         uninstall_dap(dap_obj.meta['package_name'])
@@ -323,13 +336,7 @@ def install_dap_from_path(path, update=False):
     except:
         pass
 
-    ret = [dap_obj.meta['package_name']]
-
-    for dep in _get_dependencies_of(dap_obj.meta['package_name']):
-        dep = _strip_version_from_dependency(dep)
-        if dep not in get_installed_daps():
-            ret += install_dap(dep)
-    return ret
+    return [dap_obj.meta['package_name']] + installed
 
 def _strip_version_from_dependency(dep):
     '''For given dependency string, return only the package name'''
@@ -354,15 +361,32 @@ def get_installed_version_of(name):
     return data['version']
 
 def _get_dependencies_of(name):
-    '''Returns list of dependiencies of the given installed dap or None if not installed'''
+    '''
+    Returns list of first level dependencies of the given installed dap
+    or dap from Dapi  if not installed
+    '''
     if name not in get_installed_daps():
-        return None
+        return _get_api_dependencies_of(name)
     meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
     with open(meta) as f:
         data = yaml.load(f.read(), Loader=Loader)
     return data.get('dependencies', [])
 
-def install_dap(name, version='', update=False):
+def _get_all_dependencies_of(name, deps=set()):
+    '''Returns list of dependencies of the given dap from Dapi recursively or None if not installed'''
+    first_deps = _get_dependencies_of(name)
+    for dep in first_deps:
+        if dep in deps:
+            continue
+        deps |= _get_all_dependencies_of(dep,deps)
+    return deps | set([name])
+
+def _get_api_dependencies_of(name, version=''):
+    '''Returns list of first level dependencies of the given dap from Dapi'''
+    m, d = _get_metadap_dap(name, version=version)
+    return d.get('dependencies', [])
+
+def install_dap(name, version='', update=False, first=True):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
@@ -375,7 +399,7 @@ def install_dap(name, version='', update=False):
             return []
     path, remove_dir = download_dap(name, d=d)
 
-    ret = install_dap_from_path(path, update=update)
+    ret = install_dap_from_path(path, update=update, first=first)
 
     try:
         if remove_dir:
