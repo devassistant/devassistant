@@ -168,7 +168,7 @@ class GuiHelper(object):
         #print "gui_helper add_button"
         image_name = ass[0].icon_path
         label = "<b>" + ass[0].fullname + "</b>"
-        if image_name is None:
+        if not image_name:
             btn = self.button_with_label(label)
         else:
             btn = self.button_with_image(label, image=ass[0].icon_path)
@@ -199,7 +199,7 @@ class GuiHelper(object):
         and assigns signal like select and button-press-event for
         manipulation with menu_item. sub_assistant and path
         """
-        if sub_assistant[0].icon_path is None:
+        if not sub_assistant[0].icon_path:
             menu_item = self.create_menu_item(sub_assistant[0].fullname)
         else:
             menu_item = self.create_image_menu_item(
@@ -255,7 +255,7 @@ class GuiHelper(object):
         description += text.replace('|', '\n')
         image_name = ass[0].icon_path
         lbl_text = "<b>" + ass[0].fullname + "</b>"
-        if image_name is None:
+        if not image_name:
             btn = self.button_with_label(lbl_text)
         else:
             btn = self.button_with_image(lbl_text, image=image_name)
