@@ -8,7 +8,7 @@ try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
-from . import licenses
+from . import licenses, platforms
 from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
 from devassistant.logger import logger
 
@@ -21,8 +21,8 @@ class Dap(object):
     _icons = 'svg|png'
 
     _required_meta = set('package_name version license authors summary'.split())
-    _optional_meta = set('homepage bugreports description dependencies'.split())
-    _array_meta = set('authors dependencies'.split())
+    _optional_meta = set('homepage bugreports description dependencies supported_platforms'.split())
+    _array_meta = set('authors dependencies supported_platforms'.split())
 
     _url_pattern = r'(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
                    r'(([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(museum|[a-z]{2,4}))' \
@@ -39,7 +39,8 @@ class Dap(object):
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
                    'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE),
-                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' + _version_pattern + r')?$')}
+                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' + _version_pattern + r')?$'),
+                   'supported_platforms': platforms}
 
     def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.

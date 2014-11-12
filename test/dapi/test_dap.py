@@ -303,6 +303,62 @@ class TestDap(object):
         ok, null = d._arevalid('dependencies')
         assert ok
 
+    def test_valid_supported_platforms(self):
+        '''Test if valid supported_platforms are valid'''
+        d = Dap('', fake=True)
+        pool = ['suse',
+                'debian',
+                'fedora',
+                'redhat',
+                'centos',
+                'mandrake',
+                'mandriva',
+                'rocks',
+                'slackware',
+                'yellowdog',
+                'gentoo',
+                'unitedlinux',
+                'turbolinux',
+                'arch',
+                'mageia',
+                'ubuntu',
+                'darwin']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['supported_platforms'] = list(dependencies)
+                ok, bads = d._arevalid('supported_platforms')
+                assert ok
+                assert not bads
+
+    def test_invalid_supported_platforms(self):
+        '''Test if invalid supported_platforms are invalid'''
+        d = Dap('', fake=True)
+        pool = ['linux', 'windows', '5', 'Mac OS X']
+        for r in range(1, len(pool) + 1):
+            for dependencies in itertools.combinations(pool, r):
+                d.meta['supported_platforms'] = list(dependencies)
+                ok, bads = d._arevalid('supported_platforms')
+                assert not ok
+                assert bads == list(dependencies)
+        d.meta['supported_platforms'] = ['fedora'] + pool + ['darwin']
+        ok, bads = d._arevalid('supported_platforms')
+        assert bads == pool
+
+    def test_duplicate_supported_platforms(self):
+        '''Test if duplicate valid supported_platforms are invalid'''
+        d = Dap('', fake=True)
+        d.meta['supported_platforms'] = ['fedora', 'redhat', 'fedora']
+        ok, bads = d._arevalid('supported_platforms')
+        assert not ok
+        assert bads == ['fedora']
+
+    def test_empty_supported_platforms(self):
+        '''Test if empty supported_platforms list is valid'''
+        d = Dap('', fake=True)
+        d.meta['supported_platforms'] = []
+        ok, null = d._arevalid('supported_platforms')
+        assert ok
+
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test (errors only)'''
         dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))

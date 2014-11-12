@@ -78,6 +78,7 @@ meta.yaml
       - eggs >= 1.0
       - spam== 0.1     # as you can see, spaces are optional
       - ook   <    2.5 # and more can be added, however, don't use tabs
+    supported_platforms: [fedora, darwin] # optional
     description: |
         Some not-so-brief optional text.
         It can be split to multiple lines.
@@ -99,6 +100,8 @@ meta.yaml
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
 
 * **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional; note, that versions are ignored for now, they'll start working in one of the future DevAssistant releases
+
+* **supported_platforms** optionally lists all platforms (Linux distributions etc.), that this dap is known to work on. When missing or empty, all platforms are considered supported. You can choose from the following options: arch, centos, debian, fedora, gentoo, mageia, mandrake, mandriva, redhat, rocks, slackware, suse, turbolinux, unitedlinux, yellowdog and darwin (for Mac OS).
 
 Checking your dap for sanity
 ----------------------------
