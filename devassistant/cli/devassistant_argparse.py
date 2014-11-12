@@ -43,8 +43,8 @@ class ArgumentParser(argparse.ArgumentParser):
                             self.exit(2, _('\n'.join(msg)))
                         else:
                             self.print_usage(_sys.stderr)
-                            prog = getattr(action, '_prog', 'crt').split()[0]
-                            if prog not in settings.ASSISTANT_ROLES:
+                            prog = getattr(action, '_prog_prefix', 'crt').split()[0]
+                            if prog in settings.ASSISTANT_ROLES:
                                 self.exit(2, _('You have to select a subassistant.\n'))
                             else:
                                 self.exit(2, _('You have to select a subaction.\n'))

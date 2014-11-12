@@ -38,9 +38,8 @@ class ArgparseGenerator(object):
 
         if cur_subas or actions:
             # then add the subassistants as arguments
-            subparsers = parser.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format('0'))
-            # from Python 3.3, subparsers are optional by default => make them required
-            subparsers.required = True
+            subparsers = cls._add_subparsers_required(parser,
+                dest=settings.SUBASSISTANT_N_STRING.format('0'))
             for subas in sorted(cur_subas, key=lambda x: x[0].name):
                 for alias in [subas[0].name] + getattr(subas[0], 'aliases', []):
                     cls.add_subassistants_to(subparsers, subas, level=1, alias=alias)
@@ -78,15 +77,17 @@ class ArgparseGenerator(object):
             arg.add_argument_to(p)
 
         if len(assistant_tuple[1]) > 0:
-            subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
-                                          title=cls.subparsers_str,
-                                          description=cls.subparsers_desc)
+            subparsers = cls._add_subparsers_required(p,
+                dest=settings.SUBASSISTANT_N_STRING.format(level),
+                title=cls.subparsers_str,
+                description=cls.subparsers_desc)
             for subas_tuple in sorted(assistant_tuple[1], key=lambda x: x[0].name):
                 cls.add_subassistants_to(subparsers, subas_tuple, level + 1)
         elif level == 1:
-            subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
-                                          title=cls.subparsers_str,
-                                          description=cls.subparsers_no_avail)
+            subparsers = cls._add_subparsers_required(p,
+                dest=settings.SUBASSISTANT_N_STRING.format(level),
+                title=cls.subparsers_str,
+                description=cls.subparsers_no_avail)
 
     @classmethod
     def add_action_to(cls, parser, action, subactions, level):
@@ -104,8 +105,16 @@ class ArgparseGenerator(object):
             arg.add_argument_to(p)
 
         if subactions:
-            subparsers = p.add_subparsers(dest=settings.SUBASSISTANT_N_STRING.format(level),
-                                          title=cls.subactions_str,
-                                          description=cls.subactions_desc)
+            subparsers = cls._add_subparsers_required(p,
+                dest=settings.SUBASSISTANT_N_STRING.format(level),
+                title=cls.subactions_str,
+                description=cls.subactions_desc)
             for subact, subsubacts in sorted(subactions.items(), key=lambda x: x[0].name):
                 cls.add_action_to(subparsers, subact, subsubacts, level + 1)
+
+    @classmethod
+    def _add_subparsers_required(self, parser, **kwargs):
+        # from Python 3.3, subparsers are optional by default => make them required
+        subparsers = parser.add_subparsers(**kwargs)
+        subparsers.required = True
+        return subparsers
