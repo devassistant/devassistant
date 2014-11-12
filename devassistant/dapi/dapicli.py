@@ -372,7 +372,7 @@ def _get_dependencies_of(name):
     return data.get('dependencies', [])
 
 def _get_all_dependencies_of(name, deps=set()):
-    '''Returns list of dependencies of the given dap from Dapi recursively or None if not installed'''
+    '''Returns list of dependencies of the given dap from Dapi recursively'''
     first_deps = _get_dependencies_of(name)
     for dep in first_deps:
         if dep in deps:
