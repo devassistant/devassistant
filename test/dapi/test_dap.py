@@ -321,6 +321,7 @@ class TestDap(object):
                 'turbolinux',
                 'arch',
                 'mageia',
+                'ubuntu',
                 'darwin']
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
