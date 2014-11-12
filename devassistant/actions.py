@@ -99,17 +99,17 @@ class DocAction(Action):
         if docdir is not None:
             all_docs = cls._get_doc_files(docdir)
         if not all_docs:
-            logger.info('DAP "{0}" has no documentation.'.format(dap))
+            logger.info('DAP {0} has no documentation.'.format(dap))
         elif doc is not None:
             doc_fullpath = os.path.join(docdir, doc)
             if doc_fullpath in all_docs:
                 cls._show_doc(doc_fullpath)
             else:
-                msg = 'DAP "{0}" has no document "{1}".'.format(dap, doc)
+                msg = 'DAP {0} has no document "{1}".'.format(dap, doc)
                 logger.error(msg)
                 raise exceptions.ExecutionException(msg)
         else:
-            logger.info('DAP "{0}" has these docs:'.format(dap))
+            logger.info('DAP {0} has these docs:'.format(dap))
             for d in all_docs:
                 logger.info(d[len(docdir):].strip(os.path.sep))
             logger.info('Use "da doc {0} <DOC>" to see a specific document'.format(dap))
@@ -276,14 +276,14 @@ class PkgInstallAction(Action):
     def run(cls, **kwargs):
         exs = []
         for pkg in kwargs['package']:
-            logger.info('Installing {pkg}...'.format(pkg=pkg))
+            logger.info('Installing DAP {pkg} ...'.format(pkg=pkg))
             if os.path.isfile(pkg):
                 method = dapicli.install_dap_from_path
             else:
                 method = dapicli.install_dap
             try:
                 pkgs = method(pkg, force=kwargs['force'])
-                logger.info('Successfully installed {pkgs}'.format(pkgs=', '.join(pkgs)))
+                logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except Exception as e:
                 exs.append(str(e))
                 logger.error(str(e))
@@ -307,13 +307,13 @@ class PkgUninstallAction(Action):
         uninstalled = []
         for pkg in kwargs['package']:
             if pkg in uninstalled:
-                logger.info('{pkg} already uninstalled'.format(pkg=pkg))
+                logger.info('DAP {pkg} already uninstalled'.format(pkg=pkg))
                 continue
-            logger.info('Uninstalling {pkg}...'.format(pkg=pkg))
+            logger.info('Uninstalling DAP {pkg} ...'.format(pkg=pkg))
             try:
                 done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
                 if done:
-                    logger.info('{pkgs} successfully uninstalled'.format(pkgs=', '.join(done)))
+                    logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
             except Exception as e:
                 exs.append(str(e))
@@ -347,17 +347,17 @@ class PkgUpdateAction(Action):
         except KeyError:
             pkgs = dapicli.get_installed_daps()
             if pkgs:
-                logger.info('Updating all packages')
+                logger.info('Updating all DAP packages ...')
             else:
-                logger.info('No installed packages found, nothing to update')
+                logger.info('No installed DAP packages found, nothing to update.')
         for pkg in pkgs:
-            logger.info('Updating {pkg}...'.format(pkg=pkg))
+            logger.info('Updating DAP {pkg} ...'.format(pkg=pkg))
             try:
                 updated = dapicli.install_dap(pkg, update=True, force=kwargs['force'])
                 if updated:
-                    logger.info('{pkg} successfully updated'.format(pkg=pkg))
+                    logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
                 else:
-                    logger.info('{pkg} is already up to date'.format(pkg=pkg))
+                    logger.info('DAP {pkg} is already up to date.'.format(pkg=pkg))
             except Exception as e:
                 exs.append(str(e))
                 logger.error(str(e))

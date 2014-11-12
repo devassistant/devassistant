@@ -124,7 +124,7 @@ def print_users():
     u = users()
     count = u['count']
     if not count:
-        raise Exception('Could not find any users')
+        raise Exception('Could not find any users on DAPI.')
     for user in u['results']:
         print(user['username'], end='')
         if user['full_name']:
@@ -147,7 +147,7 @@ def _get_metadap_dap(name, version=''):
     '''Return data for dap of given or latets version.'''
     m = metadap(name)
     if not m:
-        raise Exception('{dap} not found'.format(dap=name))
+        raise Exception('DAP {dap} not found.'.format(dap=name))
     if not version:
         d = m['latest_stable'] or m['latest']
         if d:
@@ -156,7 +156,7 @@ def _get_metadap_dap(name, version=''):
         d = dap(name, version)
         if not d:
             raise Exception(
-                '{dap} doesn\'t have version {version}'.format(dap=name, version=version))
+                'DAP {dap} doesn\'t have version {version}.'.format(dap=name, version=version))
     return m, d
 
 
@@ -193,7 +193,7 @@ def print_search(query):
     m = search(query)
     count = m['count']
     if not count:
-        raise Exception('Could not find any daps for your query')
+        raise Exception('Could not find any DAP packages for your query.')
         return
     for mdap in m['results']:
         mdap = mdap['content_object']
@@ -212,7 +212,8 @@ def get_installed_daps():
 def uninstall_dap(name, confirm=False):
     if name not in get_installed_daps():
         raise Exception(
-            'Cannot uninstall {dap}, it is not in {path}'.format(dap=name, path=_install_path()))
+            'Cannot uninstall DAP {dap}, it is not in {path}'.
+            format(dap=name, path=_install_path()))
     ret = []
     for dap in get_installed_daps():
         deps = _get_dependencies_of(dap)
@@ -230,7 +231,8 @@ def uninstall_dap(name, confirm=False):
         g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=_install_path(), loc=loc, dap=name))
         g += glob.glob('{d}/{loc}/{dap}'.format(d=_install_path(), loc=loc, dap=name))
     if confirm:
-        print('{name} and the following files and directories will be removed:'.format(name=name))
+        print('DAP {name} and the following files and directories will be removed:'.
+            format(name=name))
         for f in g:
             print('    ' + f)
         inp = raw_input if not six.PY3 else input
@@ -248,7 +250,8 @@ def uninstall_dap(name, confirm=False):
 
 def download_dap(name, version='', d='', directory=''):
     '''Download a dap to a given or temporary directory
-    Return a path to that file together with information if the directory should be later deleted'''
+    Return a path to that file together with information if the directory should be later deleted
+    '''
     if not d:
         m, d = _get_metadap_dap(name, version)
     if directory:
@@ -258,7 +261,7 @@ def download_dap(name, version='', d='', directory=''):
     try:
         url = d['download']
     except TypeError:
-        raise Exception('{dap} has no version to download'.format(dap=name))
+        raise Exception('DAP {dap} has no version to download.'.format(dap=name))
     filename = url.split('/')[-1]
     path = os.path.join(_dir, filename)
     urllib.request.urlretrieve(url, path)
@@ -266,8 +269,9 @@ def download_dap(name, version='', d='', directory=''):
     downloadedsum = hashlib.sha256(open(path, 'rb').read()).hexdigest()
     if dapisum != downloadedsum:
         os.remove(path)
-        raise Exception('{dap} has incorrect sha256sum (dapi: {dapi}, downloaded: {downloaded})'
-                        .format(dap=name, dapi=dapisum, downloaded=downloadedsum))
+        raise Exception(
+            'DAP {dap} has incorrect sha256sum (DAPI: {dapi}, downloaded: {downloaded})'.
+            format(dap=name, dapi=dapisum, downloaded=downloadedsum))
     return path, not bool(directory)
 
 
@@ -277,12 +281,12 @@ def install_dap_from_path(path, update=False, first=True, force=False):
     dap_obj = dapi.Dap(path)
     if dap_obj.meta['package_name'] in get_installed_daps():
         if not update:
-            raise Exception('Won\'t override already installed dap')
+            raise Exception('Won\'t override already installed DAP.')
         else:
             will_uninstall = True
     if os.path.isfile(_install_path()):
         raise Exception(
-            '{i} is a file, not a directory'.format(i=_install_path()))
+            '{i} is a file, not a directory.'.format(i=_install_path()))
 
     _dir = tempfile.mkdtemp()
     old_level = logger.getEffectiveLevel()
@@ -290,12 +294,14 @@ def install_dap_from_path(path, update=False, first=True, force=False):
     ok = dap_obj.check()
     logger.setLevel(old_level)
     if not ok:
-        raise Exception('The dap you want to install has errors, won\'t do it')
+        raise Exception('The DAP you want to install has errors, not installing.')
 
     installed = []
     if first:
         if not force and not _is_supported_here(dap_obj.meta):
-            raise Exception('%s is not supported on this platform (use --force to suppress this check)' % dap_obj.meta['package_name'])
+            raise Exception(
+                '{0} is not supported on this platform (use --force to suppress this check)'.
+                format(dap_obj.meta['package_name']))
         deps = set()
         for dep in dap_obj.meta['dependencies']:
             dep = _strip_version_from_dependency(dep)
@@ -312,7 +318,8 @@ def install_dap_from_path(path, update=False, first=True, force=False):
     if not os.path.isdir(_install_path()):
         os.makedirs(_install_path())
     os.mkdir(os.path.join(_dapdir, 'meta'))
-    os.rename(os.path.join(_dapdir, 'meta.yaml'), os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
+    os.rename(os.path.join(_dapdir, 'meta.yaml'),
+        os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
     for f in glob.glob(_dapdir + '/*'):
         dst = os.path.join(_install_path(), os.path.basename(f))
         if os.path.isdir(f):
@@ -395,7 +402,9 @@ def _get_api_dependencies_of(name, version='', force=False):
     # We need the dependencies to install the dap,
     # if the dap is unsupported, raise an exception here
     if not force and not _is_supported_here(d):
-        raise Exception('%s is not supported on this platform (use --force to suppress this check)' % name)
+        raise Exception(
+            '{0} is not supported on this platform (use --force to suppress this check).'.
+            format(name))
     return d.get('dependencies', [])
 
 def install_dap(name, version='', update=False, first=True, force=False):
@@ -406,7 +415,7 @@ def install_dap(name, version='', update=False, first=True, force=False):
         available = d['version']
         current = get_installed_version_of(name)
         if not current:
-            raise Exception('Cannot update not yet installed dap')
+            raise Exception('Cannot update not yet installed DAP.')
         if dapver.compare(available, current) <= 0:
             return []
     path, remove_dir = download_dap(name, d=d)

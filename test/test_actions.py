@@ -49,12 +49,12 @@ class TestDocAction(object):
 
     def test_no_docs(self):
         self.da.run(dap='f')
-        assert ('INFO', 'DAP "f" has no documentation.') in self.tlh.msgs
+        assert ('INFO', 'DAP f has no documentation.') in self.tlh.msgs
 
     def test_lists_docs(self):
         self.da.run(dap='c')
         assert self.tlh.msgs == [
-            ('INFO', 'DAP "c" has these docs:'),
+            ('INFO', 'DAP c has these docs:'),
             ('INFO', 'LICENSE'),
             ('INFO', 'doc1'),
             ('INFO', 'something/foo/doc2'),
@@ -140,7 +140,7 @@ class TestPkgUpdateAction(object):
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             actions.PkgUpdateAction.run(package=['foo'], force=False)
 
-        assert 'Cannot update not yet installed dap' in str(excinfo.value)
+        assert 'Cannot update not yet installed DAP' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('action', [
@@ -164,4 +164,4 @@ class TestPkgUninstallAction(object):
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             action.run(package=['foo'], force=True)
 
-        assert 'Cannot uninstall foo' in str(excinfo.value)
+        assert 'Cannot uninstall DAP foo' in str(excinfo.value)

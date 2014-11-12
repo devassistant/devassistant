@@ -21,7 +21,8 @@ class Dap(object):
     _icons = 'svg|png'
 
     _required_meta = set('package_name version license authors summary'.split())
-    _optional_meta = set('homepage bugreports description dependencies supported_platforms'.split())
+    _optional_meta = set('homepage bugreports description dependencies supported_platforms'.
+        split())
     _array_meta = set('authors dependencies supported_platforms'.split())
 
     _url_pattern = r'(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&%\$\-]+)*@)*' \
@@ -38,8 +39,10 @@ class Dap(object):
                    'homepage': re.compile(r'^' + _url_pattern + r'$'),
                    'bugreports': re.compile(r'^(' + _email_pattern + '|' + _url_pattern + ')$'),
                    'description': re.compile(r'.+'),
-                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern + '>)?$', re.UNICODE),
-                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' + _version_pattern + r')?$'),
+                   'authors': re.compile(r'^(\w+[\w \.]*[\w\.-]+|\w)( +<' + _email_pattern +
+                       '>)?$', re.UNICODE),
+                   'dependencies': re.compile(r'^' + _name_pattern + r'( *(<|>|<=|>=|==) *' +
+                       _version_pattern + r')?$'),
                    'supported_platforms': platforms}
 
     def __init__(self, dapfile, fake=False, mimic_filename=None):
@@ -75,7 +78,8 @@ class Dap(object):
         if not metas:
             raise DapMetaError('Could not find any meta.yaml in %s' % self.basename)
         if len(metas) > 1:
-            raise DapMetaError('Multiple meta.yaml files found in %s (%s)' % (self.basename, ', '.join(metas)))
+            raise DapMetaError('Multiple meta.yaml files found in %s (%s)' %
+                (self.basename, ', '.join(metas)))
         self._meta_location = metas.pop()
         self._load_meta(self._get_file(self._meta_location))
         self.sha256sum = hashlib.sha256(open(dapfile, 'rb').read()).hexdigest()
@@ -85,7 +89,8 @@ class Dap(object):
         extracted = self._tar.extractfile(path)
         if extracted:
             return extracted
-        raise DapFileError('Could not read %s from %s, maybe it\'s a directory, bad link or the dap file is corrupted' % (path, self.basename))
+        raise DapFileError(('Could not read %s from %s, maybe it\'s a directory,' +
+            'bad link or the dap file is corrupted') % (path, self.basename))
 
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
@@ -152,7 +157,8 @@ class Dap(object):
                     self._report_problem(datatype + ' is not a valid non-empty list')
                 else:
                     for bad in bads:
-                        self._report_problem(bad + ' in ' + datatype + ' is not valid or is a duplicate')
+                        self._report_problem(bad + ' in ' + datatype +
+                            ' is not valid or is a duplicate')
 
         # Check that there is no unknown metadata
         leftovers = set(self.meta.keys()) - (Dap._required_meta | Dap._optional_meta)
@@ -168,12 +174,14 @@ class Dap(object):
         else:
             for path in self.files:
                 if not path.startswith(dirname):
-                    self._report_problem(path + ' is outside of ' + dirname + ' top-level directory')
+                    self._report_problem(path + ' is outside of ' + dirname +
+                        ' top-level directory')
         if self.meta['package_name'] and self.meta['version']:
             desired_dirname = self.meta['package_name'] + '-' + self.meta['version']
             desired_filename = desired_dirname + '.dap'
             if dirname and dirname != desired_dirname:
-                self._report_problem('Top-level directory with meta.yaml is not named ' + desired_dirname)
+                self._report_problem('Top-level directory with meta.yaml is not named ' +
+                    desired_dirname)
             if self.basename != desired_filename:
                 self._report_problem('The dap filename is not ' + desired_filename)
 
@@ -223,7 +231,8 @@ class Dap(object):
             from . import dapicli
             d = dapicli.metadap(self.meta['package_name'])
             if d:
-                self._report_problem('This dap name is already registered on Dapi', logging.WARNING)
+                self._report_problem('This dap name is already registered on Dapi',
+                    logging.WARNING)
 
     def _check_files(self):
         '''Check that there are only those files the standard accepts'''
@@ -250,10 +259,13 @@ class Dap(object):
             name = self.meta['package_name']
 
             dirs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))?|snippets)(/' +
-                              name + ')?|icons(/(crt|twk|prep|extra|snippets)(/' + name + ')?)?|files|(files/(crt|twk|prep|extra|snippets)|doc)(/' + name + '(/.+)?)?)$')
+                              name + ')?|icons(/(crt|twk|prep|extra|snippets)(/' + name +
+                              ')?)?|files|(files/(crt|twk|prep|extra|snippets)|doc)(/' + name +
+                              '(/.+)?)?)$')
             regs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))|snippets)/' +
-                              name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' + name + r'(/[^/]+)?\.(' +
-                              Dap._icons + ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
+                              name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' +
+                              name + r'(/[^/]+)?\.(' + Dap._icons +
+                              ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
 
             remove = []
             for f in files:
@@ -267,7 +279,8 @@ class Dap(object):
                 files.remove(r)
 
             # Subdir yamls need a chief
-            for directory in ['assistants/' + t for t in 'crt twk prep extra'.split()] + ['snippets']:
+            for directory in ['assistants/' + t for t in 'crt twk prep extra'.split()] + \
+                    ['snippets']:
                 prefix = dirname + directory + '/'
                 for f in files:
                     if f.startswith(prefix) and self._is_dir(f) and f + '.yaml' not in files:
@@ -280,7 +293,8 @@ class Dap(object):
             if not self._is_dir(f):
                 if f.startswith(os.path.join(dirname, 'icons/')):
                     # name without extension and dirname/icons/
-                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].split('.')[:-1]))
+                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].
+                        split('.')[:-1]))
                 if f.startswith(os.path.join(dirname, 'assistants/')):
                     # extension is .yaml only, so we don't need to split and join
                     assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
@@ -295,7 +309,8 @@ class Dap(object):
 
         # And also about files
         folders = set()
-        assistants = set()  # we cannot reuse the one form icons, as we need to record the type as well
+        # we cannot reuse the one form icons, as we need to record the type as well
+        assistants = set()
         for f in files:
             if self._is_dir(f):
                 if f.startswith(os.path.join(dirname, 'files/')):
