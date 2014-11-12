@@ -94,7 +94,7 @@ class TestPkgInstallAction(object):
                          .and_return([self.pkg]).at_least().once()
 
         # Install from path, everything goes well
-        actions.PkgInstallAction.run(package=[self.pkg])
+        actions.PkgInstallAction.run(package=[self.pkg], force=False)
 
     def test_pkg_install_fails(self):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
@@ -103,7 +103,7 @@ class TestPkgInstallAction(object):
                          .and_raise(Exception(self.exc_string)).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgInstallAction.run(package=[self.pkg])
+            actions.PkgInstallAction.run(package=[self.pkg], force=False)
 
         assert self.exc_string in str(excinfo.value)
 
@@ -118,7 +118,7 @@ class TestPkgUpdateAction(object):
                          .and_return([]).at_least().once()
 
         # Update all, everything is up to date
-        actions.PkgUpdateAction.run()
+        actions.PkgUpdateAction.run(force=False)
 
     def test_pkg_update_no_dapi(self):
         '''Run update of package that is not on Dapi'''
@@ -126,7 +126,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'])
+            actions.PkgUpdateAction.run(package=['foo'], force=False)
 
         assert 'foo not found' in str(excinfo.value)
 
@@ -138,7 +138,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'])
+            actions.PkgUpdateAction.run(package=['foo'], force=False)
 
         assert 'Cannot update not yet installed dap' in str(excinfo.value)
 

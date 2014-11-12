@@ -278,7 +278,7 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, update=False, first=True):
+def install_dap_from_path(path, update=False, first=True, force=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
@@ -301,13 +301,13 @@ def install_dap_from_path(path, update=False, first=True):
 
     installed = []
     if first:
-        if not _is_supported_here(dap_obj.meta):
-            raise Exception('%s is not supported on this platform' % dap_obj.meta['package_name'])
+        if not force and not _is_supported_here(dap_obj.meta):
+            raise Exception('%s is not supported on this platform (use --force to suppress this check)' % dap_obj.meta['package_name'])
         deps = set()
         for dep in dap_obj.meta['dependencies']:
             dep = _strip_version_from_dependency(dep)
             if dep not in get_installed_daps():
-                deps |= _get_all_dependencies_of(dep)
+                deps |= _get_all_dependencies_of(dep, force=force)
         for dep in deps:
             if dep not in get_installed_daps():
                 installed += install_dap(dep, first=False)
@@ -383,9 +383,9 @@ def _get_dependencies_of(name):
         data = yaml.load(f.read(), Loader=Loader)
     return data.get('dependencies', [])
 
-def _get_all_dependencies_of(name, deps=set()):
+def _get_all_dependencies_of(name, deps=set(), force=False):
     '''Returns list of dependencies of the given dap from Dapi recursively'''
-    first_deps = _get_api_dependencies_of(name)
+    first_deps = _get_api_dependencies_of(name, force=force)
     for dep in first_deps:
         dep = _strip_version_from_dependency(dep)
         if dep in deps:
@@ -396,16 +396,16 @@ def _get_all_dependencies_of(name, deps=set()):
         deps |= _get_all_dependencies_of(dep, deps)
     return deps | set([name])
 
-def _get_api_dependencies_of(name, version=''):
+def _get_api_dependencies_of(name, version='', force=False):
     '''Returns list of first level dependencies of the given dap from Dapi'''
     m, d = _get_metadap_dap(name, version=version)
     # We need the dependencies to install the dap,
     # if the dap is unsupported, raise an exception here
-    if not _is_supported_here(d):
-        raise Exception('%s is not supported on this platform' % name)
+    if not force and not _is_supported_here(d):
+        raise Exception('%s is not supported on this platform (use --force to suppress this check)' % name)
     return d.get('dependencies', [])
 
-def install_dap(name, version='', update=False, first=True):
+def install_dap(name, version='', update=False, first=True, force=False):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
@@ -418,7 +418,7 @@ def install_dap(name, version='', update=False, first=True):
             return []
     path, remove_dir = download_dap(name, d=d)
 
-    ret = install_dap_from_path(path, update=update, first=first)
+    ret = install_dap_from_path(path, update=update, first=first, force=force)
 
     try:
         if remove_dir:

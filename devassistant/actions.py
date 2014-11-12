@@ -266,7 +266,11 @@ class PkgInstallAction(Action):
     """Installs packages from Dapi"""
     name = 'install'
     description = 'Installs packages from DAPI or from given paths.'
-    args = [argument.Argument('package', 'package', nargs='+', help='Packages to install')]
+    args = [
+        argument.Argument('package', 'package', nargs='+', help='Packages to install'),
+        argument.Argument('force', '-f', '--force', action='store_true', default=False,
+                          help='Install packages that are unsupported on this platform (dangerous)'),
+    ]
 
     @classmethod
     def run(cls, **kwargs):
@@ -278,7 +282,7 @@ class PkgInstallAction(Action):
             else:
                 method = dapicli.install_dap
             try:
-                pkgs = method(pkg)
+                pkgs = method(pkg, force=kwargs['force'])
                 logger.info('Successfully installed {pkgs}'.format(pkgs=', '.join(pkgs)))
             except Exception as e:
                 exs.append(str(e))
@@ -322,8 +326,12 @@ class PkgUpdateAction(Action):
     """Updates packages from Dapi"""
     name = 'update'
     description = 'Updates DAP packages of given names or all local packages.'
-    args = [argument.Argument('package', 'package', nargs='*',
-        help='Packages to update - if none are provided, all local packages are updated')]
+    args = [
+        argument.Argument('package', 'package', nargs='*',
+                          help='Packages to update - if none are provided, all local packages are updated'),
+        argument.Argument('force', '-f', '--force', action='store_true', default=False,
+                          help='Update and install dependent packages that are unsupported on this platform (dangerous)'),
+    ]
 
     @classmethod
     def run(cls, **kwargs):
@@ -339,7 +347,7 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating {pkg}...'.format(pkg=pkg))
             try:
-                updated = dapicli.install_dap(pkg, update=True)
+                updated = dapicli.install_dap(pkg, update=True, force=kwargs['force'])
                 if updated:
                     logger.info('{pkg} successfully updated'.format(pkg=pkg))
                 else:
