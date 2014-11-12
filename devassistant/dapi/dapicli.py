@@ -60,26 +60,31 @@ def data(link):
     return _process_req(req)
 
 
-def _paginated(what, page=''):
-    '''Returns a dictionary with all <what>, paginated'''
-    if page:
-        page = '?page={page}'.format(page=page)
-    return data(_api_url() + what + '/' + page)
+def _unpaginated(what):
+    '''Returns a dictionary with all <what>, unpaginated'''
+    page = data(_api_url() + what)
+    results = page['results']
+    count = page['count']
+    while page['next']:
+        page = data(page['next'])
+        results += page['results']
+        count += page['count']
+    return {'results': results, 'count': count}
 
 
-def users(page=''):
-    '''Returns a dictionary with all users, paginated'''
-    return _paginated('users', page=page)
+def users():
+    '''Returns a dictionary with all users'''
+    return _unpaginated('users')
 
 
-def metadaps(page=''):
-    '''Returns a dictionary with all metadaps, paginated'''
-    return _paginated('metadaps', page=page)
+def metadaps():
+    '''Returns a dictionary with all metadaps'''
+    return _unpaginated('metadaps')
 
 
-def daps(page=''):
-    '''Returns a dictionary with all daps, paginated'''
-    return _paginated('daps', page=page)
+def daps():
+    '''Returns a dictionary with all daps'''
+    return _unpaginated('daps')
 
 
 def user(username=''):
@@ -99,11 +104,9 @@ def dap(name, version=''):
     return data(_api_url() + 'daps/' + name + '/')
 
 
-def search(query, page=''):
-    '''Returns a dictionary with the search results, paginated'''
-    if page:
-        page = '&page={page}'.format(page=page)
-    return data(_api_url() + 'search/?q=' + query + page)
+def search(query):
+    '''Returns a dictionary with the search results'''
+    return _unpaginated('search/?q=' + query)
 
 
 def _print_dap_with_description(mdap):
@@ -116,13 +119,10 @@ def _print_dap_with_description(mdap):
     print('')
 
 
-def print_users(page=''):
+def print_users():
     '''Prints a list of users available on Dapi'''
-    u = users(page=page)
-    try:
-        count = u['count']
-    except KeyError:
-        raise Exception('Page over maximum or other 404 error')
+    u = users()
+    count = u['count']
     if not count:
         raise Exception('Could not find any users')
     for user in u['results']:
@@ -131,20 +131,16 @@ def print_users(page=''):
             print(' (' + user['full_name'] + ')')
         else:
             print('')
-    if u['next']:
-        print('There are more users available, paginate by adding page number')
 
 
-def print_daps(page=''):
+def print_daps():
     '''Prints a list of metadaps available on Dapi'''
-    m = metadaps(page=page)
-    if not m and not page:
+    m = metadaps()
+    if not m['count']:
         print('Could not find any daps')
         return
     for mdap in m['results']:
         _print_dap_with_description(mdap)
-    if m['next']:
-        print('There are more daps available, paginate by adding page number')
 
 
 def _get_metadap_dap(name, version=''):
@@ -192,21 +188,16 @@ def print_dap(name, version=''):
                 print(d[item])
 
 
-def print_search(query, page=''):
+def print_search(query):
     '''Prints the results of a search'''
-    m = search(query, page=page)
-    try:
-        count = m['count']
-    except KeyError:
-        raise Exception('Page over maximum or other 404 error')
+    m = search(query)
+    count = m['count']
     if not count:
         raise Exception('Could not find any daps for your query')
         return
     for mdap in m['results']:
         mdap = mdap['content_object']
         _print_dap_with_description(mdap)
-    if m['next']:
-        print('There are more daps available, paginate by adding page number')
 
 
 def get_installed_daps():
