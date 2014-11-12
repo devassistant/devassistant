@@ -176,6 +176,11 @@ cases, consider using :ref:`dependencies_command_ref` in ``run`` section.
 Args
 ----
 
+.. note:: In versions starting with *0.9.** and older, the name of the
+          corresponding variable is derived from the argument's ``flags`` (to
+          mimic Python's ``argparse`` behaviour, see below). In newer versions,
+          the variable name is derived from the argument's name itself.
+
 Arguments are used for specifying commandline arguments or gui inputs.
 Every assistant can have zero to multiple arguments.
 
