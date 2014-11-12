@@ -43,7 +43,11 @@ class ArgumentParser(argparse.ArgumentParser):
                             self.exit(2, _('\n'.join(msg)))
                         else:
                             self.print_usage(_sys.stderr)
-                            self.exit(2, _('You have to select a subassistant.\n'))
+                            prog = getattr(action, '_prog', 'crt').split()[0]
+                            if prog not in settings.ASSISTANT_ROLES:
+                                self.exit(2, _('You have to select a subassistant.\n'))
+                            else:
+                                self.exit(2, _('You have to select a subaction.\n'))
             self.print_usage(_sys.stderr)
             self.exit(1, _('%s: error: %s\n') % (self.prog, message))
 
