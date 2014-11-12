@@ -373,9 +373,13 @@ def _get_dependencies_of(name):
 
 def _get_all_dependencies_of(name, deps=set()):
     '''Returns list of dependencies of the given dap from Dapi recursively'''
-    first_deps = _get_dependencies_of(name)
+    first_deps = _get_api_dependencies_of(name)
     for dep in first_deps:
+        dep = _strip_version_from_dependency(dep)
         if dep in deps:
+            continue
+        # we can do the following not to resolve the dependencies of already installed daps
+        if dap in get_installed_daps():
             continue
         deps |= _get_all_dependencies_of(dep, deps)
     return deps | set([name])
