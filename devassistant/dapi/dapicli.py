@@ -10,7 +10,6 @@ from devassistant import dapi
 from devassistant.dapi import dapver
 from devassistant.logger import logger
 from six.moves import urllib
-import sys
 import logging
 import hashlib
 try:
@@ -378,7 +377,7 @@ def _get_all_dependencies_of(name, deps=set()):
     for dep in first_deps:
         if dep in deps:
             continue
-        deps |= _get_all_dependencies_of(dep,deps)
+        deps |= _get_all_dependencies_of(dep, deps)
     return deps | set([name])
 
 def _get_api_dependencies_of(name, version=''):
@@ -408,10 +407,10 @@ def install_dap(name, version='', update=False, first=True):
             os.remove(path)
     except:
         pass
-    
+
     return ret
 
 def get_dependency_metadata():
     '''Returns list of strings with dependency metadata from Dapi'''
-    link = os.path.join(_api_url(),'meta.txt')
+    link = os.path.join(_api_url(), 'meta.txt')
     return _process_req_txt(requests.get(link)).split('\n')
