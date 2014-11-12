@@ -318,6 +318,12 @@ class PkgUninstallAction(Action):
             raise exceptions.ExecutionException('; '.join(exs))
 
 
+class PkgRemoveAction(PkgUninstallAction):
+    """Alias for uninstall"""
+    name = 'remove'
+    description = 'An alias for uninstall command'
+    # TODO: implement aliases for actions
+
 class PkgUpdateAction(Action):
     """Updates packages from Dapi"""
     name = 'update'
@@ -438,6 +444,7 @@ class PkgAction(Action):
         return [
             PkgInstallAction,
             PkgUninstallAction,
+            PkgRemoveAction,
             PkgUpdateAction,
             PkgListAction,
             PkgSearchAction,
