@@ -226,7 +226,9 @@ def uninstall_dap(name, confirm=False):
         if deps:
             deps = [_strip_version_from_dependency(dep) for dep in deps]
             if name in deps:
-                ret += uninstall_dap(dap, confirm=confirm)
+                # this might have changed
+                if dap in get_installed_daps():
+                    ret += uninstall_dap(dap, confirm=confirm)
     g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
     for loc in 'assistants files icons'.split():
         g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
