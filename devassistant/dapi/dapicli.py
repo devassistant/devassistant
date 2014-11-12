@@ -9,6 +9,7 @@ import tempfile
 from devassistant import dapi
 from devassistant.dapi import dapver
 from devassistant.logger import logger
+from devassistant import utils
 from six.moves import urllib
 import logging
 import hashlib
@@ -300,6 +301,8 @@ def install_dap_from_path(path, update=False, first=True):
 
     installed = []
     if first:
+        if not _is_supported_here(dap_obj.meta):
+            raise Exception('%s is not supported on this platform' % dap_obj.meta['package_name'])
         deps = set()
         for dep in dap_obj.meta['dependencies']:
             dep = _strip_version_from_dependency(dep)
@@ -361,6 +364,13 @@ def get_installed_version_of(name):
         data = yaml.load(f.read(), Loader=Loader)
     return data['version']
 
+def _is_supported_here(dap_api_data):
+    supported = dap_api_data.get('supported_platforms',[])
+    if not supported:
+        # assume all platforms are supported
+        return True
+    return utils.get_distro_name() in supported
+
 def _get_dependencies_of(name):
     '''
     Returns list of first level dependencies of the given installed dap
@@ -389,6 +399,10 @@ def _get_all_dependencies_of(name, deps=set()):
 def _get_api_dependencies_of(name, version=''):
     '''Returns list of first level dependencies of the given dap from Dapi'''
     m, d = _get_metadap_dap(name, version=version)
+    # We need the dependencies to install the dap,
+    # if the dap is unsupported, raise an exception here
+    if not _is_supported_here(d):
+        raise Exception('%s is not supported on this platform' % name)
     return d.get('dependencies', [])
 
 def install_dap(name, version='', update=False, first=True):
