@@ -1,4 +1,12 @@
-- GitHub two-factor authentication now supported
+0.10.0
+- DAPI support added, default assistant set was dropped.
+- DevAssistant PingPong (a.k.a executable assistants) was implemented.
+- Improve support for Docker, support Docker container orchestration
+  with Vagrant.
+- Support for dynamic CommandRunner loading in assistants was added.
+- GitHub two-factor authentication now supported.
+- Documentation overhaul.
+- Tons of minor features added and bugs fixed.
 
 0.9.1
 - Mainly bugfixes
