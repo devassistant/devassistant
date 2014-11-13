@@ -2,6 +2,8 @@
 - DAPI support added, default assistant set was dropped.
 - New 'pkg' command for installing/removing packages from DAPI, linting.
 - DevAssistant PingPong (a.k.a executable assistants) was implemented.
+- "modify" assistants were renamed to "tweak", "task" assistants were
+  renamed to "extras".
 - Improve support for Docker, support Docker container orchestration
   with Vagrant.
 - Support for Fedora's DNF package manager added.
