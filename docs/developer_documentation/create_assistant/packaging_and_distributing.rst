@@ -60,8 +60,10 @@ Note several things:
 
 .. _meta_yaml_ref:
 
-meta.yaml
----------
+meta.yaml explained
+^^^^^^^^^^^^^^^^^^^
+
+There is an important file called ``meta.yaml`` in every dap. It contains mandatory information about the dap as well as additional optional metadata. Let's see an explained example:
 
 ::
 
@@ -103,13 +105,36 @@ meta.yaml
 
 * **supported_platforms** optionally lists all platforms (Linux distributions etc.), that this dap is known to work on. When missing or empty, all platforms are considered supported. You can choose from the following options: arch, centos, debian, fedora, gentoo, mageia, mandrake, mandriva, redhat, rocks, slackware, suse, turbolinux, unitedlinux, yellowdog and darwin (for Mac OS).
 
-Checking your dap for sanity
-----------------------------
 
-Once you have your dap packaged, check it for sanity with ``da pkg lint`` tool from DevAssistant.
-::
+Assistant for creating assistants packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   da pkg lint foo-0.0.1.dap
+There is a DevAssistant package containing set of assistants that help you create this quite complicated directory structure and package your dap. It's called dap and you can `get it form Dapi <https://dapi.devassistant.org/dap/dap/>`_.
+
+.. code:: sh
+
+  # install dap from Dapi
+  $ da pkg install dap
+
+  # observe available options
+  $ da crt dap --help
+
+  # create dap directory structure named foo with (empty) crt and twk assistants
+  $ da crt dap -n foo --crt --twk
+
+  # you can also tweak your dap directory structure a bit by adding assistants of different kind
+
+  # observe available options
+  $ da twk dap add -h
+
+  # add a snippet
+  $ da twk dap add --snippet
+
+  # once ready, you can also pack you assistant
+  $ da twk dap pack
+
+  # as well as check if DevAssistant thinks your package is sane
+  $ da pkg lint foo-0.0.1.dap
 
 Uploading your dap to DevAssistant Package Index
 ------------------------------------------------
