@@ -1,10 +1,14 @@
 0.10.0
 - DAPI support added, default assistant set was dropped.
+- New 'pkg' command for installing/removing packages from DAPI, linting.
 - DevAssistant PingPong (a.k.a executable assistants) was implemented.
 - Improve support for Docker, support Docker container orchestration
   with Vagrant.
+- Support for Fedora's DNF package manager added.
 - Support for dynamic CommandRunner loading in assistants was added.
 - GitHub two-factor authentication now supported.
+- Custom Polkit dialog when asking for elevated privileges.
+- Option to specify what architectures an Assistant should be run on.
 - Documentation overhaul.
 - Tons of minor features added and bugs fixed.
 
