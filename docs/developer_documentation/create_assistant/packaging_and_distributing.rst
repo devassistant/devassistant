@@ -9,21 +9,21 @@ So now you know how to :ref:`create an assistant <create_your_own_assistant>`.
 But what if you want to share your assistant with others?
 
 For that you could send them all the files from your assistant and tell them where they belong.
-But that would be very unpleasant and that's why we've invented dap.
-Dap is a format of extension for DevAssistant that contains custom assistants.
+But that would be very unpleasant and that's why we've invented DAP.
+DAP is a format of extension for DevAssistant that contains custom assistants.
 It means DevAssistant Package.
 
-A dap is a tar.gz archive with ``.dap`` extension. The name of a dap is always
+A DAP is a tar.gz archive with ``.dap`` extension. The name of a DAP is always
 ``<package_name>-<version>.dap`` - i.e. ``foo-0.0.1.dap``.
 
-Directory structure of a dap
+Directory structure of a DAP
 ----------------------------
 
-The directory structure of a dap copies the structure of ``~/.devassistant`` or
+The directory structure of a DAP copies the structure of ``~/.devassistant`` or
 ``/usr/share/devassistant`` folder. The only difference is, that it can only contain assistants,
 files and icons that that belongs to it's namespace.
 
-Each dap has an unique name (lat's say ``foo``) and it can only contain assistants ``foo`` or
+Each DAP has an unique name (lat's say ``foo``) and it can only contain assistants ``foo`` or
 ``foo/*``. Therefore, the directory structure looks like this::
 
    foo-0.0.1/
@@ -51,7 +51,7 @@ Note several things:
   no files or snippets. Only mandatory thing is ``meta.yaml`` (see below).
 - Everything goes to the particular folder, just like you've learned in the chapter about
   :ref:`creating assistants <create_your_own_assistant>`. However, you can only add stuff named
-  as your dap (means either a folder or a file with a particular extension). If you have more
+  as your DAP (means either a folder or a file with a particular extension). If you have more
   levels of assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level
   assistants (in this case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to
   preserve the structure in other folders as well (i.e. no ``icons/crt/foo/spam.svg`` but
@@ -63,7 +63,7 @@ Note several things:
 meta.yaml explained
 ^^^^^^^^^^^^^^^^^^^
 
-There is an important file called ``meta.yaml`` in every dap. It contains mandatory information about the dap as well as additional optional metadata. Let's see an explained example:
+There is an important file called ``meta.yaml`` in every DAP. It contains mandatory information about the DAP as well as additional optional metadata. Let's see an explained example:
 
 ::
 
@@ -95,34 +95,34 @@ There is an important file called ``meta.yaml`` in every dap. It contains mandat
 
 * **authors** is a list of authors with their e-mail addresses (_at_ can be used instead of @)
 
-* **homepage** is an URL to existing webpage that describes the dap or contains the code (such as in example), only http(s) or ftp is allowed, no IP addresses
+* **homepage** is an URL to existing webpage that describes the DAP or contains the code (such as in example), only http(s) or ftp is allowed, no IP addresses
 
 * **summary** and **description** are self-descriptive in the given example
 
 * **bugreports** defines where the user should report bugs, it can be either an URL (issue tracker) or an e-mail address (mailing list or personal)
 
-* **dependencies** specifies other daps this one needs to run - either non-versioned or versioned, optional; note, that versions are ignored for now, they'll start working in one of the future DevAssistant releases
+* **dependencies** specifies other DAPs this one needs to run - either non-versioned or versioned, optional; note, that versions are ignored for now, they'll start working in one of the future DevAssistant releases
 
-* **supported_platforms** optionally lists all platforms (Linux distributions etc.), that this dap is known to work on. When missing or empty, all platforms are considered supported. You can choose from the following options: arch, centos, debian, fedora, gentoo, mageia, mandrake, mandriva, redhat, rocks, slackware, suse, turbolinux, unitedlinux, yellowdog and darwin (for Mac OS).
+* **supported_platforms** optionally lists all platforms (Linux distributions etc.), that this DAP is known to work on. When missing or empty, all platforms are considered supported. You can choose from the following options: arch, centos, debian, fedora, gentoo, mageia, mandrake, mandriva, redhat, rocks, slackware, suse, turbolinux, unitedlinux, yellowdog and darwin (for Mac OS).
 
 
 Assistant for creating assistants packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There is a DevAssistant package containing set of assistants that help you create this quite complicated directory structure and package your dap. It's called dap and you can `get it form Dapi <https://dapi.devassistant.org/dap/dap/>`_.
+There is a DevAssistant package containing set of assistants that help you create this quite complicated directory structure and package your DAP. It's called dap and you can `get it form DAPI <https://dapi.devassistant.org/dap/dap/>`_.
 
 .. code:: sh
 
-  # install dap from Dapi
+  # install dap from DAPI
   $ da pkg install dap
 
   # observe available options
   $ da crt dap --help
 
-  # create dap directory structure named foo with (empty) crt and twk assistants
+  # create DAP directory structure named foo with (empty) crt and twk assistants
   $ da crt dap -n foo --crt --twk
 
-  # you can also tweak your dap directory structure a bit by adding assistants of different kind
+  # you can also tweak your DAP directory structure a bit by adding assistants of different kind
 
   # observe available options
   $ da twk dap add -h
@@ -136,9 +136,9 @@ There is a DevAssistant package containing set of assistants that help you creat
   # as well as check if DevAssistant thinks your package is sane
   $ da pkg lint foo-0.0.1.dap
 
-Uploading your dap to DevAssistant Package Index
+Uploading your DAP to DevAssistant Package Index
 ------------------------------------------------
 
-When you are satisfied, you can share your assistant on `Dapi <http://dapi.devassistant.org/>`_ (DevAssistant Package Index).
+When you are satisfied, you can share your assistant on `DAPI <http://dapi.devassistant.org/>`_ (DevAssistant Package Index).
 
-On `Dapi <http://dapi.devassistant.org/>`_, log in with Github or Fedora account and follow `Upload a Dap <http://dapi.devassistant.org/upload>`_ link in the menu.
+On `DAPI <http://dapi.devassistant.org/>`_, log in with Github or Fedora account and follow `Upload a DAP <http://dapi.devassistant.org/upload>`_ link in the menu.
