@@ -53,9 +53,8 @@ When testing, use mocking (namely flexmock)
 Often when you need to test some object's behaviour, you need to "pretend" that
 something works somehow, for example that the network is up or that a specific
 file exists. That is okay, but it is not okay to actually connect to the
-internet for testing, or create or delete specific files in the file system. On
-Travis, our test server, you can't access the network at all, and you can't
-assume specific files to exist either.
+internet for testing, or create or delete specific files in the file system.
+This could break something, or might not work on our test server.
 
 Of course, sometimes you may need to create a nameless temporary file with
 ``tempfile.mkstemp()``, which is something we do often, and it is a perfectly
