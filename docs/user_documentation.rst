@@ -79,6 +79,9 @@ This line will do the following:
 Modifying Existing Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note:: Please be advised that with version 0.10.0, the ``modify`` command
+          changes to ``tweak``.
+
 DevAssistant allows you to work with previously created projects. You can do
 this by using ``da modify``, as opposed to ``da create`` for creating::
 
@@ -116,6 +119,9 @@ that others do. But this is still somewhere in the future...
 
 Tasks
 ~~~~~
+
+.. note:: Please be advised that with version 0.10.0, the ``task`` command
+          changes to ``extra``.
 
 The last piece of functionality is performing arbitrary tasks that are not related to a specific
 projects. E.g.::

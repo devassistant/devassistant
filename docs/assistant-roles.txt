@@ -1,5 +1,8 @@
 There are four assistant roles:
 
+.. note:: Please be advised that with version 0.10.0, the ``modify`` command
+          changes to ``tweak``.
+
 creator (``create`` or ``crt`` on command line)
   creates new projects
 modifier (``modify`` or ``mod`` on command line)

@@ -4,6 +4,9 @@ DevAssistant (http://devassistant.org) can help you with creating and setting up
 in various languages, installing dependencies, setting up environment etc. There are four main
 types of functionality provided:
 
+.. note:: Please be advised that with version 0.10.0, the ``modify`` command
+          changes to ``tweak``.
+
 - ``da create`` - create new project from scratch
 - ``da modify`` - take local project and do something with it (e.g. import it to Eclipse)
 - ``da prepare`` - prepare development environment for an upstream project or a custom task
