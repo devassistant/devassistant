@@ -55,7 +55,8 @@ These are some examples of what you can do:
   $ da pkg search django
   python - Python assistants (library, Django, Flask, GTK3)
 
-  # install the found "python" DAP, assuming it supports your OS/distro
+  # install the found "python" DAP, assuming it supports your OS/distro (and, 
+  # if you want to install sevaral assistants, just separate them by a space)
   $ da pkg install python
 
   # find out if the installed package has documentation
