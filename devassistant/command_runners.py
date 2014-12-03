@@ -12,7 +12,6 @@ import threading
 import unicodedata
 
 import dapp
-import docker
 import jinja2
 import six
 import yaml
@@ -962,6 +961,10 @@ class AsUserCommandRunner(CommandRunner):
 class DockerCommandRunner(CommandRunner):
     _has_docker_group = None
     _client = None
+    try:
+        _docker_module = utils.import_module('docker')
+    except:
+        _docker_module = None
 
     @classmethod
     def matches(cls, c):
@@ -1039,7 +1042,7 @@ class DockerCommandRunner(CommandRunner):
             return (True, '')
 
         if not cls._client:
-            cls._client = docker.Client()
+            cls._client = cls._docker_module.Client()
 
         if c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
             'docker_stop', 'docker_cc', 'docker_build']:
@@ -1056,12 +1059,19 @@ class DockerCommandRunner(CommandRunner):
 
     @classmethod
     def _docker_check_setup(cls):
-        """Only users in "docker" group can use docker; there are three possible situations:
-        1) user is not added to docker group => we need to add him there and then go to 2)
-        2) user has been added to docker group, but would need to log out for it to
-           take effect => inform and raise exception
-        3) user has been added to docker group in a previous login session => all ok
+        """Check that environment allows running docker:
+        a) The Docker module can be imported
+        b) Only users in "docker" group can use docker; there are three possible situations:
+            1) user is not added to docker group => we need to add him there and then go to 2)
+            2) user has been added to docker group, but would need to log out for it to
+               take effect => inform and raise exception
+            3) user has been added to docker group in a previous login session => all ok
         """
+        if cls._docker_module is None:
+            msg = 'The Docker Python module is not present. It is possible that Docker does ' +\
+                  'not support your architecture yet.'
+            raise exceptions.CommandException(msg)
+
         if not cls._docker_group_active():
             if not cls._docker_group_added():
                 # situation 1
@@ -1292,7 +1302,7 @@ class DockerCommandRunner(CommandRunner):
                     res = 'Container doesn\'t have attribute {a}'.format(a=attr)
                 else:
                     res = res[a]
-        except docker.errors.APIError as e:
+        except cls._docker_module.errors.APIError as e:
             msg = 'Failed to obtain container attribute: {e}'.format(e=e)
             raise exceptions.CommandException(msg)
 
