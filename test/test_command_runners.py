@@ -1,21 +1,21 @@
 # -*- coding: utf8 -*-
 import copy
 import os
+import six
 import sys
 
 import pytest
 from flexmock import flexmock
 import yaml
 
-from devassistant import lang
 from devassistant.assistant_base import AssistantBase
 from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
     SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner, \
-    EnvCommandRunner
+    EnvCommandRunner, DockerCommandRunner
 # also import just command_runners to have access to command_runners.command_runners
-from devassistant import command_runners
+from devassistant import command_runners, lang, utils
 from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 from devassistant.yaml_assistant import YamlAssistant
@@ -569,3 +569,28 @@ class TestEnvCommandRunner(object):
         res = EnvCommandRunner.run(Command('env_unset', ['foo', 'spam'], self.kwargs))
         assert res == (True, {'foo': 'bar', 'spam': 'spam'})
         assert self.kwargs == {'__env__': {}}
+
+class TestDockerCommandRunner(object):
+
+    def test_check_fails_when_docker_py_not_present(self):
+        dcr = flexmock(DockerCommandRunner)
+        dcr.should_receive('_docker_module').and_return(None)
+        dcr.should_call('_docker_group_add').never()
+        dcr.should_call('_docker_service_enable_and_run').never()
+
+        with pytest.raises(CommandException) as excinfo:
+            DockerCommandRunner._docker_check_setup()
+
+        assert 'module is not present' in str(excinfo.value)
+
+    def test_check_passes_when_docker_present(self):
+        dcr = flexmock(DockerCommandRunner)
+        dcr.should_receive('_docker_module').and_return(object())
+        dcr.should_receive('_docker_group_active').and_return(True)
+        dcr.should_receive('_docker_service_running').and_return(True)
+        dcr.should_call('_docker_group_add').never()
+        dcr.should_call('_docker_service_enable_and_run').never()
+
+        DockerCommandRunner._docker_check_setup()
+
+
