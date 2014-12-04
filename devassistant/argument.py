@@ -46,7 +46,14 @@ class Argument(object):
         # In cli 'preserved' is not supported.
         # It needs to be removed because it is unknown for argparse.
         self.kwargs.pop('preserved', None)
-        parser.add_argument(*self.flags, **self.kwargs)
+        try:
+            parser.add_argument(*self.flags, **self.kwargs)
+        except Exception as ex:
+            problem = "Error while adding argument '{name}': {error}".\
+                format(name=self.name, error=repr(ex))
+            raise exceptions.ExecutionException(problem)
+
+
 
     def get_dest(self):
         """Get "dest", which represents the name of this argument translated

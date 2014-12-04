@@ -27,6 +27,8 @@ class TestArgument(object):
 
     e = Argument('+weird-ch$a#r%s', '--foo')
 
+    f = Argument('asd', 'asd', action="store_const")  # will raise TypeError
+
     def test_argument_returns_correct_gui_hints(self):
         assert self.p.get_gui_hint('type') == 'path'
         assert self.p.get_gui_hint('default') == os.path.join(os.getcwd(), 'foo')
@@ -45,6 +47,11 @@ class TestArgument(object):
         parser.print_help()
         output = capsys.readouterr()[0] # captured stdout
         assert re.compile(r'-p.*--path.*helptext', re.DOTALL).search(output)
+
+    def test_argument_to_raises_on_error(self):
+        parser = ArgumentParser()
+        with pytest.raises(exceptions.ExecutionException):
+            self.f.add_argument_to(parser)
 
     def test_argument_whoami_gui_hint(self):
         a = Argument.construct_arg('some_arg',{'use':'snippet1'})

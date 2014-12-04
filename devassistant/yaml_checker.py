@@ -100,6 +100,10 @@ class YamlChecker(object):
                 self._assert_list(attrval, attrn, path)
             elif attrn == 'action':
                 self._assert_struct_type(attrval, attrn, (list, ) + six.string_types, path)
+                if attrval == 'store_const':
+                    self._assert_key_in(
+                        'const', argattrs.keys(), argattrs['flags'][0],
+                        extra_info="Argument with action 'store_const' has to have 'const' key specified.")
             elif attrn == 'gui_hints':
                 # TODO: maybe check this more thoroughly
                 self._assert_dict(attrval, attrn, path)
