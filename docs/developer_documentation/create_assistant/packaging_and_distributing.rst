@@ -117,21 +117,21 @@ There is a DevAssistant package containing set of assistants that help you creat
   $ da pkg install dap
 
   # observe available options
-  $ da crt dap --help
+  $ da create dap --help
 
-  # create DAP directory structure named foo with (empty) crt and twk assistants
-  $ da crt dap -n foo --crt --twk
+  # create DAP directory structure named foo with (empty) create and tweak assistants
+  $ da create dap -n foo --crt --twk
 
   # you can also tweak your DAP directory structure a bit by adding assistants of different kind
 
   # observe available options
-  $ da twk dap add -h
+  $ da tweak dap add -h
 
   # add a snippet
-  $ da twk dap add --snippet
+  $ da tweak dap add --snippet
 
   # once ready, you can also pack you assistant
-  $ da twk dap pack
+  $ da tweak dap pack
 
   # as well as check if DevAssistant thinks your package is sane
   $ da pkg lint foo-0.0.1.dap
@@ -139,6 +139,20 @@ There is a DevAssistant package containing set of assistants that help you creat
 Uploading your DAP to DevAssistant Package Index
 ------------------------------------------------
 
-When you are satisfied, you can share your assistant on `DAPI <http://dapi.devassistant.org/>`_ (DevAssistant Package Index).
+Once the package is finished (you have run all the steps from the previous
+chapter - that means you have a DAP file which passes the linting without
+errors), you can share your DAP on `DAPI <http://dapi.devassistant.org/>`_
+(DevAssistant Package Index).
 
-On `DAPI <http://dapi.devassistant.org/>`_, log in with Github or Fedora account and follow `Upload a DAP <http://dapi.devassistant.org/upload>`_ link in the menu.
+To do that, log into `DAPI <http://dapi.devassistant.org/>`_ with your Github
+or Fedora account, and click `Upload a DAP
+<http://dapi.devassistant.org/upload>`_ link in the top menu. There you will
+find legal information about what you may (and may not) upload and an upload
+field, where you select the \*.dap file on your machine. After that, just click
+*Upload*, and the server will take care of the rest.
+
+To update your package later, simply increase the version in `meta.yaml`,
+re-run `da tweak dap pack` and `da pkg lint foo-0.0.2.dap`, and upload it to
+DAPI just the same. The server will understand it's an update and will act
+accordingly.
+
