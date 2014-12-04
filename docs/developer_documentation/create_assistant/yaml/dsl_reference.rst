@@ -188,10 +188,21 @@ their attributes::
    args:
      name:
        flags:
-       - -n
-       - --name
-     help: Name of the project to create.
- 
+         - -n
+         - --name
+       help: Name of the project to create.
+
+Alternatively, the arguments can be provided in a list, which is useful when
+you want multiple positional arguments, i. e. their order is important to you::
+
+   args:
+     - from:
+         flags: [from]
+         help: Source destination
+     - to:
+         flags: [to]
+         help: Target destination
+
 Available argument attributes:
 
 ``flags``
