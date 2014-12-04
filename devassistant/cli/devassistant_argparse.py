@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from gettext import gettext as _
 
@@ -11,10 +12,9 @@ class ArgumentParser(argparse.ArgumentParser):
         super(ArgumentParser, self).__init__(*args, **kwargs)
 
     def error(self, message):
-        import sys as _sys
         # dirty hack - only top level binary has suppressed usage
         if self.usage == argparse.SUPPRESS:
-            wants_help = '-h' in _sys.argv or '--help' in _sys.argv
+            wants_help = '-h' in sys.argv or '--help' in sys.argv
             if not wants_help:
                 print('Couldn\'t parse input, displaying help ...\n')
             print(HelpAction.get_help())
@@ -23,33 +23,71 @@ class ArgumentParser(argparse.ArgumentParser):
             else:
                 self.exit(1)
         else:
-            # python 2 and 3 hooks to grab missing subassistant argument and report it meaningfully
             if message == _('too few arguments') or settings.SUBASSISTANT_N_STRING[:-3] in message:
-                for action in self._get_positional_actions():
-                    if isinstance(action, argparse._SubParsersAction):
-                        if message == _('too few arguments') and len(action.choices) == 0:
-                            msg = ['No subassistants available.',
-                                '',
-                                'To search DevAssistant Package Index (DAPI) for new assistants,',
-                                'you can either browse https://dapi.devassistant.org/ or run',
-                                '',
-                                '"da pkg search <term>".',
-                                '',
-                                'Then you can run',
-                                '',
-                                '"da pkg install <DAP-name>"',
-                                '',
-                                'to install the desired DevAssistant package (DAP).\n']
-                            self.exit(2, _('\n'.join(msg)))
-                        else:
-                            self.print_usage(_sys.stderr)
-                            prog = getattr(action, '_prog_prefix', 'crt').split()[0]
-                            if prog in settings.ASSISTANT_ROLES:
-                                self.exit(2, _('You have to select a subassistant.\n'))
-                            else:
-                                self.exit(2, _('You have to select a subaction.\n'))
-            self.print_usage(_sys.stderr)
+                self._bad_subassistant_error(message)
+            self.print_usage(sys.stderr)
             self.exit(1, _('%s: error: %s\n') % (self.prog, message))
+
+    def _bad_subassistant_error(self, message):
+        # python 2 and 3 hooks to grab wrong/missing subassistant and report it meaningfully
+        for action in self._get_positional_actions():
+            if isinstance(action, argparse._SubParsersAction):
+                if message == _('too few arguments') and len(action.choices) == 0:
+                    msg = ['No subassistants available.',
+                        '',
+                        'To search DevAssistant Package Index (DAPI) for new assistants,',
+                        'you can either browse https://dapi.devassistant.org/ or run',
+                        '',
+                        '"da pkg search <term>".',
+                        '',
+                        'Then you can run',
+                        '',
+                        '"da pkg install <DAP-name>"',
+                        '',
+                        'to install the desired DevAssistant package (DAP).\n']
+                    self.exit(2, _('\n'.join(msg)))
+                else:
+                    self.print_usage(sys.stderr)
+                    prog = getattr(action, '_prog_prefix', 'crt').split()[0]
+                    if prog in settings.ASSISTANT_ROLES:
+                        not_found = 'Assistant'
+                        select = 'subassistant'
+                    else:
+                        not_found = 'Action'
+                        select = 'subaction'
+
+                    if 'invalid choice' in message:
+                        a = self._format_wrong_subparser_path(action)
+                        self.exit(2, _('{0} not found: "{1}"\n'.format(not_found, a)))
+                    else:
+                        self.exit(2, _('You have to select a {0}.\n'.format(select)))
+
+    def _format_wrong_subparser_path(self, action):
+        argv = sys.argv
+        subparser_start = getattr(action, '_prog_prefix', '').split()
+        if subparser_start == []:
+            return '<internal error - no _prog_prefix>'
+
+        # We have to match members of argv with members of subparser start;
+        #  The hard part is that if argv is ['crt', '--deps-only', '--blah', 'assistant'],
+        #  then subparser_start is ['crt', 'assistant'].
+        #  In fact we're searching for first member of argv not prefixed with "-"
+        #  which is not in subparser_start.
+        subparser_start_pos = 0
+        wrong_subparser = None
+        for s in argv:
+            # skip all argv members before we find the one at subparser_start_pos
+            if subparser_start_pos < len(subparser_start):
+                if s == subparser_start[subparser_start_pos]:
+                    subparser_start_pos += 1
+            else:
+                # we've reached end of subparser_start, get first memeber not prefixed with "-"
+                if not s.startswith('-'):
+                    wrong_subparser = s
+                    break
+        if not wrong_subparser:
+            return '<internal error - wrong_subparser not found>'
+        return ' '.join(subparser_start + [wrong_subparser])
 
 
 class DefaultIffUsedActionFactory(object):
