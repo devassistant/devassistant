@@ -78,12 +78,23 @@ class YamlChecker(object):
             self._assert_str(i, i, path)
 
     def _check_args(self, source):
+        '''Validate the argument section.
+
+        Args may be either a dict or a list (to allow multiple positional args).
+        '''
         path = [source]
         args = self.parsed_yaml.get('args', {})
-        self._assert_dict(args, 'args', path)
+        self._assert_struct_type(args, 'args', (dict, list), path)
         path.append('args')
-        for argn, argattrs in args.items():
-            self._check_one_arg(path, argn, argattrs)
+        if isinstance(args, dict):
+            for argn, argattrs in args.items():
+                self._check_one_arg(path, argn, argattrs)
+        else: # must be list - already asserted struct type
+            for argdict in args:
+                self._assert_command_dict(argdict, '[list-item]', path)
+                argn, argattrs = argdict.items()[0] # safe - length asserted on previous line
+                self._check_one_arg(path, argn, argattrs)
+
 
     def _check_one_arg(self, path, argn, argattrs):
         self._assert_dict(argattrs, argn, path)
@@ -212,7 +223,7 @@ class YamlChecker(object):
         self._assert_dict(struct, name, path, extra_info)
         if len(struct) != 1:
             err = [self._format_error_path(path + [name])]
-            err.append('Commands of run and dependencies sections must be mapping with '
+            err.append('Commands of run, dependencies, and argument sections must be mapping with '
                        'exactly 1 key-value pair, got {0}: {1}'.format(len(struct), struct))
             if extra_info:
                 err.append(extra_info)

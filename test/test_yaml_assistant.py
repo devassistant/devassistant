@@ -155,6 +155,27 @@ class TestYamlAssistant(object):
         for k, v in test_types.items():
             assert isinstance(getattr(self.ya, k), v)
 
+    @pytest.mark.parametrize('struct_args', [
+        [{'foo': {'flags': ['--bar']}}, {'baz': {'flags': ['--qux']}}],
+        {'foo': {'flags': ['--bar']}, 'baz': {'flags': ['--qux']}},
+    ])
+    def test_construct_args(self, struct_args):
+        args = self.ya._construct_args(struct_args)
+
+        assert isinstance(args, list)
+        assert len(args) == 2
+
+        for arg in args:
+            assert arg.name in ['foo', 'baz']
+            assert len(arg.flags) == 1
+            assert arg.flags[0] in ['--bar', '--qux']
+
+    def test_args_order_from_list(self):
+        args_list = [{'foo': {'flags': {}}}, {'bar': {'flags': {}}}, {'baz': {'flags': {}}}]
+        args = self.ya._construct_args(args_list)
+
+        assert [arg.name for arg in args] == ['foo', 'bar', 'baz']
+
 
 class TestYamlAssistantTweak(object):
     def setup_method(self, method):

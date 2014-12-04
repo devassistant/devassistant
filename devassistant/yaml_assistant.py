@@ -117,7 +117,15 @@ class YamlAssistant(assistant_base.AssistantBase, loaded_yaml.LoadedYaml):
 
     def _construct_args(self, struct):
         args = []
-        for arg_name, arg_params in struct.items():
+        # Construct properly the iterable args from either a dict, or a list
+        if isinstance(struct, dict):
+            temp_args = struct.items()
+        elif isinstance(struct, list):
+            temp_args = [list(argdict.items())[0] for argdict in struct]
+        else:
+            raise TypeError('Args struct should be dict or list, is {0}'.format(type(struct)))
+
+        for (arg_name, arg_params) in temp_args:
             try:
                 args.append(argument.Argument.construct_arg(arg_name, arg_params))
             except exceptions.ExecutionException as e:
