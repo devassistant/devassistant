@@ -1,3 +1,10 @@
+0.10.1
+- Small bugfix release
+- Docker hard dependency dropped because of non-x86_64 architectures
+- Better documentation of upload mechanism to DAPI
+- More friendly error output in some use cases
+- Assistant args can now be stored in a list, allowing multiple positional args
+
 0.10.0
 - DAPI support added, default assistant set was dropped.
 - New 'pkg' command for installing/removing packages from DAPI, linting.
