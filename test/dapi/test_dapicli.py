@@ -6,6 +6,7 @@ import sys
 import yaml
 from flexmock import flexmock
 
+from devassistant import dapi
 from devassistant.dapi import dapicli
 
 
@@ -111,6 +112,22 @@ results:
         assert s('foo==1') == 'foo'
         assert s('foo <=1 ') == 'foo'
         assert s('foo<=1') == 'foo'
+
+    def test_install_from_path_nodeps(self):
+        # Functional mocks
+        fakedap = flexmock(meta={'package_name': 'foo', 'version': '1.0', 'dependencies': ['bar-1.0']}, \
+                           check=lambda: True, extract=lambda x: None)
+        flexmock(dapi.Dap).new_instances(fakedap)
+        flexmock(dapicli).should_receive('get_installed_daps').and_return([])
+        flexmock(dapicli).should_receive('_install_path').and_return('.')
+        flexmock(dapicli).should_call('install_dap').with_args('bar').never()
+
+        # Filtering off details
+        flexmock(os).should_receive('mkdir').and_return()
+        flexmock(os).should_receive('rename').and_return()
+
+        dapicli.install_dap_from_path('/foo', nodeps=True)
+
 
 class TestUninstall(object):
 

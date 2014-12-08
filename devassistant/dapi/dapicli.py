@@ -275,7 +275,7 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, update=False, first=True, force=False):
+def install_dap_from_path(path, update=False, first=True, force=False, nodeps=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
@@ -303,13 +303,14 @@ def install_dap_from_path(path, update=False, first=True, force=False):
                 '{0} is not supported on this platform (use --force to suppress this check)'.
                 format(dap_obj.meta['package_name']))
         deps = set()
-        for dep in dap_obj.meta['dependencies']:
-            dep = _strip_version_from_dependency(dep)
-            if dep not in get_installed_daps():
-                deps |= _get_all_dependencies_of(dep, force=force)
-        for dep in deps:
-            if dep not in get_installed_daps():
-                installed += install_dap(dep, first=False)
+        if not nodeps:
+            for dep in dap_obj.meta['dependencies']:
+                dep = _strip_version_from_dependency(dep)
+                if dep not in get_installed_daps():
+                    deps |= _get_all_dependencies_of(dep, force=force)
+            for dep in deps:
+                if dep not in get_installed_daps():
+                    installed += install_dap(dep, first=False)
 
     dap_obj.extract(_dir)
     if will_uninstall:
@@ -407,7 +408,7 @@ def _get_api_dependencies_of(name, version='', force=False):
             format(name))
     return d.get('dependencies', [])
 
-def install_dap(name, version='', update=False, first=True, force=False):
+def install_dap(name, version='', update=False, first=True, force=False, nodeps=False):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
@@ -420,7 +421,7 @@ def install_dap(name, version='', update=False, first=True, force=False):
             return []
     path, remove_dir = download_dap(name, d=d)
 
-    ret = install_dap_from_path(path, update=update, first=first, force=force)
+    ret = install_dap_from_path(path, update=update, first=first, force=force, nodeps=nodeps)
 
     try:
         if remove_dir:

@@ -270,6 +270,8 @@ class PkgInstallAction(Action):
         argument.Argument('package', 'package', nargs='+', help='Packages to install'),
         argument.Argument('force', '-f', '--force', action='store_true', default=False,
                           help='Install packages that are unsupported on this platform (dangerous)'),
+        argument.Argument('nodeps', '-n', '--no-deps', action='store_true', default=False,
+                          help='Do not install dependencies of the selected package'),
     ]
 
     @classmethod
@@ -282,7 +284,7 @@ class PkgInstallAction(Action):
             else:
                 method = dapicli.install_dap
             try:
-                pkgs = method(pkg, force=kwargs['force'])
+                pkgs = method(pkg, force=kwargs['force'], nodeps=kwargs.get('nodeps', False))
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except Exception as e:
                 exs.append(str(e))
