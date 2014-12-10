@@ -7,8 +7,21 @@ from devassistant import bin
 from devassistant import settings
 from devassistant.actions import HelpAction
 
-
 class ArgumentParser(argparse.ArgumentParser):
+    no_assistants_msg = '\n'.join([
+        'No subassistants available.',
+        '',
+        'To search DevAssistant Package Index (DAPI) for new assistants,',
+        'you can either browse https://dapi.devassistant.org/ or run',
+        '',
+        '"da pkg search <term>".',
+        '',
+        'Then you can run',
+        '',
+        '"da pkg install <DAP-name>"',
+        '',
+        'to install the desired DevAssistant package (DAP).\n'])
+
     def __init__(self, *args, **kwargs):
         super(ArgumentParser, self).__init__(*args, **kwargs)
 
@@ -34,19 +47,7 @@ class ArgumentParser(argparse.ArgumentParser):
         for action in self._get_positional_actions():
             if isinstance(action, argparse._SubParsersAction):
                 if message == _('too few arguments') and len(action.choices) == 0:
-                    msg = ['No subassistants available.',
-                        '',
-                        'To search DevAssistant Package Index (DAPI) for new assistants,',
-                        'you can either browse https://dapi.devassistant.org/ or run',
-                        '',
-                        '"da pkg search <term>".',
-                        '',
-                        'Then you can run',
-                        '',
-                        '"da pkg install <DAP-name>"',
-                        '',
-                        'to install the desired DevAssistant package (DAP).\n']
-                    self.exit(2, _('\n'.join(msg)))
+                    self.exit(2, _(self.no_assistants_msg))
                 else:
                     self.print_usage(sys.stderr)
                     prog = getattr(action, '_prog_prefix', 'crt').split()[0]
