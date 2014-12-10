@@ -3,6 +3,7 @@ import sys
 
 from gettext import gettext as _
 
+from devassistant import bin
 from devassistant import settings
 from devassistant.actions import HelpAction
 
@@ -49,7 +50,10 @@ class ArgumentParser(argparse.ArgumentParser):
                 else:
                     self.print_usage(sys.stderr)
                     prog = getattr(action, '_prog_prefix', 'crt').split()[0]
-                    if prog in settings.ASSISTANT_ROLES:
+                    all_assistants_names = []
+                    for a in bin.TopAssistant().get_subassistants():
+                        all_assistants_names.extend(a.get_all_names())
+                    if prog in all_assistants_names:
                         not_found = 'Assistant'
                         select = 'subassistant'
                     else:

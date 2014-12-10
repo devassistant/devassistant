@@ -12,6 +12,9 @@ class ExecutableAssistant(assistant_base.AssistantBase):
                               required=False,
                               action='store_true')]
 
+    def get_all_names(self):
+        return [self.name] + self.aliases
+
 
 class CreatorAssistant(ExecutableAssistant):
     def get_subassistants(self):
