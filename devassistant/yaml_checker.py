@@ -92,7 +92,7 @@ class YamlChecker(object):
         else: # must be list - already asserted struct type
             for argdict in args:
                 self._assert_command_dict(argdict, '[list-item]', path)
-                argn, argattrs = argdict.items()[0] # safe - length asserted on previous line
+                argn, argattrs = list(argdict.items())[0] # safe - length asserted on previous line
                 self._check_one_arg(path, argn, argattrs)
 
 
