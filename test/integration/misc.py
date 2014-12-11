@@ -9,10 +9,13 @@ import tempfile
 from scripttest import TestFileEnvironment
 
 def run_da(cmd=[], expect_error=False, expect_stderr=False, stdin="", cwd=None, environ=None,
-        delete_test_dir=True, top_level_bin='./da.py'):
+        delete_test_dir=True, top_level_bin='da.py'):
     # construct command
     if isinstance(cmd, str):
         cmd = cmd.split()
+    if not top_level_bin.startswith(os.path.sep):
+        da_topdir = os.path.join(os.path.dirname(__file__), '..', '..')
+        top_level_bin = os.path.join(da_topdir, top_level_bin)
     cmd = [sys.executable, top_level_bin] + cmd
 
     # create temp dir, register it for removal (or printing that it's a leftover)
