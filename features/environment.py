@@ -11,6 +11,7 @@ homedir_files = [cache, config, lastrun]
 def before_all(context):
     context.dagui_scriptname = 'da-gui.py'
     context.dagui_scriptpath = os.path.abspath(context.dagui_scriptname)
+    os.environ['DEVASSISTANT_NO_DEFAULT_PATH'] = '1'
     os.environ['DEVASSISTANT_PATH'] = datadir
     os.environ['DEVASSISTANT_HOME'] = datadir
 
