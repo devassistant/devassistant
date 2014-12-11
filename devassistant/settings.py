@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 GITHUB_SSH_CONFIG = '''
 # devassistant config for user {login}
@@ -34,15 +35,23 @@ DEPS_ONLY_FLAG = '--deps-only'
 #   load assistants, the relative path would point in an unwanted location
 # - command runners should be allowed to rely on this (e.g. if we pass a file from files
 #   section to Jinja2Runner, we need to make sure it's fullpath)
-DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
-                    '/usr/local/share/devassistant',
-                    '/usr/share/devassistant/']
-DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
+if 'DEVASSISTANT_NO_DEFAULT_PATH' not in os.environ:
+    DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
+                        '/usr/local/share/devassistant',
+                        '/usr/share/devassistant/']
+    DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
+elif 'DEVASSISTANT_HOME' not in os.environ:
+    logging.error('DEVASSISTANT_HOME must be defined with DEVASSISTANT_NO_DEFAULT_PATH')
+    sys.exit(1)
+else:
+    DATA_DIRECTORIES = []
 if 'DEVASSISTANT_PATH' in os.environ:
     DATA_DIRECTORIES = [os.path.abspath(os.path.expanduser(p))
         for p in os.environ['DEVASSISTANT_PATH'].split(':')] + DATA_DIRECTORIES
 if 'DEVASSISTANT_HOME' in os.environ:
     DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
+    if DEVASSISTANT_HOME not in DATA_DIRECTORIES:
+        DATA_DIRECTORIES.insert(0, DEVASSISTANT_HOME)
 
 USE_CACHE = True
 CACHE_FILE = os.path.join(DEVASSISTANT_HOME, '.cache.yaml')
