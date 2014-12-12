@@ -46,7 +46,7 @@ class ArgumentParser(argparse.ArgumentParser):
         # python 2 and 3 hooks to grab wrong/missing subassistant and report it meaningfully
         for action in self._get_positional_actions():
             if isinstance(action, argparse._SubParsersAction):
-                if message == _('too few arguments') and len(action.choices) == 0:
+                if len(action.choices) == 0:
                     self.exit(2, _(self.no_assistants_msg))
                 else:
                     self.print_usage(sys.stderr)
