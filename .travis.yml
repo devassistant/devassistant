@@ -12,4 +12,4 @@ install:
 - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install -r requirements-py2.txt --use-mirrors; fi
 - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install argparse; fi
 
-script: python setup.py test -t py.test
+script: python setup.py test -t py.test -- -m "not webtest"
