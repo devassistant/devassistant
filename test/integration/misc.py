@@ -32,7 +32,7 @@ class DATestFileEnvironment(TestFileEnvironment):
             environ=None, delete_test_dir=True, top_level_bin='da.py'):
         """Set delete_test_dir to False if you want to inspect it afterwards."""
         # construct command
-        if isinstance(cmd, six.text_type):
+        if isinstance(cmd, six.string_types):
             cmd = cmd.split()
         if not top_level_bin.startswith(os.path.sep):
             da_topdir = os.path.join(os.path.dirname(__file__), '..', '..')
