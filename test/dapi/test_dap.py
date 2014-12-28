@@ -494,3 +494,16 @@ class TestDap(object):
         for dap in glob.glob(dap_path('meta_only/*.dap')):
             process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
             assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode('utf8')
+
+    def test_list_assistants(self):
+        '''Check that the list_assistants() method returns right results'''
+        # Using set because we don't care about the order
+        dapdap = set([
+            'assistants/crt/dap',
+            'assistants/twk/dap',
+            'assistants/twk/dap/add',
+            'assistants/twk/dap/pack',
+            'snippets/dap',
+        ])
+        assert set(Dap(dap_path('list_assistants/dap-0.0.1a.dap')).list_assistants()) == dapdap
+        assert Dap(dap_path('meta_only/foo-1.0.0.dap')).list_assistants() == []
