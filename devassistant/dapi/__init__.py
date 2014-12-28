@@ -45,6 +45,8 @@ class Dap(object):
                        _version_pattern + r')?$'),
                    'supported_platforms': platforms}
 
+    _assistants = re.compile(r'(assistants|snippets)/.*\.yaml')
+
     def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
@@ -355,3 +357,11 @@ class Dap(object):
     def extract(self, location):
         '''Extract the contents of a dap to a given location'''
         self._tar.extractall(location)
+
+    def list_assistants(self):
+        '''Lists assistants and snippets contained in the dap.
+        Assumes the dap is valid (i.e. it has already been checked).'''
+        # Remove the first directory from the paths
+        stripped = map(lambda f: '/'.join(f.split('/')[1:]), self.files)
+        # Only return matching paths (but without the .yaml at the end)
+        return [f[:-5] for f in stripped if Dap._assistants.match(f)]
