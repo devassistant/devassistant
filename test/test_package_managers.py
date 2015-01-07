@@ -586,8 +586,9 @@ class TestDependencyInstaller(object):
         self.di = package_managers.DependencyInstaller()
 
     def test_get_package_manager(self):
-        non_working_mgr = flexmock(works=lambda: False)
-        working_mgr = flexmock(works=lambda: True)
+        # also mock __name__ for package managers, since they're supposed to be classes
+        non_working_mgr = flexmock(works=lambda: False, __name__='non_working_mgr')
+        working_mgr = flexmock(works=lambda: True, __name__='working_mgr')
         flexmock(package_managers).should_receive('managers')\
                                   .and_return({'foo': [non_working_mgr, working_mgr],
                                                'bar': [non_working_mgr],

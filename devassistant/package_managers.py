@@ -104,6 +104,10 @@ class PackageManager(object):
         """
         raise NotImplementedError()
 
+    @classmethod
+    def _debug_doesnt_work(cls, msg, name=None):
+        logger.debug('{0} not operational - {1}'.format(name or cls.__name__, msg))
+
 
 class RPMPackageManager(PackageManager):
 
@@ -174,6 +178,7 @@ class YUMPackageManager(RPMPackageManager):
             import yum
             return True
         except ImportError:
+            cls._debug_doesnt_work('can\'t import yum.')
             return False
 
     @classmethod
@@ -253,6 +258,7 @@ class DNFPackageManager(RPMPackageManager):
             import hawkey
             return True
         except ImportError:
+            cls._debug_doesnt_work('can\'t import dnf or hawkey.')
             return False
 
     @classmethod
@@ -348,6 +354,7 @@ class PacmanPackageManager(PackageManager):
             ClHelper.run_command('which pacman')
             return True
         except exceptions.ClException:
+            cls._debug_doesnt_work('"pacman" binary not found')
             return False
 
     @classmethod
@@ -400,6 +407,7 @@ class HomebrewPackageManager(PackageManager):
             ClHelper.run_command('which brew')
             return True
         except exceptions.ClException:
+            cls._debug_doesnt_work('"brew" binary not found')
             return False
 
     @classmethod
@@ -443,6 +451,7 @@ class PIPPackageManager(PackageManager):
             ClHelper.run_command('pip')
             return True
         except exceptions.ClException:
+            cls._debug_doesnt_work('"pip" binary not found')
             return False
 
     @classmethod
@@ -502,6 +511,7 @@ class NPMPackageManager(PackageManager):
             ClHelper.run_command('npm')
             return True
         except exceptions.ClException:
+            cls._debug_doesnt_work('"npm" binary not found')
             return False
 
     @classmethod
@@ -558,6 +568,7 @@ class GemPackageManager(PackageManager):
             ClHelper.run_command('which gem')
             return True
         except exceptions.ClException:
+            cls._debug_doesnt_work('"gem" binary not found')
             return False
 
     @classmethod
@@ -585,7 +596,7 @@ class GemPackageManager(PackageManager):
         return "gem package manager"
 
 
-class GentooPackageManager:
+class GentooPackageManager(PackageManager):
     """Mix-in class for Gentoo package managers. The only thing it capable to do
         is to detect current package manager used in a particular Gentoo based system.
     """
@@ -608,6 +619,7 @@ class GentooPackageManager:
                     # TODO Environment tells that paludis must be used, but
                     # it seems latter was build w/o USE=python...
                     # Need to report an error!!??
+                    cls._debug_doesnt_work('can\'t import paludis', name='PaludisPackageManager')
                     return None
             elif pm == 'portage':
                 # Fallback to default: portage
@@ -621,6 +633,7 @@ class GentooPackageManager:
             import portage
             return GentooPackageManager.PORTAGE
         except ImportError:
+            cls._debug_doesnt_work('can\'t import portage', name='EmergePackageManager')
             return None
 
     @classmethod
@@ -642,7 +655,7 @@ class GentooPackageManager:
 
 
 @register_manager
-class EmergePackageManager(PackageManager, GentooPackageManager):
+class EmergePackageManager(GentooPackageManager):
     """ Package manager class for Gentoo. It uses `emerge` underneath.
 
         ATTENTION Unfortunately in Gentoo it is not so easy to "just install" required
@@ -710,7 +723,7 @@ class EmergePackageManager(PackageManager, GentooPackageManager):
 
 
 @register_manager
-class PaludisPackageManager(PackageManager, GentooPackageManager):
+class PaludisPackageManager(GentooPackageManager):
     """Another package manager class for Gentoo (yep, for
     [paludis](http://paludis.exherbo.org/) ;-)
 
@@ -829,7 +842,7 @@ class DependencyInstaller(object):
             err = 'No package manager for dependency type "{dep_t}"'.format(dep_t=dep_t)
             raise exceptions.NoPackageManagerException(err)
         else:
-            mgrs_nice = ', '.join([type(mgr).__name__ for mgr in mgrs])
+            mgrs_nice = ', '.join([mgr.__name__ for mgr in mgrs])
             err = 'No working package manager for "{dep_t}" in: {mgrs}'.format(dep_t=dep_t,
                                                                               mgrs=mgrs_nice)
             raise exceptions.NoPackageManagerOperationalException(err)
