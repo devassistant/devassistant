@@ -42,14 +42,19 @@ if 'DEVASSISTANT_NO_DEFAULT_PATH' not in os.environ:
     if os.geteuid() == 0:
         DATA_DIRECTORIES = DATA_DIRECTORIES[1:]
     DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
+    DISTRO_DIRECTORY = DATA_DIRECTORIES[-1]
 elif 'DEVASSISTANT_HOME' not in os.environ:
     logging.error('DEVASSISTANT_HOME must be defined with DEVASSISTANT_NO_DEFAULT_PATH')
     sys.exit(1)
 else:
     DATA_DIRECTORIES = []
+    DISTRO_DIRECTORY = ''
 if 'DEVASSISTANT_PATH' in os.environ:
-    DATA_DIRECTORIES = [os.path.abspath(os.path.expanduser(p))
-        for p in os.environ['DEVASSISTANT_PATH'].split(':')] + DATA_DIRECTORIES
+    _extra_dirs = [os.path.abspath(os.path.expanduser(p))
+        for p in os.environ['DEVASSISTANT_PATH'].split(':')]
+    if DISTRO_DIRECTORY and DISTRO_DIRECTORY in _extra_dirs:
+        DISTRO_DIRECTORY = ''
+    DATA_DIRECTORIES = extra_dirs + DATA_DIRECTORIES
 if 'DEVASSISTANT_HOME' in os.environ:
     DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
     if DEVASSISTANT_HOME not in DATA_DIRECTORIES:
