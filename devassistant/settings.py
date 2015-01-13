@@ -73,6 +73,4 @@ SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora', 'red hat enterprise linux', 'redh
                              'ebuild': ['gentoo', 'gentoo base system'],
                              'homebrew': ['darwin', 'OS X']}
 
-DAPI_DEFAULT_API_URL = 'https://dapi.devassistant.org/api/'
-DAPI_DEFAULT_USER_INSTALL = '~/.devassistant'
-DAPI_DEFAULT_ROOT_INSTALL = '/usr/local/share/devassistant'
+DAPI_API_URL = os.environ.get('DAPI_API_URL', 'https://dapi.devassistant.org/api/')

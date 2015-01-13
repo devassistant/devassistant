@@ -18,23 +18,15 @@ try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
-from devassistant.settings import DAPI_DEFAULT_API_URL
-from devassistant.settings import DAPI_DEFAULT_USER_INSTALL
-from devassistant.settings import DAPI_DEFAULT_ROOT_INSTALL
+from devassistant.settings import DEVASSISTANT_HOME
+from devassistant.settings import DAPI_API_URL
 
 def _api_url():
-    return os.environ.get('DAPI_API_URL', DAPI_DEFAULT_API_URL)
+    return DAPI_API_URL
 
 
 def _install_path():
-    path = os.environ.get('DAPI_INSTALL', None)
-    if path:
-        if path.endswith('/'):
-            return os.path.expanduser(path[:-1])
-        return os.path.expanduser(path)
-    if os.geteuid() == 0:
-        return DAPI_DEFAULT_ROOT_INSTALL
-    return os.path.expanduser(DAPI_DEFAULT_USER_INSTALL)
+    return DEVASSISTANT_HOME
 
 
 def _process_req_txt(req):
