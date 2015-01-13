@@ -39,6 +39,8 @@ if 'DEVASSISTANT_NO_DEFAULT_PATH' not in os.environ:
     DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
                         '/usr/local/share/devassistant',
                         '/usr/share/devassistant/']
+    if os.geteuid() == 0:
+        DATA_DIRECTORIES = DATA_DIRECTORIES[1:]
     DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
 elif 'DEVASSISTANT_HOME' not in os.environ:
     logging.error('DEVASSISTANT_HOME must be defined with DEVASSISTANT_NO_DEFAULT_PATH')
