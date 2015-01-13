@@ -66,17 +66,17 @@ results:
     def test_print_users(self, capfd):
         '''Test the print of users'''
         desired = 'miro (Miro Hroncok)\nuser\n'
-        os.environ['DAPI_FAKE_DATA'] = TestDapicli.users_yaml
+        flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.users_yaml))
         dapicli.print_users()
-        out, err = out, err = capfd.readouterr()
+        out, err = capfd.readouterr()
         assert out == desired
 
     def test_search(self, capfd):
         '''Test the print of a search results'''
         desired = 'python\n'
-        os.environ['DAPI_FAKE_DATA'] = TestDapicli.search_yaml
+        flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.search_yaml))
         dapicli.print_search('python')
-        out, err = out, err = capfd.readouterr()
+        out, err = capfd.readouterr()
         assert out == desired
 
     def test_get_installed_version_of_missing_package(self):

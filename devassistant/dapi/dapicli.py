@@ -45,9 +45,6 @@ def _process_req(req):
 
 def data(link):
     '''Returns a dictionary from requested link'''
-    test = os.environ.get('DAPI_FAKE_DATA', None)
-    if test is not None:
-        return yaml.load(test)
     req = requests.get(link)
     return _process_req(req)
 
