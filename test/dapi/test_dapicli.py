@@ -93,14 +93,15 @@ results:
         flexmock(yaml).should_receive('load').and_return({'version': version})
 
         # Everything goes fine
-        flexmock(six.moves.builtins).should_receive('open').and_return(flexmock(read=lambda: u'qux'))
+        flexmock(six.moves.builtins).should_receive('open').and_return(
+            flexmock(read=lambda: u'qux'))
         assert dapicli.get_installed_version_of('foo') == version
 
         # File does not exist
         ioerror = IOError("[Errno 2] No such file or directory: '{0}'".format(yaml_path))
         flexmock(six.moves.builtins).should_receive('open').and_raise(ioerror)
 
-        with pytest.raises(Exception): # TODO maybe change to IOError
+        with pytest.raises(Exception):  # TODO maybe change to IOError
             dapicli.get_installed_version_of('foo')
 
     def test_strip_version_from_dependency(self):
@@ -115,8 +116,11 @@ results:
 
     def test_install_from_path_nodeps(self):
         # Functional mocks
-        fakedap = flexmock(meta={'package_name': 'foo', 'version': '1.0', 'dependencies': ['bar-1.0']}, \
-                           check=lambda: True, extract=lambda x: None)
+        fakedap = flexmock(meta={
+            'package_name': 'foo',
+            'version': '1.0',
+            'dependencies': ['bar-1.0'],
+        }, check=lambda: True, extract=lambda x: None)
         flexmock(dapi.Dap).new_instances(fakedap)
         flexmock(dapicli).should_receive('get_installed_daps').and_return([])
         flexmock(dapicli).should_receive('_install_path').and_return('.')

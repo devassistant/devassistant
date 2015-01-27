@@ -274,7 +274,8 @@ def uninstall_dap(name, confirm=False, allpaths=False):
                 if e.errno == errno.EISDIR:  # Is a directory
                     shutil.rmtree(f)
                 elif e.errno == errno.EACCES:  # Permission denied
-                    raise Exception('Permission denied, you might want to run this command as root')
+                    raise Exception(
+                        'Permission denied, you might want to run this command as root')
                 else:
                     raise(e)
     return ret + [name]
@@ -352,7 +353,7 @@ def install_dap_from_path(path, update=False, first=True, force=False, nodeps=Fa
         os.makedirs(_install_path())
     os.mkdir(os.path.join(_dapdir, 'meta'))
     os.rename(os.path.join(_dapdir, 'meta.yaml'),
-        os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
+              os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
     for f in glob.glob(_dapdir + '/*'):
         dst = os.path.join(_install_path(), os.path.basename(f))
         if os.path.isdir(f):
@@ -375,6 +376,7 @@ def install_dap_from_path(path, update=False, first=True, force=False, nodeps=Fa
 
     return [dap_obj.meta['package_name']] + installed
 
+
 def _strip_version_from_dependency(dep):
     '''For given dependency string, return only the package name'''
     usedmark = ''
@@ -387,6 +389,7 @@ def _strip_version_from_dependency(dep):
         return split[0].strip()
     else:
         return dep.strip()
+
 
 def get_installed_version_of(name, location=None):
     '''Gets the installed version of the given dap or None if not installed
@@ -404,12 +407,14 @@ def get_installed_version_of(name, location=None):
         return data['version']
     return None
 
+
 def _is_supported_here(dap_api_data):
-    supported = dap_api_data.get('supported_platforms',[])
+    supported = dap_api_data.get('supported_platforms', [])
     if not supported:
         # assume all platforms are supported
         return True
     return utils.get_distro_name() in supported
+
 
 def _get_dependencies_of(name, location=None):
     '''
@@ -431,6 +436,7 @@ def _get_dependencies_of(name, location=None):
         return []
     return data.get('dependencies', [])
 
+
 def _get_all_dependencies_of(name, deps=set(), force=False):
     '''Returns list of dependencies of the given dap from Dapi recursively'''
     first_deps = _get_api_dependencies_of(name, force=force)
@@ -444,6 +450,7 @@ def _get_all_dependencies_of(name, deps=set(), force=False):
         deps |= _get_all_dependencies_of(dep, deps)
     return deps | set([name])
 
+
 def _get_api_dependencies_of(name, version='', force=False):
     '''Returns list of first level dependencies of the given dap from Dapi'''
     m, d = _get_metadap_dap(name, version=version)
@@ -454,6 +461,7 @@ def _get_api_dependencies_of(name, version='', force=False):
             '{0} is not supported on this platform (use --force to suppress this check).'.
             format(name))
     return d.get('dependencies', [])
+
 
 def install_dap(name, version='', update=False, first=True, force=False, nodeps=False):
     '''Install a dap from dapi
@@ -479,6 +487,7 @@ def install_dap(name, version='', update=False, first=True, force=False, nodeps=
         pass
 
     return ret
+
 
 def get_dependency_metadata():
     '''Returns list of strings with dependency metadata from Dapi'''
