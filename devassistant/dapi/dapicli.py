@@ -265,8 +265,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             inp = raw_input if not six.PY3 else input
             ok = inp('Is that OK? [y/N] ')
             if ok.lower() != 'y':
-                print('Aborting')
-                return False
+                raise Exception('Stopped by user')
         for f in g:
             try:
                 os.remove(f)
