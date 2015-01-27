@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import errno
 import requests
 import yaml
 import os
@@ -270,8 +271,10 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             try:
                 os.remove(f)
             except OSError as e:
-                if e.errno == 21:  # Is a directory
+                if e.errno == errno.EISDIR:  # Is a directory
                     shutil.rmtree(f)
+                elif e.errno == errno.EACCES:  # Permission denied
+                    raise Exception('Permission denied, you might want to run this command as root')
                 else:
                     raise(e)
     return ret + [name]
