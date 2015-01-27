@@ -300,7 +300,9 @@ class PkgUninstallAction(Action):
     args = [
         argument.Argument('package', 'package', nargs='+', help='Package(s) to uninstall'),
         argument.Argument('force', '-f', '--force', action='store_false',
-                          default=True, help='Do not ask for confirmation')
+                          default=True, help='Do not ask for confirmation'),
+        argument.Argument('allpaths', '-a', '--all-paths', action='store_true',
+                          default=False, help='Try to uninstall from all possible locations'),
     ]
 
     @classmethod
@@ -313,7 +315,7 @@ class PkgUninstallAction(Action):
                 continue
             logger.info('Uninstalling DAP {pkg} ...'.format(pkg=pkg))
             try:
-                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
+                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'], allpaths=kwargs['allpaths'])
                 if done:
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done

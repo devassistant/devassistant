@@ -223,42 +223,58 @@ def get_installed_daps_detailed():
     return daps
 
 
-def uninstall_dap(name, confirm=False):
-    if name not in get_installed_daps():
+def uninstall_dap(name, confirm=False, allpaths=False):
+    if allpaths:
+        location = None
+        hint = 'DEVASSISTANT_PATH'
+    else:
+        location = _install_path()
+        hint = utils.unexpanduser(_install_path())
+    if name not in get_installed_daps(location=location):
         raise Exception(
             'Cannot uninstall DAP {dap}, it is not in {path}'.
-            format(dap=name, path=_install_path()))
+            format(dap=name, path=hint))
     ret = []
-    for dap in get_installed_daps():
-        deps = _get_dependencies_of(dap)
+    for dap in get_installed_daps(location=location):
+        deps = _get_dependencies_of(dap, location=location)
         if deps:
             deps = [_strip_version_from_dependency(dep) for dep in deps]
             if name in deps:
                 # this might have changed
-                if dap in get_installed_daps():
-                    ret += uninstall_dap(dap, confirm=confirm)
-    g = ['{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)]
-    for loc in 'assistants files icons'.split():
-        g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=_install_path(), loc=loc, dap=name))
-        g += glob.glob('{d}/{loc}/*/{dap}'.format(d=_install_path(), loc=loc, dap=name))
-    for loc in 'snippets doc'.split():
-        g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=_install_path(), loc=loc, dap=name))
-        g += glob.glob('{d}/{loc}/{dap}'.format(d=_install_path(), loc=loc, dap=name))
-    if confirm:
-        print('DAP {name} and the following files and directories will be removed:'.
-            format(name=name))
+                if dap in get_installed_daps(location=location):
+                    ret += uninstall_dap(dap, confirm=confirm, allpaths=allpaths)
+    if allpaths:
+        locations = _data_dirs()
+    else:
+        locations = [_install_path()]
+    for location in locations:
+        if name not in get_installed_daps(location=location):
+            continue
+        g = ['{d}/meta/{dap}.yaml'.format(d=location, dap=name)]
+        for loc in 'assistants files icons'.split():
+            g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=location, loc=loc, dap=name))
+            g += glob.glob('{d}/{loc}/*/{dap}'.format(d=location, loc=loc, dap=name))
+        for loc in 'snippets doc'.split():
+            g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=location, loc=loc, dap=name))
+            g += glob.glob('{d}/{loc}/{dap}'.format(d=location, loc=loc, dap=name))
+        if confirm:
+            print('DAP {name} and the following files and directories will be removed:'.
+                  format(name=name))
+            for f in g:
+                print('    ' + f)
+            inp = raw_input if not six.PY3 else input
+            ok = inp('Is that OK? [y/N] ')
+            if ok.lower() != 'y':
+                print('Aborting')
+                return False
         for f in g:
-            print('    ' + f)
-        inp = raw_input if not six.PY3 else input
-        ok = inp('Is that OK? [y/N] ')
-        if ok.lower() != 'y':
-            print('Aborting')
-            return False
-    for f in g:
-        try:
-            os.remove(f)
-        except OSError:
-            shutil.rmtree(f)
+            try:
+                os.remove(f)
+            except OSError as e:
+                if e.errno == 21:  # Is a directory
+                    shutil.rmtree(f)
+                else:
+                    raise(e)
     return ret + [name]
 
 
@@ -393,16 +409,24 @@ def _is_supported_here(dap_api_data):
         return True
     return utils.get_distro_name() in supported
 
-def _get_dependencies_of(name):
+def _get_dependencies_of(name, location=None):
     '''
     Returns list of first level dependencies of the given installed dap
     or dap from Dapi  if not installed
+    If a location is specified, this only checks for dap installed in that path
+    and return [] if the dap is not located there
     '''
-    if name not in get_installed_daps():
-        return _get_api_dependencies_of(name)
-    meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
-    with open(meta) as f:
-        data = yaml.load(f.read(), Loader=Loader)
+    if not location:
+        detailed_dap_list = get_installed_daps_detailed()
+        if name not in detailed_dap_list:
+            return _get_api_dependencies_of(name)
+        location = detailed_dap_list[name][0]['location']
+    meta = '{d}/meta/{dap}.yaml'.format(d=location, dap=name)
+    try:
+        with open(meta) as f:
+            data = yaml.load(f.read(), Loader=Loader)
+    except IOError:
+        return []
     return data.get('dependencies', [])
 
 def _get_all_dependencies_of(name, deps=set(), force=False):

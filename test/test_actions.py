@@ -154,7 +154,7 @@ class TestPkgUninstallAction(object):
         flexmock(dapicli).should_receive('uninstall_dap')\
                          .and_return(['first', 'second']).at_least().once()
 
-        action.run(package=['first', 'second'], force=True)
+        action.run(package=['first', 'second'], force=True, allpaths=False)
 
     def test_pkg_uninstall_not_installed(self, action):
         '''Uninstall package that is not installed'''
@@ -162,6 +162,6 @@ class TestPkgUninstallAction(object):
                          .and_return(['bar']).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            action.run(package=['foo'], force=True)
+            action.run(package=['foo'], force=True, allpaths=False)
 
         assert 'Cannot uninstall DAP foo' in str(excinfo.value)
