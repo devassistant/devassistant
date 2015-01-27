@@ -371,11 +371,27 @@ class PkgListAction(Action):
     """List installed packages from Dapi"""
     name = 'list'
     description = 'Lists installed DAP packages.'
+    args = [
+        argument.Argument('simple', '-s', '--simple', action='store_true', default=False,
+                          help='List only the names of installed packages'),
+    ]
 
     @classmethod
     def run(cls, **kwargs):
-        for pkg in sorted(dapicli.get_installed_daps()):
-            print(pkg)
+        if kwargs['simple']:
+            for pkg in sorted(dapicli.get_installed_daps()):
+                print(pkg)
+        else:
+            for pkg, instances in sorted(dapicli.get_installed_daps_detailed().items()):
+                versions = []
+                for instance in instances:
+                    location = utils.unexpanduser(instance['location'])
+                    version = instance['version']
+                    if not versions:  # if this is the first
+                        version = utils.bold(version)
+                    versions.append('{v}:{p}'.format(v=version, p=location))
+                pkg = utils.bold(pkg)
+                print('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
 
 
 class PkgSearchAction(Action):

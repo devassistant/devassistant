@@ -153,3 +153,13 @@ def run_exitfuncs():
 
     if exc_info is not None:
         six.reraise(exc_info[0], exc_info[1], exc_info[2])
+
+
+def bold(message):
+    """Adds shell bold formatting to the message"""
+    return '\033[1m{m}\033[0m'.format(m=message)
+
+
+def unexpanduser(path):
+    """Replaces expanded ~ back with ~"""
+    return path.replace(os.path.expanduser('~'), '~')
