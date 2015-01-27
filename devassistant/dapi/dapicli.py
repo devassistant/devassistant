@@ -22,6 +22,7 @@ except:
 from devassistant.settings import DAPI_API_URL
 from devassistant.settings import DATA_DIRECTORIES
 from devassistant.settings import DEVASSISTANT_HOME
+from devassistant.settings import DISTRO_DIRECTORY
 
 
 def _api_url():
@@ -196,7 +197,7 @@ def print_search(query):
         _print_dap_with_description(mdap)
 
 
-def get_installed_daps(location=None):
+def get_installed_daps(location=None, skip_distro=False):
     '''Returns a set of all installed daps
     Either in the given location or in all of them'''
     if location:
@@ -205,6 +206,8 @@ def get_installed_daps(location=None):
         locations = _data_dirs()
     s = set()
     for loc in locations:
+        if skip_distro and loc == DISTRO_DIRECTORY:
+            continue
         g = glob.glob('{d}/meta/*.yaml'.format(d=loc))
         for meta in g:
             s.add(meta.split('/')[-1][:-len('.yaml')])
@@ -236,13 +239,13 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             'Cannot uninstall DAP {dap}, it is not in {path}'.
             format(dap=name, path=hint))
     ret = []
-    for dap in get_installed_daps(location=location):
+    for dap in get_installed_daps(location=location, skip_distro=True):
         deps = _get_dependencies_of(dap, location=location)
         if deps:
             deps = [_strip_version_from_dependency(dep) for dep in deps]
             if name in deps:
                 # this might have changed
-                if dap in get_installed_daps(location=location):
+                if dap in get_installed_daps(location=location, skip_distro=True):
                     ret += uninstall_dap(dap, confirm=confirm, allpaths=allpaths)
     if allpaths:
         locations = _data_dirs()
@@ -250,6 +253,11 @@ def uninstall_dap(name, confirm=False, allpaths=False):
         locations = [_install_path()]
     for location in locations:
         if name not in get_installed_daps(location=location):
+            continue
+        if location == DISTRO_DIRECTORY:
+            logger.warn(
+                'Skipping {d} in {l}, as it is protected. See docs for explanation.'.format(
+                    d=name, l=DISTRO_DIRECTORY))
             continue
         g = ['{d}/meta/{dap}.yaml'.format(d=location, dap=name)]
         for loc in 'assistants files icons'.split():
@@ -278,7 +286,8 @@ def uninstall_dap(name, confirm=False, allpaths=False):
                         'Permission denied, you might want to run this command as root')
                 else:
                     raise(e)
-    return ret + [name]
+        ret += [name]
+    return ret
 
 
 def download_dap(name, version='', d='', directory=''):
