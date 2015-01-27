@@ -18,8 +18,10 @@ try:
     from yaml import CLoader as Loader
 except:
     from yaml import Loader
-from devassistant.settings import DEVASSISTANT_HOME
 from devassistant.settings import DAPI_API_URL
+from devassistant.settings import DATA_DIRECTORIES
+from devassistant.settings import DEVASSISTANT_HOME
+
 
 def _api_url():
     return DAPI_API_URL
@@ -27,6 +29,10 @@ def _api_url():
 
 def _install_path():
     return DEVASSISTANT_HOME
+
+
+def _data_dirs():
+    return DATA_DIRECTORIES
 
 
 def _process_req_txt(req):
@@ -189,13 +195,32 @@ def print_search(query):
         _print_dap_with_description(mdap)
 
 
-def get_installed_daps():
-    '''Returns a set of all installed daps'''
-    g = glob.glob('{d}/meta/*.yaml'.format(d=_install_path()))
+def get_installed_daps(location=None):
+    '''Returns a set of all installed daps
+    Either in the given location or in all of them'''
+    if location:
+        locations = [location]
+    else:
+        locations = _data_dirs()
     s = set()
-    for a in g:
-        s.add(a.split('/')[-1][:-len('.yaml')])
+    for loc in locations:
+        g = glob.glob('{d}/meta/*.yaml'.format(d=loc))
+        for meta in g:
+            s.add(meta.split('/')[-1][:-len('.yaml')])
     return s
+
+
+def get_installed_daps_detailed():
+    '''Returns a dictionary with all installed daps and their versions and locations
+    First version and location in the dap's list is the one that is preferred'''
+    daps = {}
+    for loc in _data_dirs():
+        s = get_installed_daps(loc)
+        for dap in s:
+            if dap not in daps:
+                daps[dap] = []
+            daps[dap].append({'version': get_installed_version_of(dap, loc), 'location': loc})
+    return daps
 
 
 def uninstall_dap(name, confirm=False):
@@ -345,14 +370,21 @@ def _strip_version_from_dependency(dep):
     else:
         return dep.strip()
 
-def get_installed_version_of(name):
-    '''Gets the installed version of the given dap or None if not installed'''
-    if name not in get_installed_daps():
-        return None
-    meta = '{d}/meta/{dap}.yaml'.format(d=_install_path(), dap=name)
-    with open(meta) as f:
-        data = yaml.load(f.read(), Loader=Loader)
-    return data['version']
+def get_installed_version_of(name, location=None):
+    '''Gets the installed version of the given dap or None if not installed
+    Searches in all dirs by default, otherwise in the given one'''
+    if location:
+        locations = [location]
+    else:
+        locations = _data_dirs()
+    for loc in locations:
+        if name not in get_installed_daps(loc):
+            continue
+        meta = '{d}/meta/{dap}.yaml'.format(d=loc, dap=name)
+        with open(meta) as f:
+            data = yaml.load(f.read(), Loader=Loader)
+        return data['version']
+    return None
 
 def _is_supported_here(dap_api_data):
     supported = dap_api_data.get('supported_platforms',[])
