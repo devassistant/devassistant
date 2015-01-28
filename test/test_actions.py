@@ -119,7 +119,7 @@ class TestPkgUpdateAction(object):
                          .and_return([]).at_least().once()
 
         # Update all, everything is up to date
-        actions.PkgUpdateAction.run(force=False)
+        actions.PkgUpdateAction.run(force=False, allpaths=False)
 
     def test_pkg_update_no_dapi(self):
         '''Run update of package that is not on Dapi'''
@@ -127,7 +127,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False)
+            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
         assert 'foo not found' in str(excinfo.value)
 
@@ -139,7 +139,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False)
+            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
         assert 'Cannot update not yet installed DAP' in str(excinfo.value)
 

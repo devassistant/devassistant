@@ -317,22 +317,34 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, update=False, first=True,
+def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
                           force=False, nodeps=False, reinstall=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
-    if dap_obj.meta['package_name'] in get_installed_daps():
+    name = dap_obj.meta['package_name']
+    if name in get_installed_daps():
         if not update and not reinstall:
             raise Exception(
                 'DAP {name} is already installed. '
                 'Run `da pkg list` to see it\'s location, or use --reinstall to ignore this check.'
-                .format(name=dap_obj.meta['package_name']))
-        elif dap_obj.meta['package_name'] in get_installed_daps(_install_path()):
+                .format(name=name))
+        elif not update_allpaths and name in get_installed_daps(_install_path()):
             will_uninstall = True
-    if os.path.isfile(_install_path()):
-        raise Exception(
-            '{i} is a file, not a directory.'.format(i=_install_path()))
+        elif update_allpaths and name in get_installed_daps():
+            will_uninstall = True
+
+    if update and update_allpaths:
+        install_locations = []
+        for pair in get_installed_daps_detailed()[name]:
+            install_locations.append(pair['location'])
+    else:
+        install_locations = [_install_path()]
+
+    for location in install_locations:
+        if os.path.isfile(location):
+            raise Exception(
+                '{i} is a file, not a directory.'.format(i=_install_path()))
 
     _dir = tempfile.mkdtemp()
     old_level = logger.getEffectiveLevel()
@@ -347,7 +359,7 @@ def install_dap_from_path(path, update=False, first=True,
         if not force and not _is_supported_here(dap_obj.meta):
             raise Exception(
                 '{0} is not supported on this platform (use --force to suppress this check)'.
-                format(dap_obj.meta['package_name']))
+                format(name))
         deps = set()
         if not nodeps:
             for dep in dap_obj.meta['dependencies']:
@@ -360,34 +372,35 @@ def install_dap_from_path(path, update=False, first=True,
 
     dap_obj.extract(_dir)
     if will_uninstall:
-        uninstall_dap(dap_obj.meta['package_name'])
-    _dapdir = os.path.join(_dir, dap_obj.meta['package_name'] + '-' + dap_obj.meta['version'])
+        uninstall_dap(name, allpaths=update_allpaths)
+    _dapdir = os.path.join(_dir, name + '-' + dap_obj.meta['version'])
     if not os.path.isdir(_install_path()):
         os.makedirs(_install_path())
     os.mkdir(os.path.join(_dapdir, 'meta'))
     os.rename(os.path.join(_dapdir, 'meta.yaml'),
-              os.path.join(_dapdir, 'meta', dap_obj.meta['package_name'] + '.yaml'))
-    for f in glob.glob(_dapdir + '/*'):
-        dst = os.path.join(_install_path(), os.path.basename(f))
-        if os.path.isdir(f):
-            if not os.path.exists(dst):
-                os.mkdir(dst)
-            for src_dir, dirs, files in os.walk(f):
-                dst_dir = src_dir.replace(f, dst)
-                if not os.path.exists(dst_dir):
-                    os.mkdir(dst_dir)
-                for file_ in files:
-                    src_file = os.path.join(src_dir, file_)
-                    dst_file = os.path.join(dst_dir, file_)
-                    shutil.copyfile(src_file, dst_file)
-        else:
-            shutil.copyfile(f, dst)
+              os.path.join(_dapdir, 'meta', name + '.yaml'))
+    for location in install_locations:
+        for f in glob.glob(_dapdir + '/*'):
+            dst = os.path.join(location, os.path.basename(f))
+            if os.path.isdir(f):
+                if not os.path.exists(dst):
+                    os.mkdir(dst)
+                for src_dir, dirs, files in os.walk(f):
+                    dst_dir = src_dir.replace(f, dst)
+                    if not os.path.exists(dst_dir):
+                        os.mkdir(dst_dir)
+                    for file_ in files:
+                        src_file = os.path.join(src_dir, file_)
+                        dst_file = os.path.join(dst_dir, file_)
+                        shutil.copyfile(src_file, dst_file)
+            else:
+                shutil.copyfile(f, dst)
     try:
         shutil.rmtree(_dir)
     except:
         pass
 
-    return [dap_obj.meta['package_name']] + installed
+    return [name] + installed
 
 
 def _strip_version_from_dependency(dep):
@@ -476,7 +489,7 @@ def _get_api_dependencies_of(name, version='', force=False):
     return d.get('dependencies', [])
 
 
-def install_dap(name, version='', update=False, first=True,
+def install_dap(name, version='', update=False, update_allpaths=False, first=True,
                 force=False, nodeps=False, reinstall=False):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
@@ -490,7 +503,7 @@ def install_dap(name, version='', update=False, first=True,
             return []
     path, remove_dir = download_dap(name, d=d)
 
-    ret = install_dap_from_path(path, update=update, first=first,
+    ret = install_dap_from_path(path, update=update, update_allpaths=update_allpaths, first=first,
                                 force=force, nodeps=nodeps, reinstall=reinstall)
 
     try:

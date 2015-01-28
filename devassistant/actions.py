@@ -349,6 +349,8 @@ class PkgUpdateAction(Action):
         argument.Argument('force', '-f', '--force', action='store_true', default=False,
                           help='Update and install dependent packages'
                                'that are unsupported on this platform (dangerous)'),
+        argument.Argument('allpaths', '-a', '--all-paths', action='store_true', default=False,
+                          help='Try to update packages in all paths'),
     ]
 
     @classmethod
@@ -365,7 +367,8 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating DAP {pkg} ...'.format(pkg=pkg))
             try:
-                updated = dapicli.install_dap(pkg, update=True, force=kwargs['force'])
+                updated = dapicli.install_dap(pkg, update=True, update_allpaths=kwargs['allpaths'],
+                                              force=kwargs['force'])
                 if updated:
                     logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
                 else:
