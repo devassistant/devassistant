@@ -10,6 +10,63 @@ A Brief Intro
 
 .. _cli_interface:
 
+Installation
+------------
+
+If you can, use the packaged version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To install DevAssistant on your machine, there is usually more than one way. If
+you use a Linux distribution where DevAssistant is already packaged, we
+strongly suggest you use the packaged version. Doing so can save you quite a
+few headaches with configuration and making sure everything works. This applies
+especially to Fedora, where it is us, the DevAssistant development team, who
+cares about the packaging.
+
+Install from PyPI
+~~~~~~~~~~~~~~~~~
+
+If you don't wan't to use the packaged version or there isn't one for your OS
+in the first place, you can install DevAssistant from the Python Package Index
+via the ``pip`` tool. In a large majority of distributions, pip is packaged in
+the system repositories.
+
+However, even though ``pip`` makes sure the specified dependencies are met, it
+is simply not enough to allow you run DevAssistant to the fullest extent. To
+achieve that, you'll need to do some manual steps:
+
+- Make sure GTK+ version 3 is installed (the package's name will probably be
+  something like ``gtk3``)
+- Make sure the ``askpass`` dialog for OpenSSH is installed (in Fedora, the
+  package is called ``openssh-askpass``).
+- Make sure ``git`` is installed.
+- Make sure ``setuptools`` are installed for the version of Python you intend
+  to use for running DevAssistant
+- If you want to use the Docker functionality, you'll need Docker installed,
+  and a Python client for Docker (on PyPI, it's called ``docker-py``). These
+  may not be available on some architectures.
+- If you want to use DevAssistant with an RPM-based distribution, you'll need
+  either YUM or DNF installed. DNF runs only on Python 3, so you will have to
+  run DevAssistant under Python 3 as well. Furthermore, DNF's bindings are most
+  likely in a separate package, in Fedora packaged as ``python3-dnf``).
+
+Run from source
+~~~~~~~~~~~~~~~
+
+DevAssistant is perfectly runnable from source as well. For this, the same
+applies as for installing from PyPI, plus you need to install the contents of
+requirements.txt (and requirements-py2.txt if you want to run DevAssistant
+under Python 2) in the root folder of the tarball. To do that, you can run the
+following command(s) in the unpacked DevAssistant folder::
+
+    pip install --user -r requirements.txt
+    pip install --user -r requirements-py2.txt # Only on Python 2
+
+P. S. We suggest you add the ``--user`` flag so that the packages are installed
+in the ``~/.local`` directory in your home instead of system-wide. If you
+perform system-wide ``pip`` installations, you risk breaking packages installed
+by the system.
+
 So What is an Assistant?
 ------------------------
 
