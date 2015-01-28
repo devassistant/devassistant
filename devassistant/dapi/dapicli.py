@@ -317,14 +317,16 @@ def download_dap(name, version='', d='', directory=''):
     return path, not bool(directory)
 
 
-def install_dap_from_path(path, update=False, first=True, force=False, nodeps=False):
+def install_dap_from_path(path, update=False, first=True,
+                          force=False, nodeps=False, reinstall=False):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
     if dap_obj.meta['package_name'] in get_installed_daps():
-        if not update:
-            raise Exception('Won\'t override already installed DAP.')
-        else:
+        if not update and not reinstall:
+            raise Exception(
+                'DAP {name} is already installed.'.format(name=dap_obj.meta['package_name']))
+        elif dap_obj.meta['package_name'] in get_installed_daps(_install_path()):
             will_uninstall = True
     if os.path.isfile(_install_path()):
         raise Exception(
@@ -472,7 +474,8 @@ def _get_api_dependencies_of(name, version='', force=False):
     return d.get('dependencies', [])
 
 
-def install_dap(name, version='', update=False, first=True, force=False, nodeps=False):
+def install_dap(name, version='', update=False, first=True,
+                force=False, nodeps=False, reinstall=False):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
@@ -485,7 +488,8 @@ def install_dap(name, version='', update=False, first=True, force=False, nodeps=
             return []
     path, remove_dir = download_dap(name, d=d)
 
-    ret = install_dap_from_path(path, update=update, first=first, force=force, nodeps=nodeps)
+    ret = install_dap_from_path(path, update=update, first=first,
+                                force=force, nodeps=nodeps, reinstall=reinstall)
 
     try:
         if remove_dir:

@@ -273,6 +273,8 @@ class PkgInstallAction(Action):
                           ),
         argument.Argument('nodeps', '-n', '--no-deps', action='store_true', default=False,
                           help='Do not install dependencies of the selected package'),
+        argument.Argument('reinstall', '-r', '--reinstall', action='store_true', default=False,
+                          help='If the package is already installed, reinstall it'),
     ]
 
     @classmethod
@@ -285,7 +287,8 @@ class PkgInstallAction(Action):
             else:
                 method = dapicli.install_dap
             try:
-                pkgs = method(pkg, force=kwargs['force'], nodeps=kwargs.get('nodeps', False))
+                pkgs = method(pkg, force=kwargs['force'],
+                              nodeps=kwargs['nodeps'], reinstall=kwargs['reinstall'])
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except Exception as e:
                 exs.append(str(e))
