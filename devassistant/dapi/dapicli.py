@@ -325,7 +325,9 @@ def install_dap_from_path(path, update=False, first=True,
     if dap_obj.meta['package_name'] in get_installed_daps():
         if not update and not reinstall:
             raise Exception(
-                'DAP {name} is already installed.'.format(name=dap_obj.meta['package_name']))
+                'DAP {name} is already installed. '
+                'Run `da pkg list` to see it\'s location, or use --reinstall to ignore this check.'
+                .format(name=dap_obj.meta['package_name']))
         elif dap_obj.meta['package_name'] in get_installed_daps(_install_path()):
             will_uninstall = True
     if os.path.isfile(_install_path()):
