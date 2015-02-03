@@ -187,6 +187,9 @@ def print_dap(name, version=''):
                 print(item, end=': ')
                 print(d[item])
 
+        dapi.Dap.print_assistants(d['assistants'])
+        dapi.Dap.print_platforms(d['supported_platforms'])
+
 
 def print_search(query):
     '''Prints the results of a search'''
