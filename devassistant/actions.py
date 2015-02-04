@@ -403,11 +403,23 @@ class PkgInfoAction(Action):
 
     @classmethod
     def run(cls, **kwargs):
-        try:
-            dapicli.print_dap(kwargs['package'])
-        except Exception as e:
-            logger.error(str(e))
-            raise exceptions.ExecutionException(str(e))
+        if os.path.isfile(kwargs['package']):
+            old_level = logger.getEffectiveLevel()
+            logger.setLevel(logging.ERROR)
+            try:
+                d = dapi.Dap(kwargs['package'])
+                if not d.check():
+                    raise exceptions.ExecutionException(
+                        'This DAP is not valid, I refuse to inspect it')
+            finally:
+                logger.setLevel(old_level)
+            d.print_info()
+        else:
+            try:
+                dapicli.print_dap(kwargs['package'])
+            except Exception as e:
+                logger.error(str(e))
+                raise exceptions.ExecutionException(str(e))
 
 
 class PkgLintAction(Action):

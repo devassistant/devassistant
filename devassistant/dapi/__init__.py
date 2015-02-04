@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import tarfile
 import yaml
@@ -365,3 +367,43 @@ class Dap(object):
         stripped = map(lambda f: '/'.join(f.split('/')[1:]), self.files)
         # Only return matching paths (but without the .yaml at the end)
         return [f[:-5] for f in stripped if Dap._assistants.match(f)]
+
+    def print_info(self):
+        '''Prints all information about self in human readable form'''
+        _name = self.meta['package_name'] + '-' + self.meta['version']
+        print(_name)
+        for i in range(0, len(_name)):
+            print('=', end='')
+        print('\n')
+        print(self.meta['summary'])
+        if self.meta['description']:
+            print('')
+            print(self.meta['description'])
+
+        for item in ['license', 'homepage', 'bugreports']:
+            if self.meta[item]:
+                print(item, end=': ')
+                print(self.meta[item])
+
+        Dap.print_assistants(self.list_assistants())
+        Dap.print_platforms(self.meta['supported_platforms'])
+
+    @classmethod
+    def print_assistants(cls, assistants):
+        '''Prints assistants from the given list in human readable form. Skips snippets.'''
+        # Remove snippets and assistants/ directory prefix
+        assistants = [a[len('assistants/'):] for a in assistants if a.startswith('assistants/')]
+        if assistants:
+            print('\nThe following assistants are contained in this DAP:')
+            for assistant in assistants:
+                print(' * ' + assistant)
+        else:
+            print('\nNo assistants are contained in this DAP')
+
+    @classmethod
+    def print_platforms(cls, platforms):
+        '''Prints supported platforms in human readable form'''
+        if platforms:
+            print('\nThis DAP is only supported on the following platforms:')
+            for platform in platforms:
+                print(' * ' + platform)
