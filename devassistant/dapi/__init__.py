@@ -15,6 +15,64 @@ from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
 from devassistant.logger import logger
 
 
+class DapFormatter(object):
+    '''Formatter for different output information for the Dap class'''
+
+    @classmethod
+    def format_meta(cls, meta):
+        '''Return all information from a given meta dictionary in human readable form'''
+        result = ''
+
+        # Name and underline
+        name = meta['package_name']
+        if 'version' in meta:
+            name += '-' + meta['version']
+
+        result += name
+        result += '\n' + len(name)*'=' + '\n'
+
+        # Summary
+        result += '\n' + (meta['summary'])
+
+        # Description
+        if meta['description']:
+            result += '\n\n' + meta['description'] + '\n'
+
+        # Other metadata
+        data = []
+        for item in ['license', 'homepage', 'bugreports']:
+            if meta[item]:
+                data.append(item + ': ' + meta[item])
+
+        result += '\n'.join(data)
+
+        return result
+
+    @classmethod
+    def format_assistants(cls, assistants):
+        '''Return formatted assistants from the given list in human readable form.
+
+        Snippets are skipped.'''
+
+        if assistants:
+            result = 'The following assistants are contained in this DAP:'
+            for assistant in assistants:
+                result += '\n * ' + assistant.replace('/', ' -> ')
+            return result
+        else:
+            return 'No assistants are contained in this DAP'
+
+    @classmethod
+    def format_platforms(cls, platforms):
+        '''Formats supported platforms in human readable form'''
+        if platforms:
+            result = 'This DAP is only supported on the following platforms:'
+            for platform in platforms:
+                result += '\n * ' + platform
+            return result
+        else:
+            return ''
+
 class Dap(object):
     '''Class representing a dap
 
@@ -369,41 +427,18 @@ class Dap(object):
         return [f[:-5] for f in stripped if Dap._assistants.match(f)]
 
     def print_info(self):
-        '''Prints all information about self in human readable form'''
-        _name = self.meta['package_name'] + '-' + self.meta['version']
-        print(_name)
-        for i in range(0, len(_name)):
-            print('=', end='')
-        print('\n')
-        print(self.meta['summary'])
-        if self.meta['description']:
-            print('')
-            print(self.meta['description'])
-
-        for item in ['license', 'homepage', 'bugreports']:
-            if self.meta[item]:
-                print(item, end=': ')
-                print(self.meta[item])
-
+        print(DapFormatter.format_meta(self.meta))
+        print()
         Dap.print_assistants(self.list_assistants())
         Dap.print_platforms(self.meta['supported_platforms'])
 
     @classmethod
     def print_assistants(cls, assistants):
-        '''Prints assistants from the given list in human readable form. Skips snippets.'''
         # Remove snippets and assistants/ directory prefix
         assistants = [a[len('assistants/'):] for a in assistants if a.startswith('assistants/')]
-        if assistants:
-            print('\nThe following assistants are contained in this DAP:')
-            for assistant in assistants:
-                print(' * ' + assistant)
-        else:
-            print('\nNo assistants are contained in this DAP')
+        print(DapFormatter.format_assistants(assistants))
 
     @classmethod
     def print_platforms(cls, platforms):
-        '''Prints supported platforms in human readable form'''
         if platforms:
-            print('\nThis DAP is only supported on the following platforms:')
-            for platform in platforms:
-                print(' * ' + platform)
+            print(DapFormatter.format_platforms(platforms))
