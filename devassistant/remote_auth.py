@@ -1,5 +1,6 @@
 import getpass
 import glob
+import io
 import os
 
 import six
@@ -192,7 +193,7 @@ class GitHubAuth(object):
         pubkey_files = glob.glob(os.path.expanduser('~/.ssh/*.pub'))
         for rk in remote_keys:
             for pkf in pubkey_files:
-                local_key = open(pkf).read()
+                local_key = io.open(pkf, encoding='utf-8').read()
                 # in PyGithub 1.23.0, remote key is an object, not string
                 rkval = rk if isinstance(rk, six.string_types) else rk.value
                 # don't use "==" because we have comments etc added in public_key
