@@ -15,11 +15,16 @@ try:  # ugly hack for using imp instead of importlib on Python <= 2.6
     import importlib
     import importlib.machinery
 except ImportError:
+    import devassistant
     import imp as importlib
     importlib.machinery = None
 
     def import_module(name):
-        fp, pathname, description = importlib.find_module(name.replace('.', '/'))
+        # attempt to fix #326 - explicitly provide list of directories from which
+        #  to import, including entries from devassistant.__path__
+        dapath = [os.path.split(p)[0] for p in devassistant.__path__]
+        fp, pathname, description = importlib.find_module(name.replace('.', '/'),
+            dapath + sys.path)
         return importlib.load_module(name, fp, pathname, description)
     importlib.import_module = import_module
     del import_module
