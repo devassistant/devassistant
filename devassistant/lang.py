@@ -188,6 +188,16 @@ def eval_exec_section(section, kwargs, runner=None):
                 else:  # with no exec flag, eval comm as input section
                     comm_ret = eval_literal_section(comm, kwargs, runner)
                 retval = assign_variable(comm_type, *comm_ret, kwargs=kwargs)
+            elif comm_type.startswith('catch '):
+                was_exc_var, exc_var = get_catch_vars(comm_type)
+                try:
+                    run_section(comm, kwargs, runner=runner)
+                    kwargs[was_exc_var] = False
+                    kwargs[exc_var] = ''
+                except exceptions.ExecutionException as ex:
+                    kwargs[was_exc_var] = True
+                    kwargs[exc_var] = str(ex)
+                retval = kwargs[was_exc_var], kwargs[exc_var]
             else:
                 retval = Command(comm_type, comm, kwargs=kwargs).run()
 
@@ -326,6 +336,27 @@ def get_section_from_condition(if_section, else_section, kwargs):
         return (0, skip, if_section[1])
     else:
         return (1, skip, else_section[1]) if skip else (1, skip, None)
+
+
+def get_catch_vars(catch):
+    """Returns 2-tuple with names of catch control vars, e.g. for "catch $was_exc, $exc"
+    it returns ('was_exc', 'err').
+
+    Args:
+        catch: the whole catch line
+
+    Returns:
+        2-tuple with names of catch control variables
+
+    Raises:
+        exceptions.YamlSyntaxError if the catch line is malformed
+    """
+    catch_re = re.compile(r'catch\s+(\${?\S+}?),\s*(\${?\S+}?)')
+    res = catch_re.match(catch)
+    if res is None:
+        err = 'Catch must have format "catch $x, $y", got "{0}"'.format(catch)
+        raise exceptions.YamlSyntaxError(err)
+    return get_var_name(res.group(1)), get_var_name(res.group(2))
 
 
 def assign_variable(variable, log_res, res, kwargs):

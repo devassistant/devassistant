@@ -163,12 +163,12 @@ Exceptions
 If an unexpected error happens in a command runner, then this command runner *raises
 exception*. This means that execution of the current section is immediately terminated -
 in fact, the whole assistant run is terminated at that moment. In terminology terms, this
-is called *raising exception* even for a run section. As of version 0.10.0, there is
-no way to recover from these errors, but it may be added in future versions.
+is called *raising exception*. Since version 0.11.0, it is possible to
+:ref:`catch exceptions <catching_exceptions_ref>`.
 
-For command line execution of DevAssistant, raising exception means ending DevAssistant
-with non-zero return code immediately. In GUI, this means ending the execution of
-an assistant, but keeping the GUI running.
+For command line execution of DevAssistant, raising exception without catching it means
+ending DevAssistant with non-zero return code immediately. In GUI, this means ending the
+execution of an assistant, but keeping the GUI running.
 
 .. _variables_ctxt_ref:
 

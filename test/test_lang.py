@@ -4,7 +4,8 @@ import re
 
 from devassistant.exceptions import YamlSyntaxError
 from devassistant.lang import Command, evaluate_expression, exceptions, \
-    dependencies_section, format_str, get_var_name,is_var, run_section, parse_for
+    dependencies_section, format_str, get_var_name,is_var, run_section, parse_for, \
+    get_catch_vars
 
 from test.logger import TestLoggingHandler
 # TODO: some of the test methods may need splitting into separate classes according to methods
@@ -401,6 +402,36 @@ class TestRunSection(object):
         run_section([{'$foo': 42}, {'$bar': 4.2}], kwargs)
         assert kwargs['foo'] == 42
         assert kwargs['bar'] == 4.2
+
+    @pytest.mark.parametrize('input, output', [
+        ('catch $was_exc, $exc', ('was_exc', 'exc')),
+        ('catch $x,$y', ('x', 'y')),
+    ])
+    def test_get_catch_vars_ok(self, input, output):
+        assert get_catch_vars(input) == output
+
+    @pytest.mark.parametrize('input', [
+        'catch $was_exc',
+        'catch $was_exc, $x, $y',
+    ])
+    def test_get_catch_vars_malformed(self, input):
+        with pytest.raises(YamlSyntaxError):
+            get_catch_vars(input)
+
+    def test_catch(self):
+        kwargs = {}
+        res = run_section(
+            [{'catch $x, $y': [{'cl': 'ls this_doesnt_exist_and_thus_will_raise'}]}],
+            kwargs)
+        assert res[0] == True
+        assert res[1] != ''
+
+    def test_catch_no_exception(self):
+        kwargs = {}
+        res = run_section([{'catch $x, $y': [{'cl': 'true'}]}])
+        assert res[0] == False
+        assert res[1] == ''
+
 
 class TestIsVar(object):
     @pytest.mark.parametrize(('tested', 'expected'), [

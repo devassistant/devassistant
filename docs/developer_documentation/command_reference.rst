@@ -30,7 +30,8 @@ Note: if a command explanation says that command "*raises exception*" under some
 it means that a critical error has occured and assistant execution has to be interrupted
 immediately. See documentation for :ref:`exceptions in run sections <run_section_exceptions_ref>`
 for details on how this reflects on command line and in GUI. In terms of the underlying Python
-source code, this means that ``exceptions.CommandException`` has been raised.
+source code, this means that ``exceptions.CommandException`` has been raised. Exceptions
+can be :ref:`caught <catching_exceptions_ref>`.
 
 *Missing something?* Commands are your entry point for extending DevAssistant.
 If you're missing some functionality in ``run`` sections, just
@@ -122,6 +123,31 @@ over mapping, two control variables may be provided to get both key and its valu
    - for $k, $v in $foo:
      - log_i: $k, $v
 
+.. _catching_exceptions_ref:
+
+Catching Exceptions
+~~~~~~~~~~~~~~~~~~~
+
+Catching runtime exceptions.
+
+``catch $was_exc, $exc`` - execute passed subsection, catch exception if raised. ``$was_exc``
+contains ``True`` if exception was raised, ``False`` otherwise; ``$exc`` contains string
+representation of exception if one was raised, else it's empty string.
+
+- Input: a subsection to execute and catch exception for
+- RES: string representation of exception if one was raised, empty string otherwise
+- LRES: ``True`` if exception was raised, ``False`` otherwise
+- Example::
+
+   - catch $was_exc, $exc:
+     - cl: ls something_that_doesn_exist
+
+   - if $was_exc:
+     # handle exception
+
+Note that ``$exc`` may theoretically be empty string even if an exception was raised
+(an example of that is running ``cl: false``, which fails without output). It is therefore
+important to use ``$was_exc`` variable to determine whether an exception was raised.
 
 Ask Commands
 ------------
