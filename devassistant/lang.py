@@ -196,7 +196,7 @@ def eval_exec_section(section, kwargs, runner=None):
                     kwargs[exc_var] = ''
                 except exceptions.ExecutionException as ex:
                     kwargs[was_exc_var] = True
-                    kwargs[exc_var] = str(ex)
+                    kwargs[exc_var] = utils.exc_as_decoded_string(ex)
                 retval = kwargs[was_exc_var], kwargs[exc_var]
             else:
                 retval = Command(comm_type, comm, kwargs=kwargs).run()
