@@ -3,6 +3,7 @@ import csv
 
 from devassistant.logger import logger_gui
 from devassistant import settings
+from devassistant import utils
 
 
 class ConfigManager(object):
@@ -38,7 +39,8 @@ class ConfigManager(object):
                                             format(self.config_file))
                         return
         except (OSError, IOError) as e:
-            self.logger.warning("Could not load configuration file: {0}".format(str(e)))
+            self.logger.warning("Could not load configuration file: {0}".\
+                format(utils.exc_as_decoded_string(e)))
 
     def save_configuration_file(self):
         """
@@ -53,7 +55,7 @@ class ConfigManager(object):
                 os.makedirs(dirname)
         except (OSError, IOError) as e:
             self.logger.warning("Could not make directory for configuration file: {0}".
-                                format(str(e)))
+                                format(utils.exc_as_decoded_string(e)))
             return
         try:
             with open(self.config_file, 'w') as file:
@@ -63,7 +65,8 @@ class ConfigManager(object):
                     csvwriter.writerow([key, value])
             self.config_changed = False
         except (OSError, IOError) as e:
-            self.logger.warning("Could not save configuration file: {0}".format(str(e)))
+            self.logger.warning("Could not save configuration file: {0}".\
+                format(utils.exc_as_decoded_string(e)))
 
     def get_config_value(self, name):
         """

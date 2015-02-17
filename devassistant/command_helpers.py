@@ -14,6 +14,7 @@ import six
 from devassistant import exceptions
 from devassistant.logger import logger
 from devassistant.settings import ROOT_EXECUTABLE
+from devassistant import utils
 
 
 class ClHelper(object):
@@ -82,7 +83,7 @@ class ClHelper(object):
         stdout = []
         while proc.poll() is None:
             try:
-                output = proc.stdout.readline().decode('utf8')
+                output = proc.stdout.readline().decode(utils.defenc)
                 if output:
                     output = output.strip()
                     stdout.append(output)
@@ -102,7 +103,7 @@ class ClHelper(object):
         # it line by line; if there's no more output, we strip anyway
         stdout = '\n'.join(stdout) + '\n'
         # there may be some remains not read after exiting the previous loop
-        output_rest = proc.stdout.read().strip().decode('utf8')
+        output_rest = proc.stdout.read().strip().decode(utils.defenc)
         # we want to log lines separately, not as one big chunk
         output_rest_lines = output_rest.splitlines()
         for i, l in enumerate(output_rest_lines):

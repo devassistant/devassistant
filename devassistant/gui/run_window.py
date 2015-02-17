@@ -17,6 +17,7 @@ from devassistant import path_runner
 from devassistant import exceptions
 from devassistant import sigint_handler
 from devassistant import settings
+from devassistant import utils
 
 LOG_COLORS = {'ERROR': '#FF0000', 'WARNING': '#FF7700'}
 
@@ -262,7 +263,8 @@ class RunWindow(object):
         self.dev_assistant_runner = path_runner.PathRunner(path)
         kwargs_decoded = dict()
         for k, v in self.kwargs.items():
-            kwargs_decoded[k] = v.decode('utf-8') if not six.PY3 and isinstance(v, str) else v
+            kwargs_decoded[k] = \
+                v.decode(utils.defenc) if not six.PY3 and isinstance(v, str) else v
         try:
             self.dev_assistant_runner.run(**kwargs_decoded)
             Gdk.threads_enter()
@@ -279,14 +281,14 @@ class RunWindow(object):
         except exceptions.ClException as cle:
             msg = replace_markup_chars(cle.message)
             if not six.PY3:
-                msg = msg.encode('utf-8')
+                msg = msg.encode(utils.defenc)
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
                                format(msg))
         except exceptions.ExecutionException as exe:
             msg = replace_markup_chars(six.text_type(exe))
             if not six.PY3:
-                msg = msg.encode('utf-8')
+                msg = msg.encode(utils.defenc)
             self.allow_buttons(back=True, link=False,
                                message='<span color="#FF0000">Failed: {0}</span>'.
                                format((msg[:80] + '...') if len(msg) > 80 else msg))

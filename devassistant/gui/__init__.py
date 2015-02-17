@@ -19,7 +19,7 @@ def run_gui():
         pass
     except RuntimeError as e:
         sys.stderr.write(GUI_MESSAGE)
-        sys.stderr.write("%s: %r" % (e.__class__.__name__, str(e)))
+        sys.stderr.write("%s: %r" % (e.__class__.__name__, utils.exc_as_decoded_string(e)))
         sys.stderr.flush()
         sys.exit(1)
 

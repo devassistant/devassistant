@@ -15,6 +15,7 @@ except:
         from io import StringIO
 from devassistant.dapi import *
 from test import fixtures_dir
+from devassistant import utils
 
 def dap_path(fixture):
     '''Return appropriate dap path'''
@@ -493,7 +494,7 @@ class TestDap(object):
         '''Check that sha256sum of the files is the same as sha256sum command does'''
         for dap in glob.glob(dap_path('meta_only/*.dap')):
             process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
-            assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode('utf8')
+            assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode(utils.defenc)
 
     def test_list_assistants(self):
         '''Check that the list_assistants() method returns right results'''

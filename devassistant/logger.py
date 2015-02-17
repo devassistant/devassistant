@@ -4,6 +4,7 @@ import os
 import six
 
 from devassistant import settings
+from devassistant import utils
 
 logger = logging.getLogger('devassistant')
 logger.setLevel(logging.DEBUG)
@@ -32,7 +33,7 @@ class DevassistantClFormatter(logging.Formatter):
             if isinstance(record_vars['msg'], BaseException):
                 record_vars['msg'] = record_vars['msg'].message
             if isinstance(record_vars['msg'], str):
-                record_vars['msg'] = record_vars['msg'].decode('utf8')
+                record_vars['msg'] = record_vars['msg'].decode(utils.defenc)
         return fmt_str.format(**record_vars)
 
 

@@ -287,8 +287,8 @@ class PkgInstallAction(Action):
                 pkgs = method(pkg, force=kwargs['force'], nodeps=kwargs.get('nodeps', False))
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except Exception as e:
-                exs.append(str(e))
-                logger.error(str(e))
+                exs.append(utils.exc_as_decoded_string(e))
+                logger.error(utils.exc_as_decoded_string(e))
         if exs:
             raise exceptions.ExecutionException('; '.join(exs))
 
@@ -318,8 +318,8 @@ class PkgUninstallAction(Action):
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
             except Exception as e:
-                exs.append(str(e))
-                logger.error(str(e))
+                exs.append(utils.exc_as_decoded_string(e))
+                logger.error(utils.exc_as_decoded_string(e))
         if exs:
             raise exceptions.ExecutionException('; '.join(exs))
 
@@ -361,8 +361,8 @@ class PkgUpdateAction(Action):
                 else:
                     logger.info('DAP {pkg} is already up to date.'.format(pkg=pkg))
             except Exception as e:
-                exs.append(str(e))
-                logger.error(str(e))
+                exs.append(utils.exc_as_decoded_string(e))
+                logger.error(utils.exc_as_decoded_string(e))
         if exs:
             raise exceptions.ExecutionException('; '.join(exs))
 
@@ -391,8 +391,8 @@ class PkgSearchAction(Action):
         try:
             dapicli.print_search(' '.join(kwargs['query']))
         except Exception as e:
-            logger.error(str(e))
-            raise exceptions.ExecutionException(str(e))
+            logger.error(utils.exc_as_decoded_string(e))
+            raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
 
 
 class PkgInfoAction(Action):
@@ -418,8 +418,8 @@ class PkgInfoAction(Action):
             try:
                 dapicli.print_dap(kwargs['package'])
             except Exception as e:
-                logger.error(str(e))
-                raise exceptions.ExecutionException(str(e))
+                logger.error(utils.exc_as_decoded_string(e))
+                raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
 
 
 class PkgLintAction(Action):
@@ -447,7 +447,7 @@ class PkgLintAction(Action):
                 if not d.check(network=kwargs['network']):
                     error = True
             except (exceptions.DapFileError, exceptions.DapMetaError) as e:
-                logger.error(str(e))
+                logger.error(utils.exc_as_decoded_string(e))
                 error = True
         logger.setLevel(old_level)
         if error:

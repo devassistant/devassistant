@@ -204,7 +204,7 @@ class YUMPackageManager(RPMPackageManager):
             y.resolveDeps()
         except yum.Errors.PackageSackError as e:  # Resolution of Issue 154
             raise exceptions.DependencyException('Error resolving RPM dependencies: {0}'.
-                                                 format(str(e)))
+                                                 format(utils.exc_as_decoded_string(e)))
 
         logger.debug('Installing/Updating:')
         to_install = []
@@ -289,7 +289,7 @@ class DNFPackageManager(RPMPackageManager):
             base.resolve()
         except dnf.exceptions.Error as e:
             raise exceptions.DependencyException('Error resolving RPM dependencies with DNF: {0}'.
-                                                 format(str(e)))
+                                                 format(utils.exc_as_decoded_string(e)))
 
         logger.debug('Installing/Updating:')
         to_install = []
@@ -761,7 +761,8 @@ class PaludisPackageManager(GentooPackageManager):
             logger.debug('Checking is installed: {0} -> {1}'.format(pkg, repr(r)))
             return r
         except paludis.BaseException as e:
-            msg = 'Dependency specification is invalid [{0}]: {1}'.format(dep, str(e))
+            msg = 'Dependency specification is invalid [{0}]: {1}'.\
+                format(dep, utils.exc_as_decoded_string(e))
             raise exceptions.DependencyException(msg)
 
     @classmethod

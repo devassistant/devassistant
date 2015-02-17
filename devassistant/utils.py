@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import locale
 import os
 import platform
 import sys
@@ -158,3 +159,16 @@ def run_exitfuncs():
 
     if exc_info is not None:
         six.reraise(exc_info[0], exc_info[1], exc_info[2])
+
+
+defenc = locale.getpreferredencoding()
+defenc = 'utf-8' if defenc == 'ascii' else defenc
+
+
+def exc_as_decoded_string(e):
+    if six.PY2:
+        s = unicode(e)
+    else:
+        s = str(e)
+
+    return s

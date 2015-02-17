@@ -372,7 +372,7 @@ class DotDevassistantCommandRunner(CommandRunner):
         except IOError as e:
             msg = 'Couldn\'t find/open/read .devassistant file: {0}'.format(e)
             if not six.PY3:
-                msg = msg.decode('utf-8')
+                msg = msg.decode(utils.defenc)
             raise exceptions.CommandException(msg)
 
     @classmethod
@@ -691,7 +691,7 @@ class GitHubCommandRunner(CommandRunner):
                     success = True
                     break
                 except cls._gh_module.GithubException as e:
-                    if 'is empty' not in str(e):
+                    if 'is empty' not in utils.exc_as_decoded_string(e):
                         raise e
             msg = fork.ssh_url
         except cls._gh_module.GithubException as e:
@@ -1249,7 +1249,8 @@ class DockerCommandRunner(CommandRunner):
                     line = None
 
                 while line is not None:
-                    msg = '{cid}: {out}'.format(cid=self.nicecid, out=line.decode('utf-8').strip())
+                    msg = '{cid}: {out}'.\
+                        format(cid=self.nicecid, out=line.decode(utils.defenc).strip())
                     queue.put(msg)
                     try:
                         line = next(it)
@@ -1387,7 +1388,7 @@ class NormalizeCommandRunner(CommandRunner):
         to_norm, ok_chars = cls._get_args(c.input_res)
 
         if six.PY2 and isinstance(to_norm, str):
-            to_norm = to_norm.decode('utf8')
+            to_norm = to_norm.decode(utils.defenc)
         normalized = unicodedata.normalize('NFKD', to_norm)
         if six.PY2:
             normalized = normalized.encode('ascii', 'ignore')
@@ -1442,7 +1443,7 @@ class SetupProjectDirCommandRunner(CommandRunner):
     def run(cls, c):
         args = cls._get_args(c.input_res, c.kwargs)
         if not six.PY3:
-            args['from'] = args['from'].encode('utf-8')
+            args['from'] = args['from'].encode(utils.defenc)
         contdir, topdir = os.path.split(args['from'])
         normalized_topdir = lang.Command('normalize',
             {'what': topdir, 'ok_chars': args['normalize_ok_chars']}).run()[1]
@@ -1544,7 +1545,7 @@ class PingPongCommandRunner(CommandRunner):
                     lres, res = lang.Command(ct, ci, ctxt).run()
                     server.send_msg_command_result(ctxt, lres=lres, res=res)
                 except BaseException as e:
-                    server.send_msg_command_exception(ctxt, str(e))
+                    server.send_msg_command_exception(ctxt, utils.exc_as_decoded_string(e))
                 try:
                     msg = server.recv_msg()
                 except dapp.DAPPException as e:

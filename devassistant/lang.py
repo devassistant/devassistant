@@ -583,7 +583,7 @@ def evaluate_expression(expression, names):
         for v in reversed(sorted(interpr.names.keys())):
             val = interpr.names[v]
             if not six.PY3 and isinstance(val, str):
-                val = val.decode('utf-8')
+                val = val.decode(utils.defenc)
             self.value = self.value.replace("$" + v, six.text_type(val))
         # if self.value is in double/single quotes, strip them (but only the outer quotes)
         ret = self.value

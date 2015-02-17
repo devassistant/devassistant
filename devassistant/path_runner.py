@@ -34,7 +34,7 @@ class PathRunner(object):
     def _log_if_not_logged(self, err):
         if not getattr(err, 'already_logged', False):
             # this is here primarily because of log_ command, that logs the message itself
-            logger.error(str(err))
+            logger.error(utils.exc_as_decoded_string(err))
 
         return err
 
