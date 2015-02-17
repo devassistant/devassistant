@@ -615,9 +615,9 @@ Another, more function-like usage is also available::
 
    - use:
        sect: self.run_foo
-         args:
-           foo: $bar
-           baz: $spam
+       args:
+         foo: $bar
+         baz: $spam
 
 Using this approach, the assistant/snippet and section name is taken from ``sect`` and 
 only arguments listed in ``args`` are passed to the section (plus all "magic" variables,
