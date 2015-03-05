@@ -239,18 +239,22 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             'Cannot uninstall DAP {dap}, it is not in {path}'.
             format(dap=name, path=hint))
     ret = []
+
+    # We need to remove all the daps depending on this one
     for dap in get_installed_daps(location=location, skip_distro=True):
         deps = _get_dependencies_of(dap, location=location)
         if deps:
             deps = [_strip_version_from_dependency(dep) for dep in deps]
             if name in deps:
-                # this might have changed
+                # This dap might have been removed when removing other dap(s) in this loop
                 if dap in get_installed_daps(location=location, skip_distro=True):
                     ret += uninstall_dap(dap, confirm=confirm, allpaths=allpaths)
+
     if allpaths:
         locations = _data_dirs()
     else:
         locations = [_install_path()]
+
     for location in locations:
         if name not in get_installed_daps(location=location):
             continue
@@ -259,6 +263,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
                 'Skipping {d} in {l}, as it is protected. See docs for explanation.'.format(
                     d=name, l=DISTRO_DIRECTORY))
             continue
+
         g = ['{d}/meta/{dap}.yaml'.format(d=location, dap=name)]
         for loc in 'assistants files icons'.split():
             g += glob.glob('{d}/{loc}/*/{dap}.*'.format(d=location, loc=loc, dap=name))
@@ -266,6 +271,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
         for loc in 'snippets doc'.split():
             g += glob.glob('{d}/{loc}/{dap}.yaml'.format(d=location, loc=loc, dap=name))
             g += glob.glob('{d}/{loc}/{dap}'.format(d=location, loc=loc, dap=name))
+
         if confirm:
             print('DAP {name} and the following files and directories will be removed:'.
                   format(name=name))
@@ -275,6 +281,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             ok = inp('Is that OK? [y/N] ')
             if ok.lower() != 'y':
                 raise Exception('Stopped by user')
+
         for f in g:
             try:
                 os.remove(f)
@@ -323,6 +330,7 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
     will_uninstall = False
     dap_obj = dapi.Dap(path)
     name = dap_obj.meta['package_name']
+
     if name in get_installed_daps():
         if not update and not reinstall:
             raise Exception(
@@ -341,16 +349,19 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
     else:
         install_locations = [_install_path()]
 
+    # This should not happen unless someone did it on purpose
     for location in install_locations:
         if os.path.isfile(location):
             raise Exception(
                 '{i} is a file, not a directory.'.format(i=_install_path()))
 
     _dir = tempfile.mkdtemp()
+
     old_level = logger.getEffectiveLevel()
     logger.setLevel(logging.ERROR)
     ok = dap_obj.check()
     logger.setLevel(old_level)
+
     if not ok:
         raise Exception('The DAP you want to install has errors, not installing.')
 
@@ -360,6 +371,7 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
             raise Exception(
                 '{0} is not supported on this platform (use --force to suppress this check)'.
                 format(name))
+
         deps = set()
         if not nodeps:
             for dep in dap_obj.meta['dependencies']:
@@ -371,14 +383,19 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
                     installed += install_dap(dep, first=False)
 
     dap_obj.extract(_dir)
+
     if will_uninstall:
         uninstall_dap(name, allpaths=update_allpaths)
+
     _dapdir = os.path.join(_dir, name + '-' + dap_obj.meta['version'])
+
     if not os.path.isdir(_install_path()):
         os.makedirs(_install_path())
+
     os.mkdir(os.path.join(_dapdir, 'meta'))
     os.rename(os.path.join(_dapdir, 'meta.yaml'),
               os.path.join(_dapdir, 'meta', name + '.yaml'))
+
     for location in install_locations:
         for f in glob.glob(_dapdir + '/*'):
             dst = os.path.join(location, os.path.basename(f))
@@ -424,6 +441,7 @@ def get_installed_version_of(name, location=None):
         locations = [location]
     else:
         locations = _data_dirs()
+
     for loc in locations:
         if name not in get_installed_daps(loc):
             continue
@@ -454,6 +472,7 @@ def _get_dependencies_of(name, location=None):
         if name not in detailed_dap_list:
             return _get_api_dependencies_of(name)
         location = detailed_dap_list[name][0]['location']
+
     meta = '{d}/meta/{dap}.yaml'.format(d=location, dap=name)
     try:
         with open(meta) as f:
@@ -470,7 +489,7 @@ def _get_all_dependencies_of(name, deps=set(), force=False):
         dep = _strip_version_from_dependency(dep)
         if dep in deps:
             continue
-        # we can do the following not to resolve the dependencies of already installed daps
+        # we do the following not to resolve the dependencies of already installed daps
         if dap in get_installed_daps():
             continue
         deps |= _get_all_dependencies_of(dep, deps)
