@@ -27,6 +27,17 @@ class TestDAPIIntegration(object):
         res = run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'))
         assert 'INFO: Successfully installed DAPs foo' in res.stdout
 
+    def test_install_and_list(self):
+        '''Test installed dap is listed'''
+        res = run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'))
+
+        res = res.run_da('pkg list --simple')
+        assert res.stdout.rstrip() == 'foo'
+
+        res = res.run_da('pkg list')
+        assert 'foo' in res.stdout
+        assert '1.0.0' in res.stdout
+
     @pytest.mark.webtest
     def test_install_dapi(self):
         res = run_da('pkg install common_args')
