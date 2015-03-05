@@ -9,6 +9,7 @@ import tempfile
 import six
 from scripttest import TestFileEnvironment
 
+
 class DATestFileEnvironment(TestFileEnvironment):
     def __init__(self, *args, **kwargs):
         base_path = tempfile.mkdtemp()
@@ -27,6 +28,8 @@ class DATestFileEnvironment(TestFileEnvironment):
             self.environ.update({'DEVASSISTANT_NO_DEFAULT_PATH': '1',
                 'DEVASSISTANT_HOME': os.path.join(os.path.abspath(self.base_path), '.dahome')})
 
+        atexit.register(lambda: self.print_leftover(self.base_path))
+
 
     def run_da(self, cmd=[], expect_error=False, expect_stderr=False, stdin="", cwd=None,
             environ=None, delete_test_dir=True, top_level_bin='da.py'):
@@ -41,9 +44,7 @@ class DATestFileEnvironment(TestFileEnvironment):
 
         # register base_path for removal (or printing that it's a leftover)
         if delete_test_dir:
-            atexit.register(lambda: shutil.rmtree(self.base_path))
-        else:
-            atexit.register(print, 'Leftover test dir: ' + self.base_path)
+            atexit.register(lambda: self.remove_dir_once(self.base_path))
 
         if environ is not None:
             self.environ = environ
@@ -76,6 +77,14 @@ class DATestFileEnvironment(TestFileEnvironment):
                 os.makedirs(d)
                 self.populate_dapath(contents, path=d)
 
+    def remove_dir_once(self, path):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+    def print_leftover(self, path):
+        if os.path.exists(path):
+            print('Leftover test dir: ' + path)
+
 
 class DAResult(object):
     """Wrapper class (not a subclass) for scripttest.ProcResult to be able
@@ -88,10 +97,10 @@ class DAResult(object):
         return getattr(self.__procresult, attr)
 
     def run_da(self, *args, **kwargs):
-        self.__procresult.test_env.run_da(*args, **kwargs)
+        return self.__procresult.test_env.run_da(*args, **kwargs)
 
     def populate_dapath(self, data, path=None):
-        self.__procresult.test_env.populate_dapath(data, path=path)
+        return self.__procresult.test_env.populate_dapath(data, path=path)
 
 
 # shortcut for creating DATestFileEnvironment and running run_da
