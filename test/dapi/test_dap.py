@@ -6,6 +6,7 @@ import logging
 import itertools
 import glob
 import subprocess
+from flexmock import flexmock
 try:
     from cStringIO import StringIO
 except:
@@ -463,14 +464,14 @@ class TestDap(object):
     def test_dapi_check(self):
         '''Dap that is already on dapi should produce a warning when network is True'''
         out = StringIO()
-        os.environ['DAPI_FAKE_DATA'] = 'nonempty'
+        flexmock(dapicli).should_receive('data').and_return('something')
         Dap(dap_path('meta_only/foo-1.0.0.dap')).check(logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' in out.getvalue()
 
     def test_dapi_check_false(self):
         '''Dap that is not already on dapi should not produce a warning when network is True'''
         out = StringIO()
-        os.environ['DAPI_FAKE_DATA'] = ''
+        flexmock(dapicli).should_receive('data').and_return('')
         Dap(dap_path('meta_only/foo-1.0.0.dap')).check(logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
 

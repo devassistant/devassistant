@@ -87,7 +87,7 @@ class DocAction(Action):
     name = 'doc'
     description = 'Display documentation for a DAP package.'
     args = [argument.Argument('dap', 'dap', choices=sorted(dapicli.get_installed_daps()),
-        help='Packages to get documentation for'),
+                              help='Packages to get documentation for'),
             argument.Argument('doc', 'doc', nargs='?', help='Document to display')]
 
     @classmethod
@@ -126,12 +126,12 @@ class DocAction(Action):
         have_less = True
         try:
             subprocess.check_call(['which', 'less'], stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT)
+                                  stderr=subprocess.STDOUT)
         except (subprocess.CalledProcessError, OSError):
             have_less = False
         if have_less:
             subprocess.Popen(['less', '-F', '-R', '-S', '-X', '-K', fullpath],
-                stdin=subprocess.PIPE, stdout=sys.stdout).communicate()
+                             stdin=subprocess.PIPE, stdout=sys.stdout).communicate()
         else:
             logger.info(open(fullpath).read())
 
@@ -269,9 +269,12 @@ class PkgInstallAction(Action):
     args = [
         argument.Argument('package', 'package', nargs='+', help='Packages to install'),
         argument.Argument('force', '-f', '--force', action='store_true', default=False,
-                          help='Install packages that are unsupported on this platform (dangerous)'),
+                          help='Install packages that are unsupported on this platform (dangerous)'
+                          ),
         argument.Argument('nodeps', '-n', '--no-deps', action='store_true', default=False,
                           help='Do not install dependencies of the selected package'),
+        argument.Argument('reinstall', '-r', '--reinstall', action='store_true', default=False,
+                          help='If the package is already installed, reinstall it'),
     ]
 
     @classmethod
@@ -284,7 +287,8 @@ class PkgInstallAction(Action):
             else:
                 method = dapicli.install_dap
             try:
-                pkgs = method(pkg, force=kwargs['force'], nodeps=kwargs.get('nodeps', False))
+                pkgs = method(pkg, force=kwargs['force'],
+                              nodeps=kwargs['nodeps'], reinstall=kwargs['reinstall'])
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except Exception as e:
                 exs.append(utils.exc_as_decoded_string(e))
@@ -300,7 +304,9 @@ class PkgUninstallAction(Action):
     args = [
         argument.Argument('package', 'package', nargs='+', help='Package(s) to uninstall'),
         argument.Argument('force', '-f', '--force', action='store_false',
-                          default=True, help='Do not ask for confirmation')
+                          default=True, help='Do not ask for confirmation'),
+        argument.Argument('allpaths', '-a', '--all-paths', action='store_true',
+                          default=False, help='Try to uninstall from all possible locations'),
     ]
 
     @classmethod
@@ -313,7 +319,8 @@ class PkgUninstallAction(Action):
                 continue
             logger.info('Uninstalling DAP {pkg} ...'.format(pkg=pkg))
             try:
-                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'])
+                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'],
+                                             allpaths=kwargs['allpaths'])
                 if done:
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
@@ -330,15 +337,20 @@ class PkgRemoveAction(PkgUninstallAction):
     description = 'An alias for uninstall command'
     # TODO: implement aliases for actions
 
+
 class PkgUpdateAction(Action):
     """Updates packages from Dapi"""
     name = 'update'
     description = 'Updates DAP packages of given names or all local packages.'
     args = [
         argument.Argument('package', 'package', nargs='*',
-                          help='Packages to update - if none are provided, all local packages are updated'),
+                          help='Packages to update - if none are provided,'
+                               'all local packages are updated'),
         argument.Argument('force', '-f', '--force', action='store_true', default=False,
-                          help='Update and install dependent packages that are unsupported on this platform (dangerous)'),
+                          help='Update and install dependent packages'
+                               'that are unsupported on this platform (dangerous)'),
+        argument.Argument('allpaths', '-a', '--all-paths', action='store_true', default=False,
+                          help='Try to update packages in all paths'),
     ]
 
     @classmethod
@@ -355,7 +367,8 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating DAP {pkg} ...'.format(pkg=pkg))
             try:
-                updated = dapicli.install_dap(pkg, update=True, force=kwargs['force'])
+                updated = dapicli.install_dap(pkg, update=True, update_allpaths=kwargs['allpaths'],
+                                              force=kwargs['force'])
                 if updated:
                     logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
                 else:
@@ -371,11 +384,27 @@ class PkgListAction(Action):
     """List installed packages from Dapi"""
     name = 'list'
     description = 'Lists installed DAP packages.'
+    args = [
+        argument.Argument('simple', '-s', '--simple', action='store_true', default=False,
+                          help='List only the names of installed packages'),
+    ]
 
     @classmethod
     def run(cls, **kwargs):
-        for pkg in sorted(dapicli.get_installed_daps()):
-            print(pkg)
+        if kwargs['simple']:
+            for pkg in sorted(dapicli.get_installed_daps()):
+                print(pkg)
+        else:
+            for pkg, instances in sorted(dapicli.get_installed_daps_detailed().items()):
+                versions = []
+                for instance in instances:
+                    location = utils.unexpanduser(instance['location'])
+                    version = instance['version']
+                    if not versions:  # if this is the first
+                        version = utils.bold(version)
+                    versions.append('{v}:{p}'.format(v=version, p=location))
+                pkg = utils.bold(pkg)
+                print('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
 
 
 class PkgSearchAction(Action):

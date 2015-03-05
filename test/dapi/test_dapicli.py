@@ -66,17 +66,17 @@ results:
     def test_print_users(self, capfd):
         '''Test the print of users'''
         desired = 'miro (Miro Hroncok)\nuser\n'
-        os.environ['DAPI_FAKE_DATA'] = TestDapicli.users_yaml
+        flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.users_yaml))
         dapicli.print_users()
-        out, err = out, err = capfd.readouterr()
+        out, err = capfd.readouterr()
         assert out == desired
 
     def test_search(self, capfd):
         '''Test the print of a search results'''
         desired = 'python\n'
-        os.environ['DAPI_FAKE_DATA'] = TestDapicli.search_yaml
+        flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.search_yaml))
         dapicli.print_search('python')
-        out, err = out, err = capfd.readouterr()
+        out, err = capfd.readouterr()
         assert out == desired
 
     def test_get_installed_version_of_missing_package(self):
@@ -93,14 +93,15 @@ results:
         flexmock(yaml).should_receive('load').and_return({'version': version})
 
         # Everything goes fine
-        flexmock(six.moves.builtins).should_receive('open').and_return(flexmock(read=lambda: u'qux'))
+        flexmock(six.moves.builtins).should_receive('open').and_return(
+            flexmock(read=lambda: u'qux'))
         assert dapicli.get_installed_version_of('foo') == version
 
         # File does not exist
         ioerror = IOError("[Errno 2] No such file or directory: '{0}'".format(yaml_path))
         flexmock(six.moves.builtins).should_receive('open').and_raise(ioerror)
 
-        with pytest.raises(Exception): # TODO maybe change to IOError
+        with pytest.raises(Exception):  # TODO maybe change to IOError
             dapicli.get_installed_version_of('foo')
 
     def test_strip_version_from_dependency(self):
@@ -115,8 +116,11 @@ results:
 
     def test_install_from_path_nodeps(self):
         # Functional mocks
-        fakedap = flexmock(meta={'package_name': 'foo', 'version': '1.0', 'dependencies': ['bar-1.0']}, \
-                           check=lambda: True, extract=lambda x: None)
+        fakedap = flexmock(meta={
+            'package_name': 'foo',
+            'version': '1.0',
+            'dependencies': ['bar-1.0'],
+        }, check=lambda: True, extract=lambda x: None)
         flexmock(dapi.Dap).new_instances(fakedap)
         flexmock(dapicli).should_receive('get_installed_daps').and_return([])
         flexmock(dapicli).should_receive('_install_path').and_return('.')
@@ -134,16 +138,17 @@ class TestUninstall(object):
     def setup_class(self):
         self.installed_daps = ['foo', 'bar', 'baz']
 
-    @pytest.mark.parametrize(('confirm', 'result'), [
-        ('y', ['foo']),
-        ('n', False)
-    ])
-    def test_uninstall_prompt_works(self, confirm, result, monkeypatch):
+    def test_uninstall_prompt_works(self, monkeypatch):
         inp = 'input' if six.PY3 else 'raw_input'
-        monkeypatch.setattr(six.moves.builtins, inp, lambda x: confirm) # Putting 'y' on fake stdin
+        monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'y')  # Putting 'y' on fake stdin
         flexmock(dapicli).should_receive('get_installed_daps').and_return(self.installed_daps)
         flexmock(dapicli).should_receive('_get_dependencies_of').and_return([])
         flexmock(dapicli).should_receive('_install_path').and_return('.')
         flexmock(os).should_receive('remove').and_return(None)
 
-        assert dapicli.uninstall_dap('foo', True) == result
+        assert dapicli.uninstall_dap('foo', True) == ['foo']
+        
+        monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'n')  # Putting 'n' on fake stdin
+        
+        with pytest.raises(Exception):
+            dapicli.uninstall_dap('foo', True)

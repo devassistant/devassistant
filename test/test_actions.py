@@ -94,7 +94,7 @@ class TestPkgInstallAction(object):
                          .and_return([self.pkg]).at_least().once()
 
         # Install from path, everything goes well
-        actions.PkgInstallAction.run(package=[self.pkg], force=False)
+        actions.PkgInstallAction.run(package=[self.pkg], force=False, reinstall=False, nodeps=False)
 
     def test_pkg_install_fails(self):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
@@ -103,7 +103,8 @@ class TestPkgInstallAction(object):
                          .and_raise(Exception(self.exc_string)).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgInstallAction.run(package=[self.pkg], force=False)
+            actions.PkgInstallAction.run(package=[self.pkg], force=False,
+                                         reinstall=False, nodeps=False)
 
         assert self.exc_string in str(excinfo.value)
 
@@ -118,7 +119,7 @@ class TestPkgUpdateAction(object):
                          .and_return([]).at_least().once()
 
         # Update all, everything is up to date
-        actions.PkgUpdateAction.run(force=False)
+        actions.PkgUpdateAction.run(force=False, allpaths=False)
 
     def test_pkg_update_no_dapi(self):
         '''Run update of package that is not on Dapi'''
@@ -126,7 +127,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False)
+            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
         assert 'foo not found' in str(excinfo.value)
 
@@ -138,7 +139,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
         
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False)
+            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
         assert 'Cannot update not yet installed DAP' in str(excinfo.value)
 
@@ -154,7 +155,7 @@ class TestPkgUninstallAction(object):
         flexmock(dapicli).should_receive('uninstall_dap')\
                          .and_return(['first', 'second']).at_least().once()
 
-        action.run(package=['first', 'second'], force=True)
+        action.run(package=['first', 'second'], force=True, allpaths=False)
 
     def test_pkg_uninstall_not_installed(self, action):
         '''Uninstall package that is not installed'''
@@ -162,6 +163,6 @@ class TestPkgUninstallAction(object):
                          .and_return(['bar']).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            action.run(package=['foo'], force=True)
+            action.run(package=['foo'], force=True, allpaths=False)
 
         assert 'Cannot uninstall DAP foo' in str(excinfo.value)

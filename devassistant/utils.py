@@ -173,3 +173,13 @@ def exc_as_decoded_string(e):
     a string with both name of the exception and the message.
     """
     return six.text_type(e)
+
+
+def bold(message):
+    """Adds shell bold formatting to the message"""
+    return '\033[1m{m}\033[0m'.format(m=message)
+
+
+def unexpanduser(path):
+    """Replaces expanded ~ back with ~"""
+    return path.replace(os.path.expanduser('~'), '~')
