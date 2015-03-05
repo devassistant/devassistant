@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import glob
 import os
 import six
 import sys
@@ -131,6 +132,40 @@ results:
         flexmock(os).should_receive('rename').and_return()
 
         dapicli.install_dap_from_path('/foo', nodeps=True)
+
+    def test_get_installed_daps_detailed(self):
+        '''Test function get_installed_daps_detailed()'''
+        flexmock(dapicli).should_receive('_data_dirs').and_return(['/1', '/2', '/3'])
+
+        flexmock(glob).should_receive('glob').with_args('/1/meta/*.yaml').and_return(
+            ['/1/meta/a.yaml', '/1/meta/b.yaml', '/1/meta/c.yaml'])
+        flexmock(glob).should_receive('glob').with_args('/2/meta/*.yaml').and_return(
+            ['/2/meta/a.yaml', '/2/meta/b.yaml'])
+        flexmock(glob).should_receive('glob').with_args('/3/meta/*.yaml').and_return(
+            ['/3/meta/a.yaml'])
+
+        builtin = 'builtins' if six.PY3 else '__builtin__'
+        flexmock(sys.modules[builtin]).should_receive('open').and_return(
+            flexmock(read=lambda: 'version: 1.0'))
+
+        expected = {
+            'a': [
+                {'version': 1.0, 'location': '/1'},
+                {'version': 1.0, 'location': '/2'},
+                {'version': 1.0, 'location': '/3'},
+            ],
+            'b': [
+                {'version': 1.0, 'location': '/1'},
+                {'version': 1.0, 'location': '/2'},
+            ],
+            'c': [
+                {'version': 1.0, 'location': '/1'},
+            ],
+        }
+
+        details = dapicli.get_installed_daps_detailed()
+        assert details == expected
+
 
 
 class TestUninstall(object):
