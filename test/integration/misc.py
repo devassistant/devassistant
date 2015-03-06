@@ -115,3 +115,18 @@ def populate_dapath(data, path=None):
     env = DATestFileEnvironment()
     env.populate_dapath(data, path=path)
     return env
+
+
+def environ(*args, **kwargs):
+    '''Return environ dictionary, first dir as home'''
+    try:
+        home = str(args[0])
+    except IndexError:
+        return {}
+    path = ':'.join([str(x) for x in args[1:]])
+
+    return {
+            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
+            'DEVASSISTANT_HOME': home,
+            'DEVASSISTANT_PATH': path,
+    }

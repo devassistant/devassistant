@@ -3,6 +3,7 @@ import os
 
 from test import fixtures_dir
 from test.integration.misc import run_da
+from test.integration.misc import environ
 
 
 def dap_path(fixture):
@@ -50,24 +51,16 @@ class TestDAPIIntegration(object):
         home = tmpdir.mkdir('home')
         extra = tmpdir.mkdir('extra')
 
-        environ = {
-            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
-            'DEVASSISTANT_HOME': str(home),
-        }
-        res = run_da(command, environ=environ)
+        res = run_da(command, environ=environ(home))
 
-        environ = {
-            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
-            'DEVASSISTANT_HOME': str(extra),
-            'DEVASSISTANT_PATH': str(home),
-        }
-        res = res.run_da(command, environ=environ, expect_error=True)
+        env = environ(extra, home)
+        res = res.run_da(command, environ=env, expect_error=True)
 
         assert 'DAP foo is already installed' in res.stdout
 
-        res = res.run_da(command + ' --reinstall', environ=environ)
+        res = res.run_da(command + ' --reinstall', environ=env)
 
-        res = res.run_da('pkg list', environ=environ)
+        res = res.run_da('pkg list', environ=env)
         assert 'extra' in res.stdout
         assert 'home' in res.stdout
 
