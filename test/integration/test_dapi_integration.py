@@ -64,6 +64,17 @@ class TestDAPIIntegration(object):
         assert 'extra' in res.stdout
         assert 'home' in res.stdout
 
+    def test_install_dependency_satisfied_different_path(self, tmpdir):
+        '''When foo's dependencies are satisfied by a package in a different load path,
+        this requirement should be deemed satisfied'''
+        foo = dap_path('meta_only/foo-1.0.0.dap')
+        wantsfoo = dap_path('dependencies/wantsfoo-1.0.0.dap')
+        foodir = tmpdir.mkdir('foodir')
+        wantsfoodir = tmpdir.mkdir('wantsfoodir')
+
+        res = run_da('pkg install ' + foo, environ=environ(foodir))
+        res = res.run_da('pkg install ' + wantsfoo, environ=environ(wantsfoodir, foodir))
+
     @pytest.mark.webtest
     def test_install_dapi(self):
         res = run_da('pkg install common_args')
