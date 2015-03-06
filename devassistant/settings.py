@@ -65,7 +65,7 @@ if 'DEVASSISTANT_PATH' in os.environ:
     if DISTRO_DIRECTORY and DISTRO_DIRECTORY in _extra_dirs:
         DISTRO_DIRECTORY = ''
     # And prepend already defined directories
-    DATA_DIRECTORIES = extra_dirs + DATA_DIRECTORIES
+    DATA_DIRECTORIES = _extra_dirs + DATA_DIRECTORIES
 
 # User can also redefine DEVASSISTANT_HOME
 if 'DEVASSISTANT_HOME' in os.environ:
