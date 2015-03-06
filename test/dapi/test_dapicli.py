@@ -145,8 +145,10 @@ results:
             ['/3/meta/a.yaml'])
 
         builtin = 'builtins' if six.PY3 else '__builtin__'
-        flexmock(sys.modules[builtin]).should_receive('open').and_return(
-            flexmock(read=lambda: 'version: 1.0'))
+        flexmock(sys.modules[builtin]).should_receive('open').and_return(None)
+
+        flexmock(yaml).should_receive('load').and_return(
+            {'version': 1.0})
 
         expected = {
             'a': [
