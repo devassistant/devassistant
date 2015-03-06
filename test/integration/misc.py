@@ -49,6 +49,9 @@ class DATestFileEnvironment(TestFileEnvironment):
         if environ is not None:
             self.environ = environ
 
+        # Always set the locale to something with UTF-8, otherwise we get ASCII
+        self.environ['LC_ALL'] = 'en_US.UTF-8'
+
         # actually run
         return DAResult(self.run(*cmd, expect_error=expect_error,
             expect_stderr=expect_stderr, stdin=stdin, cwd=cwd))
