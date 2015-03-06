@@ -152,16 +152,16 @@ results:
 
         expected = {
             'a': [
-                {'version': 1.0, 'location': '/1'},
-                {'version': 1.0, 'location': '/2'},
-                {'version': 1.0, 'location': '/3'},
+                {'version': '1.0', 'location': '/1'},
+                {'version': '1.0', 'location': '/2'},
+                {'version': '1.0', 'location': '/3'},
             ],
             'b': [
-                {'version': 1.0, 'location': '/1'},
-                {'version': 1.0, 'location': '/2'},
+                {'version': '1.0', 'location': '/1'},
+                {'version': '1.0', 'location': '/2'},
             ],
             'c': [
-                {'version': 1.0, 'location': '/1'},
+                {'version': '1.0', 'location': '/1'},
             ],
         }
 

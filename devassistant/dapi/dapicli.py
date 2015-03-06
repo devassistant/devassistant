@@ -450,7 +450,7 @@ def get_installed_version_of(name, location=None):
             continue
         meta = '{d}/meta/{dap}.yaml'.format(d=loc, dap=name)
         data = yaml.load(open(meta), Loader=Loader)
-        return data['version']
+        return str(data['version'])
     return None
 
 
