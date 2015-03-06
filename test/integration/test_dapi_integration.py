@@ -38,6 +38,39 @@ class TestDAPIIntegration(object):
         assert 'foo' in res.stdout
         assert '1.0.0' in res.stdout
 
+    def test_install_twice_same_path(self):
+        '''Installing dap to the same path twice should fail'''
+        res = run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'))
+        res = res.run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'), expect_error=True)
+        assert 'DAP foo is already installed' in res.stdout
+
+    def test_install_twice_different_path(self, tmpdir):
+        '''Installing already installed dap to different path should fail, unless --reinstall'''
+        command = 'pkg install ' + dap_path('meta_only/foo-1.0.0.dap')
+        home = tmpdir.mkdir('home')
+        extra = tmpdir.mkdir('extra')
+
+        environ = {
+            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
+            'DEVASSISTANT_HOME': str(home),
+        }
+        res = run_da(command, environ=environ)
+
+        environ = {
+            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
+            'DEVASSISTANT_HOME': str(extra),
+            'DEVASSISTANT_PATH': str(home),
+        }
+        res = res.run_da(command, environ=environ, expect_error=True)
+
+        assert 'DAP foo is already installed' in res.stdout
+
+        res = res.run_da(command + ' --reinstall', environ=environ)
+
+        res = res.run_da('pkg list', environ=environ)
+        assert 'extra' in res.stdout
+        assert 'home' in res.stdout
+
     @pytest.mark.webtest
     def test_install_dapi(self):
         res = run_da('pkg install common_args')
