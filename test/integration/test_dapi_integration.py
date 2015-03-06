@@ -75,6 +75,38 @@ class TestDAPIIntegration(object):
         res = run_da('pkg install ' + foo, environ=environ(foodir))
         res = res.run_da('pkg install ' + wantsfoo, environ=environ(wantsfoodir, foodir))
 
+    def test_install_and_uninstall(self):
+        '''We should be able to uninstall installed package'''
+        foo = dap_path('meta_only/foo-1.0.0.dap')
+        res = run_da('pkg install ' + foo)
+        res = res.run_da('pkg uninstall foo --force')  # --force as in "no confirmation needed"
+        assert 'foo successfully uninstalled' in res.stdout
+
+    def test_uninstall_not_installed(self):
+        '''We should not be able to uninstall not yet installed package'''
+        res = run_da('pkg uninstall foo --force', expect_error=True)
+        assert 'Cannot uninstall DAP foo' in res.stdout
+
+    def test_uninstall_no_home(self, tmpdir):
+        '''By default uninstall should remove only from DEVASSISTANT_HOME'''
+        foo = dap_path('meta_only/foo-1.0.0.dap')
+        home = tmpdir.mkdir('home')
+        extra = tmpdir.mkdir('extra')
+
+        res = run_da('pkg install ' + foo, environ=environ(extra))
+        res = res.run_da('pkg uninstall foo --force', environ=environ(home, extra),
+                         expect_error=True)
+        assert 'it is not in ' + str(home) in res.stdout
+
+    def test_uninstall_allpaths(self, tmpdir):
+        '''With --all-paths uninstall should remove from all paths'''
+        foo = dap_path('meta_only/foo-1.0.0.dap')
+        home = tmpdir.mkdir('home')
+        extra = tmpdir.mkdir('extra')
+
+        res = run_da('pkg install ' + foo, environ=environ(extra))
+        res = res.run_da('pkg uninstall foo --all-paths --force', environ=environ(home, extra))
+
     @pytest.mark.webtest
     def test_install_dapi(self):
         res = run_da('pkg install common_args')
