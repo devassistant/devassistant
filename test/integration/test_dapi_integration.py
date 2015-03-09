@@ -116,3 +116,66 @@ class TestDAPIIntegration(object):
     def test_search(self):
         res = run_da('pkg search devassistant')
         assert 'devassistant - ' in res.stdout
+
+    @pytest.mark.webtest
+    def test_update_all_nothing(self):
+        '''Test updating all packages when no packages are installed'''
+        res = run_da('pkg update')
+        assert 'No installed DAP packages found, nothing to update' in res.stdout
+
+    @pytest.mark.webtest
+    @pytest.mark.parametrize('package', ['common_args', ''])
+    def test_update(self, package):
+        res = run_da('pkg install ' + dap_path('meta_only/common_args-0.0.1.dap'))
+        res = res.run_da('pkg update ' + package)
+        assert 'DAP common_args successfully updated' in res.stdout
+
+    @pytest.mark.webtest
+    @pytest.mark.parametrize('package', ['common_args', ''])
+    def test_update_different_path(self, package, tmpdir):
+        '''update should install new version to DEVASSISTANT_HOME'''
+        foo = dap_path('meta_only/common_args-0.0.1.dap')
+        foodir = tmpdir.mkdir('foodir')
+        home = tmpdir.mkdir('home')
+
+        # install old common_args to foodir
+        res = run_da('pkg install ' + foo, environ=environ(foodir))
+
+        # update with different home
+        res = res.run_da('pkg update ' + package, environ=environ(home, foodir))
+
+        # update goes fine
+        assert 'DAP common_args successfully updated' in res.stdout
+
+        # check we have both versions
+        res = res.run_da('pkg list', environ=environ(foodir))
+        assert '0.0.1' in res.stdout
+
+        res = res.run_da('pkg list', environ=environ(home))
+        assert 'common_args' in res.stdout
+        assert '0.0.1' not in res.stdout
+
+    @pytest.mark.webtest
+    @pytest.mark.parametrize('package', ['common_args', ''])
+    def test_update_all_paths(self, package, tmpdir):
+        '''update with --all-paths in all paths'''
+        foo = dap_path('meta_only/common_args-0.0.1.dap')
+        foodir = tmpdir.mkdir('foodir')
+        home = tmpdir.mkdir('home')
+
+        # install old common_args to foodir
+        res = run_da('pkg install ' + foo, environ=environ(foodir))
+
+        # update with different home
+        res = res.run_da('pkg update --all-paths ' + package, environ=environ(home, foodir))
+
+        # update goes fine
+        assert 'DAP common_args successfully updated' in res.stdout
+
+        # check we have new version in foodir
+        # and no version in home
+        res = res.run_da('pkg list', environ=environ(home, foodir))
+        assert 'common_args' in res.stdout
+        assert '0.0.1' not in res.stdout
+        assert str(foodir) in res.stdout
+        assert str(home) not in res.stdout
