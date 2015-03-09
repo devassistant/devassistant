@@ -279,7 +279,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             print('DAP {name} and the following files and directories will be removed:'.
                   format(name=name))
             for f in g:
-                print('    ' + f)
+                print('    ' + utils.unexpanduser(f))
             inp = raw_input if not six.PY3 else input
             ok = inp('Is that OK? [y/N] ')
             if ok.lower() != 'y':
