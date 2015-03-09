@@ -111,3 +111,8 @@ class TestDAPIIntegration(object):
     def test_install_dapi(self):
         res = run_da('pkg install common_args')
         assert 'INFO: Successfully installed DAPs common_args' in res.stdout
+
+    @pytest.mark.webtest
+    def test_search(self):
+        res = run_da('pkg search devassistant')
+        assert 'devassistant - ' in res.stdout
