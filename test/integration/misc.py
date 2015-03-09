@@ -21,12 +21,11 @@ class DATestFileEnvironment(TestFileEnvironment):
             if k.startswith('DEVASSISTANT'):
                 self.environ.pop(k)
 
-        environ = kwargs.pop('environ', None)
-        if environ:
-            self.environ.update(environ)
+        env = kwargs.pop('environ', None)
+        if env:
+            self.environ.update(env)
         else:
-            self.environ.update({'DEVASSISTANT_NO_DEFAULT_PATH': '1',
-                'DEVASSISTANT_HOME': os.path.join(os.path.abspath(self.base_path), '.dahome')})
+            self.environ.update(environ(os.path.join(os.path.abspath(self.base_path), '.dahome')))
 
         atexit.register(lambda: self.print_leftover(self.base_path))
 
