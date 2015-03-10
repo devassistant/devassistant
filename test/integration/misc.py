@@ -9,6 +9,7 @@ import tempfile
 import six
 from scripttest import TestFileEnvironment
 
+
 class DATestFileEnvironment(TestFileEnvironment):
     def __init__(self, *args, **kwargs):
         base_path = tempfile.mkdtemp()
@@ -20,12 +21,13 @@ class DATestFileEnvironment(TestFileEnvironment):
             if k.startswith('DEVASSISTANT'):
                 self.environ.pop(k)
 
-        environ = kwargs.pop('environ', None)
-        if environ:
-            self.environ.update(environ)
+        env = kwargs.pop('environ', None)
+        if env:
+            self.environ.update(env)
         else:
-            self.environ.update({'DEVASSISTANT_NO_DEFAULT_PATH': '1',
-                'DEVASSISTANT_HOME': os.path.join(os.path.abspath(self.base_path), '.dahome')})
+            self.environ.update(environ(os.path.join(os.path.abspath(self.base_path), '.dahome')))
+
+        atexit.register(lambda: self.print_leftover(self.base_path))
 
 
     def run_da(self, cmd=[], expect_error=False, expect_stderr=False, stdin="", cwd=None,
@@ -41,12 +43,13 @@ class DATestFileEnvironment(TestFileEnvironment):
 
         # register base_path for removal (or printing that it's a leftover)
         if delete_test_dir:
-            atexit.register(lambda: shutil.rmtree(self.base_path))
-        else:
-            atexit.register(print, 'Leftover test dir: ' + self.base_path)
+            atexit.register(lambda: self.remove_dir_once(self.base_path))
 
         if environ is not None:
             self.environ = environ
+
+        # Always set the locale to something with UTF-8, otherwise we get ASCII
+        self.environ['LC_ALL'] = 'en_US.UTF-8'
 
         # actually run
         return DAResult(self.run(*cmd, expect_error=expect_error,
@@ -76,6 +79,14 @@ class DATestFileEnvironment(TestFileEnvironment):
                 os.makedirs(d)
                 self.populate_dapath(contents, path=d)
 
+    def remove_dir_once(self, path):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+    def print_leftover(self, path):
+        if os.path.exists(path):
+            print('Leftover test dir: ' + path)
+
 
 class DAResult(object):
     """Wrapper class (not a subclass) for scripttest.ProcResult to be able
@@ -88,10 +99,10 @@ class DAResult(object):
         return getattr(self.__procresult, attr)
 
     def run_da(self, *args, **kwargs):
-        self.__procresult.test_env.run_da(*args, **kwargs)
+        return self.__procresult.test_env.run_da(*args, **kwargs)
 
     def populate_dapath(self, data, path=None):
-        self.__procresult.test_env.populate_dapath(data, path=path)
+        return self.__procresult.test_env.populate_dapath(data, path=path)
 
 
 # shortcut for creating DATestFileEnvironment and running run_da
@@ -103,3 +114,18 @@ def populate_dapath(data, path=None):
     env = DATestFileEnvironment()
     env.populate_dapath(data, path=path)
     return env
+
+
+def environ(*args, **kwargs):
+    '''Return environ dictionary, first dir as home'''
+    try:
+        home = str(args[0])
+    except IndexError:
+        return {}
+    path = ':'.join([str(x) for x in args[1:]])
+
+    return {
+            'DEVASSISTANT_NO_DEFAULT_PATH': '1',
+            'DEVASSISTANT_HOME': home,
+            'DEVASSISTANT_PATH': path,
+    }

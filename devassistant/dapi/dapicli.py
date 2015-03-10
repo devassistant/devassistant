@@ -449,9 +449,8 @@ def get_installed_version_of(name, location=None):
         if name not in get_installed_daps(loc):
             continue
         meta = '{d}/meta/{dap}.yaml'.format(d=loc, dap=name)
-        with open(meta) as f:
-            data = yaml.load(f.read(), Loader=Loader)
-        return data['version']
+        data = yaml.load(open(meta), Loader=Loader)
+        return str(data['version'])
     return None
 
 
@@ -478,8 +477,7 @@ def _get_dependencies_of(name, location=None):
 
     meta = '{d}/meta/{dap}.yaml'.format(d=location, dap=name)
     try:
-        with open(meta) as f:
-            data = yaml.load(f.read(), Loader=Loader)
+        data = yaml.load(open(meta), Loader=Loader)
     except IOError:
         return []
     return data.get('dependencies', [])
