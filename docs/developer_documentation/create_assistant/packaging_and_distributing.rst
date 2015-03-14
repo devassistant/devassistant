@@ -5,12 +5,12 @@ Packaging and Distributing Your Assistant
 
 **Note: this functionality is under heavy development and is not fully implemented yet.**
 
-So now you know how to :ref:`create an assistant <create_your_own_assistant>`.
-But what if you want to share your assistant with others?
+So now you know how to :ref:`create an Assistant <create_your_own_assistant>`.
+But what if you want to share your Assistant with others?
 
-For that you could send them all the files from your assistant and tell them where they belong.
+For that you could send them all the files from your Assistant and tell them where they belong.
 But that would be very unpleasant and that's why we've invented DAP.
-DAP is a format of extension for DevAssistant that contains custom assistants.
+DAP is a format of extension for DevAssistant that contains custom Assistants.
 It means DevAssistant Package.
 
 A DAP is a tar.gz archive with ``.dap`` extension. The name of a DAP is always
@@ -20,10 +20,10 @@ Directory structure of a DAP
 ----------------------------
 
 The directory structure of a DAP copies the structure of ``~/.devassistant`` or
-``/usr/share/devassistant`` folder. The only difference is, that it can only contain assistants,
+``/usr/share/devassistant`` folder. The only difference is, that it can only contain Assistants,
 files and icons that that belongs to it's namespace.
 
-Each DAP has an unique name (lat's say ``foo``) and it can only contain assistants ``foo`` or
+Each DAP has an unique name (lat's say ``foo``) and it can only contain Assistants ``foo`` or
 ``foo/*``. Therefore, the directory structure looks like this::
 
    foo-0.0.1/
@@ -50,10 +50,10 @@ Note several things:
 - Each of this is optional, i.e. you don't create ``files`` or ``snippets`` folder if you provide
   no files or snippets. Only mandatory thing is ``meta.yaml`` (see below).
 - Everything goes to the particular folder, just like you've learned in the chapter about
-  :ref:`creating assistants <create_your_own_assistant>`. However, you can only add stuff named
+  :ref:`creating Assistants <create_your_own_assistant>`. However, you can only add stuff named
   as your DAP (means either a folder or a file with a particular extension). If you have more
-  levels of assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level
-  assistants (in this case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to
+  levels of Assistants, such as ``crt/foo/bar/spam.yaml``, you have to include top-level
+  Assistants (in this case both ``crt/foo.yaml`` and ``crt/foo/bar.yaml``). And you have to
   preserve the structure in other folders as well (i.e. no ``icons/crt/foo/spam.svg`` but
   ``icons/crt/foo/bar/spam.svg``).
 - The top level folder is named ``<package_name>-<version>``.
@@ -107,10 +107,10 @@ There is an important file called ``meta.yaml`` in every DAP. It contains mandat
 
 .. _dap_dap:
 
-Assistant for creating assistants packages
+Assistant for creating Assistants packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There is a DevAssistant package containing set of assistants that help you create this quite complicated directory structure and package your DAP. It's called dap and you can `get it form DAPI <https://dapi.devassistant.org/dap/dap/>`_.
+There is a DevAssistant package containing set of Assistants that help you create this quite complicated directory structure and package your DAP. It's called dap and you can `get it form DAPI <https://dapi.devassistant.org/dap/dap/>`_.
 
 .. code:: sh
 
@@ -120,10 +120,10 @@ There is a DevAssistant package containing set of assistants that help you creat
   # observe available options
   $ da create dap --help
 
-  # create DAP directory structure named foo with (empty) create and tweak assistants
+  # create DAP directory structure named foo with (empty) create and tweak Assistants
   $ da create dap -n foo --crt --twk
 
-  # you can also tweak your DAP directory structure a bit by adding assistants of different kind
+  # you can also tweak your DAP directory structure a bit by adding Assistants of different kind
 
   # observe available options
   $ da tweak dap add -h
@@ -131,7 +131,7 @@ There is a DevAssistant package containing set of assistants that help you creat
   # add a snippet
   $ da tweak dap add --snippet
 
-  # once ready, you can also pack you assistant
+  # once ready, you can also pack you Assistant
   $ da tweak dap pack
 
   # as well as check if DevAssistant thinks your package is sane
@@ -147,7 +147,7 @@ errors), you can share your DAP on `DAPI <http://dapi.devassistant.org/>`_
 
 To do that, log into `DAPI <http://dapi.devassistant.org/>`_ with your Github
 or Fedora account, and click `Upload a DAP
-<http://dapi.devassistant.org/upload>`_ link in the top menu. There you will
+<http://dapi.devassistant.org/upload/>`_ link in the top menu. There you will
 find legal information about what you may (and may not) upload and an upload
 field, where you select the \*.dap file on your machine. After that, just click
 *Upload*, and the server will take care of the rest.
