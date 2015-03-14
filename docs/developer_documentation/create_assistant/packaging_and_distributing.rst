@@ -105,6 +105,7 @@ There is an important file called ``meta.yaml`` in every DAP. It contains mandat
 
 * **supported_platforms** optionally lists all platforms (Linux distributions etc.), that this DAP is known to work on. When missing or empty, all platforms are considered supported. You can choose from the following options: arch, centos, debian, fedora, gentoo, mageia, mandrake, mandriva, redhat, rocks, slackware, suse, turbolinux, unitedlinux, yellowdog and darwin (for Mac OS).
 
+.. _dap_dap:
 
 Assistant for creating assistants packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -156,3 +157,24 @@ re-run `da tweak dap pack` and `da pkg lint foo-0.0.2.dap`, and upload it to
 DAPI just the same. The server will understand it's an update and will act
 accordingly.
 
+Uploading from command line
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you'd prefer to upload your package via command line, you can use ``extra`` Assistant from the
+dap DAP mentioned :ref:`before <dap_dap>`::
+
+  # assuming you dap is packaged in foo-0.0.1.dap
+  $ da extra dap upload -d foo-0.0.1.dap
+
+When you do this for the first time, you will be prompted for your authorization token.
+To obtain it, log into `DAPI <http://dapi.devassistant.org/>`_ with your Github
+or Fedora account, click on your username in the top menu and select *View profile*.
+Get the token on the bottom of your profile page.
+
+Note that by uploading the dap via command line, you agree to the `DAPI Terms of Use
+<https://dapi.devassistant.org/terms/>`_.
+
+Once you provide the token, it is saved to ``devassistant.dapi.token`` git global configuration.
+If you ever want to unset it, just run::
+
+  $ git config --global --unset  devassistant.dapi.token
