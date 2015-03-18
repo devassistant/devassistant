@@ -116,6 +116,37 @@ class DapChecker(object):
 
         return problems
 
+    @classmethod
+    def check_topdir(cls, dap):
+        '''Check that everything is in the correct top-level directory.
+
+        Return a list of DapProblems'''
+        problems = list()
+        dirname = os.path.dirname(dap._meta_location)
+
+        if not dirname:
+            msg = 'meta.yaml is not in top-level directory'
+            problems.append(DapProblem(msg))
+
+        else:
+            for path in dap.files:
+                if not path.startswith(dirname):
+                    msg = path + ' is outside of ' + dirname + ' top-level directory'
+                    problems.append(DapProblem(msg))
+
+        if dap.meta['package_name'] and dap.meta['version']:
+            desired_dirname = dap.meta['package_name'] + '-' + dap.meta['version']
+            desired_filename = desired_dirname + '.dap'
+
+            if dirname and dirname != desired_dirname:
+                msg = 'Top-level directory with meta.yaml is not named ' + desired_dirname
+                problems.append(DapProblem(msg))
+
+            if dap.basename != desired_filename:
+                msg = 'The dap filename is not ' + desired_filename
+                problems.append(DapProblem(msg))
+
+        return problems
 
 class Dap(object):
     '''Class representing a dap
@@ -252,24 +283,8 @@ class Dap(object):
             self._report_problem(problem.message, problem.level)
 
     def _check_topdir(self):
-        '''Check that everything is in correct top-level directory
-         Only call this from check()'''
-        dirname = os.path.dirname(self._meta_location)
-        if not dirname:
-            self._report_problem('mata.yaml is not in top-level directory')
-        else:
-            for path in self.files:
-                if not path.startswith(dirname):
-                    self._report_problem(path + ' is outside of ' + dirname +
-                        ' top-level directory')
-        if self.meta['package_name'] and self.meta['version']:
-            desired_dirname = self.meta['package_name'] + '-' + self.meta['version']
-            desired_filename = desired_dirname + '.dap'
-            if dirname and dirname != desired_dirname:
-                self._report_problem('Top-level directory with meta.yaml is not named ' +
-                    desired_dirname)
-            if self.basename != desired_filename:
-                self._report_problem('The dap filename is not ' + desired_filename)
+        for problem in DapChecker.check_topdir(self):
+            self._report_problem(problem.message, problem.level)
 
     def _is_dir(self, f):
         '''Check if the given in-dap file is a directory'''
