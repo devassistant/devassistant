@@ -20,12 +20,15 @@ try:
 except:
     from yaml import Loader
 from devassistant.settings import DAPI_API_URL
+from devassistant.settings import DAPI_API_MIRROR_URL
 from devassistant.settings import DATA_DIRECTORIES
 from devassistant.settings import DEVASSISTANT_HOME
 from devassistant.settings import DISTRO_DIRECTORY
 
 
-def _api_url():
+def _api_url(mirror=False):
+    if mirror:
+        return DAPI_API_MIRROR_URL
     return DAPI_API_URL
 
 
@@ -51,15 +54,48 @@ def _process_req(req):
     return yaml.load(_process_req_txt(req))
 
 
+def _get_from_dapi_or_mirror(link):
+    '''Tries to get the link form DAPI or the mirror'''
+    exception = False
+    try:
+        req = requests.get(_api_url() + link)
+    except requests.ConnectionError:
+        exception = True
+    attempts = 1
+
+    while exception or str(req.status_code).startswith('5'):
+        if attempts > 5:
+            raise Exception('Could not connect to the API endpoint, sorry.')
+        exception = False
+        try:
+            # Every second attempt, use the mirror
+            req = requests.get(_api_url(attempts % 2) + link)
+        except requests.ConnectionError:
+            exception = True
+        attempts += 1
+
+    return req
+
+
+def _remove_api_url_from_link(link):
+    '''Remove the API URL from the link if it is there'''
+    if link.startswith(_api_url()):
+        link = link[len(_api_url()):]
+    if link.startswith(_api_url(mirror=True)):
+        link = link[len(_api_url(mirror=True)):]
+    return link
+
+
 def data(link):
     '''Returns a dictionary from requested link'''
-    req = requests.get(link)
+    link = _remove_api_url_from_link(link)
+    req = _get_from_dapi_or_mirror(link)
     return _process_req(req)
 
 
 def _unpaginated(what):
     '''Returns a dictionary with all <what>, unpaginated'''
-    page = data(_api_url() + what)
+    page = data(what)
     results = page['results']
     count = page['count']
     while page['next']:
@@ -86,19 +122,19 @@ def daps():
 
 def user(username=''):
     '''Returns a dictionary with all info about a given user'''
-    return data(_api_url() + 'users/' + username + '/')
+    return data('users/' + username + '/')
 
 
 def metadap(name):
     '''Returns a dictionary with all info about a given metadap'''
-    return data(_api_url() + 'metadaps/' + name + '/')
+    return data('metadaps/' + name + '/')
 
 
 def dap(name, version=''):
     '''Returns a dictionary with all info about a given dap'''
     if version:
         name += '-' + version
-    return data(_api_url() + 'daps/' + name + '/')
+    return data('daps/' + name + '/')
 
 
 def search(query):

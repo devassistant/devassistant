@@ -92,3 +92,5 @@ SYSTEM_DEPTYPES_SHORTCUTS = {'rpm': ['fedora', 'red hat enterprise linux', 'redh
                              'homebrew': ['darwin', 'OS X']}
 
 DAPI_API_URL = os.environ.get('DAPI_API_URL', 'https://dapi.devassistant.org/api/')
+# TODO Maybe get a better address in the future
+DAPI_API_MIRROR_URL = os.environ.get('DAPI_API_URL', 'https://mirror-devassistant.rhcloud.com/api/')
