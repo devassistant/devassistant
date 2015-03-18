@@ -81,6 +81,42 @@ class DapFormatter(object):
         else:
             return ''
 
+class DapChecker(object):
+    '''Class checking a DAP'''
+
+    @classmethod
+    def check_meta(cls, dap):
+        '''Check the meta.yaml in the dap.
+
+        Return a list of DapProblems.'''
+        problems = list()
+        # Check for non array-like metadata
+        for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
+            if not dap._isvalid(datatype):
+                msg = datatype + ' is not valid (or required and unspecified)'
+                problems.append(DapProblem(msg))
+
+        # Check for the array-like metadata
+        for datatype in Dap._array_meta:
+            ok, bads = dap._arevalid(datatype)
+            if not ok:
+                if not bads:
+                    msg = datatype + ' is not a valid non-empty list'
+                    problems.append(DapProblem(msg))
+                else:
+                    for bad in bads:
+                        msg = bad + ' in ' + datatype + ' is not valid or is a duplicate'
+                        problems.append(DapProblem(msg))
+
+        # Check that there is no unknown metadata
+        leftovers = set(dap.meta.keys()) - (Dap._required_meta | Dap._optional_meta)
+        if leftovers:
+            msg = 'Unknown metadata: ' + str(leftovers)
+            problems.append(DapProblem(msg))
+
+        return problems
+
+
 class Dap(object):
     '''Class representing a dap
 
@@ -212,28 +248,8 @@ class Dap(object):
         return not bool(ret), ret
 
     def _check_meta(self):
-        '''Check the meta.yaml in the dap
-        Only call this from check()'''
-        # Check for non array-like metadata
-        for datatype in (Dap._required_meta | Dap._optional_meta) - Dap._array_meta:
-            if not self._isvalid(datatype):
-                self._report_problem(datatype + ' is not valid (or required and unspecified)')
-
-        # Check for the array-like metadata
-        for datatype in Dap._array_meta:
-            ok, bads = self._arevalid(datatype)
-            if not ok:
-                if not bads:
-                    self._report_problem(datatype + ' is not a valid non-empty list')
-                else:
-                    for bad in bads:
-                        self._report_problem(bad + ' in ' + datatype +
-                            ' is not valid or is a duplicate')
-
-        # Check that there is no unknown metadata
-        leftovers = set(self.meta.keys()) - (Dap._required_meta | Dap._optional_meta)
-        if leftovers:
-            self._report_problem('Unknown metadata: ' + str(leftovers))
+        for problem in DapChecker.check_meta(self):
+            self._report_problem(problem.message, problem.level)
 
     def _check_topdir(self):
         '''Check that everything is in correct top-level directory
