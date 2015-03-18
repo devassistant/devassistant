@@ -76,16 +76,19 @@ def _get_from_dapi_or_mirror(link):
 
     return req
 
-def data(link):
-    '''Returns a dictionary from requested link'''
-    # Remove the API URL from the link if it is there
-    # So we can swap it with mirror
-    # It gets there sometimes by using data() directly on items from previous API calls
+
+def _remove_api_url_from_link(link):
+    '''Remove the API URL from the link if it is there'''
     if link.startswith(_api_url()):
         link = link[len(_api_url()):]
     if link.startswith(_api_url(mirror=True)):
         link = link[len(_api_url(mirror=True)):]
+    return link
 
+
+def data(link):
+    '''Returns a dictionary from requested link'''
+    link = _remove_api_url_from_link(link)
     req = _get_from_dapi_or_mirror(link)
     return _process_req(req)
 
