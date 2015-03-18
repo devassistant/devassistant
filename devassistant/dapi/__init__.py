@@ -15,6 +15,14 @@ from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
 from devassistant.logger import logger
 
 
+class DapProblem(object):
+    '''Class denoting a problem with a DAP'''
+
+    def __init__(self, message, level=logging.ERROR):
+        self.message = message
+        self.level = level
+
+
 class DapFormatter(object):
     '''Formatter for different output information for the Dap class'''
 
