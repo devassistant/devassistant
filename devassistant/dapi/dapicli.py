@@ -20,12 +20,15 @@ try:
 except:
     from yaml import Loader
 from devassistant.settings import DAPI_API_URL
+from devassistant.settings import DAPI_API_MIRROR_URL
 from devassistant.settings import DATA_DIRECTORIES
 from devassistant.settings import DEVASSISTANT_HOME
 from devassistant.settings import DISTRO_DIRECTORY
 
 
-def _api_url():
+def _api_url(mirror=False):
+    if mirror:
+        return DAPI_API_MIRROR_URL
     return DAPI_API_URL
 
 
@@ -58,6 +61,8 @@ def data(link):
     # It gets there sometimes by using data() directly on items from previous API calls
     if link.startswith(_api_url()):
         link = link[len(_api_url()):]
+    if link.startswith(_api_url(mirror=True)):
+        link = link[len(_api_url(mirror=True)):]
     # Now put the API URL back, we removed it for nothing :D
     req = requests.get(_api_url() + link)
     return _process_req(req)
