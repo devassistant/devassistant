@@ -54,6 +54,28 @@ def _process_req(req):
     return yaml.load(_process_req_txt(req))
 
 
+def _get_from_dapi_or_mirror(link):
+    '''Tries to get the link form DAPI or the mirror'''
+    exception = False
+    try:
+        req = requests.get(_api_url() + link)
+    except requests.ConnectionError:
+        exception = True
+    attempts = 1
+
+    while exception or str(req.status_code).startswith('5'):
+        if attempts > 5:
+            raise Exception('Could not connect to the API endpoint, sorry.')
+        exception = False
+        try:
+            # Every second attempt, use the mirror
+            req = requests.get(_api_url(attempts % 2) + link)
+        except requests.ConnectionError:
+            exception = True
+        attempts += 1
+
+    return req
+
 def data(link):
     '''Returns a dictionary from requested link'''
     # Remove the API URL from the link if it is there
@@ -63,8 +85,8 @@ def data(link):
         link = link[len(_api_url()):]
     if link.startswith(_api_url(mirror=True)):
         link = link[len(_api_url(mirror=True)):]
-    # Now put the API URL back, we removed it for nothing :D
-    req = requests.get(_api_url() + link)
+
+    req = _get_from_dapi_or_mirror(link)
     return _process_req(req)
 
 
