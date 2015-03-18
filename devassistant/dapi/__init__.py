@@ -189,6 +189,130 @@ class DapChecker(object):
                                            level=logging.WARNING))
         return problems
 
+    @classmethod
+    def check_files(cls, dap):
+        '''Check that there are only those files the standard accepts.
+
+        Return list of DapProblems.'''
+        problems = list()
+        dirname = os.path.dirname(dap._meta_location)
+
+        if dirname:
+            dirname += '/'
+        files = [f for f in dap.files if f.startswith(dirname)]
+        if len(files) == 1:
+            msg = 'Only meta.yaml in dap'
+            problems.append(DapProblem(msg, level=logging.WARNING))
+            return problems
+
+        files.remove(dirname + 'meta.yaml')
+
+
+        # Report and remove empty directories until no more are found
+        emptydirs = dap._get_emptydirs(files)
+        while emptydirs:
+            for ed in emptydirs:
+                msg = ed + ' is empty directory (may be nested)'
+                problems.append(DapProblem(msg, logging.WARNING))
+                files.remove(ed)
+            emptydirs = dap._get_emptydirs(files)
+
+        if dap.meta['package_name']:
+            name = dap.meta['package_name']
+
+            dirs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))?|snippets)(/' +
+                              name + ')?|icons(/(crt|twk|prep|extra|snippets)(/' + name +
+                              ')?)?|files|(files/(crt|twk|prep|extra|snippets)|doc)(/' + name +
+                              '(/.+)?)?)$')
+            regs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))|snippets)/' +
+                              name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' +
+                              name + r'(/[^/]+)?\.(' + Dap._icons +
+                              ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
+
+            to_remove = []
+            for f in files:
+                if dap._is_dir(f) and not dirs.match(f):
+                    msg = f + '/ is not allowed directory'
+                    problems.append(DapProblem(msg))
+                    to_remove.append(f)
+                elif not dap._is_dir(f) and not regs.match(f):
+                    msg = f + ' is not allowed file'
+                    problems.append(DapProblem(msg))
+                    to_remove.append(f)
+            for r in to_remove:
+                files.remove(r)
+
+            # Subdir yamls need a chief
+            for directory in ['assistants/' + t for t in 'crt twk prep extra'.split()] + \
+                    ['snippets']:
+                prefix = dirname + directory + '/'
+                for f in files:
+                    if f.startswith(prefix) and dap._is_dir(f) and f + '.yaml' not in files:
+                        msg = f + '/ present, but ' + f + '.yaml missing'
+                        problems.append(DapProblem(msg))
+
+        # Let's warn about icons
+        icons = []          # we need to report duplicates
+        assistants = set()  # duplicates are fine here
+        for f in files:
+            if not dap._is_dir(f):
+                if f.startswith(os.path.join(dirname, 'icons/')):
+                    # name without extension and dirname/icons/
+                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].
+                        split('.')[:-1]))
+                if f.startswith(os.path.join(dirname, 'assistants/')):
+                    # extension is .yaml only, so we don't need to split and join
+                    assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
+        duplicates = set([x for x in icons if icons.count(x) > 1])
+        for d in duplicates:
+            msg = 'Duplicate icon for ' + f
+            problems.append(DapProblem(msg, level=logging.WARNING))
+        icons = set(icons)
+        for i in icons - assistants:
+            msg = 'Useless icon for non-exisiting assistant ' + i
+            problems.append(DapProblem(msg, level=logging.WARNING))
+        for a in assistants - icons:
+            msg = 'Missing icon for assistant ' + a
+            problems.append(DapProblem(msg, level=logging.WARNING))
+
+        for f in cls._get_files_without_assistants(dap, dirname, files):
+            msg = 'Useless files for non-exisiting assistant ' + f
+            problems.append(DapProblem(msg, level=logging.WARNING))
+
+        return problems
+
+    @classmethod
+    def _get_files_without_assistants(cls, dap, dirname, files):
+        folders = set()
+        assistants = set()
+        assistant_dirs = set(['crt', 'twk', 'prep', 'extra'])
+
+        for f in files:
+            # Directories
+            if dap._is_dir(f):
+                prefix = os.path.join(dirname, 'files', '')
+                if f.startswith(prefix):
+                    remainder = f.lstrip(prefix) # crt/foo/bar/baz
+                    name = os.path.join(*remainder.split(os.path.sep)[:2]) # crt/foo
+                    folders.add(name)
+            else:
+                # Assistants
+                prefix = os.path.join(dirname, 'assistants', '')
+                remainder = f.lstrip(prefix)
+                for kind in assistant_dirs:
+                    if remainder.startswith(kind + os.path.sep):
+                        name = remainder.rstrip('.yaml')
+                        assistants.add(name)
+
+                # Snippets
+                prefix = os.path.join(dirname, 'snippets', '')
+                if f.startswith(prefix):
+                    name = f.lstrip(dirname + os.path.sep).rstrip('.yaml')
+                    assistants.add(name)
+
+        return list(folders - assistant_dirs - set(('snippets',)) - assistants)
+
+
 class Dap(object):
     '''Class representing a dap
 
@@ -360,100 +484,8 @@ class Dap(object):
             self._report_problem(problem.message, problem.level)
 
     def _check_files(self):
-        '''Check that there are only those files the standard accepts'''
-        dirname = os.path.dirname(self._meta_location)
-
-        if dirname:
-            dirname += '/'
-        files = [f for f in self.files if f.startswith(dirname)]
-        if len(files) == 1:
-            self._report_problem('Only meta.yaml in dap', logging.WARNING)
-            return
-
-        files.remove(dirname + 'meta.yaml')
-
-        # Report and remove empty directories until no more are found
-        emptydirs = self._get_emptydirs(files)
-        while emptydirs:
-            for ed in emptydirs:
-                self._report_problem(ed + ' is empty directory (may be nested)', logging.WARNING)
-                files.remove(ed)
-            emptydirs = self._get_emptydirs(files)
-
-        if self.meta['package_name']:
-            name = self.meta['package_name']
-
-            dirs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))?|snippets)(/' +
-                              name + ')?|icons(/(crt|twk|prep|extra|snippets)(/' + name +
-                              ')?)?|files|(files/(crt|twk|prep|extra|snippets)|doc)(/' + name +
-                              '(/.+)?)?)$')
-            regs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))|snippets)/' +
-                              name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' +
-                              name + r'(/[^/]+)?\.(' + Dap._icons +
-                              ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
-
-            remove = []
-            for f in files:
-                if self._is_dir(f) and not dirs.match(f):
-                    self._report_problem(f + '/ is not allowed directory')
-                    remove.append(f)
-                elif not self._is_dir(f) and not regs.match(f):
-                    self._report_problem(f + ' is not allowed file')
-                    remove.append(f)
-            for r in remove:
-                files.remove(r)
-
-            # Subdir yamls need a chief
-            for directory in ['assistants/' + t for t in 'crt twk prep extra'.split()] + \
-                    ['snippets']:
-                prefix = dirname + directory + '/'
-                for f in files:
-                    if f.startswith(prefix) and self._is_dir(f) and f + '.yaml' not in files:
-                        self._report_problem(f + '/ present, but ' + f + '.yaml missing')
-
-        # Let's warn about icons
-        icons = []          # we need to report duplicates
-        assistants = set()  # duplicates are fine here
-        for f in files:
-            if not self._is_dir(f):
-                if f.startswith(os.path.join(dirname, 'icons/')):
-                    # name without extension and dirname/icons/
-                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].
-                        split('.')[:-1]))
-                if f.startswith(os.path.join(dirname, 'assistants/')):
-                    # extension is .yaml only, so we don't need to split and join
-                    assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
-        duplicates = set([x for x in icons if icons.count(x) > 1])
-        for d in duplicates:
-            self._report_problem('Duplicate icon for ' + f, logging.WARNING)
-        icons = set(icons)
-        for i in icons - assistants:
-            self._report_problem('Useless icon for non-exisiting assistant ' + i, logging.WARNING)
-        for a in assistants - icons:
-            self._report_problem('Missing icon for assistant ' + a, logging.WARNING)
-
-        # And also about files
-        folders = set()
-        # we cannot reuse the one form icons, as we need to record the type as well
-        assistants = set()
-        for f in files:
-            if self._is_dir(f):
-                if f.startswith(os.path.join(dirname, 'files/')):
-                    name = f[len(os.path.join(dirname, 'files/')):]
-                    # name is crt/foo/bah/eggs
-                    name = '/'.join(name.split('/')[:2])
-                    # name is crt/foo
-                    folders.add(name)
-            else:
-                for t in 'crt twk prep extra'.split():
-                    if f.startswith(os.path.join(dirname, 'assistants', t, '')):
-                        # extension is .yaml only, so we don't need to split
-                        assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
-                if f.startswith(os.path.join(dirname, 'snippets/')):
-                    assistants.add(f[len(os.path.join(dirname, '')):-len('.yaml')])
-        folders -= set('crt twk prep extra snippets'.split())
-        for f in folders - assistants:
-            self._report_problem('Useless files for non-exisiting assistant ' + f, logging.WARNING)
+        for problem in DapChecker.check_files(self):
+            self._report_problem(problem.message, problem.level)
 
     def check(self, network=False, raises=False, logger=logger):
         '''Checks if the dap is valid, reports problems
