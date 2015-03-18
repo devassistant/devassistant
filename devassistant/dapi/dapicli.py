@@ -53,13 +53,19 @@ def _process_req(req):
 
 def data(link):
     '''Returns a dictionary from requested link'''
-    req = requests.get(link)
+    # Remove the API URL from the link if it is there
+    # So we can swap it with mirror
+    # It gets there sometimes by using data() directly on items from previous API calls
+    if link.startswith(_api_url()):
+        link = link[len(_api_url()):]
+    # Now put the API URL back, we removed it for nothing :D
+    req = requests.get(_api_url() + link)
     return _process_req(req)
 
 
 def _unpaginated(what):
     '''Returns a dictionary with all <what>, unpaginated'''
-    page = data(_api_url() + what)
+    page = data(what)
     results = page['results']
     count = page['count']
     while page['next']:
@@ -86,19 +92,19 @@ def daps():
 
 def user(username=''):
     '''Returns a dictionary with all info about a given user'''
-    return data(_api_url() + 'users/' + username + '/')
+    return data('users/' + username + '/')
 
 
 def metadap(name):
     '''Returns a dictionary with all info about a given metadap'''
-    return data(_api_url() + 'metadaps/' + name + '/')
+    return data('metadaps/' + name + '/')
 
 
 def dap(name, version=''):
     '''Returns a dictionary with all info about a given dap'''
     if version:
         name += '-' + version
-    return data(_api_url() + 'daps/' + name + '/')
+    return data('daps/' + name + '/')
 
 
 def search(query):
