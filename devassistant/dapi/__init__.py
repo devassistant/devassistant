@@ -148,6 +148,32 @@ class DapChecker(object):
 
         return problems
 
+    @classmethod
+    def check_no_self_dependency(cls, dap):
+        '''Check that the package does not depend on itself.
+
+        Return a list of problems.'''
+        problems = list()
+
+        if dap.meta['package_name'] and dap.meta['dependencies']:
+            dependencies = set()
+
+            for dependency in dap.meta['dependencies']:
+                if 'dependencies' in dap._badmeta and dependency in dap._badmeta['dependencies']:
+                    continue
+
+                for mark in ['==', '>=', '<=', '<', '>']:
+                    dep = dependency.split(mark)
+                    if len(dep) == 2:
+                        dependencies.add(dep[0].strip())
+                        break
+
+            if dap.meta['package_name'] in dependencies:
+                msg = 'Depends on dap with the same name as itself'
+                problems.append(DapProblem(msg))
+
+        return problems
+
 class Dap(object):
     '''Class representing a dap
 
@@ -306,25 +332,13 @@ class Dap(object):
         return emptydirs
 
     def _check_selfdeps(self, report=True):
-        '''Check that the package does not depend on itself'''
-        if self.meta['package_name'] and self.meta['dependencies']:
-            dependencies = set()
-            for dependency in self.meta['dependencies']:
-                try:
-                    if dependency in self._badmeta['dependencies']:
-                        continue
-                except (KeyError, AttributeError):
-                    pass
-                for mark in '== >= <= < >'.split():
-                    dep = dependency.split(mark)
-                    if len(dep) == 2:
-                        dependencies.add(dep[0].strip())
-                        break
-            if self.meta['package_name'] in dependencies:
-                if report:
-                    self._report_problem('Depends on dap with the same name as itself')
-                return False
-        return True
+        problems = DapChecker.check_no_self_dependency(self)
+
+        if report:
+            for problem in problems:
+                self._report_problem(problem.message, problem.level)
+
+        return not bool(problems)
 
     def _check_dapi(self):
         '''Check that the package_name is not registered on Dapi'''
