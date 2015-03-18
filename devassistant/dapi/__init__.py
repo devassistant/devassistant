@@ -174,6 +174,21 @@ class DapChecker(object):
 
         return problems
 
+    @classmethod
+    def check_name_not_on_dapi(cls, dap):
+        '''Check that the package_name is not registered on Dapi.
+
+        Return list of problems.'''
+        problems = list()
+
+        if dap.meta['package_name']:
+            from . import dapicli
+            d = dapicli.metadap(dap.meta['package_name'])
+            if d:
+                problems.append(DapProblem('This dap name is already registered on Dapi',
+                                           level=logging.WARNING))
+        return problems
+
 class Dap(object):
     '''Class representing a dap
 
@@ -341,13 +356,8 @@ class Dap(object):
         return not bool(problems)
 
     def _check_dapi(self):
-        '''Check that the package_name is not registered on Dapi'''
-        if self.meta['package_name']:
-            from . import dapicli
-            d = dapicli.metadap(self.meta['package_name'])
-            if d:
-                self._report_problem('This dap name is already registered on Dapi',
-                    logging.WARNING)
+        for problem in DapChecker.check_name_not_on_dapi(self):
+            self._report_problem(problem.message, problem.level)
 
     def _check_files(self):
         '''Check that there are only those files the standard accepts'''
