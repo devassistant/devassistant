@@ -281,6 +281,7 @@ class DapChecker(object):
 
         return problems
 
+
     @classmethod
     def _get_files_without_assistants(cls, dap, dirname, files):
         folders = set()
@@ -352,39 +353,62 @@ class Dap(object):
         Loads the dap if at least somehow valid.
         If fake is True, it fill not open any files, but creates a fake dap'''
         self._badmeta = {}
-        if fake:
-            if mimic_filename:
-                self.basename = mimic_filename
-            else:
-                self.basename = 'fake.dap'
-            self.files = []
-            self.meta = {}
-            return
 
+        # Basename
         if mimic_filename:
             self.basename = mimic_filename
+        elif fake:
+            self.basename = 'fake.dap'
         else:
             self.basename = os.path.basename(dapfile)
 
+        # Files
+        if fake:
+            self.files = []
+            self.meta = {}
+        else:
+            self._tar = self._load_tar(dapfile)
+            self.files = self._tar.getnames()
+            self._meta_location = self._get_meta(self.files, self.basename)
+            self.meta = self._load_meta(self._get_file(self._meta_location))
+            self.sha256sum = hashlib.sha256(open(dapfile, 'rb').read()).hexdigest()
+
+        self._find_bad_meta()
+
+    def _find_bad_meta(self):
+        '''Fill self._badmeta with meta datatypes that are invalid'''
+        self._badmeta = dict()
+
+        for datatype in self.meta:
+            for item in self.meta[datatype]:
+                if not Dap._meta_valid[datatype].match(item):
+                    if datatype not in self._badmeta:
+                        self._badmeta[datatype] = []
+                    self._badmeta[datatype].append(item)
+
+    def _load_tar(self, dapfile):
         try:
-            self._tar = tarfile.open(dapfile, mode='r:gz')
+            return tarfile.open(dapfile, mode='r:gz')
         except tarfile.ReadError as e:
             raise DapFileError('%s is not a tar.gz archive' % self.basename)
         except IOError as e:
             raise DapFileError(e)
+
+    def _get_meta(self, files, basename):
         metas = set()
-        self.files = self._tar.getnames()
-        for f in self.files:
+
+        for f in files:
             if os.path.basename(f) == 'meta.yaml' and os.path.dirname(f).count('/') == 0:
                 metas.add(f)
+
         if not metas:
-            raise DapMetaError('Could not find any meta.yaml in %s' % self.basename)
+            raise DapMetaError('Could not find any meta.yaml in %s' % basename)
+
         if len(metas) > 1:
             raise DapMetaError('Multiple meta.yaml files found in %s (%s)' %
-                (self.basename, ', '.join(metas)))
-        self._meta_location = metas.pop()
-        self._load_meta(self._get_file(self._meta_location))
-        self.sha256sum = hashlib.sha256(open(dapfile, 'rb').read()).hexdigest()
+                (basename, ', '.join(metas)))
+
+        return metas.pop()
 
     def _get_file(self, path):
         '''Extracts a file from dap to a file-like object'''
@@ -396,15 +420,15 @@ class Dap(object):
 
     def _load_meta(self, meta):
         '''Load data from meta.yaml to a dictionary'''
-        self.meta = yaml.load(meta, Loader=Loader)
+        meta = yaml.load(meta, Loader=Loader)
 
         # Versions are often specified in a format that is convertible to an
         # int or a float, so we want to make sure it is interpreted as a str.
         # Fix for the bug #300.
-        try:
-            self.meta['version'] = str(self.meta['version'])
-        except KeyError:
-            pass
+        if 'version' in meta:
+            meta['version'] = str(meta['version'])
+
+        return meta
 
     def _report_problem(self, problem, level=logging.ERROR):
         '''Report a given problem'''
