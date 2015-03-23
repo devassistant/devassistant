@@ -398,7 +398,7 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
 
     old_level = logger.getEffectiveLevel()
     logger.setLevel(logging.ERROR)
-    ok = dap_obj.check()
+    ok = dapi.DapChecker.check(dap_obj)
     logger.setLevel(old_level)
 
     if not ok:

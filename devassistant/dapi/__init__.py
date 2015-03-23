@@ -85,6 +85,33 @@ class DapChecker(object):
     '''Class checking a DAP'''
 
     @classmethod
+    def check(cls, dap, network=False, raises=False, logger=logger):
+        '''Checks if the dap is valid, reports problems
+
+        Parameters:
+            network -- whether to run checks that requires network connection
+            output -- where to write() problems, might be None
+            raises -- whether to raise an exception immediately after problem is detected'''
+        dap._check_raises = raises
+        dap._problematic = False
+        dap._logger = logger
+        problems = list()
+
+        problems += cls.check_meta(dap)
+        problems += cls.check_no_self_dependency(dap)
+        problems += cls.check_topdir(dap)
+        problems += cls.check_files(dap)
+
+        if network:
+            problems += cls.check_name_not_on_dapi(dap)
+
+        for problem in problems:
+            dap._report_problem(problem.message, problem.level)
+
+        del dap._check_raises
+        return not dap._problematic
+
+    @classmethod
     def check_meta(cls, dap):
         '''Check the meta.yaml in the dap.
 
@@ -467,14 +494,6 @@ class Dap(object):
         self._badmeta[datatype] = ret
         return not bool(ret), ret
 
-    def _check_meta(self):
-        for problem in DapChecker.check_meta(self):
-            self._report_problem(problem.message, problem.level)
-
-    def _check_topdir(self):
-        for problem in DapChecker.check_topdir(self):
-            self._report_problem(problem.message, problem.level)
-
     def _is_dir(self, f):
         '''Check if the given in-dap file is a directory'''
         return self._tar.getmember(f).type == tarfile.DIRTYPE
@@ -493,45 +512,6 @@ class Dap(object):
                 if empty:
                     emptydirs.append(f)
         return emptydirs
-
-    def _check_selfdeps(self, report=True):
-        problems = DapChecker.check_no_self_dependency(self)
-
-        if report:
-            for problem in problems:
-                self._report_problem(problem.message, problem.level)
-
-        return not bool(problems)
-
-    def _check_dapi(self):
-        for problem in DapChecker.check_name_not_on_dapi(self):
-            self._report_problem(problem.message, problem.level)
-
-    def _check_files(self):
-        for problem in DapChecker.check_files(self):
-            self._report_problem(problem.message, problem.level)
-
-    def check(self, network=False, raises=False, logger=logger):
-        '''Checks if the dap is valid, reports problems
-
-        Parameters:
-            network -- whether to run checks that requires network connection
-            output -- where to write() problems, might be None
-            raises -- whether to raise an exception immediately after problem is detected'''
-        self._check_raises = raises
-        self._problematic = False
-        self._logger = logger
-
-        self._check_meta()
-        self._check_selfdeps()
-        self._check_topdir()
-        self._check_files()
-
-        if network:
-            self._check_dapi()
-
-        del self._check_raises
-        return not self._problematic
 
     def extract(self, location):
         '''Extract the contents of a dap to a given location'''

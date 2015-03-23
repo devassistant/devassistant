@@ -121,7 +121,8 @@ results:
             'package_name': 'foo',
             'version': '1.0',
             'dependencies': ['bar-1.0'],
-        }, check=lambda: True, extract=lambda x: None)
+        }, extract=lambda x: None)
+        flexmock(dapi.DapChecker).should_receive('check').and_return(True)
         flexmock(dapi.Dap).new_instances(fakedap)
         flexmock(dapicli).should_receive('get_installed_daps').and_return([])
         flexmock(dapicli).should_receive('_install_path').and_return('.')
