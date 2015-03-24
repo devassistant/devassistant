@@ -136,3 +136,5 @@ Or, assuming that you have "devassistant" DAP installed [TODO:link], you just ne
 DevAssistant works on Python 2.6, 2.7 and >= 3.3.
 
 This whole project is licensed under GPLv2+, see LICENSE file for details.
+
+List of contributors to this project can be found in the CONTRIBUTORS file.

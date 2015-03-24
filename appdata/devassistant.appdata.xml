@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2013 Slavek Kabrda <bkabrda@redhat.com> -->
+<!-- Copyright 2013-2015 DevAssistant contributors -->
 <application>
  <id type="desktop">devassistant.desktop</id>
- <licence>CC-BY-SA</licence>
+ <metadata_license>CC-BY-SA</metadata_license>
+ <project_license>GPL2.0+</project_license>
  <name>DevAssistant</name>
  <summary>DevAssistant - making life easier for developers</summary>
  <description>
@@ -23,10 +24,10 @@
  </description>
  <screenshots>
    <screenshot type="default" width="702" height="633">
-     https://raw.github.com/bkabrda/devassistant/master/appdata/devassistant-main-window.png
+     https://raw.github.com/devassistant/devassistant/master/appdata/devassistant-main-window.png
    </screenshot>
    <screenshot width="642" height="690">
-     https://raw.github.com/bkabrda/devassistant/master/appdata/devassistant-params-window.png
+     https://raw.github.com/devassistant/devassistant/master/appdata/devassistant-params-window.png
    </screenshot>
  </screenshots>
  <url type="homepage">http://devassistant.org/</url>

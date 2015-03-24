@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'DevAssistant'
-copyright = u'2013, Bohuslav Kabrda, Petr Hracek'
+copyright = u'2013-2015 DevAssistant contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -223,7 +223,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'devassistant', u'DevAssistant Documentation',
-     [u'Bohuslav Kabrda, Petr Hracek'], 1)
+     [u'DevAssistant contributors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -237,7 +237,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'DevAssistant', u'DevAssistant Documentation',
-   u'Bohuslav Kabrda, Petr Hracek', 'DevAssistant', 'One line description of project.',
+   u'DevAssistant contributors', 'DevAssistant', 'One line description of project.',
    'Miscellaneous'),
 ]
 

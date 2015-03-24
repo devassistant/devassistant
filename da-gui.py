@@ -3,8 +3,7 @@
 # -*- coding: utf-8 -*-
 #
 # da-gui.py - this program calls mainWindow to start the GUI
-# Copyright 2001 - 2013 Red Hat, Inc.
-# Copyright 2013 Petr Hracek <phracek@redhat.com>
+# Copyright 2013 - 2015 Devassistant contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
