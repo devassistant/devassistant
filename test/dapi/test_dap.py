@@ -60,7 +60,8 @@ class TestDap(object):
     def test_no_toplevel(self):
         '''Dap with no top-level directory is invalid'''
         out = StringIO()
-        assert not Dap(dap_path('no_toplevel/foo-1.0.0.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('no_toplevel/foo-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
@@ -69,6 +70,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for name in 'foo f bar v8 foo-bar-foo ffffff8ff f-_--s '.split():
             d.meta['package_name'] = name
+            d._find_bad_meta()
             assert d._isvalid('package_name')
 
     def test_invalid_names(self):
@@ -76,6 +78,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for name in '9 8f -a - a_ _ ř H aaHa ? aa!a () * ff+a f8-- .'.split():
             d.meta['package_name'] = name
+            d._find_bad_meta()
             assert not d._isvalid('package_name')
 
     def test_valid_versions(self):
@@ -83,6 +86,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for version in '0 1 888 0.1 0.1a 0.0.0b 666dev 0.0.0.0.0 8.11'.split():
             d.meta['version'] = version
+            d._find_bad_meta()
             assert d._isvalid('version')
 
     def test_invalid_versions(self):
@@ -90,12 +94,14 @@ class TestDap(object):
         d = Dap('', fake=True)
         for version in '00 01 0.00.0 01.0 1c .1 1-2 h č . 1..0 1.0.'.split():
             d.meta['version'] = version
+            d._find_bad_meta()
             assert not d._isvalid('version')
 
     def test_loading_float_version(self):
         '''Test that loading doesn't fail if version is loaded from YAML as float'''
         out = StringIO()
-        assert Dap(dap_path('meta_only/bad_version-0.1.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('meta_only/bad_version-0.1.dap'))
+        assert DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
 
     def test_valid_urls(self):
         '''Test if valid URLs are valid'''
@@ -106,6 +112,7 @@ class TestDap(object):
                 'https://f.f.f.f.f.sk/cgi-bin/?f=Program%20Files']
         for url in urls:
             d.meta['homepage'] = url
+            d._find_bad_meta()
             assert d._isvalid('homepage')
 
     def test_invalid_urls(self):
@@ -117,6 +124,7 @@ class TestDap(object):
                 'https://localhost/']
         for url in urls:
             d.meta['homepage'] = url
+            d._find_bad_meta()
             assert not d._isvalid('homepage')
 
     def test_valid_bugreports(self):
@@ -129,6 +137,7 @@ class TestDap(object):
                 'par_at_n@o.id']
         for bug in bugs:
             d.meta['bugreports'] = bug
+            d._find_bad_meta()
             assert d._isvalid('bugreports')
 
     def test_invalid_bugreports(self):
@@ -141,18 +150,21 @@ class TestDap(object):
                 '@o.id']
         for bug in bugs:
             d.meta['bugreports'] = bug
+            d._find_bad_meta()
             assert not d._isvalid('bugreports')
 
     def test_valid_summary(self):
         '''Test if valid summary is valid'''
         d = Dap('', fake=True)
         d.meta['summary'] = 'foo'
+        d._find_bad_meta()
         assert d._isvalid('summary')
 
     def test_invalid_summary(self):
         '''Test if invalid summary is invalid'''
         d = Dap('', fake=True)
         d.meta['summary'] = 'foo\nbar'
+        d._find_bad_meta()
         assert not d._isvalid('summary')
 
     def test_empty_required(self):
@@ -169,6 +181,7 @@ class TestDap(object):
                     'LGPLv2+ and LGPLv2 and LGPLv3+ and (GPLv3 or LGPLv2) and (GPLv3+ or LGPLv2) and (CC-BY-SA or LGPLv2+) and (CC-BY-SA or LGPLv2) and CC-BY and BSD and MIT and Public Domain']
         for license in licenses:
             d.meta['license'] = license
+            d._find_bad_meta()
             assert d._isvalid('license')
 
     def test_invalid_licenses(self):
@@ -180,6 +193,7 @@ class TestDap(object):
                     'GNU GPL']
         for license in licenses:
             d.meta['license'] = license
+            d._find_bad_meta()
             assert not d._isvalid('license')
 
     def test_valid_authors(self):
@@ -193,6 +207,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for authors in itertools.combinations(pool, r):
                 d.meta['authors'] = list(authors)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('authors')
                 assert ok
                 assert not bads
@@ -209,10 +224,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for authors in itertools.combinations(pool, r):
                 d.meta['authors'] = list(authors)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('authors')
                 assert not ok
                 assert bads == list(authors)
         d.meta['authors'] = ['OK2 <ok@ok.ok>'] + pool + ['OK <ok@ok.ok>']
+        d._find_bad_meta()
         ok, bads = d._arevalid('authors')
         assert bads == pool
 
@@ -220,6 +237,7 @@ class TestDap(object):
         '''Test if duplicate valid authors are invalid'''
         d = Dap('', fake=True)
         d.meta['authors'] = ['A', 'B', 'A']
+        d._find_bad_meta()
         ok, bads = d._arevalid('authors')
         assert not ok
         assert bads == ['A']
@@ -228,6 +246,7 @@ class TestDap(object):
         '''Test if empty authors list is invalid'''
         d = Dap('', fake=True)
         d.meta['authors'] = []
+        d._find_bad_meta()
         ok, null = d._arevalid('authors')
         assert not ok
 
@@ -249,6 +268,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['dependencies'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('dependencies')
                 assert ok
                 assert not bads
@@ -268,10 +288,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['dependencies'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('dependencies')
                 assert not ok
                 assert bads == list(dependencies)
         d.meta['dependencies'] = ['foo'] + pool + ['bar']
+        d._find_bad_meta()
         ok, bads = d._arevalid('dependencies')
         assert bads == pool
 
@@ -279,6 +301,7 @@ class TestDap(object):
         '''Test if duplicate valid dependencies are invalid'''
         d = Dap('', fake=True)
         d.meta['dependencies'] = ['A', 'B', 'A']
+        d._find_bad_meta()
         ok, bads = d._arevalid('dependencies')
         assert not ok
         assert bads == ['A']
@@ -286,22 +309,25 @@ class TestDap(object):
     def test_self_dependency(self):
         '''Test if depending on itself produces error'''
         d = Dap('', fake=True)
-        d.meta['dependencies'] = ['A', 'B > 1']
-        d.meta['package_name'] = 'B'
-        assert not d._check_selfdeps(report=False)
+        d.meta['dependencies'] = ['a', 'b > 1']
+        d.meta['package_name'] = 'b'
+        d._find_bad_meta()
+        assert DapChecker.check_no_self_dependency(d) != []
 
-        d.meta['package_name'] = 'C'
-        assert d._check_selfdeps(report=False)
+        d.meta['package_name'] = 'c'
+        d._find_bad_meta()
+        assert DapChecker.check_no_self_dependency(d) == []
 
-        d.meta['dependencies'] = ['C', 'B=1', 'A']
-        d.meta['package_name'] = 'B'
-        d._arevalid('dependencies')
-        assert d._check_selfdeps(report=False)
+        d.meta['dependencies'] = ['c', 'b=1', 'a']
+        d.meta['package_name'] = 'b'
+        d._find_bad_meta()
+        assert DapChecker.check_no_self_dependency(d) == []
 
     def test_empty_dependencies(self):
         '''Test if empty dependencies list is valid'''
         d = Dap('', fake=True)
         d.meta['dependencies'] = []
+        d._find_bad_meta()
         ok, null = d._arevalid('dependencies')
         assert ok
 
@@ -328,6 +354,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['supported_platforms'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('supported_platforms')
                 assert ok
                 assert not bads
@@ -339,10 +366,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['supported_platforms'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('supported_platforms')
                 assert not ok
                 assert bads == list(dependencies)
         d.meta['supported_platforms'] = ['fedora'] + pool + ['darwin']
+        d._find_bad_meta()
         ok, bads = d._arevalid('supported_platforms')
         assert bads == pool
 
@@ -364,13 +393,13 @@ class TestDap(object):
     def test_meta_only_check(self):
         '''meta_only.dap should pass the test (errors only)'''
         dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))
-        assert dap.check(logger=l(level=logging.ERROR))
+        assert DapChecker.check(dap, logger=l(level=logging.ERROR))
 
     def test_meta_only_warning_check(self):
         '''meta_only.dap shopuld produce warning'''
         out = StringIO()
         dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))
-        assert not dap.check(logger=l(output=out))
+        assert not DapChecker.check(dap, logger=l(output=out))
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'Only meta.yaml in dap' in out.getvalue()
 
@@ -379,7 +408,7 @@ class TestDap(object):
         out = StringIO()
         dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))
         dap.meta['foo'] = 'bar'
-        assert not dap.check(logger=l(output=out, level=logging.ERROR))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'Unknown metadata' in out.getvalue()
         assert 'foo' in out.getvalue()
@@ -387,7 +416,8 @@ class TestDap(object):
     def test_forgotten_version_in_filename_and_dir(self):
         '''Dap without version in filename and dirname should produce 2 errors'''
         out = StringIO()
-        assert not Dap(dap_path('meta_only/foo.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('meta_only/foo.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 2
         assert 'Top-level directory with meta.yaml is not named foo-1.0.0' in out.getvalue()
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
@@ -395,36 +425,42 @@ class TestDap(object):
     def test_wrong_dap_filename(self):
         '''Dap with OK dirname, but wrong filename should produce 1 error'''
         out = StringIO()
-        assert not Dap(dap_path('meta_only/bar.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('meta_only/bar.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'The dap filename is not foo-1.0.0.dap' in out.getvalue()
 
     def test_wrong_dap_filename_mimicked_to_be_ok(self):
         '''Dap with wrong filename, mimicked to be OK, should produce no error'''
-        assert Dap(dap_path('meta_only/bar.dap'), mimic_filename='foo-1.0.0.dap').check(logger=l(level=logging.ERROR))
+        dap = Dap(dap_path('meta_only/bar.dap'), mimic_filename='foo-1.0.0.dap')
+        assert DapChecker.check(dap, logger=l(level=logging.ERROR))
 
     def test_good_dap_filename_mimicked_to_be_wrong(self):
         '''Error passing dap, should fail with wrong mimicked filename'''
-        assert not Dap(dap_path('meta_only/foo-1.0.0.dap'), mimic_filename='wrong').check(logger=l(level=logging.ERROR))
+        dap = Dap(dap_path('meta_only/foo-1.0.0.dap'), mimic_filename='wrong')
+        assert not DapChecker.check(dap, logger=l(level=logging.ERROR))
 
     def test_files_outside_of_toplevel_dir(self):
         '''Dap with files outside of top-level directory should produce error for each'''
         out = StringIO()
-        assert not Dap(dap_path('outside_toplevel/foo-1.0.0.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('outside_toplevel/foo-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert 'is outside' in out.getvalue()
 
     def test_empty_dirs(self):
         '''Dap with empty dirs produces warning'''
         out = StringIO()
-        assert not Dap(dap_path('empty_dirs/foo-1.0.0.dap')).check(logger=l(output=out))
+        dap = Dap(dap_path('empty_dirs/foo-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out))
         assert len(out.getvalue().rstrip().split('\n')) == 3
         assert ' is empty directory' in out.getvalue()
 
     def test_wrong_files(self):
         '''Dap with wrong files produces errors'''
         out = StringIO()
-        assert not Dap(dap_path('wrong_files/foo-1.0.0.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('wrong_files/foo-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert len(out.getvalue().rstrip().split('\n')) == 21
         assert '/files/wrong.txt is not allowed file' in out.getvalue()
         assert '/files/wrong/ is not allowed directory' in out.getvalue()
@@ -451,7 +487,8 @@ class TestDap(object):
     def test_icons_files_warnings(self):
         '''Dap with redundant or missing icons and redundant files should produce warnings'''
         out = StringIO()
-        assert not Dap(dap_path('wrong_files/foo-1.0.0.dap')).check(logger=l(output=out))
+        dap = Dap(dap_path('wrong_files/foo-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out))
         assert 'Useless icon for non-exisiting assistant twk/foo/a' in out.getvalue()
         assert 'Useless icon for non-exisiting assistant twk/foo/a' in out.getvalue()
         assert 'Useless icon for non-exisiting assistant crt/foo' in out.getvalue()
@@ -465,30 +502,35 @@ class TestDap(object):
         '''Dap that is already on dapi should produce a warning when network is True'''
         out = StringIO()
         flexmock(dapicli).should_receive('data').and_return('something')
-        Dap(dap_path('meta_only/foo-1.0.0.dap')).check(logger=l(output=out), network=True)
+        dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))
+        DapChecker.check(dap, logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' in out.getvalue()
 
     def test_dapi_check_false(self):
         '''Dap that is not already on dapi should not produce a warning when network is True'''
         out = StringIO()
         flexmock(dapicli).should_receive('data').and_return('')
-        Dap(dap_path('meta_only/foo-1.0.0.dap')).check(logger=l(output=out), network=True)
+        dap = Dap(dap_path('meta_only/foo-1.0.0.dap'))
+        DapChecker.check(dap, logger=l(output=out), network=True)
         assert 'This dap name is already registered on Dapi' not in out.getvalue()
 
     def test_dap_good_dependencies(self):
         '''Dap with good dependencies produces no error'''
-        assert Dap(dap_path('dependencies/good-1.0.0.dap')).check(logger=l(level=logging.ERROR))
+        dap = Dap(dap_path('dependencies/good-1.0.0.dap'))
+        assert DapChecker.check(dap, logger=l(level=logging.ERROR))
 
     def test_dap_invalid_dependencies(self):
         '''Dap with invalid dependency produces an error'''
         out = StringIO()
-        assert not Dap(dap_path('dependencies/invalid-1.0.0.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('dependencies/invalid-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert 'invalid 0.0.1 in dependencies is not valid' in out.getvalue()
 
     def test_dap_self_dependenciey(self):
         '''Dap with self dependency produces an error'''
         out = StringIO()
-        assert not Dap(dap_path('dependencies/self-1.0.0.dap')).check(logger=l(output=out, level=logging.ERROR))
+        dap = Dap(dap_path('dependencies/self-1.0.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert 'Depends on dap with the same name as itself' in out.getvalue()
 
     def test_sha256sum(self):
