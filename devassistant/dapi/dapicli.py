@@ -412,7 +412,7 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
                 format(name))
 
         deps = set()
-        if not nodeps:
+        if 'dependencies' in dap_obj.meta and not nodeps:
             for dep in dap_obj.meta['dependencies']:
                 dep = _strip_version_from_dependency(dep)
                 if dep not in get_installed_daps():

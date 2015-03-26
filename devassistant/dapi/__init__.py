@@ -182,13 +182,18 @@ class DapChecker(object):
         Return a list of problems.'''
         problems = list()
 
-        if dap.meta['package_name'] and dap.meta['dependencies']:
+        if 'package_name' in dap.meta and 'dependencies' in dap.meta:
             dependencies = set()
 
             for dependency in dap.meta['dependencies']:
                 if 'dependencies' in dap._badmeta and dependency in dap._badmeta['dependencies']:
                     continue
 
+                # No version specified
+                if not re.search(r'[<=>]', dependency):
+                    dependencies.add(dependency)
+
+                # Version specified
                 for mark in ['==', '>=', '<=', '<', '>']:
                     dep = dependency.split(mark)
                     if len(dep) == 2:
@@ -379,7 +384,6 @@ class Dap(object):
         '''Constructor, takes dap file location as argument.
         Loads the dap if at least somehow valid.
         If fake is True, it fill not open any files, but creates a fake dap'''
-        self._badmeta = {}
 
         # Basename
         if mimic_filename:
@@ -468,31 +472,41 @@ class Dap(object):
 
     def _isvalid(self, datatype):
         '''Checks if the given datatype is valid in meta'''
-        try:
+        if datatype in self.meta:
             return bool(Dap._meta_valid[datatype].match(self.meta[datatype]))
-        except KeyError:
-            self.meta[datatype] = ''
+        else:
             return datatype in Dap._optional_meta
 
     def _arevalid(self, datatype):
         '''Checks if the given datatype is valid in meta (for array-like types)'''
-        try:
-            if not isinstance(self.meta[datatype], list):
-                return False, []
-        except KeyError:
-            self.meta[datatype] = []
+        # Datatype not specified
+        if datatype not in self.meta:
             return datatype in Dap._optional_meta, []
-        if not self.meta[datatype]:
-            return datatype in Dap._optional_meta, []
+
+        # Required datatype empty
+        if datatype in self._required_meta and not self.meta[datatype]:
+            return False, []
+
+        # Datatype not a list
+        if not isinstance(self.meta[datatype], list):
+            return False, []
+
+        # Duplicates found
         duplicates = set([x for x in self.meta[datatype] if self.meta[datatype].count(x) > 1])
         if duplicates:
             return False, list(duplicates)
-        ret = []
+
+        if datatype in self._badmeta:
+            return False, self._badmeta[datatype]
+        else:
+            return True, []
+
+        # Checking if all items are valid
+        bad = []
         for item in self.meta[datatype]:
             if not Dap._meta_valid[datatype].match(item):
-                ret.append(item)
-        self._badmeta[datatype] = ret
-        return not bool(ret), ret
+                bad.append(item)
+        return len(bad) == 0, bad
 
     def _is_dir(self, f):
         '''Check if the given in-dap file is a directory'''

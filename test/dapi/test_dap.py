@@ -70,6 +70,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for name in 'foo f bar v8 foo-bar-foo ffffff8ff f-_--s '.split():
             d.meta['package_name'] = name
+            d._find_bad_meta()
             assert d._isvalid('package_name')
 
     def test_invalid_names(self):
@@ -77,6 +78,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for name in '9 8f -a - a_ _ ř H aaHa ? aa!a () * ff+a f8-- .'.split():
             d.meta['package_name'] = name
+            d._find_bad_meta()
             assert not d._isvalid('package_name')
 
     def test_valid_versions(self):
@@ -84,6 +86,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for version in '0 1 888 0.1 0.1a 0.0.0b 666dev 0.0.0.0.0 8.11'.split():
             d.meta['version'] = version
+            d._find_bad_meta()
             assert d._isvalid('version')
 
     def test_invalid_versions(self):
@@ -91,6 +94,7 @@ class TestDap(object):
         d = Dap('', fake=True)
         for version in '00 01 0.00.0 01.0 1c .1 1-2 h č . 1..0 1.0.'.split():
             d.meta['version'] = version
+            d._find_bad_meta()
             assert not d._isvalid('version')
 
     def test_loading_float_version(self):
@@ -108,6 +112,7 @@ class TestDap(object):
                 'https://f.f.f.f.f.sk/cgi-bin/?f=Program%20Files']
         for url in urls:
             d.meta['homepage'] = url
+            d._find_bad_meta()
             assert d._isvalid('homepage')
 
     def test_invalid_urls(self):
@@ -119,6 +124,7 @@ class TestDap(object):
                 'https://localhost/']
         for url in urls:
             d.meta['homepage'] = url
+            d._find_bad_meta()
             assert not d._isvalid('homepage')
 
     def test_valid_bugreports(self):
@@ -131,6 +137,7 @@ class TestDap(object):
                 'par_at_n@o.id']
         for bug in bugs:
             d.meta['bugreports'] = bug
+            d._find_bad_meta()
             assert d._isvalid('bugreports')
 
     def test_invalid_bugreports(self):
@@ -143,18 +150,21 @@ class TestDap(object):
                 '@o.id']
         for bug in bugs:
             d.meta['bugreports'] = bug
+            d._find_bad_meta()
             assert not d._isvalid('bugreports')
 
     def test_valid_summary(self):
         '''Test if valid summary is valid'''
         d = Dap('', fake=True)
         d.meta['summary'] = 'foo'
+        d._find_bad_meta()
         assert d._isvalid('summary')
 
     def test_invalid_summary(self):
         '''Test if invalid summary is invalid'''
         d = Dap('', fake=True)
         d.meta['summary'] = 'foo\nbar'
+        d._find_bad_meta()
         assert not d._isvalid('summary')
 
     def test_empty_required(self):
@@ -171,6 +181,7 @@ class TestDap(object):
                     'LGPLv2+ and LGPLv2 and LGPLv3+ and (GPLv3 or LGPLv2) and (GPLv3+ or LGPLv2) and (CC-BY-SA or LGPLv2+) and (CC-BY-SA or LGPLv2) and CC-BY and BSD and MIT and Public Domain']
         for license in licenses:
             d.meta['license'] = license
+            d._find_bad_meta()
             assert d._isvalid('license')
 
     def test_invalid_licenses(self):
@@ -182,6 +193,7 @@ class TestDap(object):
                     'GNU GPL']
         for license in licenses:
             d.meta['license'] = license
+            d._find_bad_meta()
             assert not d._isvalid('license')
 
     def test_valid_authors(self):
@@ -195,6 +207,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for authors in itertools.combinations(pool, r):
                 d.meta['authors'] = list(authors)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('authors')
                 assert ok
                 assert not bads
@@ -211,10 +224,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for authors in itertools.combinations(pool, r):
                 d.meta['authors'] = list(authors)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('authors')
                 assert not ok
                 assert bads == list(authors)
         d.meta['authors'] = ['OK2 <ok@ok.ok>'] + pool + ['OK <ok@ok.ok>']
+        d._find_bad_meta()
         ok, bads = d._arevalid('authors')
         assert bads == pool
 
@@ -222,6 +237,7 @@ class TestDap(object):
         '''Test if duplicate valid authors are invalid'''
         d = Dap('', fake=True)
         d.meta['authors'] = ['A', 'B', 'A']
+        d._find_bad_meta()
         ok, bads = d._arevalid('authors')
         assert not ok
         assert bads == ['A']
@@ -230,6 +246,7 @@ class TestDap(object):
         '''Test if empty authors list is invalid'''
         d = Dap('', fake=True)
         d.meta['authors'] = []
+        d._find_bad_meta()
         ok, null = d._arevalid('authors')
         assert not ok
 
@@ -251,6 +268,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['dependencies'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('dependencies')
                 assert ok
                 assert not bads
@@ -270,10 +288,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['dependencies'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('dependencies')
                 assert not ok
                 assert bads == list(dependencies)
         d.meta['dependencies'] = ['foo'] + pool + ['bar']
+        d._find_bad_meta()
         ok, bads = d._arevalid('dependencies')
         assert bads == pool
 
@@ -281,6 +301,7 @@ class TestDap(object):
         '''Test if duplicate valid dependencies are invalid'''
         d = Dap('', fake=True)
         d.meta['dependencies'] = ['A', 'B', 'A']
+        d._find_bad_meta()
         ok, bads = d._arevalid('dependencies')
         assert not ok
         assert bads == ['A']
@@ -288,15 +309,17 @@ class TestDap(object):
     def test_self_dependency(self):
         '''Test if depending on itself produces error'''
         d = Dap('', fake=True)
-        d.meta['dependencies'] = ['A', 'B > 1']
-        d.meta['package_name'] = 'B'
+        d.meta['dependencies'] = ['a', 'b > 1']
+        d.meta['package_name'] = 'b'
+        d._find_bad_meta()
         assert DapChecker.check_no_self_dependency(d) != []
 
-        d.meta['package_name'] = 'C'
+        d.meta['package_name'] = 'c'
+        d._find_bad_meta()
         assert DapChecker.check_no_self_dependency(d) == []
 
-        d.meta['dependencies'] = ['C', 'B=1', 'A']
-        d.meta['package_name'] = 'B'
+        d.meta['dependencies'] = ['c', 'b=1', 'a']
+        d.meta['package_name'] = 'b'
         d._find_bad_meta()
         assert DapChecker.check_no_self_dependency(d) == []
 
@@ -304,6 +327,7 @@ class TestDap(object):
         '''Test if empty dependencies list is valid'''
         d = Dap('', fake=True)
         d.meta['dependencies'] = []
+        d._find_bad_meta()
         ok, null = d._arevalid('dependencies')
         assert ok
 
@@ -330,6 +354,7 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['supported_platforms'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('supported_platforms')
                 assert ok
                 assert not bads
@@ -341,10 +366,12 @@ class TestDap(object):
         for r in range(1, len(pool) + 1):
             for dependencies in itertools.combinations(pool, r):
                 d.meta['supported_platforms'] = list(dependencies)
+                d._find_bad_meta()
                 ok, bads = d._arevalid('supported_platforms')
                 assert not ok
                 assert bads == list(dependencies)
         d.meta['supported_platforms'] = ['fedora'] + pool + ['darwin']
+        d._find_bad_meta()
         ok, bads = d._arevalid('supported_platforms')
         assert bads == pool
 
