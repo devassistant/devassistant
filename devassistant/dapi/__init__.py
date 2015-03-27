@@ -6,6 +6,7 @@ import yaml
 import re
 import logging
 import hashlib
+import random
 try:
     from yaml import CLoader as Loader
 except:
@@ -26,8 +27,49 @@ class DapProblem(object):
 class DapFormatter(object):
     '''Formatter for different output information for the Dap class'''
 
+    _nice_strings = {# DAP-related
+                     'bugreports': 'Issues',
+                     'homepage': 'Home page',
+                     'license': 'License',
+
+                     # DAPI-related
+                     'active': 'DAP Active',
+                     'is_pre': 'Pre-release',
+                     'is_latest': 'Latest version',
+                     'is_latest_stable': 'Latest stable',
+                     'average_rank': 'User rating',
+                     'reports': 'Reports',
+                     }
+
     @classmethod
-    def format_meta(cls, meta):
+    def _format_field(cls, field):
+        if isinstance(field, bool):
+            return 'Yes' if field else 'No'
+        elif field is None:
+            return 'Not available'
+        else:
+            return str(field)
+
+    @classmethod
+    def calculate_offset(cls, labels):
+        '''Return the maximum length of the provided strings that have a nice
+        variant in DapFormatter._nice_strings'''
+        used_strings = set(cls._nice_strings.keys()) & set(labels)
+        return max([len(cls._nice_strings[s]) for s in used_strings])
+
+    @classmethod
+    def format_dapi_score(cls, meta, offset):
+        '''Format the line with DAPI user rating and number of votes'''
+        if 'average_rank' and 'rank_count' in meta:
+            label = (cls._nice_strings['average_rank'] + ':').ljust(offset + 2)
+            score = cls._format_field(meta['average_rank'])
+            votes = ' ({num} votes)'.format(num=meta['rank_count'])
+            return label + score + votes
+        else:
+            return ''
+
+    @classmethod
+    def format_meta(cls, meta, labels, offset):
         '''Return all information from a given meta dictionary in human readable form'''
         result = ''
 
@@ -40,35 +82,56 @@ class DapFormatter(object):
         result += '\n' + len(name)*'=' + '\n'
 
         # Summary
-        result += '\n' + (meta['summary'])
+        result += '\n' + (meta['summary']).strip() + '\n\n'
 
         # Description
-        if meta['description']:
-            result += '\n\n' + meta['description'] + '\n'
+        if meta.get('description', ''):
+            result += meta['description'].strip() + '\n\n'
+
 
         # Other metadata
         data = []
-        for item in ['license', 'homepage', 'bugreports']:
-            if meta[item]:
-                data.append(item + ': ' + meta[item])
+        for item in labels:
+            if meta.get(item, '') != '': # We want to process False and 0
+                label = (cls._nice_strings[item] + ':').ljust(offset + 2)
+                data.append(label + cls._format_field(meta[item]))
 
         result += '\n'.join(data)
 
         return result
 
     @classmethod
-    def format_assistants(cls, assistants):
-        '''Return formatted assistants from the given list in human readable form.
-
-        Snippets are skipped.'''
-
-        if assistants:
-            result = 'The following assistants are contained in this DAP:'
-            for assistant in assistants:
-                result += '\n * ' + assistant.replace('/', ' -> ')
-            return result
+    def _format_files(cls, files, kind):
+        '''Format the list of files (e. g. assistants or snippets'''
+        result = []
+        if files:
+            result.append('The following {kind} are contained in this DAP:'.format(kind=kind.title()))
+            for f in files:
+                result.append('* ' + f.lstrip(kind).replace(os.path.sep, ' ').strip())
+            return '\n'.join(result)
         else:
-            return 'No assistants are contained in this DAP'
+            return 'No {kind} are contained in this DAP'.format(kind=kind.title())
+
+    @classmethod
+    def format_assistants(cls, assistants):
+        '''Return formatted assistants from the given list in human readable form.'''
+        result = cls._format_files(assistants, 'assistants')
+
+        # Assistant help
+        if assistants:
+            assistant = random.choice(assistants).lstrip('assistants').replace(os.path.sep, ' ').strip()
+            if len(assistants) == 1:
+                string = 'After you install this DAP, you can find help about the Assistant\nby running "da {a} -h" .'
+            else:
+                string = 'After you install this DAP, you can find help, for example about the Assistant\n"{a}", by running "da {a} -h".'
+            result += '\n\n' + string.format(a=assistant)
+
+        return result
+
+    @classmethod
+    def format_snippets(cls, assistants):
+        '''Return formatted snippets from the given list in human readable form.'''
+        return cls._format_files(assistants, 'snippets')
 
     @classmethod
     def format_platforms(cls, platforms):
@@ -539,19 +602,3 @@ class Dap(object):
         # Only return matching paths (but without the .yaml at the end)
         return [f[:-5] for f in stripped if Dap._assistants.match(f)]
 
-    def print_info(self):
-        print(DapFormatter.format_meta(self.meta))
-        print()
-        Dap.print_assistants(self.list_assistants())
-        Dap.print_platforms(self.meta['supported_platforms'])
-
-    @classmethod
-    def print_assistants(cls, assistants):
-        # Remove snippets and assistants/ directory prefix
-        assistants = [a[len('assistants/'):] for a in assistants if a.startswith('assistants/')]
-        print(DapFormatter.format_assistants(assistants))
-
-    @classmethod
-    def print_platforms(cls, platforms):
-        if platforms:
-            print(DapFormatter.format_platforms(platforms))

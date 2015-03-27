@@ -25,6 +25,8 @@ from devassistant.settings import DATA_DIRECTORIES
 from devassistant.settings import DEVASSISTANT_HOME
 from devassistant.settings import DISTRO_DIRECTORY
 
+BASIC_LABELS = ['license', 'homepage', 'bugreports']
+EXTRA_LABELS = ['is_pre', 'is_latest', 'is_latest_stable', 'reports']
 
 def _api_url(mirror=False):
     if mirror:
@@ -177,7 +179,7 @@ def print_daps():
 
 
 def _get_metadap_dap(name, version=''):
-    '''Return data for dap of given or latets version.'''
+    '''Return data for dap of given or latest version.'''
     m = metadap(name)
     if not m:
         raise Exception('DAP {dap} not found.'.format(dap=name))
@@ -193,35 +195,67 @@ def _get_metadap_dap(name, version=''):
     return m, d
 
 
-def print_dap(name, version=''):
-    '''Prints detail for a particular dap'''
+def print_dap_from_dapi(name, version='', full=False):
+    '''Print information about the given DAP from DAPI in a human readable form to stdout.'''
     m, d = _get_metadap_dap(name, version)
-    if d:
-        _name = m['package_name'] + '-' + d['version']
-    else:
-        _name = m['package_name']
-    print(_name)
-    for i in range(0, len(_name)):
-        print('=', end='')
-    print('\n')
-    if d:
-        print(d['summary'])
-        if d['description']:
-            print('')
-            print(d['description'])
-    else:
-        print('{dap} has no versions\n'.format(dap=name))
-    for item in 'active average_rank rank_count reports'.split():
-        print(item, end=': ')
-        print(m[item])
-    if d:
-        for item in 'license homepage bugreports is_pre is_latest is_latest_stable'.split():
-            if (d[item] is not None):
-                print(item, end=': ')
-                print(d[item])
 
-        dapi.Dap.print_assistants(d['assistants'])
-        dapi.Dap.print_platforms(d['supported_platforms'])
+    if d:
+        # Determining label width
+        labels = BASIC_LABELS + ['average_rank'] # average_rank comes from m, not d
+        if full:
+            labels.extend(EXTRA_LABELS)
+        label_width = dapi.DapFormatter.calculate_offset(labels)
+
+        # Metadata
+        print(dapi.DapFormatter.format_meta(d, labels=labels, offset=label_width))
+        print(dapi.DapFormatter.format_dapi_score(m, offset=label_width))
+
+        if 'assistants' in d:
+            # Assistants
+            assistants = sorted([a for a in d['assistants'] if a.startswith('assistants')])
+            print()
+            print(dapi.DapFormatter.format_assistants(assistants))
+
+            # Snippets
+            if full:
+                snippets = sorted([a for a in d['assistants'] if a.startswith('snippets')])
+                print()
+                print(dapi.DapFormatter.format_snippets(snippets))
+
+
+        # Supported platforms
+        if d.get('supported_platforms', ''):
+            print()
+            print(dapi.DapFormatter.format_platforms(d['supported_platforms']))
+
+        print()
+
+
+def print_local_dap(dap, full=False):
+    '''Print information about the given local DAP in a human readable form to stdout.'''
+    # Determining label width
+    label_width = dapi.DapFormatter.calculate_offset(BASIC_LABELS)
+
+    # Metadata
+    print(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS, offset=label_width))
+
+    assistants = sorted([a for a in dap.list_assistants() if a.startswith('assistants')])
+    # Assistants
+    print()
+    print(dapi.DapFormatter.format_assistants(sorted(assistants)))
+
+    # Snippets
+    if full:
+        snippets = sorted([a for a in dap.list_assistants() if a.startswith('snippets')])
+        print()
+        print(dapi.DapFormatter.format_snippets(snippets))
+
+    # Supported platforms
+    if 'supported_platforms' in dap.meta:
+        print()
+        print(dapi.DapFormatter.format_platforms(dap.meta['supported_platforms']))
+
+    print()
 
 
 def print_search(query):

@@ -428,7 +428,9 @@ class PkgInfoAction(Action):
     """Prints information about packages from Dapi"""
     name = 'info'
     description = 'Prints information about packages from DAPI.'
-    args = [argument.Argument('package', 'package', help='Package to print info for')]
+    args = [argument.Argument('package', 'package', help='Package to print info for'),
+            argument.Argument('full', '--full', help='More information (useful for developers)',
+                              required=False, action='store_true')]
 
     @classmethod
     def run(cls, **kwargs):
@@ -439,13 +441,13 @@ class PkgInfoAction(Action):
                 d = dapi.Dap(kwargs['package'])
                 if not dapi.DapChecker.check(d):
                     raise exceptions.ExecutionException(
-                        'This DAP is not valid, I refuse to inspect it')
+                        'This DAP is not valid, info can\'t be displayed.')
             finally:
                 logger.setLevel(old_level)
-            d.print_info()
+            dapicli.print_local_dap(d, full=kwargs.get('full', False))
         else:
             try:
-                dapicli.print_dap(kwargs['package'])
+                dapicli.print_dap_from_dapi(kwargs['package'], full=kwargs.get('full', False))
             except Exception as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
