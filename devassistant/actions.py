@@ -437,7 +437,7 @@ class PkgInfoAction(Action):
             logger.setLevel(logging.ERROR)
             try:
                 d = dapi.Dap(kwargs['package'])
-                if not d.check():
+                if not dapi.DapChecker.check(d):
                     raise exceptions.ExecutionException(
                         'This DAP is not valid, I refuse to inspect it')
             finally:
@@ -473,7 +473,7 @@ class PkgLintAction(Action):
                 if kwargs['nowarnings']:
                     logger.setLevel(logging.ERROR)
                 d = dapi.Dap(pkg)
-                if not d.check(network=kwargs['network']):
+                if not dapi.DapChecker.check(d, network=kwargs['network']):
                     error = True
             except (exceptions.DapFileError, exceptions.DapMetaError) as e:
                 logger.error(utils.exc_as_decoded_string(e))
