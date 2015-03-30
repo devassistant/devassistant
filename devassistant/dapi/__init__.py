@@ -326,7 +326,7 @@ class DapChecker(object):
                               '(/.+)?)?)$')
             regs = re.compile('^' + dirname + '((assistants(/(crt|twk|prep|extra))|snippets)/' +
                               name + r'(/[^/]+)?\.yaml|icons/(crt|twk|prep|extra|snippets)/' +
-                              name + r'(/[^/]+)?\.(' + Dap._icons +
+                              name + r'(/[^/]+)?\.(' + Dap._icons_ext +
                               ')|(files/(crt|twk|prep|extra|snippets)|doc)/' + name + '/.+)$')
 
             to_remove = []
@@ -351,20 +351,16 @@ class DapChecker(object):
                         msg = f + '/ present, but ' + f + '.yaml missing'
                         problems.append(DapProblem(msg))
 
-        # Let's warn about icons
-        icons = []          # we need to report duplicates
-        assistants = set()  # duplicates are fine here
-        for f in files:
-            if not dap._is_dir(f):
-                if f.startswith(os.path.join(dirname, 'icons/')):
-                    # name without extension and dirname/icons/
-                    icons.append('.'.join(f[len(os.path.join(dirname, 'icons/')):].
-                        split('.')[:-1]))
-                if f.startswith(os.path.join(dirname, 'assistants/')):
-                    # extension is .yaml only, so we don't need to split and join
-                    assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
-        duplicates = set([x for x in icons if icons.count(x) > 1])
+        # Missing assistants and/or snippets
+        if not dap.assistants_and_snippets:
+            msg = 'No Assistants or Snippets found'
+            problems.append(DapProblem(msg, level=logging.WARNING))
 
+        # Icons
+        icons = [dap._strip_leading_dirname(i) for i in dap.icons(strip_ext=True)] # we need to report duplicates
+        assistants = set([dap._strip_leading_dirname(a) for a in dap.assistants])  # duplicates are fine here
+
+        duplicates = set([i for i in icons if icons.count(i) > 1])
         for d in duplicates:
             msg = 'Duplicate icon for ' + f
             problems.append(DapProblem(msg, level=logging.WARNING))
@@ -378,6 +374,7 @@ class DapChecker(object):
             msg = 'Missing icon for assistant ' + a
             problems.append(DapProblem(msg, level=logging.WARNING))
 
+        # Source files
         for f in cls._get_files_without_assistants(dap, dirname, files):
             msg = 'Useless files for non-exisiting assistant ' + f
             problems.append(DapProblem(msg, level=logging.WARNING))
@@ -422,7 +419,6 @@ class Dap(object):
 
     Everything should be considered read-only. If not, things might blow up.'''
 
-    _icons = 'svg|png'
 
     _required_meta = set('package_name version license authors summary'.split())
     _optional_meta = set('homepage bugreports description dependencies supported_platforms'.
@@ -438,6 +434,8 @@ class Dap(object):
 
     _assistants_pattern = re.compile(r'assistants/.*\.yaml')
     _snippets_pattern = re.compile(r'snippets/.*\.yaml')
+    _icons_ext = 'svg|png'
+    _icons_pattern = re.compile(r'icons/.*\.({ext})'.format(ext=_icons_ext))
 
     _meta_valid = {'package_name': re.compile(r'^' + _name_pattern + r'$'),
                    'version': re.compile(r'^' + _version_pattern + r'$'),
@@ -479,10 +477,14 @@ class Dap(object):
 
         self._find_bad_meta()
 
+    def _strip_leading_dirname(self, path):
+        '''Strip leading directory name from the given path'''
+        return os.path.sep.join(path.split(os.path.sep)[1:])
+
     @property
     def _stripped_files(self):
         '''Get contents of self.files with the root directory stripped'''
-        return [os.path.sep.join(f.split(os.path.sep)[1:]) for f in self.files]
+        return [self._strip_leading_dirname(f) for f in self.files]
 
     @property
     def assistants(self):
@@ -498,6 +500,14 @@ class Dap(object):
     def assistants_and_snippets(self):
         '''Get all assistants and snippets in this DAP'''
         return self.assistants + self.snippets
+
+    def icons(self, strip_ext=False):
+        '''Get all icons in this DAP, optionally strip extensions'''
+        result =  [f for f in self._stripped_files if self._icons_pattern.match(f)]
+        if strip_ext:
+            result = [f.rstrip('.' + self._icons_ext) for f in result]
+
+        return result
 
     def _find_bad_meta(self):
         '''Fill self._badmeta with meta datatypes that are invalid'''

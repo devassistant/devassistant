@@ -453,8 +453,9 @@ class TestDap(object):
         out = StringIO()
         dap = Dap(dap_path('empty_dirs/foo-1.0.0.dap'))
         assert not DapChecker.check(dap, logger=l(output=out))
-        assert len(out.getvalue().rstrip().split('\n')) == 3
-        assert ' is empty directory' in out.getvalue()
+        assert 'foo-1.0.0/assistants is empty directory (may be nested)' in out.getvalue()
+        assert 'foo-1.0.0/assistants/crt is empty directory (may be nested)' in out.getvalue()
+        assert 'foo-1.0.0/assistants/twk is empty directory (may be nested)' in out.getvalue()
 
     def test_wrong_files(self):
         '''Dap with wrong files produces errors'''
@@ -567,3 +568,20 @@ class TestDap(object):
 
         err_string = 'Package name is too long. It must not exceed 200 characters.'
         assert (err_string in [p.message for p in problems]) is expected
+
+    @pytest.mark.parametrize('path', ['empty_dirs/foo-1.0.0.dap', 'no_assistants-0.0.1dev.dap'])
+    def test_no_assistants_warning(self, path):
+        '''Check if absence of both assitants and snippets is reported
+
+        foo-1.0.0.dap is used because it has YAML assistants missing,
+        no_assistants-0.0.1dev.dap doesn't have assistants/ or snippets/ directories at all'''
+        dap = Dap(dap_path(path))
+        err_out = StringIO()
+        warn_out = StringIO()
+
+        DapChecker.check(dap, logger=l(output=warn_out, level=logging.WARNING))
+        DapChecker.check(dap, logger=l(output=err_out, level=logging.ERROR))
+
+        assert 'No Assistants or Snippets found' in warn_out.getvalue()
+        assert 'No Assistants or Snippets found' not in err_out.getvalue()
+
