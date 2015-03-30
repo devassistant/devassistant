@@ -308,7 +308,6 @@ class DapChecker(object):
 
         files.remove(dirname + 'meta.yaml')
 
-
         # Report and remove empty directories until no more are found
         emptydirs = dap._get_emptydirs(files)
         while emptydirs:
@@ -365,13 +364,16 @@ class DapChecker(object):
                     # extension is .yaml only, so we don't need to split and join
                     assistants.add(f[len(os.path.join(dirname, 'assistants/')):-len('.yaml')])
         duplicates = set([x for x in icons if icons.count(x) > 1])
+
         for d in duplicates:
             msg = 'Duplicate icon for ' + f
             problems.append(DapProblem(msg, level=logging.WARNING))
+
         icons = set(icons)
         for i in icons - assistants:
             msg = 'Useless icon for non-exisiting assistant ' + i
             problems.append(DapProblem(msg, level=logging.WARNING))
+
         for a in assistants - icons:
             msg = 'Missing icon for assistant ' + a
             problems.append(DapProblem(msg, level=logging.WARNING))
@@ -434,6 +436,9 @@ class Dap(object):
     _name_pattern = r'([a-z][a-z0-9\-_]*[a-z0-9]|[a-z])'
     _version_pattern = r'([0-9]|[1-9][0-9]*)(\.([0-9]|[1-9][0-9]*))*(dev|a|b)?'
 
+    _assistants_pattern = re.compile(r'assistants/.*\.yaml')
+    _snippets_pattern = re.compile(r'snippets/.*\.yaml')
+
     _meta_valid = {'package_name': re.compile(r'^' + _name_pattern + r'$'),
                    'version': re.compile(r'^' + _version_pattern + r'$'),
                    'license': licenses,
@@ -447,7 +452,6 @@ class Dap(object):
                        _version_pattern + r')?$'),
                    'supported_platforms': platforms}
 
-    _assistants = re.compile(r'(assistants|snippets)/.*\.yaml')
 
     def __init__(self, dapfile, fake=False, mimic_filename=None):
         '''Constructor, takes dap file location as argument.
@@ -468,12 +472,32 @@ class Dap(object):
             self.meta = {}
         else:
             self._tar = self._load_tar(dapfile)
-            self.files = self._tar.getnames()
+            self.files = sorted(self._tar.getnames())
             self._meta_location = self._get_meta(self.files, self.basename)
             self.meta = self._load_meta(self._get_file(self._meta_location))
             self.sha256sum = hashlib.sha256(open(dapfile, 'rb').read()).hexdigest()
 
         self._find_bad_meta()
+
+    @property
+    def _stripped_files(self):
+        '''Get contents of self.files with the root directory stripped'''
+        return [os.path.sep.join(f.split(os.path.sep)[1:]) for f in self.files]
+
+    @property
+    def assistants(self):
+        '''Get all assistants in this DAP'''
+        return [f.rstrip('.yaml') for f in self._stripped_files if self._assistants_pattern.match(f)]
+
+    @property
+    def snippets(self):
+        '''Get all snippets in this DAP'''
+        return [f.rstrip('.yaml') for f in self._stripped_files if self._snippets_pattern.match(f)]
+
+    @property
+    def assistants_and_snippets(self):
+        '''Get all assistants and snippets in this DAP'''
+        return self.assistants + self.snippets
 
     def _find_bad_meta(self):
         '''Fill self._badmeta with meta datatypes that are invalid'''
@@ -599,12 +623,3 @@ class Dap(object):
     def extract(self, location):
         '''Extract the contents of a dap to a given location'''
         self._tar.extractall(location)
-
-    def list_assistants(self):
-        '''Lists assistants and snippets contained in the dap.
-        Assumes the dap is valid (i.e. it has already been checked).'''
-        # Remove the first directory from the paths
-        stripped = map(lambda f: '/'.join(f.split('/')[1:]), self.files)
-        # Only return matching paths (but without the .yaml at the end)
-        return [f[:-5] for f in stripped if Dap._assistants.match(f)]
-

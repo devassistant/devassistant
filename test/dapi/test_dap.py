@@ -539,8 +539,10 @@ class TestDap(object):
             process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
             assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode(utils.defenc)
 
-    def test_list_assistants(self):
-        '''Check that the list_assistants() method returns right results'''
+    def test_assistants_and_snippets_property(self):
+        '''Check that the assistants_and_snippets property contains the right results.
+
+        This was renamed from list_assitants()'''
         # Using set because we don't care about the order
         dapdap = set([
             'assistants/crt/dap',
@@ -549,8 +551,8 @@ class TestDap(object):
             'assistants/twk/dap/pack',
             'snippets/dap',
         ])
-        assert set(Dap(dap_path('list_assistants/dap-0.0.1a.dap')).list_assistants()) == dapdap
-        assert Dap(dap_path('meta_only/foo-1.0.0.dap')).list_assistants() == []
+        assert set(Dap(dap_path('list_assistants/dap-0.0.1a.dap')).assistants_and_snippets) == dapdap
+        assert Dap(dap_path('meta_only/foo-1.0.0.dap')).assistants_and_snippets == []
 
     @pytest.mark.parametrize(('pkg_name', 'expected'), [
         (201*'a', True),

@@ -239,16 +239,14 @@ def print_local_dap(dap, full=False):
     # Metadata
     print(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS, offset=label_width))
 
-    assistants = sorted([a for a in dap.list_assistants() if a.startswith('assistants')])
     # Assistants
     print()
-    print(dapi.DapFormatter.format_assistants(sorted(assistants)))
+    print(dapi.DapFormatter.format_assistants(dap.assistants))
 
     # Snippets
     if full:
-        snippets = sorted([a for a in dap.list_assistants() if a.startswith('snippets')])
         print()
-        print(dapi.DapFormatter.format_snippets(snippets))
+        print(dapi.DapFormatter.format_snippets(dap.snippets))
 
     # Supported platforms
     if 'supported_platforms' in dap.meta:
