@@ -551,3 +551,17 @@ class TestDap(object):
         ])
         assert set(Dap(dap_path('list_assistants/dap-0.0.1a.dap')).list_assistants()) == dapdap
         assert Dap(dap_path('meta_only/foo-1.0.0.dap')).list_assistants() == []
+
+    @pytest.mark.parametrize(('pkg_name', 'expected'), [
+        (201*'a', True),
+        ('foobar', False),
+    ])
+    def test_pkg_name_too_long(self, pkg_name, expected):
+        '''Package names must not exceed 200 characters'''
+        dap = Dap(pkg_name, fake=True)
+        dap.meta['package_name'] = pkg_name
+        dap._find_bad_meta()
+        problems = DapChecker.check_meta(dap)
+
+        err_string = 'Package name is too long. It must not exceed 200 characters.'
+        assert (err_string in [p.message for p in problems]) is expected
