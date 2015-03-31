@@ -18,9 +18,11 @@ from devassistant.dapi import *
 from test import fixtures_dir
 from devassistant import utils
 
+
 def dap_path(fixture):
     '''Return appropriate dap path'''
     return os.path.join(fixtures_dir, 'dapi', 'daps', fixture)
+
 
 def l(level = logging.WARNING, output = sys.stderr):
     '''Gets the logger'''
@@ -29,6 +31,15 @@ def l(level = logging.WARNING, output = sys.stderr):
     logger.addHandler(handler)
     logger.setLevel(level)
     return logger
+
+
+def combinations(pool):
+    '''Prepare all various combinations of given list'''
+    ret = []
+    # the min() is there, because we don't need all the combinations, just lot of them
+    for r in range(1, min(len(pool), 2) + 1):
+        ret += itertools.combinations(pool, r)
+    return ret
 
 
 class TestDap(object):
@@ -65,37 +76,40 @@ class TestDap(object):
         assert len(out.getvalue().rstrip().split('\n')) == 1
         assert 'not in top-level directory' in out.getvalue()
 
-    def test_valid_names(self):
+    @pytest.mark.parametrize('name', ['foo', 'f', 'bar', 'v8', 'foo-bar-foo', 'ffff8ff', 'f-_--s'])
+    def test_valid_names(self, name):
         '''Test if valid names are valid'''
         d = Dap('', fake=True)
-        for name in 'foo f bar v8 foo-bar-foo ffffff8ff f-_--s '.split():
-            d.meta['package_name'] = name
-            d._find_bad_meta()
-            assert d._isvalid('package_name')
+        d.meta['package_name'] = name
+        d._find_bad_meta()
+        assert d._isvalid('package_name')
 
-    def test_invalid_names(self):
+    @pytest.mark.parametrize('name', ['9', '8f', '-a', '-', 'a_', '_', 'ř', 'H', 'aaHa',
+                                      '?', 'aa!a', '()', '*', 'ff+a', 'f8--', '.'])
+    def test_invalid_names(self, name):
         '''Test if invalid names are invalid'''
         d = Dap('', fake=True)
-        for name in '9 8f -a - a_ _ ř H aaHa ? aa!a () * ff+a f8-- .'.split():
-            d.meta['package_name'] = name
-            d._find_bad_meta()
-            assert not d._isvalid('package_name')
+        d.meta['package_name'] = name
+        d._find_bad_meta()
+        assert not d._isvalid('package_name')
 
-    def test_valid_versions(self):
+    @pytest.mark.parametrize('version', ['0', '1', '888', '0.1', '0.1a',
+                                         '0.0.0b', '666dev', '0.0.0.0.0', '8.11'])
+    def test_valid_versions(self, version):
         '''Test if valid versions are valid'''
         d = Dap('', fake=True)
-        for version in '0 1 888 0.1 0.1a 0.0.0b 666dev 0.0.0.0.0 8.11'.split():
-            d.meta['version'] = version
-            d._find_bad_meta()
-            assert d._isvalid('version')
+        d.meta['version'] = version
+        d._find_bad_meta()
+        assert d._isvalid('version')
 
-    def test_invalid_versions(self):
+    @pytest.mark.parametrize('version', ['00', '01', '0.00.0', '01.0', '1c', '.1',
+                                         '1-2', 'h', 'č', '.', '1..0', '1.0.'])
+    def test_invalid_versions(self, version):
         '''Test if invalid versions are invalid'''
         d = Dap('', fake=True)
-        for version in '00 01 0.00.0 01.0 1c .1 1-2 h č . 1..0 1.0.'.split():
-            d.meta['version'] = version
-            d._find_bad_meta()
-            assert not d._isvalid('version')
+        d.meta['version'] = version
+        d._find_bad_meta()
+        assert not d._isvalid('version')
 
     def test_loading_float_version(self):
         '''Test that loading doesn't fail if version is loaded from YAML as float'''
@@ -103,55 +117,51 @@ class TestDap(object):
         dap = Dap(dap_path('meta_only/bad_version-0.1.dap'))
         assert DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
 
-    def test_valid_urls(self):
+    @pytest.mark.parametrize('url', ['http://g.com/aa?ff=g&g#f',
+                                     'ftp://g.aa/',
+                                     'http://user:password@fee.com',
+                                     'https://f.f.f.f.f.sk/cgi-bin/?f=Program%20Files'])
+    def test_valid_urls(self, url):
         '''Test if valid URLs are valid'''
         d = Dap('', fake=True)
-        urls = ['http://g.com/aa?ff=g&g#f',
-                'ftp://g.aa/',
-                'http://user:password@fee.com',
-                'https://f.f.f.f.f.sk/cgi-bin/?f=Program%20Files']
-        for url in urls:
-            d.meta['homepage'] = url
-            d._find_bad_meta()
-            assert d._isvalid('homepage')
+        d.meta['homepage'] = url
+        d._find_bad_meta()
+        assert d._isvalid('homepage')
 
-    def test_invalid_urls(self):
+    @pytest.mark.parametrize('url', ['g.com/a',
+                                     'mailto:foo@bar.com',
+                                     'ftp://192.168.1.1/?a',
+                                     'https://localhost/'])
+    def test_invalid_urls(self, url):
         '''Test if invalid URLs are invalid'''
         d = Dap('', fake=True)
-        urls = ['g.com/a',
-                'mailto:foo@bar.com',
-                'ftp://192.168.1.1/?a',
-                'https://localhost/']
-        for url in urls:
-            d.meta['homepage'] = url
-            d._find_bad_meta()
-            assert not d._isvalid('homepage')
+        d.meta['homepage'] = url
+        d._find_bad_meta()
+        assert not d._isvalid('homepage')
 
-    def test_valid_bugreports(self):
+    @pytest.mark.parametrize('bug', ['http://g.com/',
+                                     'miro@hroncok.cz',
+                                     '?ouch@devassiatnt.org',
+                                     'par_at_no.id',
+                                     'par_at_n@o.id'])
+    def test_valid_bugreports(self, bug):
         '''Test if valid URLs or e-mails are valid'''
         d = Dap('', fake=True)
-        bugs = ['http://g.com/',
-                'miro@hroncok.cz',
-                '?ouch@devassiatnt.org',
-                'par_at_no.id',
-                'par_at_n@o.id']
-        for bug in bugs:
-            d.meta['bugreports'] = bug
-            d._find_bad_meta()
-            assert d._isvalid('bugreports')
+        d.meta['bugreports'] = bug
+        d._find_bad_meta()
+        assert d._isvalid('bugreports')
 
-    def test_invalid_bugreports(self):
+    @pytest.mark.parametrize('bug', ['httpr://g.com/',
+                                     'miro@h@roncok.cz',
+                                     '?ouchdevassiatnt.org',
+                                     'par_at_no.iduss',
+                                     '@o.id'])
+    def test_invalid_bugreports(self, bug):
         '''Test if invalid URLs or e-mails are invalid'''
         d = Dap('', fake=True)
-        bugs = ['httpr://g.com/',
-                'miro@h@roncok.cz',
-                '?ouchdevassiatnt.org',
-                'par_at_no.iduss',
-                '@o.id']
-        for bug in bugs:
-            d.meta['bugreports'] = bug
-            d._find_bad_meta()
-            assert not d._isvalid('bugreports')
+        d.meta['bugreports'] = bug
+        d._find_bad_meta()
+        assert not d._isvalid('bugreports')
 
     def test_valid_summary(self):
         '''Test if valid summary is valid'''
@@ -167,71 +177,72 @@ class TestDap(object):
         d._find_bad_meta()
         assert not d._isvalid('summary')
 
-    def test_empty_required(self):
+    @pytest.mark.parametrize('item', ['package_name', 'version', 'license', 'authors', 'summary'])
+    def test_empty_required(self, item):
         '''Required metadata should fail when undefined'''
         d = Dap('', fake=True)
-        for item in 'package_name version license authors summary'.split():
-            assert not d._isvalid(item)
+        assert not d._isvalid(item)
 
-    def test_valid_licenses(self):
+    @pytest.mark.parametrize('license', ['AGPLv3 with exceptions',
+                                         'GPL+ or Artistic',
+                                         'LGPLv2+ and LGPLv2 and LGPLv3+ and (GPLv3 or '
+                                         'LGPLv2) and (GPLv3+ or LGPLv2) and (CC-BY-SA '
+                                         'or LGPLv2+) and (CC-BY-SA or LGPLv2) and CC-BY '
+                                         'and BSD and MIT and Public Domain'])
+    def test_valid_licenses(self, license):
         '''Test if valid licenses are valid'''
         d = Dap('', fake=True)
-        licenses = ['AGPLv3 with exceptions',
-                    'GPL+ or Artistic',
-                    'LGPLv2+ and LGPLv2 and LGPLv3+ and (GPLv3 or LGPLv2) and (GPLv3+ or LGPLv2) and (CC-BY-SA or LGPLv2+) and (CC-BY-SA or LGPLv2) and CC-BY and BSD and MIT and Public Domain']
-        for license in licenses:
-            d.meta['license'] = license
-            d._find_bad_meta()
-            assert d._isvalid('license')
+        d.meta['license'] = license
+        d._find_bad_meta()
+        assert d._isvalid('license')
 
-    def test_invalid_licenses(self):
+    @pytest.mark.parametrize('license', ['Redistributable',
+                                         'GPLv4',
+                                         'LGPLv2+ and (LGPLv2',
+                                         'GNU GPL'])
+    def test_invalid_licenses(self, license):
         '''Test if invalid licenses are invalid'''
         d = Dap('', fake=True)
-        licenses = ['Redistributable',
-                    'GPLv4',
-                    'LGPLv2+ and (LGPLv2',
-                    'GNU GPL']
-        for license in licenses:
-            d.meta['license'] = license
-            d._find_bad_meta()
-            assert not d._isvalid('license')
+        d.meta['license'] = license
+        d._find_bad_meta()
+        assert not d._isvalid('license')
 
-    def test_valid_authors(self):
+    @pytest.mark.parametrize('authors', combinations([u'Miro Hrončok <miro@hroncok.cz>',
+                                                      u'Miro Hrončok <miro_at_hroncok.cz>',
+                                                      u'Miro Hrončok',
+                                                      u'Dr. Voštěp',
+                                                      u'Никола I Петровић-Његош']))
+    def test_valid_authors(self, authors):
         '''Test if valid authors are valid'''
         d = Dap('', fake=True)
-        pool = [u'Miro Hrončok <miro@hroncok.cz>',
-                u'Miro Hrončok <miro_at_hroncok.cz>',
-                u'Miro Hrončok',
-                u'Dr. Voštěp',
-                u'Никола I Петровић-Његош']
-        for r in range(1, len(pool) + 1):
-            for authors in itertools.combinations(pool, r):
-                d.meta['authors'] = list(authors)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('authors')
-                assert ok
-                assert not bads
-
-    def test_invalid_authors(self):
-        '''Test if invalid authors are invalid'''
-        d = Dap('', fake=True)
-        pool = [u'Miro Hrončok ',
-                ' ',
-                u' Miro Hrončok',
-                u'Miro Hrončok miro@hroncok.cz',
-                u'Miro Hrončok <miro@hr@oncok.cz>',
-                '']
-        for r in range(1, len(pool) + 1):
-            for authors in itertools.combinations(pool, r):
-                d.meta['authors'] = list(authors)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('authors')
-                assert not ok
-                assert bads == list(authors)
-        d.meta['authors'] = ['OK2 <ok@ok.ok>'] + pool + ['OK <ok@ok.ok>']
+        d.meta['authors'] = list(authors)
         d._find_bad_meta()
         ok, bads = d._arevalid('authors')
-        assert bads == pool
+        assert ok
+        assert not bads
+
+    @pytest.mark.parametrize('authors', combinations([u'Miro Hrončok ',
+                                                      ' ',
+                                                      u' Miro Hrončok',
+                                                      u'Miro Hrončok miro@hroncok.cz',
+                                                      u'Miro Hrončok <miro@hr@oncok.cz>',
+                                                      '']))
+    def test_invalid_authors(self, authors):
+        '''Test if invalid authors are invalid'''
+        d = Dap('', fake=True)
+        d.meta['authors'] = list(authors)
+        d._find_bad_meta()
+        ok, bads = d._arevalid('authors')
+        assert not ok
+        assert bads == list(authors)
+
+    def test_invalid_authors_bads(self):
+        '''Test if on invalid authors are reported as invalid'''
+        d = Dap('', fake=True)
+        d.meta['authors'] = ['OK2 <ok@ok.ok>', ' ', '  ', 'OK <ok@ok.ok>']
+        d._find_bad_meta()
+        ok, bads = d._arevalid('authors')
+        assert sorted(bads) == [' ', '  ']
 
     def test_duplicate_authors(self):
         '''Test if duplicate valid authors are invalid'''
@@ -250,52 +261,52 @@ class TestDap(object):
         ok, null = d._arevalid('authors')
         assert not ok
 
-    def test_valid_dependencies(self):
+    @pytest.mark.parametrize('deps', combinations(['foo',
+                                                   'foo == 1.0.0',
+                                                   'foo >= 1.0.0',
+                                                   'foo <= 1.0.0',
+                                                   'foo > 1.0.0',
+                                                   'foo  < 1.0.0',
+                                                   'foo <1.0.0',
+                                                   'foo<1.0.0',
+                                                   'foo< 1.0.0',
+                                                   'foo      <    1.0.0',
+                                                   'foo                   <1.0.0',
+                                                   'foo < 1.0.0b']))
+    def test_valid_dependencies(self, deps):
         '''Test if valid dependencies are valid'''
         d = Dap('', fake=True)
-        pool = ['foo',
-                'foo == 1.0.0',
-                'foo >= 1.0.0',
-                'foo <= 1.0.0',
-                'foo > 1.0.0',
-                'foo  < 1.0.0',
-                'foo <1.0.0',
-                'foo<1.0.0',
-                'foo< 1.0.0',
-                'foo      <    1.0.0',
-                'foo                   <1.0.0',
-                'foo < 1.0.0b']
-        for r in range(1, len(pool) + 1):
-            for dependencies in itertools.combinations(pool, r):
-                d.meta['dependencies'] = list(dependencies)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('dependencies')
-                assert ok
-                assert not bads
-
-    def test_invalid_dependencies(self):
-        '''Test if invalid dependencies are invalid'''
-        d = Dap('', fake=True)
-        pool = ['foo != 1.0.0',
-                'foo = 1.0.0',
-                'foo =< 1.0.0',
-                'foo >> 1.0.0',
-                'foo > = 1.0.0',
-                '1.0.0',
-                'foo-1.0.0',
-                ' ',
-                '']
-        for r in range(1, len(pool) + 1):
-            for dependencies in itertools.combinations(pool, r):
-                d.meta['dependencies'] = list(dependencies)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('dependencies')
-                assert not ok
-                assert bads == list(dependencies)
-        d.meta['dependencies'] = ['foo'] + pool + ['bar']
+        d.meta['dependencies'] = list(deps)
         d._find_bad_meta()
         ok, bads = d._arevalid('dependencies')
-        assert bads == pool
+        assert ok
+        assert not bads
+
+    @pytest.mark.parametrize('deps', combinations(['foo != 1.0.0',
+                                                   'foo = 1.0.0',
+                                                   'foo =< 1.0.0',
+                                                   'foo >> 1.0.0',
+                                                   'foo > = 1.0.0',
+                                                   '1.0.0',
+                                                   'foo-1.0.0',
+                                                   ' ',
+                                                   '']))
+    def test_invalid_dependencies(self, deps):
+        '''Test if invalid dependencies are invalid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = list(deps)
+        d._find_bad_meta()
+        ok, bads = d._arevalid('dependencies')
+        assert not ok
+        assert bads == list(deps)
+
+    def test_invalid_dependencies_bads(self):
+        '''Test if only invalid dependencies are reported invalid'''
+        d = Dap('', fake=True)
+        d.meta['dependencies'] = ['foo', '1.0.0', 'foo != 1.0.0', 'bar']
+        d._find_bad_meta()
+        ok, bads = d._arevalid('dependencies')
+        assert sorted(bads) == sorted(['1.0.0', 'foo != 1.0.0'])
 
     def test_duplicate_dependencies(self):
         '''Test if duplicate valid dependencies are invalid'''
@@ -331,49 +342,37 @@ class TestDap(object):
         ok, null = d._arevalid('dependencies')
         assert ok
 
-    def test_valid_supported_platforms(self):
+    @pytest.mark.parametrize('platforms', combinations(['suse', 'debian', 'fedora', 'redhat',
+                                                        'centos', 'mandrake', 'mandriva',
+                                                        'rocks', 'slackware', 'yellowdog',
+                                                        'gentoo', 'unitedlinux', 'turbolinux',
+                                                        'arch', 'mageia', 'ubuntu', 'darwin']))
+    def test_valid_supported_platforms(self, platforms):
         '''Test if valid supported_platforms are valid'''
         d = Dap('', fake=True)
-        pool = ['suse',
-                'debian',
-                'fedora',
-                'redhat',
-                'centos',
-                'mandrake',
-                'mandriva',
-                'rocks',
-                'slackware',
-                'yellowdog',
-                'gentoo',
-                'unitedlinux',
-                'turbolinux',
-                'arch',
-                'mageia',
-                'ubuntu',
-                'darwin']
-        for r in range(1, len(pool) + 1):
-            for dependencies in itertools.combinations(pool, r):
-                d.meta['supported_platforms'] = list(dependencies)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('supported_platforms')
-                assert ok
-                assert not bads
-
-    def test_invalid_supported_platforms(self):
-        '''Test if invalid supported_platforms are invalid'''
-        d = Dap('', fake=True)
-        pool = ['linux', 'windows', '5', 'Mac OS X']
-        for r in range(1, len(pool) + 1):
-            for dependencies in itertools.combinations(pool, r):
-                d.meta['supported_platforms'] = list(dependencies)
-                d._find_bad_meta()
-                ok, bads = d._arevalid('supported_platforms')
-                assert not ok
-                assert bads == list(dependencies)
-        d.meta['supported_platforms'] = ['fedora'] + pool + ['darwin']
+        d.meta['supported_platforms'] = list(platforms)
         d._find_bad_meta()
         ok, bads = d._arevalid('supported_platforms')
-        assert bads == pool
+        assert ok
+        assert not bads
+
+    @pytest.mark.parametrize('platforms', combinations(['linux', 'windows', '5', 'Mac OS X']))
+    def test_invalid_supported_platforms(self, platforms):
+        '''Test if invalid supported_platforms are invalid'''
+        d = Dap('', fake=True)
+        d.meta['supported_platforms'] = list(platforms)
+        d._find_bad_meta()
+        ok, bads = d._arevalid('supported_platforms')
+        assert not ok
+        assert sorted(bads) == sorted(platforms)
+
+    def test_invalid_supported_platforms_bads(self):
+        '''Test if only invalid supported_platforms are reported as invalid'''
+        d = Dap('', fake=True)
+        d.meta['supported_platforms'] = ['fedora', 'bad', 'wrong', 'darwin']
+        d._find_bad_meta()
+        ok, bads = d._arevalid('supported_platforms')
+        assert sorted(bads) == ['bad', 'wrong']
 
     def test_duplicate_supported_platforms(self):
         '''Test if duplicate valid supported_platforms are invalid'''
@@ -534,11 +533,11 @@ class TestDap(object):
         assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
         assert 'Depends on dap with the same name as itself' in out.getvalue()
 
-    def test_sha256sum(self):
+    @pytest.mark.parametrize('dap', glob.glob(dap_path('meta_only/*.dap')))
+    def test_sha256sum(self, dap):
         '''Check that sha256sum of the files is the same as sha256sum command does'''
-        for dap in glob.glob(dap_path('meta_only/*.dap')):
-            process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
-            assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode(utils.defenc)
+        process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
+        assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode(utils.defenc)
 
     def test_assistants_and_snippets_property(self):
         '''Check that the assistants_and_snippets property contains the right results.
