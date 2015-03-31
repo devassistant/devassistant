@@ -1,3 +1,21 @@
+- DAPs can be uploaded to DAPI from command-line
+- DAP lint catches more errors
+- DA can use a DAPI mirror if the primary goes offline
+- Assistant files can be stored in multiple paths
+- Pretty package info listing
+- Documentation fixes
+- Numerous other fixes
+- Refactoring
+
+0.10.3
+- Listing assistants from DAPI and in a local DAP file
+
+0.10.2
+- Small bugfix release
+- Installation documentation
+- Added option to install DAP without dependencies
+- Assistants and snippets in a DAP can be listed
+
 0.10.1
 - Small bugfix release
 - Docker hard dependency dropped because of non-x86_64 architectures
@@ -20,6 +38,19 @@
 - Option to specify what architectures an Assistant should be run on.
 - Documentation overhaul.
 - Tons of minor features added and bugs fixed.
+
+0.9.3
+- Bugfixes backported from 0.10
+- Custom Polkit dialog when asking for elevated privileges
+- Icons for Assistants may be PNG or SVG, and are automatically resized
+
+0.9.2
+- Bugfix release
+- Colorized logs
+- Eclipse snippet, ask_input fixed
+- GUI for asking Git user name and password reworked
+- Enforcing names of root assistant sections
+- High contrast icon set added
 
 0.9.1
 - Mainly bugfixes
