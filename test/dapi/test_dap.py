@@ -536,7 +536,11 @@ class TestDap(object):
     @pytest.mark.parametrize('dap', glob.glob(dap_path('meta_only/*.dap')))
     def test_sha256sum(self, dap):
         '''Check that sha256sum of the files is the same as sha256sum command does'''
-        process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
+        try:
+            process = subprocess.Popen(['sha256sum', dap], stdout=subprocess.PIPE)
+        except OSError:
+            # This is the command for sha256sum on Mac
+            process = subprocess.Popen(['shasum', '-a', '256', dap], stdout=subprocess.PIPE)
         assert Dap(dap).sha256sum == process.communicate()[0].split()[0].decode(utils.defenc)
 
     def test_assistants_and_snippets_property(self):

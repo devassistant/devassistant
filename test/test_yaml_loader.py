@@ -21,7 +21,8 @@ class TestYamlLoader(object):
     @pytest.mark.parametrize('which_bad, err', [
         ('bad_syntax1', 'Yaml error in {p} \(line 0, column 3\): mapping values are ' + \
                         'not allowed (in this context|here)'),
-        ('bad_syntax3', 'Yaml error in {p} \(line 2, column 0\): did not find expected key'),
+        ('bad_syntax3', 'Yaml error in {p} \(line 2, column 0\): (did not find expected ' + \
+                        'key|expected <block end>, but found \'-\')'),
     ])
     def test_load_yaml_by_path_logs_and_returns_None_on_bad_syntax(self, which_bad, err):
         path = getattr(self, which_bad)

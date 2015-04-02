@@ -1,4 +1,5 @@
 import os
+import platform
 import shutil
 import time
 
@@ -69,6 +70,8 @@ correct_cache = \
 class TestCache(object):
     cf = settings.CACHE_FILE
     remove_files = set()
+    # Mac tracks ctime in seconds only. See #353 for explanation
+    wait = 1 if platform.system() == 'Darwin' else 0.1
 
     def setup_method(self, method):
         if os.path.exists(self.cf):
@@ -127,7 +130,7 @@ class TestCache(object):
 
     def test_cache_refreshes_if_assistant_touched(self):
         self.create_or_refresh_cache()
-        time.sleep(0.1)
+        time.sleep(self.wait)
 
         p = 'assistants/crt/c.yaml'
         self.touch_file(p)
@@ -136,7 +139,7 @@ class TestCache(object):
 
     def test_cache_refreshes_if_snippet_touched(self):
         self.create_or_refresh_cache()
-        time.sleep(0.1)
+        time.sleep(self.wait)
 
         self.cch.snip_ctimes = {}
         p = 'snippets/snippet1.yaml'
@@ -147,7 +150,7 @@ class TestCache(object):
     def test_cache_doesnt_refresh_if_not_needed(self):
         self.create_or_refresh_cache()
         created = os.path.getctime(self.cch.cache_file)
-        time.sleep(0.1)
+        time.sleep(self.wait)
         self.create_or_refresh_cache()
         assert created == os.path.getctime(self.cch.cache_file)
 
@@ -166,7 +169,7 @@ class TestCache(object):
         assert addme['attrs']['args']['some_arg']['flags'] == ['-x']
 
         # change assistant fullname
-        time.sleep(0.1)
+        time.sleep(self.wait)
         self.addme_copy('addme_change_fullname.yaml', 'assistants/crt/addme.yaml')
         self.create_or_refresh_cache()
         assert addme['attrs']['fullname'] == 'Fullname changed!'
@@ -174,7 +177,7 @@ class TestCache(object):
         # change current snippet (will change argument flag)
         # snippets are cached during one startup => reset snippet cache manually
         # TODO: fix this ^^
-        time.sleep(0.1)
+        time.sleep(self.wait)
         self.addme_copy('addme_snippet_changed.yaml', 'snippets/addme_snippet.yaml')
         from devassistant import yaml_snippet_loader; yaml_snippet_loader.YamlSnippetLoader._snippets = {}
         self.cch.snip_ctimes = {}
@@ -183,13 +186,13 @@ class TestCache(object):
         assert addme['attrs']['args']['some_arg']['flags'] == ['-z']
 
         # switch assistant to another snippet
-        time.sleep(0.1)
+        time.sleep(self.wait)
         self.addme_copy('addme_change_snippet.yaml', 'assistants/crt/addme.yaml')
         self.create_or_refresh_cache()
         assert addme['attrs']['args']['some_arg']['flags'] == ['-s', '--some-arg']
 
         # finally, remove assistant completely
-        time.sleep(0.1)
+        time.sleep(self.wait)
         os.unlink(self.datafile_path('assistants/crt/addme.yaml'))
         self.create_or_refresh_cache()
         assert 'addme' not in self.cch.cache['crt']
@@ -197,14 +200,14 @@ class TestCache(object):
     def test_cache_deletes_if_different_version(self):
         self.create_fake_cache({'version': '0.0.0'})
         prev_time = os.path.getctime(self.cch.cache_file)
-        time.sleep(0.1)
+        time.sleep(self.wait)
         Cache()
         assert prev_time < os.path.getctime(self.cch.cache_file)
 
     def test_cache_stays_if_same_version(self):
         self.create_fake_cache({'version': devassistant.__version__})
         prev_time = os.path.getctime(self.cch.cache_file)
-        time.sleep(0.1)
+        time.sleep(self.wait)
         Cache()
         assert prev_time == os.path.getctime(self.cch.cache_file)
 
