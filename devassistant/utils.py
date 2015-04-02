@@ -21,12 +21,13 @@ except ImportError:
     importlib.machinery = None
 
     def import_module(name):
-        # attempt to fix #326 - explicitly provide list of directories from which
-        #  to import, including entries from devassistant.__path__
-        dapath = [os.path.split(p)[0] for p in devassistant.__path__]
-        fp, pathname, description = importlib.find_module(name.replace('.', '/'),
-            dapath + sys.path)
-        return importlib.load_module(name, fp, pathname, description)
+        # attempt to fix #326 - load modules dot by dot
+        path = sys.path
+        for part in name.split('.'):
+            fp, pathname, description = importlib.find_module(part, path)
+            module = importlib.load_module(name, fp, pathname, description)
+            path = module.__path__
+        return module
     importlib.import_module = import_module
     del import_module
 
