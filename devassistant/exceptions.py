@@ -101,7 +101,6 @@ class DapiCommError(DapiError):
 
 class DapiLocalError(DapiError):
     """
-    Exception indicating something went wrong when communicating or processing
-    requests from DAPI
+    Exception indicating something went wrong when manipulating local DAPs
     """
     pass
