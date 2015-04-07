@@ -187,6 +187,10 @@ def unexpanduser(path):
 
 def strip_prefix(string, prefix):
     """Strip the prefix from the string"""
+    if not isinstance(string, six.string_types) or not isinstance(prefix, six.string_types):
+        msg = 'Arguments to strip_prefix must be string types. Are: {s}, {p}'\
+              .format(s=type(string), p=type(prefix))
+        raise TypeError(msg)
     if string.startswith(prefix):
         return string[len(prefix):]
     else:
@@ -194,6 +198,10 @@ def strip_prefix(string, prefix):
 
 def strip_suffix(string, suffix):
     """Strip the suffix from the string"""
+    if not isinstance(string, six.string_types) or not isinstance(suffix, six.string_types):
+        msg = 'Arguments to strip_suffix must be string types. Are: {s}, {p}'\
+              .format(s=type(string), p=type(suffix))
+        raise TypeError(msg)
     if string.endswith(suffix):
         return string[:-len(suffix)]
     else:
