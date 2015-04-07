@@ -184,3 +184,17 @@ def bold(message):
 def unexpanduser(path):
     """Replaces expanded ~ back with ~"""
     return path.replace(os.path.expanduser('~'), '~')
+
+def strip_prefix(string, prefix):
+    """Strip the prefix from the string"""
+    if string.startswith(prefix):
+        return string[len(prefix):]
+    else:
+        return string
+
+def strip_suffix(string, suffix):
+    """Strip the suffix from the string"""
+    if string.endswith(suffix):
+        return string[:-len(suffix)]
+    else:
+        return string

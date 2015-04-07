@@ -14,6 +14,7 @@ except:
 from . import licenses, platforms
 from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
 from devassistant.logger import logger
+from devassistant.utils import strip_prefix, strip_suffix
 
 
 class DapProblem(object):
@@ -107,7 +108,7 @@ class DapFormatter(object):
         if files:
             result.append('The following {kind} are contained in this DAP:'.format(kind=kind.title()))
             for f in files:
-                result.append('* ' + f.lstrip(kind).replace(os.path.sep, ' ').strip())
+                result.append('* ' + strip_prefix(f, kind).replace(os.path.sep, ' ').strip())
             return '\n'.join(result)
         else:
             return 'No {kind} are contained in this DAP'.format(kind=kind.title())
@@ -119,7 +120,7 @@ class DapFormatter(object):
 
         # Assistant help
         if assistants:
-            assistant = random.choice(assistants).lstrip('assistants').replace(os.path.sep, ' ').strip()
+            assistant = strip_prefix(random.choice(assistants), 'assistants').replace(os.path.sep, ' ').strip()
             if len(assistants) == 1:
                 string = 'After you install this DAP, you can find help about the Assistant\nby running "da {a} -h" .'
             else:
@@ -393,22 +394,22 @@ class DapChecker(object):
             if dap._is_dir(f):
                 prefix = os.path.join(dirname, 'files', '')
                 if f.startswith(prefix):
-                    remainder = f.lstrip(prefix) # crt/foo/bar/baz
+                    remainder = strip_prefix(f, prefix) # crt/foo/bar/baz
                     name = os.path.join(*remainder.split(os.path.sep)[:2]) # crt/foo
                     folders.add(name)
             else:
                 # Assistants
                 prefix = os.path.join(dirname, 'assistants', '')
-                remainder = f.lstrip(prefix)
+                remainder = strip_prefix(f, prefix)
                 for kind in assistant_dirs:
                     if remainder.startswith(kind + os.path.sep):
-                        name = remainder.rstrip('.yaml')
+                        name = strip_suffix(remainder, '.yaml')
                         assistants.add(name)
 
                 # Snippets
                 prefix = os.path.join(dirname, 'snippets', '')
                 if f.startswith(prefix):
-                    name = f.lstrip(dirname + os.path.sep).rstrip('.yaml')
+                    name = strip_suffix(strip_prefix(f, dirname + os.path.sep), '.yaml')
                     assistants.add(name)
 
         return list(folders - assistant_dirs - set(('snippets',)) - assistants)
@@ -489,12 +490,12 @@ class Dap(object):
     @property
     def assistants(self):
         '''Get all assistants in this DAP'''
-        return [f.rstrip('.yaml') for f in self._stripped_files if self._assistants_pattern.match(f)]
+        return [strip_suffix(f, '.yaml') for f in self._stripped_files if self._assistants_pattern.match(f)]
 
     @property
     def snippets(self):
         '''Get all snippets in this DAP'''
-        return [f.rstrip('.yaml') for f in self._stripped_files if self._snippets_pattern.match(f)]
+        return [strip_suffix(f, '.yaml') for f in self._stripped_files if self._snippets_pattern.match(f)]
 
     @property
     def assistants_and_snippets(self):
@@ -505,7 +506,7 @@ class Dap(object):
         '''Get all icons in this DAP, optionally strip extensions'''
         result =  [f for f in self._stripped_files if self._icons_pattern.match(f)]
         if strip_ext:
-            result = [f.rstrip('.' + self._icons_ext) for f in result]
+            result = [strip_suffix(f, '.' + self._icons_ext) for f in result]
 
         return result
 
