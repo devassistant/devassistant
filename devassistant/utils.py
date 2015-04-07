@@ -167,7 +167,7 @@ defenc = 'utf-8' if defenc == 'ascii' else defenc
 
 
 def exc_as_decoded_string(e):
-    """Generate decoded string from an exception 
+    """Generate decoded string from an exception
     For now on, this just calls six.text_type(e) (meaning str(e) or unicode(e))
 
     In the future, this should be more sophisticated and return

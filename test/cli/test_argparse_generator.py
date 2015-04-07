@@ -13,7 +13,7 @@ class TestArgparseGenerator(object):
         self.chain = (MainA(), [self.ruby_chain, self.python_chain])
 
         self.ag = argparse_generator.ArgparseGenerator
-    
+
     def test_generate_argument_parser_one_level(self):
         parser = self.ag.generate_argument_parser(self.crazy_chain)
         assert parser.parse_args([])

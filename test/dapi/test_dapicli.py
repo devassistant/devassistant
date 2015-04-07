@@ -186,8 +186,8 @@ class TestUninstall(object):
         flexmock(os).should_receive('remove').and_return(None)
 
         assert dapicli.uninstall_dap('foo', True) == ['foo']
-        
+
         monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'n')  # Putting 'n' on fake stdin
-        
+
         with pytest.raises(DapiLocalError):
             dapicli.uninstall_dap('foo', True)

@@ -350,9 +350,9 @@ class PathWindow(object):
             self.args[arg.name]['entry'] = entry
             self.grid.attach(new_box, 1, row, 1, 1)
         else:
-            if 'preserved' in arg.kwargs and config_manager.get_config_value(arg.kwargs['preserved']): 
+            if 'preserved' in arg.kwargs and config_manager.get_config_value(arg.kwargs['preserved']):
                 if 'checkbox' in self.args[arg.name]:
-                    self.args[arg.name]['checkbox'].set_active(True)       
+                    self.args[arg.name]['checkbox'].set_active(True)
         return row
 
     def browse_clicked(self, widget, data=None):

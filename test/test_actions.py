@@ -126,7 +126,7 @@ class TestPkgUpdateAction(object):
         '''Run update of package that is not on Dapi'''
         flexmock(dapicli).should_receive('metadap')\
                          .and_return(None).at_least().once()
-        
+
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
@@ -138,7 +138,7 @@ class TestPkgUpdateAction(object):
                          .and_return(({}, {'version': '0.0.1'})).at_least().once()
         flexmock(dapicli).should_receive('get_installed_version_of')\
                          .and_return(None).at_least().once()
-        
+
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
 
