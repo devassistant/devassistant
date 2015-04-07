@@ -9,6 +9,7 @@ from flexmock import flexmock
 
 from devassistant import dapi
 from devassistant.dapi import dapicli
+from devassistant.exceptions import DapiLocalError
 
 
 class TestDapicli(object):
@@ -188,5 +189,5 @@ class TestUninstall(object):
         
         monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'n')  # Putting 'n' on fake stdin
         
-        with pytest.raises(Exception):
+        with pytest.raises(DapiLocalError):
             dapicli.uninstall_dap('foo', True)

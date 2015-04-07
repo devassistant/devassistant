@@ -71,8 +71,9 @@ class TestDocAction(object):
 
 class TestPkgSearchAction(object):
 
-    def test_raising_exceptions(self):
-        flexmock(dapicli).should_receive('print_search').and_raise(Exception)
+    @pytest.mark.parametrize('exc', [exceptions.DapiCommError, exceptions.DapiLocalError])
+    def test_raising_exceptions(self, exc):
+        flexmock(dapicli).should_receive('print_search').and_raise(exc)
 
         with pytest.raises(exceptions.ExecutionException):
             actions.PkgSearchAction.run(query='foo', page='bar')
@@ -100,7 +101,7 @@ class TestPkgInstallAction(object):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
                          .and_return(True).at_least().once()
         flexmock(dapicli).should_receive('install_dap_from_path')\
-                         .and_raise(Exception(self.exc_string)).at_least().once()
+                         .and_raise(exceptions.DapiLocalError(self.exc_string)).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             actions.PkgInstallAction.run(package=[self.pkg], force=False,

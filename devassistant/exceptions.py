@@ -85,3 +85,23 @@ class DapInvalid(DapError):
     Exception that indicates invalid dap
     """
     pass
+
+class DapiError(ExecutionException):
+    """
+    Mother of all DAPI-related errors
+    """
+    pass
+
+class DapiCommError(DapiError):
+    """
+    Exception indicating something went wrong when communicating or processing
+    requests from DAPI
+    """
+    pass
+
+class DapiLocalError(DapiError):
+    """
+    Exception indicating something went wrong when communicating or processing
+    requests from DAPI
+    """
+    pass

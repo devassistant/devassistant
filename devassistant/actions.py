@@ -290,7 +290,7 @@ class PkgInstallAction(Action):
                 pkgs = method(pkg, force=kwargs['force'],
                               nodeps=kwargs['nodeps'], reinstall=kwargs['reinstall'])
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
-            except Exception as e:
+            except exceptions.DapiError as e:
                 exs.append(utils.exc_as_decoded_string(e))
                 logger.error(utils.exc_as_decoded_string(e))
         if exs:
@@ -324,7 +324,7 @@ class PkgUninstallAction(Action):
                 if done:
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
-            except Exception as e:
+            except exceptions.DapiError as e:
                 exs.append(utils.exc_as_decoded_string(e))
                 logger.error(utils.exc_as_decoded_string(e))
         if exs:
@@ -373,7 +373,7 @@ class PkgUpdateAction(Action):
                     logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
                 else:
                     logger.info('DAP {pkg} is already up to date.'.format(pkg=pkg))
-            except Exception as e:
+            except exceptions.DapiError as e:
                 exs.append(utils.exc_as_decoded_string(e))
                 logger.error(utils.exc_as_decoded_string(e))
         if exs:
@@ -419,7 +419,7 @@ class PkgSearchAction(Action):
     def run(cls, **kwargs):
         try:
             dapicli.print_search(' '.join(kwargs['query']))
-        except Exception as e:
+        except exceptions.DapiError as e:
             logger.error(utils.exc_as_decoded_string(e))
             raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
 
@@ -448,7 +448,7 @@ class PkgInfoAction(Action):
         else:
             try:
                 dapicli.print_dap_from_dapi(kwargs['package'], full=kwargs.get('full', False))
-            except Exception as e:
+            except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
 
