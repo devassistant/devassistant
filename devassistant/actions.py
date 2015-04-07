@@ -430,6 +430,8 @@ class PkgInfoAction(Action):
     description = 'Prints information about packages from DAPI.'
     args = [argument.Argument('package', 'package', help='Package to print info for'),
             argument.Argument('full', '--full', help='More information (useful for developers)',
+                              required=False, action='store_true'),
+            argument.Argument('installed', '--installed', help='Query installed package',
                               required=False, action='store_true')]
 
     @classmethod
@@ -445,6 +447,12 @@ class PkgInfoAction(Action):
             finally:
                 logger.setLevel(old_level)
             dapicli.print_local_dap(d, full=kwargs.get('full', False))
+        elif kwargs.get('installed'):
+            try:
+                dapicli.print_installed_dap(kwargs['package'], full=kwargs.get('full', False))
+            except exceptions.DapiError as e:
+                logger.error(utils.exc_as_decoded_string(e))
+                raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
         else:
             try:
                 dapicli.print_dap_from_dapi(kwargs['package'], full=kwargs.get('full', False))

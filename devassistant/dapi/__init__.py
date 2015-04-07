@@ -70,7 +70,7 @@ class DapFormatter(object):
             return ''
 
     @classmethod
-    def format_meta(cls, meta, labels, offset):
+    def format_meta(cls, meta, labels, offset, **kwargs):
         '''Return all information from a given meta dictionary in human readable form'''
         result = ''
 
@@ -78,6 +78,8 @@ class DapFormatter(object):
         name = meta['package_name']
         if 'version' in meta:
             name += '-' + meta['version']
+        if 'custom_location' in kwargs:
+            name += ' ({loc})'.format(loc=kwargs['custom_location'])
 
         result += name
         result += '\n' + len(name)*'=' + '\n'

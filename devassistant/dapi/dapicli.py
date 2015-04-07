@@ -232,13 +232,13 @@ def print_dap_from_dapi(name, version='', full=False):
         print()
 
 
-def print_local_dap(dap, full=False):
+def print_local_dap(dap, full=False, **kwargs):
     '''Print information about the given local DAP in a human readable form to stdout.'''
     # Determining label width
     label_width = dapi.DapFormatter.calculate_offset(BASIC_LABELS)
 
     # Metadata
-    print(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS, offset=label_width))
+    print(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS, offset=label_width, **kwargs))
 
     # Assistants
     print()
@@ -255,6 +255,39 @@ def print_local_dap(dap, full=False):
         print(dapi.DapFormatter.format_platforms(dap.meta['supported_platforms']))
 
     print()
+
+
+def print_installed_dap(name, full=False):
+    '''Prints information about an installed DAP in a human readable form to stdout'''
+    dap_data = get_installed_daps_detailed().get(name)
+    if not dap_data:
+        raise DapiLocalError('DAP "{dap}" is not installed, can not query for info.'.format(dap=name))
+
+    locations = [os.path.join(data['location'], '') for data in dap_data]
+    for location in locations:
+        dap = dapi.Dap(None, fake=True, mimic_filename=name)
+        meta_path = os.path.join(location, 'meta', name + '.yaml')
+        with open(meta_path, 'r') as fh:
+            dap.meta = dap._load_meta(fh)
+        dap.files = _get_assistants_snippets(location, name)
+        dap._find_bad_meta()
+
+        print_local_dap(dap, full=full, custom_location=os.path.dirname(location))
+
+
+def _get_assistants_snippets(path, name):
+    '''Get Assistants and Snippets for a given DAP name on a given path'''
+    result = []
+    subdirs = {'assistants': 2, 'snippets': 1} # Values used for stripping leading path tokens
+
+    for loc in subdirs:
+        for root, dirs, files in os.walk(os.path.join(path, loc)):
+            for filename in [utils.strip_prefix(os.path.join(root, f), path) for f in files]:
+                stripped = os.path.sep.join(filename.split(os.path.sep)[subdirs[loc]:])
+                if stripped.startswith(os.path.join(name, '')) or stripped == name + '.yaml':
+                    result.append(os.path.join('fakeroot', filename))
+
+    return result
 
 
 def print_search(query):
