@@ -14,6 +14,7 @@ from devassistant.exceptions import DapiCommError, DapiLocalError
 from devassistant.logger import logger
 from devassistant import utils
 from six.moves import urllib
+from six.moves.urllib.parse import urlencode
 import logging
 import hashlib
 try:
@@ -140,9 +141,16 @@ def dap(name, version=''):
     return data('daps/' + name + '/')
 
 
-def search(query):
+def search(q, **kwargs):
     '''Returns a dictionary with the search results'''
-    return _unpaginated('search/?q=' + query)
+    data = {'q': q}
+    for key, value in kwargs.items():
+        if value:
+            if type(value) == bool:
+                data[key] = 'on'
+            else:
+                data[key] = value
+    return _unpaginated('search/?' + urlencode(data))
 
 
 def _print_dap_with_description(mdap):
@@ -290,9 +298,9 @@ def _get_assistants_snippets(path, name):
     return result
 
 
-def print_search(query):
+def print_search(q, **kwargs):
     '''Prints the results of a search'''
-    m = search(query)
+    m = search(q, **kwargs)
     count = m['count']
     if not count:
         raise DapiCommError('Could not find any DAP packages for your query.')

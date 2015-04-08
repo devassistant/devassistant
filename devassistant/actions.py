@@ -413,12 +413,38 @@ class PkgSearchAction(Action):
     description = 'Searches packages on DAPI for given term(s) and prints the result.'
     args = [
         argument.Argument('query', 'query', nargs='+', help='One or multiple search queries'),
+        argument.Argument('noassistants', '-a', '--noassistants',
+                          help='Include DAPs without Assistants',
+                          default=False, action='store_true'),
+        argument.Argument('unstable', '-u', '--unstable',
+                          help='Include DAPs without stable release',
+                          default=False, action='store_true'),
+        argument.Argument('deactivated', '-d', '--deactivated', help='Include deactivated DAPs',
+                          default=False, action='store_true'),
+        argument.Argument('minrank', '-r', '--minrank',
+                          help='Search only for DAPs with given or greater rank', default=0),
+        argument.Argument('mincount', '-c', '--mincount',
+                          help='Search only for DAPs that have been ranked at least given time',
+                          default=0),
+        argument.Argument('allplatforms', '-p', '--all-platforms',
+                          help='Include DAPs unsupported on this platform',
+                          default=False, action='store_true'),
     ]
 
     @classmethod
     def run(cls, **kwargs):
+        newargs = {}
+        newargs['q'] = ' '.join(kwargs['query'])
+        newargs['noassistants'] = kwargs['noassistants']
+        newargs['unstable'] = kwargs['unstable']
+        newargs['notactive'] = kwargs['deactivated']
+        newargs['minimal_rank'] = kwargs['minrank']
+        newargs['minimal_rank_count'] = kwargs['mincount']
+        if not kwargs['allplatforms']:
+            newargs['platform'] = utils.get_distro_name()
+
         try:
-            dapicli.print_search(' '.join(kwargs['query']))
+            dapicli.print_search(**newargs)
         except exceptions.DapiError as e:
             logger.error(utils.exc_as_decoded_string(e))
             raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))

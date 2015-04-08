@@ -76,7 +76,9 @@ class TestPkgSearchAction(object):
         flexmock(dapicli).should_receive('print_search').and_raise(exc)
 
         with pytest.raises(exceptions.ExecutionException):
-            actions.PkgSearchAction.run(query='foo', page='bar')
+            actions.PkgSearchAction.run(query='foo', noassistants=False, unstable=False,
+                                        deactivated=False, minrank=0, mincount=0,
+                                        allplatforms=False)
 
 class TestPkgInstallAction(object):
 
