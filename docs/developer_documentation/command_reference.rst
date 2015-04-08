@@ -363,7 +363,10 @@ see below.
 - LRES: ``True`` if the Github operation succeeds, ``False`` otherwise
 - Example::
 
-   - github: create_repo
+   - github:
+     - create_repo
+     - login: $ghlogin
+       reponame: $reponame
 
    - github:
      - create_and_push
@@ -372,16 +375,18 @@ see below.
 
    - github: push
 
-   - github: create_fork
+   - github:
+     - create_fork
+     - repo_ulr: $repo_url
+       login: $reponame
 
-Explanation of individual subcommands follows. Each subcommand takes defined arguments,
-whose default values are taken from global context. E.g. ``create_and_push`` takes an argument
-``login``. If it is not specified, assistant variable ``github`` is used.
+Explanation of individual subcommands follows. Each subcommand takes defined arguments.
+E.g. ``create_and_push`` takes an argument ``login``.
 
 ``create_repo``
-  Creates a repo with given ``reponame`` (defaults to var ``name``) for a user with
-  given login (defaults to var ``github``). Optionally accepts ``private`` argument
-  to create repo as private (defaults to var ``github_private``).
+  Creates a repo with given ``reponame`` for a user with given login.
+  If no or empty login is specified, local username is used.
+  Optionally accepts ``private`` argument to create repo as private.
 
 ``create_and_push``
   Same as ``create_repo``, but it also adds a proper git remote to repository in current
@@ -391,8 +396,7 @@ whose default values are taken from global context. E.g. ``create_and_push`` tak
   Just does ``git push -u origin master``, no arguments needed.
 
 ``create_fork``
-  Creates a fork of repo at given ``repo_url`` (defaults ot var ``url``) under user specified
-  by ``login`` (defaults to var ``github``).
+  Creates a fork of repo at given ``repo_url`` under user specified by ``login``.
 
 Jinja2 Render Command
 ---------------------

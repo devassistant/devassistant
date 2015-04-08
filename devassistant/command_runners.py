@@ -503,66 +503,37 @@ class GitHubCommandRunner(CommandRunner):
         kwargs = {'ui': c.kwargs['__ui__']}
         req_kwargs = cls._required_yaml_args.get(comm, cls._required_yaml_args['default'])
         for k in req_kwargs:
-            kwargs[k] = getattr(cls, '_guess_' + k)(args_rest.get(k), c.kwargs)
+            kwargs[k] = getattr(cls, '_get_' + k)(args_rest.get(k))
 
         return comm, kwargs
 
     @classmethod
-    def _guess_login(cls, explicit, ctxt):
-        """Get github login, either from explicitly given string or 'github' global variable
-        or from local username.
-
-        Args:
-            ctxt: global context
-
-        Returns:
-            guessed github login
-        """
-        return explicit or ctxt.get('github', None) or getpass.getuser()
+    def _get_login(cls, login):
+        """Get github login, either from explicitly given string or from local username."""
+        return login or getpass.getuser()
 
     @classmethod
-    def _guess_reponame(cls, explicit, ctxt):
-        """Extract reponame, either from explicitly given string or from 'name' global variable,
-        which is possibly a path.
-
-        Args:
-            ctxt: global context
-
-        Returns:
-            guessed reponame
-        """
-        name = explicit
-        if not name:
-            name = os.path.basename(ctxt.get('name', ''))
-        if not name:
-            raise exceptions.CommandException('Cannot guess Github reponame - no argument given'
-                                              'and there is no "name" variable.')
-        return name
+    def _get_reponame(cls, reponame):
+        """Get reponame from explicitly given string"""
+        if not reponame:
+            raise exceptions.CommandException('Cannot get Github reponame - no argument given.')
+        return reponame
 
     @classmethod
-    def _guess_repo_url(cls, explicit, ctxt):
-        """Get repo to fork in form of '<login>/<reponame>' from explicitly given string or
-        global variable 'url'.
+    def _get_repo_url(cls, repo_url):
+        """Get repo to fork in form of '<login>/<reponame>' from explicitly given string."""
+        if not repo_url:
+            raise exceptions.CommandException('Cannot get name of Github repo to fork - no'
+                                              'argument given.')
 
-        Args:
-            ctxt: global context
-
-        Returns:
-            guessed fork reponame
-        """
-        url = explicit or ctxt.get('url')
-        if not url:
-            raise exceptions.CommandException('Cannot guess name of Github repo to fork - no'
-                                              'argument given and there is no "url" variable.')
-
-        url = url[:-4] if url.endswith('.git') else url
+        repo_url = repo_url[:-4] if repo_url.endswith('.git') else repo_url
         # if using git@github:username/reponame.git, strip the stuff before ":"
-        url = url.split(':')[-1]
-        return '/'.join(url.split('/')[-2:])
+        repo_url = repo_url.split(':')[-1]
+        return '/'.join(repo_url.split('/')[-2:])
 
     @classmethod
-    def _guess_private(cls, explicit, ctxt):
-        return bool(explicit or ctxt.get('github_private') or False)
+    def _get_private(cls, private):
+        return bool(private)
 
     @classmethod
     def _github_push(cls):
