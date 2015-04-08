@@ -1,6 +1,8 @@
 import pytest
 import os
 
+from devassistant import utils
+
 from test import fixtures_dir
 from test.integration.misc import run_da
 from test.integration.misc import environ
@@ -23,6 +25,11 @@ class TestDAPIIntegration(object):
     def test_info(self):
         # the actual output can change, so just test that this doesn't fail
         res = run_da('pkg info dap')
+
+    @pytest.mark.webtest
+    def test_list_remote(self):
+        res = run_da('pkg list --simple --remote')
+        assert 'common_args' in res.stdout
 
     def test_install_local(self):
         res = run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'))
@@ -115,12 +122,12 @@ class TestDAPIIntegration(object):
     @pytest.mark.webtest
     def test_search(self):
         res = run_da('pkg search devassistant')
-        assert 'devassistant - ' in res.stdout
+        assert utils.bold('devassistant') in res.stdout
 
     @pytest.mark.webtest
     def test_search_good_options(self):
         res = run_da('pkg search common_args --noassistants')
-        assert 'common_args - ' in res.stdout
+        assert utils.bold('common_args') in res.stdout
 
     @pytest.mark.webtest
     def test_search_bad_options(self):

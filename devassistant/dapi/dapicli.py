@@ -154,7 +154,7 @@ def search(q, **kwargs):
 
 
 def _print_dap_with_description(mdap):
-    print(mdap['package_name'], end='')
+    print(utils.bold(mdap['package_name']), end='')
     latest = mdap['latest_stable'] or mdap['latest']
     if latest:
         latest = data(latest)
@@ -177,14 +177,19 @@ def print_users():
             print('')
 
 
-def print_daps():
+def print_daps(simple=False, skip_installed=False):
     '''Prints a list of metadaps available on Dapi'''
     m = metadaps()
     if not m['count']:
         print('Could not find any daps')
         return
-    for mdap in m['results']:
-        _print_dap_with_description(mdap)
+    for mdap in sorted(m['results'], key=lambda mdap: mdap['package_name']):
+        if skip_installed and mdap['package_name'] in get_installed_daps():
+            continue
+        if simple:
+            print(mdap['package_name'])
+        else:
+            _print_dap_with_description(mdap)
 
 
 def _get_metadap_dap(name, version=''):
@@ -281,6 +286,24 @@ def print_installed_dap(name, full=False):
         dap._find_bad_meta()
 
         print_local_dap(dap, full=full, custom_location=os.path.dirname(location))
+
+
+def print_installed_dap_list(simple=False):
+    '''Prints all installed DAPs in a human readable form to stdout'''
+    if simple:
+        for pkg in sorted(get_installed_daps()):
+            print(pkg)
+    else:
+        for pkg, instances in sorted(get_installed_daps_detailed().items()):
+            versions = []
+            for instance in instances:
+                location = utils.unexpanduser(instance['location'])
+                version = instance['version']
+                if not versions:  # if this is the first
+                    version = utils.bold(version)
+                versions.append('{v}:{p}'.format(v=version, p=location))
+            pkg = utils.bold(pkg)
+            print('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
 
 
 def _get_assistants_snippets(path, name):
