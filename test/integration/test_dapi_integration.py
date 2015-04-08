@@ -118,6 +118,16 @@ class TestDAPIIntegration(object):
         assert 'devassistant - ' in res.stdout
 
     @pytest.mark.webtest
+    def test_search_good_options(self):
+        res = run_da('pkg search common_args --noassistants')
+        assert 'common_args - ' in res.stdout
+
+    @pytest.mark.webtest
+    def test_search_bad_options(self):
+        res = run_da('pkg search common_args', expect_error=True)
+        assert 'Could not find' in res.stdout
+
+    @pytest.mark.webtest
     def test_update_all_nothing(self):
         '''Test updating all packages when no packages are installed'''
         res = run_da('pkg update')
