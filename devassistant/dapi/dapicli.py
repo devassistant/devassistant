@@ -62,8 +62,8 @@ def _get_from_dapi_or_mirror(link):
     '''Tries to get the link form DAPI or the mirror'''
     exception = False
     try:
-        req = requests.get(_api_url() + link)
-    except requests.ConnectionError:
+        req = requests.get(_api_url() + link, timeout=5)
+    except requests.exceptions.RequestException:
         exception = True
     attempts = 1
 
@@ -73,8 +73,8 @@ def _get_from_dapi_or_mirror(link):
         exception = False
         try:
             # Every second attempt, use the mirror
-            req = requests.get(_api_url(attempts % 2) + link)
-        except requests.ConnectionError:
+            req = requests.get(_api_url(attempts % 2) + link, timeout=5*attempts)
+        except requests.exceptions.RequestException:
             exception = True
         attempts += 1
 
