@@ -173,7 +173,7 @@ class GitHubAuth(object):
             public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))
             cls._user.create_key("DevAssistant", public_key)
         except exceptions.ClException as e:
-            msg = 'Couldn\'t create a new ssh key: {e}'.format(e)
+            msg = 'Couldn\'t create a new ssh key: {0}'.format(e)
             raise exceptions.CommandException(msg)
 
     @classmethod
