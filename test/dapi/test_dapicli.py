@@ -8,6 +8,7 @@ import yaml
 from flexmock import flexmock
 
 from devassistant import dapi
+from devassistant import utils
 from devassistant.dapi import dapicli
 from devassistant.exceptions import DapiLocalError
 
@@ -75,7 +76,7 @@ results:
 
     def test_search(self, capfd):
         '''Test the print of a search results'''
-        desired = 'python\n'
+        desired = utils.bold('python') + '\n'
         flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.search_yaml))
         dapicli.print_search('python')
         out, err = capfd.readouterr()

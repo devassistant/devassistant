@@ -383,28 +383,28 @@ class PkgUpdateAction(Action):
 class PkgListAction(Action):
     """List installed packages from Dapi"""
     name = 'list'
-    description = 'Lists installed DAP packages.'
+    description = 'Lists DAP packages, installed or available.'
     args = [
         argument.Argument('simple', '-s', '--simple', action='store_true', default=False,
-                          help='List only the names of installed packages'),
+                          help='List only the names of packages'),
+        argument.Argument('installed', '-i', '--installed', action='store_true', default=False,
+                          help='List installed packages (default)'),
+        argument.Argument('remote', '-r', '--remote', action='store_true', default=False,
+                          help='List all packages from DAPI'),
+        argument.Argument('available', '-a', '--available', action='store_true', default=False,
+                          help='List packages available from DAPI (not installed only)'),
     ]
 
     @classmethod
     def run(cls, **kwargs):
-        if kwargs['simple']:
-            for pkg in sorted(dapicli.get_installed_daps()):
-                print(pkg)
+        if [kwargs['installed'], kwargs['remote'], kwargs['available']].count(True) > 1:
+            logger.error('Only one of --installed, --remote or --available '
+                         'can be used simultaneously')
+            return
+        if kwargs['remote'] or kwargs['available']:
+            dapicli.print_daps(simple=kwargs['simple'], skip_installed=kwargs['available'])
         else:
-            for pkg, instances in sorted(dapicli.get_installed_daps_detailed().items()):
-                versions = []
-                for instance in instances:
-                    location = utils.unexpanduser(instance['location'])
-                    version = instance['version']
-                    if not versions:  # if this is the first
-                        version = utils.bold(version)
-                    versions.append('{v}:{p}'.format(v=version, p=location))
-                pkg = utils.bold(pkg)
-                print('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
+            dapicli.print_installed_dap_list(simple=kwargs['simple'])
 
 
 class PkgSearchAction(Action):
