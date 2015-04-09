@@ -377,7 +377,7 @@ see below.
 
    - github:
      - create_fork
-     - repo_ulr: $repo_url
+     - repo_url: $repo_url
        login: $reponame
 
 Explanation of individual subcommands follows. Each subcommand takes defined arguments.
