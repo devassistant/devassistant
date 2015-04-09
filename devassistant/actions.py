@@ -1,22 +1,25 @@
+import itertools
+import logging
 import os
 import subprocess
 import sys
-
 import yaml
+
 try:
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
 
 from devassistant import argument
+from devassistant import bin
+from devassistant import dapi
 from devassistant import exceptions
 from devassistant import lang
 from devassistant import settings
 from devassistant import utils
-from devassistant.logger import logger
-from devassistant import dapi
+from devassistant.assistant_base import AssistantBase
 from devassistant.dapi import dapicli
-import logging
+from devassistant.logger import logger
 
 actions = {}
 
@@ -549,3 +552,133 @@ class VersionAction(Action):
     def run(cls, **kwargs):
         from devassistant import __version__
         print('DevAssistant {version}'.format(version=__version__))
+
+@register_action
+class AutoCompleteAction(Action):
+    """Outputs strings for bash completion"""
+    name = 'autocomplete'
+    description = 'Provide appropriate strings for bash completion'
+    args = [argument.Argument('path', 'path', default='', nargs='?')]
+    hidden = True
+
+    _assistant_names = {'crt': 'create', 'twk': 'tweak', 'prep': 'prepare'}
+    _assistant_roles = dict([(v,k) for k,v in _assistant_names.items()])
+    _assistants = bin.TopAssistant().get_subassistants()
+    _actions = [action for action in actions if not action.hidden]
+    _special_tokens = ['--debug']
+
+    @classmethod
+    def run(cls, **kwargs):
+        path = kwargs.get('path', '').split()
+
+        flags = cls._get_flags_for_path(path)
+        print(' '.join(flags))
+
+    @classmethod
+    def _get_flags_for_path(cls, path):
+        '''For a given path, separated by spaces, return a list of completable paths.
+        Commencing dashes in flags are expected to be replaced with underscores
+        (to fool argparse into not parsing those)'''
+        path = [tok[:2].replace('_', '-') + tok[2:] for tok in path]
+
+        # No path specified
+        if not path or (len(path) == 1 and path[0] in cls._special_tokens):
+            flags = [cls._assistant_names.get(a.name, a.name) for a in cls._assistants] + \
+                    [a.name for a in cls._actions] + \
+                    cls._special_tokens + ['--help']
+
+        else:
+            # Translate long assistant names into roles if entered
+            if path[0] in cls._assistant_roles:
+                path[0] = cls._assistant_roles[path[0]]
+
+            elem = cls._get_elem_for_path(path)
+            if elem:
+                flags = cls._get_flags(elem, long_only=True) + \
+                        [a.name for a in cls._get_descendants(elem)] + \
+                        ['--help']
+
+                #TODO Fix so that it honors nargs
+                # Last argument in flags or there are positional arguments
+                if path[-1] in cls._get_flags(elem, dashed_only=True, attributes_only=True) \
+                    or cls._get_positional_args(elem):
+                    flags.append('_FILENAMES')
+            else:
+                flags = []
+
+        return sorted(flags)
+
+    @classmethod
+    def _get_elem_for_path(cls, path):
+        '''Get element (Assistant or Action) specified by given path'''
+        skipping = False
+        result = None
+        current = cls._assistants + cls._actions
+        for token in path:
+            found = False if not skipping else True
+
+            if token in cls._special_tokens:
+                continue
+
+            # If result has positional arguments or token is a flag, it's safe
+            # to skip until next valid token is found
+            if result and \
+                    (cls._get_positional_args(result) \
+                    or token in cls._get_flags(result, dashed_only=True)):
+                skipping = True
+                found = True
+                continue
+
+            # Searching descendants
+            for elem in current:
+                if token == elem.name:
+                    found = True
+                    skipping = False
+                    current = cls._get_descendants(elem)
+                    result = elem
+                    break
+
+            if found or skipping:
+                continue
+            else:
+                break
+
+        return result if found or skipping else None
+
+    @classmethod
+    def _get_descendants(cls, elem):
+        '''Get descendants for and Assistant or Action (inferred automatically)'''
+        if isinstance(elem, AssistantBase):
+            return elem.get_subassistants()
+        elif issubclass(elem, Action):
+            return elem.get_subactions()
+        else:
+            raise TypeError('Element must be an Action or Assistant, is {t}'.format(t=elem))
+
+
+    @classmethod
+    def _get_flags(cls, elem, dashed_only=False, long_only=False, attributes_only=False):
+        '''Get flags for arguments of a given element (Assistant or Action). Optionally may
+        be restricted only to flags starting with one or two dashes.'''
+        args = elem.args
+        if attributes_only:
+            args = cls._get_args_with_attributes(args)
+
+        result = list(itertools.chain(*[arg.flags for arg in args]))
+        if dashed_only:
+            result = [flag for flag in result if flag.startswith('-')]
+        if long_only:
+            result = [flag for flag in result if flag.startswith('--')]
+
+        return result
+
+    @classmethod
+    def _get_args_with_attributes(cls, args):
+        '''Get arguments that require attributes'''
+        return [a for a in args if not str(a.kwargs.get('action', '')).startswith('store_')]
+
+    @classmethod
+    def _get_positional_args(cls, elem):
+        '''Get positional arguments of elem'''
+        return [a for a in cls._get_args_with_attributes(elem.args) \
+                        if not [f for f in a.flags if f.startswith('-')]]
