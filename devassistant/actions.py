@@ -561,8 +561,10 @@ class AutoCompleteAction(Action):
     args = [argument.Argument('path', 'path', default='', nargs='?')]
     hidden = True
 
-    _assistant_names = {'crt': 'create', 'twk': 'tweak', 'prep': 'prepare'}
-    _assistant_roles = dict([(v,k) for k,v in _assistant_names.items()])
+    # Assistant names are hardcoded here because on the root level, we only
+    # want to show these nice long forms. All forms incl. old aliases are
+    # autocompleted, of course.
+    _assistant_names = ['create', 'tweak', 'prepare', 'extra']
     _assistants = bin.TopAssistant().get_subassistants()
     _actions = [action for action in actions if not action.hidden]
     _special_tokens = ['--debug']
@@ -583,15 +585,10 @@ class AutoCompleteAction(Action):
 
         # No path specified
         if not path or (len(path) == 1 and path[0] in cls._special_tokens):
-            flags = [cls._assistant_names.get(a.name, a.name) for a in cls._assistants] + \
-                    [a.name for a in cls._actions] + \
+            flags = cls._assistant_names + [a.name for a in cls._actions] + \
                     cls._special_tokens + ['--help']
 
         else:
-            # Translate long assistant names into roles if entered
-            if path[0] in cls._assistant_roles:
-                path[0] = cls._assistant_roles[path[0]]
-
             elem = cls._get_elem_for_path(path)
             if elem:
                 flags = cls._get_flags(elem, long_only=True) + \
@@ -631,7 +628,11 @@ class AutoCompleteAction(Action):
 
             # Searching descendants
             for elem in current:
-                if token == elem.name:
+                try:
+                    aliases = elem.aliases
+                except AttributeError:
+                    aliases = []
+                if token == elem.name or token in aliases:
                     found = True
                     skipping = False
                     current = cls._get_descendants(elem)
@@ -647,13 +648,18 @@ class AutoCompleteAction(Action):
 
     @classmethod
     def _get_descendants(cls, elem):
-        '''Get descendants for and Assistant or Action (inferred automatically)'''
-        if isinstance(elem, AssistantBase):
+        '''Get descendants for and Assistant or Action (or anything possessing
+        the method get_subactions() or get_subassistants())'''
+        try:
             return elem.get_subassistants()
-        elif issubclass(elem, Action):
+        except AttributeError:
+            pass
+        try:
             return elem.get_subactions()
-        else:
-            raise TypeError('Element must be an Action or Assistant, is {t}'.format(t=elem))
+        except AttributeError:
+            pass
+
+        raise TypeError('Element must be an Action or Assistant, is {t}'.format(t=elem))
 
 
     @classmethod
