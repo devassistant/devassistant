@@ -169,3 +169,80 @@ class TestPkgUninstallAction(object):
             action.run(package=['foo'], force=True, allpaths=False)
 
         assert 'Cannot uninstall DAP foo' in str(excinfo.value)
+
+
+class TestAutoCompleteAction(object):
+
+    def setup_class(self):
+        self.aca = actions.AutoCompleteAction
+
+        self.fake_desc = [flexmock(name=n, get_subassistants=lambda: [], args=[]) for n in ['foo', 'bar', 'baz']]
+        self.fake_arg = flexmock(flags=('--qux',), kwargs=dict())
+        self.fake_crt = flexmock(name='crt', get_subassistants=lambda: self.fake_desc, args=[self.fake_arg])
+
+    @pytest.mark.parametrize('path', ['', '--debug', '__debug'])
+    def test_root_path(self, path, capsys):
+        expected = set(['--debug', '--help', 'create', 'doc', 'extra', 'help',
+                        'pkg', 'prepare', 'tweak', 'version'])
+
+        self.aca.run(path=path)
+        stdout, _ = capsys.readouterr()
+
+        assert stdout
+        assert expected.issubset(set(stdout.split()))
+
+    @pytest.mark.parametrize('obj', [
+        flexmock(get_subassistants=lambda: []),
+        flexmock(get_subactions=lambda: [])
+    ])
+    def test_get_descendants(self, obj):
+        self.aca._get_descendants(obj)
+
+    @pytest.mark.parametrize('obj', [
+        flexmock(get_subassistants=''),
+        flexmock()
+    ])
+    def test_get_descendants_fails(self, obj):
+        with pytest.raises(TypeError):
+            self.aca._get_descendants(obj)
+
+    @pytest.mark.parametrize('path', ['crt', 'crt --qux'])
+    def test_assistants(self, path, capsys):
+        flexmock(self.aca).should_receive('_assistants').and_return([self.fake_crt])
+
+        self.aca.run(path=path)
+        stdout, _ = capsys.readouterr()
+
+        assert not _
+        assert set([a.name for a in self.fake_desc] + [f for f in self.fake_arg.flags]).issubset(set(stdout.split()))
+
+    @pytest.mark.parametrize(('long_name', 'short_name'), [
+        ('create', 'crt'),
+        ('tweak', 'twk'),
+        ('twk', 'mod'),
+        ('prepare', 'prep'),
+        ('extra', 'task'),
+    ])
+    def test_aliases(self, long_name, short_name, capsys):
+        self.aca.run(path=long_name)
+        long_stdout, _ = capsys.readouterr()
+
+        assert long_stdout
+
+        self.aca.run(path=short_name)
+        short_stdout, _ = capsys.readouterr()
+
+        assert short_stdout
+        assert long_stdout == short_stdout
+
+    def test_filenames(self, capsys):
+        self.aca.run(path='pkg info')
+        stdout, _ = capsys.readouterr()
+
+        assert '_FILENAMES' in stdout.split()
+
+    def test_bad_input(self, capsys):
+        self.aca.run(path='foo bar baz')
+        stdout, _ = capsys.readouterr()
+
+        assert not stdout.split()

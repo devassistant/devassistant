@@ -17,6 +17,7 @@ class TestYamlAssistantLoader(object):
     def setup_method(self, method):
         self.yl = YamlAssistantLoader
         self.reset_yl_assistants_dirs()
+        self.yl._assistants = {}
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def teardown_method(self, method):
