@@ -56,13 +56,23 @@ class GuiHelper(object):
             btn.add(label)
         return btn
 
-    def create_image(self, image_name=None):
+    def create_image(self, image_name=None, scale_ratio=1, window=None):
         """
             The function creates a image from name defined in image_name
         """
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(image_name, 48, 48, 1)
+        size = 48 * scale_ratio
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(image_name, -1, size, True)
         image = Gtk.Image()
-        image.set_from_pixbuf(pixbuf)
+
+        # Creating the cairo surface is necessary for proper scaling on HiDPI
+        try:
+            surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf, scale_ratio, window)
+            image.set_from_surface(surface)
+
+        # Fallback for GTK+ older than 3.10
+        except AttributeError:
+            image.set_from_pixbuf(pixbuf)
+
         return image
 
     def button_with_image(self, description, image=None, sensitive=True):
@@ -72,7 +82,12 @@ class GuiHelper(object):
         btn = self.create_button()
         btn.set_sensitive(sensitive)
         h_box = self.create_box()
-        img = self.create_image(image_name=image)
+        try:
+            img = self.create_image(image_name=image,
+                                    scale_ratio=btn.get_scale_factor(),
+                                    window=btn.get_window())
+        except: # Older GTK+ than 3.10
+            img = self.create_image(image_name=image)
         h_box.pack_start(img, False, False, 12)
         label = self.create_label(description)
         h_box.pack_start(label, False, False, 0)
