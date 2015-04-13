@@ -13,7 +13,7 @@ from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
     SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner, \
-    EnvCommandRunner, DockerCommandRunner
+    EnvCommandRunner, DockerCommandRunner, DotDevassistantCommandRunner
 # also import just command_runners to have access to command_runners.command_runners
 from devassistant import command_runners, lang, utils
 from devassistant.exceptions import CommandException, RunException
@@ -213,15 +213,66 @@ class TestDependenciesCommandRunner(object):
 
 
 class TestDotDevassistantCommandRunner(object):
+
+    def setup_class(self):
+        self.get_cmd = lambda self, struct: Command('dda_w', struct, {'foo': 'bar'})
+        self.ddcr = DotDevassistantCommandRunner
+
+    @pytest.mark.parametrize('struct', [
+        ['foo', {'bar': 'baz'}],
+        {'path': 'foo', 'write': {'bar': 'baz'}},
+    ])
+    def test_dda_w_check_args(self, struct):
+        cmd = self.get_cmd(struct)
+        self.ddcr.check_args(cmd)
+
+    @pytest.mark.parametrize('struct', [
+        ['foo'],
+        {'path': 'foo', 'bar': 'baz', 'qux': '123'},
+        3,
+        'foo',
+        None
+    ])
+    def test_dda_w_check_args_fails(self, struct):
+        cmd = self.get_cmd(struct)
+        with pytest.raises(CommandException):
+            self.ddcr.check_args(cmd)
+
+    def test_dda_w_fails_with_invalid_keys(self):
+        cmd = self.get_cmd({'foo': 'bar', 'baz': 'qux'})
+        print(cmd.comm)
+        with pytest.raises(CommandException) as e:
+            self.ddcr.run(cmd)
+
+        assert 'dda_w expects mapping' in str(e)
+
     def test_dda_w_takes_section_as_literal(self, tmpdir):
         # we want to make sure that the section we write is not evaluated, not even substituted
-        kwargs = {'foo': 'bar'}
         to_write = [tmpdir.strpath, {'run': [{'$cwd~': '$(pwd)'}, {'log_i': '$foo'}]}]
         open(os.path.join(tmpdir.strpath, '.devassistant'), 'w').close()
-        Command('dda_w', to_write, kwargs).run()
+        self.get_cmd(to_write).run()
         content = open(os.path.join(tmpdir.strpath, '.devassistant')).read()
         assert content == yaml.dump(to_write[1], default_flow_style=False)
 
+    def test_list_and_dict_inputs_are_same(self, tmpdir):
+        kwargs = {'foo': 'bar'}
+
+        # List
+        list_path = str(tmpdir.mkdir('list'))
+        open(os.path.join(list_path, '.devassistant'), 'w').close()
+        to_write_list = [list_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        self.get_cmd(to_write_list).run()
+        list_content = open(os.path.join(list_path, '.devassistant')).read()
+
+        # Dict
+        dict_path = str(tmpdir.mkdir('dict'))
+        open(os.path.join(dict_path, '.devassistant'), 'w').close()
+        to_write_dict = [dict_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        self.get_cmd(to_write_dict).run()
+        dict_content = open(os.path.join(dict_path, '.devassistant')).read()
+
+        assert list_content == dict_content
+        assert list_content == yaml.dump(to_write_list[1], default_flow_style=False)
 
 class TestGitHubCommandRunner(object):
     pass

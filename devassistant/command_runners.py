@@ -346,9 +346,10 @@ class DotDevassistantCommandRunner(CommandRunner):
     @classmethod
     def check_args(cls, c):
         if c.comm_type == 'dda_w':
-            if not isinstance(c.input_res, list) or len(c.input_res) != 2:
-                msg = 'dda_w expects Yaml list with path to .devassistant and mapping to write.'
+            if not (isinstance(c.input_res, (dict, list)) and len(c.input_res) == 2):
+                msg = 'dda_w expects a Yaml list or mapping with path to .devassistant and mapping to write.'
                 raise exceptions.CommandException(msg)
+                # TODO Warn here in version 1.0 that lists are deprecated
         else:
             if not isinstance(c.input_res, six.string_types):
                 msg = '{0} expects a string as an argument.'.format(c.comm_type)
@@ -432,10 +433,25 @@ class DotDevassistantCommandRunner(CommandRunner):
         kwargs['__sourcefiles__'].pop()
 
     @classmethod
+    def __dot_devassistant_get_contents(cls, comm):
+        if isinstance(comm, list):
+            dda_content = cls.__dot_devassistant_read_exact(comm[0])
+            dda_content.update(comm[1])
+            return comm[0], dda_content
+
+        elif isinstance(comm, dict):
+            try:
+                dda_content = cls.__dot_devassistant_read_exact(comm['path'])
+                dda_content.update(comm['write'])
+                return comm['path'], comm['write']
+            except KeyError:
+                raise exceptions.CommandException('dda_w expects mapping with two arguments: ' + \
+                        '"path" and "write". Got "{keys}".'.format(keys='", "'.join(comm.keys())))
+
+    @classmethod
     def _dot_devassistant_write(cls, comm):
-        dda_content = cls.__dot_devassistant_read_exact(comm[0])
-        dda_content.update(comm[1])
-        cls.__dot_devassistant_write_struct(comm[0], dda_content)
+        path, content = cls.__dot_devassistant_get_contents(comm)
+        cls.__dot_devassistant_write_struct(path, content)
 
 
 @register_command_runner

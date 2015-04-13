@@ -310,18 +310,25 @@ that's double underscore).
 
 ``dda_w`` - writes a mapping (dict in Python terms) to ``.devassistant``
 
-- Input: list with directory with ``.devassistant`` file as a first item and the mapping
-  to write as the second item. Variables in the mapping will be substituted, you have to use
+- Input: mapping with two elements:
+    1) ``path``: The directory name containing the ``.devassistant`` file
+    2) ``write``: Mapping with values to write
+- Variables in the ``write`` mapping will be substituted, you have to use
   ``$$foo`` (two dollars instead of one) to get them as variables in ``.devassistant``.
 - RES: always empty string
 - LRES: ``True``, *raises exception* if something goes wrong
 - Example::
 
    - dda_w:
-     - ${path}/to/project
-     - run:
-       - $$foo: $name # name will get substituted from current variable
-       - log_i: $$foo
+       path: ${path}/to/project
+       write:
+         run:
+         - $$foo: $name # name will get substituted from current variable
+         - log_i: $$foo
+
+**Note: The input for the dda_w command can also be in the form of a list
+with two items: the directory name, and the mapping with values to write. This
+way is discouraged and will be deprecated**
 
 ``dda_dependencies`` - installs dependencies from ``.devassistant`` file, should be used by
 preparer assistants. Utilizes both dependencies of creator assistants that created this project
