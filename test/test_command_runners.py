@@ -13,7 +13,8 @@ from devassistant.command_helpers import ClHelper, DialogHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
     SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner, \
-    EnvCommandRunner, DockerCommandRunner, DotDevassistantCommandRunner
+    EnvCommandRunner, DockerCommandRunner, DotDevassistantCommandRunner, \
+    GitHubCommandRunner
 # also import just command_runners to have access to command_runners.command_runners
 from devassistant import command_runners, lang, utils
 from devassistant.exceptions import CommandException, RunException
@@ -274,8 +275,82 @@ class TestDotDevassistantCommandRunner(object):
         assert list_content == dict_content
         assert list_content == yaml.dump(to_write_list[1], default_flow_style=False)
 
+
 class TestGitHubCommandRunner(object):
-    pass
+
+    def setup_class(self):
+        self.get_cmd = lambda self, struct: Command('github', struct, {'__ui__': 'cli'})
+        self.ghcr = GitHubCommandRunner
+
+    @pytest.mark.parametrize(('struct', 'comm', 'keys'), [
+        ({'do': 'create_repo', 'login': 'foo', 'reponame': 'bar'},
+            'create_repo',
+            ['login', 'reponame']),
+
+        (['create_repo', {'login': 'foo', 'reponame': 'bar'}],
+            'create_repo',
+            ['login', 'reponame']),
+
+        ('push', 'push', []),
+
+        ({'do': 'create_fork', 'repo_url': 'http://example.com', 'login': 'foo'},
+            'create_fork',
+            ['login', 'repo_url'])
+    ])
+    def test_allowed_formats(self, struct, comm, keys):
+        cmd = self.get_cmd(struct)
+        result_comm, result_args = self.ghcr.format_args(cmd)
+
+        assert result_comm == comm
+        assert set(keys).issubset(set(result_args.keys()))
+
+    @pytest.mark.parametrize('struct', [
+        ['foo', 'bar', 'baz'],
+        ['foo'],
+        {'foo': 'bar'},
+        2,
+        [],
+        {},
+        None
+    ])
+    def test_forbidden_formats(self, struct):
+        cmd = self.get_cmd(struct)
+        with pytest.raises(CommandException):
+            self.ghcr.format_args(cmd)
+
+    @pytest.mark.parametrize('action', ['create_repo', 'create_and_push', 'push', 'create_fork'])
+    def test_valid_actions(self, action):
+        '''This test uses try/except on purpose. Valid outcomes are both a run with no exception
+        raised, or a run with exception raised if that exception doesn't pertain to the action'''
+        cmd = self.get_cmd({'do': action})
+        try:
+            self.ghcr.format_args(cmd)
+        except CommandException as e:
+            assert 'Invalid action' not in str(e)
+
+    @pytest.mark.parametrize('action', ['foo', 2, None])
+    def test_invalid_actions(self, action):
+        cmd = self.get_cmd({'do': action})
+        with pytest.raises(CommandException) as e:
+            self.ghcr.format_args(cmd)
+
+        assert 'Invalid action' in str(e)
+
+    def test_arg_dict_same_as_list(self):
+        arg_dict = {'do': 'create_repo', 'login': 'foo', 'reponame': 'bar'}
+        arg_list = ['create_repo', {'login': 'foo', 'reponame': 'bar'}]
+
+        list_cmd = self.get_cmd(arg_list)
+        dict_cmd = self.get_cmd(arg_dict)
+
+        list_res = self.ghcr.format_args(list_cmd)
+        dict_res = self.ghcr.format_args(dict_cmd)
+
+        assert list_res == dict_res
+        assert len(list_res) == 2
+        assert list_res[0] == 'create_repo'
+        assert list_res[1]['login'] == 'foo'
+        assert list_res[1]['reponame'] == 'bar'
 
 
 class TestJinja2CommandRunner(object):

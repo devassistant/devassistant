@@ -474,14 +474,16 @@ class GitHubCommandRunner(CommandRunner):
     @classmethod
     def run(cls, c):
         """Arguments given to 'github' command may be:
-        - Just a string (action), which implies that all the other arguments are deducted from
-          global context and local system.
-        - List containing a string (action) as a first item and rest of the args in a dict.
-          (args not specified in the dict are taken from global context.
+        - Just a string (action) - only for 'push'
+        - Dictionary with key 'do', denoting the action, and all the other arguments (args
+          not specified in the dict are taken from the global context)
+        - WILL BE DEPRECATED: List containing a string (action) as a first item and rest
+          of the args in a dict. (args not specified in the dict are taken from the global context)
 
         Possible arguments:
-        - login - taken from 'github' or system username - represents Github login
-        - reponame - taken from 'name' (first applies os.path.basename) - repo to operate on
+        - login - Github login
+        - reponame - repo to operate on
+        - repo_url (only for create_fork) - URL of the repo to fork
         """
         comm, kwargs = cls.format_args(c)
         if not cls._gh_module:
@@ -510,11 +512,24 @@ class GitHubCommandRunner(CommandRunner):
     def format_args(cls, c):
         args = c.input_res
         if isinstance(args, list):
+            if len(args) != 2:
+                raise exceptions.CommandException('The argument list to "github" must contain two items: action, and a mapping with values.')
             comm = args[0]
             args_rest = args[1]
+        elif isinstance(args, dict):
+            try:
+                comm = args['do']
+            except KeyError:
+                raise exceptions.CommandException('The argument mapping to "github" must contain a key "do" with an action.')
+            args_rest = {k: args[k] for k in args if k != 'do'}
         else:
             comm = args
             args_rest = {}
+
+        # Invalid command
+        if comm not in cls._required_yaml_args:
+            raise exceptions.CommandException('Invalid action for the "github" command: {c}'.format(c=comm))
+
         # find out what arguments we will need
         kwargs = {'ui': c.kwargs['__ui__']}
         req_kwargs = cls._required_yaml_args.get(comm, cls._required_yaml_args['default'])

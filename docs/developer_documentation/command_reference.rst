@@ -362,8 +362,9 @@ the box.
 Github command (``github``) has many "subcommands". Subcommands are part of the command input,
 see below.
 
-- Input: a string with a subcommand or a two item list, where the first item is a subcommand
-  and the second item is a mapping that explicitly specifies parameters for the subcommand.
+- Input: a string with a subcommand or a mapping, containing these items:
+    1) ``do``: Name of the subcommand to run (see below)
+    2) Other parameters for the subcommand
 - RES: if command succeeds, either a string with URL of manipulated repo or empty string is
   returned (depends on subcommand), else a string with problem description (it is already logged
   at WARNING level)
@@ -371,21 +372,25 @@ see below.
 - Example::
 
    - github:
-     - create_repo
-     - login: $ghlogin
+       do: create_repo
+       login: $ghlogin
        reponame: $reponame
 
    - github:
-     - create_and_push
-     - login: bkabrda
+       do: create_and_push
+       login: bkabrda
        reponame: devassistant
 
    - github: push
 
    - github:
-     - create_fork
-     - repo_url: $repo_url
+       do: create_fork
+       repo_url: $repo_url
        login: $reponame
+
+**Note: The input for the github command can also be in the form of a list
+with two items: the subcommand name, and the mapping with values to use. This
+way is discouraged and will be deprecated**
 
 Explanation of individual subcommands follows. Each subcommand takes defined arguments.
 E.g. ``create_and_push`` takes an argument ``login``.
