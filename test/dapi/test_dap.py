@@ -44,6 +44,7 @@ def combinations(pool):
 
 class TestDap(object):
     '''Tests for the Dap class'''
+
     def test_no_gz(self):
         '''Not-gzip archive should raise DapFileError'''
         with pytest.raises(DapFileError):
@@ -588,3 +589,9 @@ class TestDap(object):
         assert 'No Assistants or Snippets found' in warn_out.getvalue()
         assert 'No Assistants or Snippets found' not in err_out.getvalue()
 
+    def test_icons(self):
+        dap = Dap(None, fake=True, mimic_filename='foo')
+        dap.files = ['foo/icons/crt/bar.svg', 'foo/icons/crt/baz.png', 'foo/icons/twk/qux.svg']
+
+        assert dap.icons() == ['icons/crt/bar.svg', 'icons/crt/baz.png', 'icons/twk/qux.svg']
+        assert dap.icons(strip_ext=True) == ['icons/crt/bar', 'icons/crt/baz', 'icons/twk/qux']

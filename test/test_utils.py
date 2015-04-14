@@ -22,9 +22,23 @@ class TestStripPrefix(object):
         ('foobar', 'foobar', ''),
         ('foo', 'foobar', 'foo'),
         ('foo', str(1), 'foo'),
+        # Should not strip regex
+        ('foobar', 'foo|bar', 'foobar'),
+        ('foobar', '[fo]*', 'foobar'),
+        ('foobar', '.*', 'foobar'),
+        ('foobar', 'fo.', 'foobar'),
     ])
-    def test_strips(self, inp, prefix, out):
+    def test_strip_noregex(self, inp, prefix, out):
         assert utils.strip_prefix(inp, prefix) == out
+
+    @pytest.mark.parametrize(('inp', 'prefix', 'out'), [
+        ('foobar', 'foo|bar', 'bar'),
+        ('foobar', '[fo]*', 'bar'),
+        ('foobar', '.*', ''),
+        ('foobar', 'fo.', 'bar'),
+    ])
+    def test_strip_regex(self, inp, prefix, out):
+        assert utils.strip_prefix(inp, prefix, regex=True) == out
 
     @pytest.mark.parametrize(('inp', 'prefix'), [
         (1, 'foo'),
@@ -44,9 +58,23 @@ class TestStripSuffix(object):
         ('foobar', 'foobar', ''),
         ('foo', 'foobar', 'foo'),
         ('foo', str(1), 'foo'),
+        # Should not strip regex
+        ('foobar', 'foo|bar', 'foobar'),
+        ('foobar', '[ar]*', 'foobar'),
+        ('foobar', '.*', 'foobar'),
+        ('foobar', '.bar', 'foobar'),
     ])
-    def test_strips(self, inp, suffix, out):
+    def test_strip_noregex(self, inp, suffix, out):
         assert utils.strip_suffix(inp, suffix) == out
+
+    @pytest.mark.parametrize(('inp', 'prefix', 'out'), [
+        ('foobar', 'foo|bar', 'foo'),
+        ('foobar', '[ar]*', 'foob'),
+        ('foobar', '.*', ''),
+        ('foobar', '.bar', 'fo'),
+    ])
+    def test_strip_regex(self, inp, prefix, out):
+        assert utils.strip_suffix(inp, prefix, regex=True) == out
 
     @pytest.mark.parametrize(('inp', 'suffix'), [
         (1, 'foo'),

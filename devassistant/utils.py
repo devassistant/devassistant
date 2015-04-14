@@ -3,6 +3,7 @@ from __future__ import print_function
 import locale
 import os
 import platform
+import re
 import sys
 
 import six
@@ -185,24 +186,45 @@ def unexpanduser(path):
     """Replaces expanded ~ back with ~"""
     return path.replace(os.path.expanduser('~'), '~')
 
-def strip_prefix(string, prefix):
-    """Strip the prefix from the string"""
+
+def strip_prefix(string, prefix, regex=False):
+    """Strip the prefix from the string
+
+    If 'regex' is specified, prefix is understood as a regular expression."""
     if not isinstance(string, six.string_types) or not isinstance(prefix, six.string_types):
         msg = 'Arguments to strip_prefix must be string types. Are: {s}, {p}'\
               .format(s=type(string), p=type(prefix))
         raise TypeError(msg)
-    if string.startswith(prefix):
-        return string[len(prefix):]
-    else:
-        return string
 
-def strip_suffix(string, suffix):
-    """Strip the suffix from the string"""
+    if not regex:
+        prefix = re.escape(prefix)
+    if not prefix.startswith('^'):
+        prefix = '^({s})'.format(s=prefix)
+    return _strip(string, prefix)
+
+
+def strip_suffix(string, suffix, regex=False):
+    """Strip the suffix from the string.
+
+    If 'regex' is specified, suffix is understood as a regular expression."""
     if not isinstance(string, six.string_types) or not isinstance(suffix, six.string_types):
         msg = 'Arguments to strip_suffix must be string types. Are: {s}, {p}'\
               .format(s=type(string), p=type(suffix))
         raise TypeError(msg)
-    if string.endswith(suffix):
-        return string[:-len(suffix)]
+
+    if not regex:
+        suffix = re.escape(suffix)
+    if not suffix.endswith('$'):
+        suffix = '({s})$'.format(s=suffix)
+    return _strip(string, suffix)
+
+
+def _strip(string, pattern):
+    """Return complement of pattern in string"""
+    m = re.compile(pattern).search(string)
+
+    if m:
+        return string[0:m.start()] + string[m.end():len(string)]
     else:
         return string
+
