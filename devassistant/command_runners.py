@@ -521,7 +521,7 @@ class GitHubCommandRunner(CommandRunner):
                 comm = args['do']
             except KeyError:
                 raise exceptions.CommandException('The argument mapping to "github" must contain a key "do" with an action.')
-            args_rest = {k: args[k] for k in args if k != 'do'}
+            args_rest = dict([(k, v) for k, v in args.items() if k != 'do'])
         else:
             comm = args
             args_rest = {}
