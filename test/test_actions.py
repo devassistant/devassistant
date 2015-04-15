@@ -10,10 +10,12 @@ from devassistant.dapi import dapicli
 from test.logger import TestLoggingHandler
 
 class TestActions(object):
-    ha = actions.HelpAction
+
+    def setup_class(self):
+        self.ha = actions.HelpAction
 
     def test_get_help_contains_task_keywords(self):
-        gh = self.ha.get_help()
+        gh = self.ha().get_help()
         assert 'crt' in gh
         assert 'twk' in gh
         assert 'prep' in gh
@@ -25,34 +27,35 @@ class TestActions(object):
         a.description = 'foobar_action_description'
         actions.register_action(a)
 
-        assert 'foobar_action_name' in self.ha.get_help()
-        assert 'foobar_action_description' in self.ha.get_help()
+        assert 'foobar_action_name' in self.ha().get_help()
+        assert 'foobar_action_description' in self.ha().get_help()
 
     def test_format_text_returns_original_text_on_bogus_formatting(self):
-        assert self.ha.format_text('aaa', 'foo', 'bar') == 'aaa'
-        assert self.ha.format_text('', 'foo', 'bar') == ''
+        assert self.ha().format_text('aaa', 'foo', 'bar') == 'aaa'
+        assert self.ha().format_text('', 'foo', 'bar') == ''
 
     def test_format_text_returns_bold(self):
-        assert self.ha.format_text('aaa', 'bold', 'ascii') == '\033[1maaa\033[0m'
+        assert self.ha().format_text('aaa', 'bold', 'ascii') == '\033[1maaa\033[0m'
 
     def test_version_action(self, capsys):
-        va = actions.VersionAction
+        va = actions.VersionAction()
         from devassistant import __version__ as VERSION
         va.run()
         assert VERSION in capsys.readouterr()[0]
 
 
 class TestDocAction(object):
+
     def setup_method(self, method):
         self.da = actions.DocAction
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_no_docs(self):
-        self.da.run(dap='f')
+        self.da(dap='f').run()
         assert ('INFO', 'DAP f has no documentation.') in self.tlh.msgs
 
     def test_lists_docs(self):
-        self.da.run(dap='c')
+        self.da(dap='c').run()
         assert self.tlh.msgs == [
             ('INFO', 'DAP c has these docs:'),
             ('INFO', 'LICENSE'),
@@ -65,7 +68,7 @@ class TestDocAction(object):
         # we only test displaying without "less" - e.g. simple logging
         flexmock(subprocess).should_receive('check_call').\
             and_raise(subprocess.CalledProcessError, None, None)
-        self.da.run(dap='c', doc='doc1')
+        self.da(dap='c', doc='doc1').run()
         assert ('INFO', 'Bar!\n') in self.tlh.msgs
 
 
@@ -76,9 +79,9 @@ class TestPkgSearchAction(object):
         flexmock(dapicli).should_receive('print_search').and_raise(exc)
 
         with pytest.raises(exceptions.ExecutionException):
-            actions.PkgSearchAction.run(query='foo', noassistants=False, unstable=False,
-                                        deactivated=False, minrank=0, mincount=0,
-                                        allplatforms=False)
+            actions.PkgSearchAction(query='foo', noassistants=False, unstable=False,
+                                    deactivated=False, minrank=0, mincount=0,
+                                    allplatforms=False).run()
 
 class TestPkgInstallAction(object):
 
@@ -97,7 +100,8 @@ class TestPkgInstallAction(object):
                          .and_return([self.pkg]).at_least().once()
 
         # Install from path, everything goes well
-        actions.PkgInstallAction.run(package=[self.pkg], force=False, reinstall=False, nodeps=False)
+        actions.PkgInstallAction(package=[self.pkg], force=False,
+                                 reinstall=False, nodeps=False).run()
 
     def test_pkg_install_fails(self):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
@@ -106,8 +110,8 @@ class TestPkgInstallAction(object):
                          .and_raise(exceptions.DapiLocalError(self.exc_string)).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgInstallAction.run(package=[self.pkg], force=False,
-                                         reinstall=False, nodeps=False)
+            actions.PkgInstallAction(package=[self.pkg], force=False,
+                                     reinstall=False, nodeps=False).run()
 
         assert self.exc_string in str(excinfo.value)
 
@@ -122,7 +126,7 @@ class TestPkgUpdateAction(object):
                          .and_return([]).at_least().once()
 
         # Update all, everything is up to date
-        actions.PkgUpdateAction.run(force=False, allpaths=False)
+        actions.PkgUpdateAction(force=False, allpaths=False).run()
 
     def test_pkg_update_no_dapi(self):
         '''Run update of package that is not on Dapi'''
@@ -130,7 +134,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
+            actions.PkgUpdateAction(package=['foo'], force=False, allpaths=False).run()
 
         assert 'foo not found' in str(excinfo.value)
 
@@ -142,7 +146,7 @@ class TestPkgUpdateAction(object):
                          .and_return(None).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            actions.PkgUpdateAction.run(package=['foo'], force=False, allpaths=False)
+            actions.PkgUpdateAction(package=['foo'], force=False, allpaths=False).run()
 
         assert 'Cannot update not yet installed DAP' in str(excinfo.value)
 
@@ -158,7 +162,7 @@ class TestPkgUninstallAction(object):
         flexmock(dapicli).should_receive('uninstall_dap')\
                          .and_return(['first', 'second']).at_least().once()
 
-        action.run(package=['first', 'second'], force=True, allpaths=False)
+        action(package=['first', 'second'], force=True, allpaths=False).run()
 
     def test_pkg_uninstall_not_installed(self, action):
         '''Uninstall package that is not installed'''
@@ -166,7 +170,7 @@ class TestPkgUninstallAction(object):
                          .and_return(['bar']).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            action.run(package=['foo'], force=True, allpaths=False)
+            action(package=['foo'], force=True, allpaths=False).run()
 
         assert 'Cannot uninstall DAP foo' in str(excinfo.value)
 
@@ -185,7 +189,7 @@ class TestAutoCompleteAction(object):
         expected = set(['--debug', '--help', 'create', 'doc', 'extra', 'help',
                         'pkg', 'prepare', 'tweak', 'version'])
 
-        self.aca.run(path=path)
+        self.aca(path=path).run()
         stdout, _ = capsys.readouterr()
 
         assert stdout
@@ -208,9 +212,11 @@ class TestAutoCompleteAction(object):
 
     @pytest.mark.parametrize('path', ['crt', 'crt --qux'])
     def test_assistants(self, path, capsys):
-        flexmock(self.aca).should_receive('_assistants').and_return([self.fake_crt])
+        aca = self.aca(path=path)
+        flexmock(aca).should_receive('_assistants').and_return([self.fake_crt])
 
-        self.aca.run(path=path)
+        aca.run()
+
         stdout, _ = capsys.readouterr()
 
         assert not _
@@ -224,25 +230,25 @@ class TestAutoCompleteAction(object):
         ('extra', 'task'),
     ])
     def test_aliases(self, long_name, short_name, capsys):
-        self.aca.run(path=long_name)
+        self.aca(path=long_name).run()
         long_stdout, _ = capsys.readouterr()
 
         assert long_stdout
 
-        self.aca.run(path=short_name)
+        self.aca(path=short_name).run()
         short_stdout, _ = capsys.readouterr()
 
         assert short_stdout
         assert long_stdout == short_stdout
 
     def test_filenames(self, capsys):
-        self.aca.run(path='pkg info')
+        self.aca(path='pkg info').run()
         stdout, _ = capsys.readouterr()
 
         assert '_FILENAMES' in stdout.split()
 
     def test_bad_input(self, capsys):
-        self.aca.run(path='foo bar baz')
+        self.aca(path='foo bar baz').run()
         stdout, _ = capsys.readouterr()
 
         assert not stdout.split()

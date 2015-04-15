@@ -70,7 +70,7 @@ class CliRunner(object):
                 v.decode(utils.defenc) if not six.PY3 and isinstance(v, str) else v
         parsed_args_decoded['__ui__'] = 'cli'
         try:
-            to_run.run(**parsed_args_decoded)
+            to_run(**parsed_args_decoded).run()
         except exceptions.ExecutionException:
             # error is already logged, just catch it and silently exit here
             sys.exit(1)
