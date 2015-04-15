@@ -3,6 +3,7 @@ from __future__ import print_function
 import atexit
 import errno
 import getpass
+import grp
 import logging
 import os
 import signal
@@ -581,3 +582,88 @@ class GtkDialogHelper(object):
         win.run()
         Gdk.threads_leave()
         return inp.get_text() if win.ok else None
+
+class DockerHelper(object):
+
+    try:
+        _docker_module = utils.import_module('docker')
+    except:
+        _docker_module = None
+
+    @classmethod
+    def is_available(cls):
+        return cls._docker_module is not None
+
+    @property
+    def errors(cls):
+        try:
+            return cls._docker_module.errors
+        except AttributeError:
+            return None
+
+    def get_client(cls):
+        try:
+            return cls._docker_module.Client()
+        except AttributeError:
+            return None
+
+    @classmethod
+    def docker_service_running(cls):
+        try:
+            ClHelper.run_command('systemctl status docker')
+            return True
+        except exceptions.ClException:
+            return False
+
+    @classmethod
+    def docker_service_enable_and_run(cls):
+        # TODO: add some conditionals for various platforms
+        logger.info('Enabling and running docker service ...')
+        try:
+            cmd_str = 'bash -c "systemctl enable docker && systemctl start docker"'
+            ClHelper.run_command(cmd_str, as_user='root')
+        except exceptions.ClException:
+            raise exceptions.CommandException('Failed to enable and run docker service.')
+
+        # we need to wait until /var/run/docker.sock is created
+        # let's wait for 30 seconds
+        logger.info('Waiting for /var/run/docker.sock to be created (max 15 seconds) ...')
+        success = False
+        for i in range(0, 30):
+            time.sleep(i * 0.5)
+            try:
+                ClHelper.run_command('ls /var/run/docker.sock')
+                success = True
+                break
+            except exceptions.ClException:
+                pass
+
+        if not success:
+            logger.warning('/var/run/docker.sock doesn\'t exist, docker will likely not work!')
+
+    @classmethod
+    def docker_group_active(cls):
+        logger.debug('Determining if current user has active "docker" group ...')
+        # we have to run cl command, too see if the user has already re-logged
+        # after being added to docker group, so that he can effectively use it
+        if 'docker' in ClHelper.run_command('groups').split():
+            logger.debug('Current user is in "docker" group.')
+            return True
+        else:
+            logger.debug('Current user is not in "docker" group.')
+            return False
+
+    @classmethod
+    def user_in_docker_group(cls, username):
+        return username in grp.getgrnam('docker').gr_mem
+
+    @classmethod
+    def add_user_to_docker_group(cls, username):
+        try:
+            logger.info('Adding {0} to group docker ...'.format(username))
+            ClHelper.run_command('bash -c "usermod -a -G docker {0}"'.format(username),
+                                 as_user='root')
+        except exceptions.ClException as e:
+            msg = 'Failed to add user to "docker" group: {0}'.format(e.output)
+            raise exceptions.CommandException(msg)
+

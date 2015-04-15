@@ -57,7 +57,7 @@ class Command(object):
                 #  can outrun (=> override) the builtin ones
                 for cr in reversed(crs):
                     if cr.matches(self):
-                        return cr.run(self)
+                        return cr(self).run()
 
         prefix_with_colon = self.prefix + '.' if self.prefix else self.prefix
         raise exceptions.CommandException(
