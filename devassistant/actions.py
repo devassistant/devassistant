@@ -557,12 +557,13 @@ class AutoCompleteAction(Action):
     args = [argument.Argument('path', 'path', default='', nargs='?')]
     hidden = True
 
+    _assistant_names = ['create', 'tweak', 'prepare', 'extra']
+    _special_tokens = ['--debug']
+
     def __init__(self, **kwargs):
         self.kwargs = kwargs
-        self._assistant_names = ['create', 'tweak', 'prepare', 'extra']
         self._assistants = bin.TopAssistant().get_subassistants()
         self._actions = [action for action in actions if not action.hidden]
-        self._special_tokens = ['--debug']
 
     def run(self):
         # Assistant names are hardcoded here because on the root level, we only

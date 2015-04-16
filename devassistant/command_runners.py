@@ -83,7 +83,7 @@ class CommandRunner(object):
         stores configuration
 
         Args:
-            c - command to check, instance of devassistant.command.Command
+            c - command to run, instance of devassistant.command.Command
         """
         self.c = c
 
@@ -480,13 +480,14 @@ class GitHubCommandRunner(CommandRunner):
                            'create_fork': ['login', 'repo_url'],
                            'push': []}
 
+    try:
+        _gh_module = utils.import_module('github')
+    except:
+        _gh_module = None
+
     def __init__(self, c):
         self.c = c
         self._user = None
-        try:
-            self._gh_module = utils.import_module('github')
-        except:
-            self._gh_module = None
 
     @classmethod
     def matches(cls, c):
@@ -952,15 +953,15 @@ class AsUserCommandRunner(CommandRunner):
         return c.comm_type.startswith('as ')
 
     @classmethod
-    def get_user_from_comm_type(cls, c):
-        split_type = c.comm_type.split()
+    def get_user_from_command(cls, comm_type):
+        split_type = comm_type.split()
         if len(split_type) != 2:
             raise exceptions.CommandException('"as" expects format "as <username>".')
         user = split_type[1]
         return user
 
     def run(self):
-        user = self.get_user_from_comm_type(self.c)
+        user = self.get_user_from_comm_type(self.c.comm_type)
         to_run = utils.cl_string_for_da_eval(self.c.comm, self.c.kwargs)
 
         def sub_da_logger(msg):
@@ -991,16 +992,16 @@ class DockerCommandRunner(CommandRunner):
 
         self._client = DockerHelper.get_client()
 
-        if c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
+        if self.c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
             'docker_stop', 'docker_cc', 'docker_build']:
-            method = getattr(cls, '_' + c.comm_type)
-            ret = method(c.input_res)
-        elif c.comm_type == 'docker_container_ip':
-            ret = cls._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
-        elif c.comm_type == 'docker_container_name':
-            ret = cls._docker_get_container_attr('Name', c.input_res)
+            method = getattr(self, '_' + self.c.comm_type)
+            ret = method(self.c.input_res)
+        elif self.c.comm_type == 'docker_container_ip':
+            ret = self._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
+        elif self.c.comm_type == 'docker_container_name':
+            ret = self._docker_get_container_attr('Name', c.input_res)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=self.c.comm_type))
 
         return ret
 

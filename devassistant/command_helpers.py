@@ -601,6 +601,7 @@ class DockerHelper(object):
         except AttributeError:
             return None
 
+    @classmethod
     def get_client(cls):
         try:
             return cls._docker_module.Client()
