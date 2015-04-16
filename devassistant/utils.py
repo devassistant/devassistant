@@ -164,7 +164,7 @@ def run_exitfuncs():
 
 
 defenc = locale.getpreferredencoding()
-defenc = 'utf-8' if defenc == 'ascii' else defenc
+defenc = 'utf-8' if defenc.lower() in ['ascii', 'us-ascii'] else defenc
 
 
 def exc_as_decoded_string(e):
