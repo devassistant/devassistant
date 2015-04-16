@@ -367,7 +367,9 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating DAP {pkg} ...'.format(pkg=pkg))
             try:
-                updated = dapicli.install_dap(pkg, update=True, update_allpaths=self.kwargs['allpaths'],
+                updated = dapicli.install_dap(pkg,
+                                              update=True,
+                                              update_allpaths=self.kwargs['allpaths'],
                                               force=self.kwargs['force'])
                 if updated:
                     logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
@@ -396,7 +398,7 @@ class PkgListAction(Action):
     ]
 
     def run(self):
-        if [self.kwargs['installed'], self.kwargs['remote'], self.kwargs['available']].count(True) > 1:
+        if [self.kwargs[k] for k in ['installed', 'remote', 'available']].count(True) > 1:
             logger.error('Only one of --installed, --remote or --available '
                          'can be used simultaneously')
             return
@@ -472,13 +474,15 @@ class PkgInfoAction(Action):
             dapicli.print_local_dap(d, full=self.kwargs.get('full', False))
         elif self.kwargs.get('installed'):
             try:
-                dapicli.print_installed_dap(self.kwargs['package'], full=self.kwargs.get('full', False))
+                dapicli.print_installed_dap(self.kwargs['package'],
+                                            full=self.kwargs.get('full', False))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
         else:
             try:
-                dapicli.print_dap_from_dapi(self.kwargs['package'], full=self.kwargs.get('full', False))
+                dapicli.print_dap_from_dapi(self.kwargs['package'],
+                                            full=self.kwargs.get('full', False))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))

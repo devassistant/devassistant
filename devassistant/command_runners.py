@@ -124,7 +124,8 @@ class AskCommandRunner(CommandRunner):
     def run(self):
         ui = self.c.kwargs['__ui__']
         if self.c.input_res and not isinstance(self.c.input_res, dict):
-            raise exceptions.CommandException('{0} needs a mapping as input!'.format(self.c.comm_type))
+            msg = '{0} needs a mapping as input!'.format(self.c.comm_type)
+            raise exceptions.CommandException(msg)
         if self.c.comm_type == 'ask_password':
             res = DialogHelper.ask_for_password(ui, **self.c.input_res)
         elif self.c.comm_type == 'ask_confirm':
@@ -132,7 +133,8 @@ class AskCommandRunner(CommandRunner):
         elif self.c.comm_type == 'ask_input':
             res = DialogHelper.ask_for_input_with_prompt(ui, **self.c.input_res)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=self.c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
         return (bool(res), res)
 
 
@@ -327,7 +329,9 @@ class DependenciesCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
-        di.install(self.c.input_res, self.c.kwargs['__ui__'], debug=self.c.kwargs.get('da_debug', False))
+        di.install(self.c.input_res,
+                   self.c.kwargs['__ui__'],
+                   debug=self.c.kwargs.get('da_debug', False))
         return (True, self.c.input_res)
 
 
@@ -352,7 +356,8 @@ class DotDevassistantCommandRunner(CommandRunner):
             # we intentionally pass self.c.comm to prevent any evaluation
             self._dot_devassistant_write(self.c.comm)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=self.c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return (True, '')
 
@@ -519,7 +524,8 @@ class GitHubCommandRunner(CommandRunner):
         elif comm == 'create_fork':
             ret = self._github_fork(**kwargs)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return ret
 
@@ -528,14 +534,16 @@ class GitHubCommandRunner(CommandRunner):
         args = c.input_res
         if isinstance(args, list):
             if len(args) != 2:
-                raise exceptions.CommandException('The argument list to "github" must contain two items: action, and a mapping with values.')
+                msg = 'The argument list to "github" must contain two items: action, and a mapping with values.'
+                raise exceptions.CommandException(msg)
             comm = args[0]
             args_rest = args[1]
         elif isinstance(args, dict):
             try:
                 comm = args['do']
             except KeyError:
-                raise exceptions.CommandException('The argument mapping to "github" must contain a key "do" with an action.')
+                msg = 'The argument mapping to "github" must contain a key "do" with an action.'
+                raise exceptions.CommandException(msg)
             args_rest = dict([(k, v) for k, v in args.items() if k != 'do'])
         else:
             comm = args
@@ -543,7 +551,8 @@ class GitHubCommandRunner(CommandRunner):
 
         # Invalid command
         if comm not in cls._required_yaml_args:
-            raise exceptions.CommandException('Invalid action for the "github" command: {c}'.format(c=comm))
+            msg = 'Invalid action for the "github" command: {c}'.format(c=comm)
+            raise exceptions.CommandException(msg)
 
         # find out what arguments we will need
         kwargs = {'ui': c.kwargs['__ui__']}
@@ -734,7 +743,8 @@ class LogCommandRunner(CommandRunner):
                 e.already_logged = True
                 raise e
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=self.c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return (True, self.c.input_res)
 

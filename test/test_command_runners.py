@@ -261,14 +261,16 @@ class TestDotDevassistantCommandRunner(object):
         # List
         list_path = str(tmpdir.mkdir('list'))
         open(os.path.join(list_path, '.devassistant'), 'w').close()
-        to_write_list = [list_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        to_write_list = [list_path, {'dependencies': [{'rpm': ['foo']}],
+                                     'run': [{'log_i': 'foo'}]}]
         self.get_cmd(to_write_list).run()
         list_content = open(os.path.join(list_path, '.devassistant')).read()
 
         # Dict
         dict_path = str(tmpdir.mkdir('dict'))
         open(os.path.join(dict_path, '.devassistant'), 'w').close()
-        to_write_dict = [dict_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        to_write_dict = [dict_path, {'dependencies': [{'rpm': ['foo']}],
+                                     'run': [{'log_i': 'foo'}]}]
         self.get_cmd(to_write_dict).run()
         dict_content = open(os.path.join(dict_path, '.devassistant')).read()
 
@@ -384,7 +386,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_default_case_2(self, tmpdir):
         fn = 'jinja_template.py'
@@ -398,7 +401,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_set_output_case(self, tmpdir):
         # Case 3: set desired output name explicitly
@@ -413,7 +417,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_with_tpl_in_file_subdir(self, tmpdir):
         # if we get a template with source e.g. dirwithmoretemplates/foo.tpl,
@@ -441,8 +446,10 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, 'asd') and self.get_file_contents(tmpdir, 'asd') == 'foo'
-        assert self.is_file_exists(tmpdir, 'foo/sdf') and self.get_file_contents(tmpdir, 'foo/sdf') == 'bar'
+        assert self.is_file_exists(tmpdir, 'asd') and \
+               self.get_file_contents(tmpdir, 'asd') == 'foo'
+        assert self.is_file_exists(tmpdir, 'foo/sdf') and \
+               self.get_file_contents(tmpdir, 'foo/sdf') == 'bar'
 
 class TestLogCommandRunner(object):
     def setup_method(self, method):

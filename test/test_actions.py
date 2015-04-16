@@ -180,9 +180,13 @@ class TestAutoCompleteAction(object):
     def setup_class(self):
         self.aca = actions.AutoCompleteAction
 
-        self.fake_desc = [flexmock(name=n, get_subassistants=lambda: [], args=[]) for n in ['foo', 'bar', 'baz']]
+        self.fake_desc = [flexmock(name=n,
+                                   get_subassistants=lambda: [],
+                                   args=[]) for n in ['foo', 'bar', 'baz']]
         self.fake_arg = flexmock(flags=('--qux',), kwargs=dict())
-        self.fake_crt = flexmock(name='crt', get_subassistants=lambda: self.fake_desc, args=[self.fake_arg])
+        self.fake_crt = flexmock(name='crt',
+                                 get_subassistants=lambda: self.fake_desc,
+                                 args=[self.fake_arg])
 
     @pytest.mark.parametrize('path', ['', '--debug', '__debug'])
     def test_root_path(self, path, capsys):
@@ -220,7 +224,8 @@ class TestAutoCompleteAction(object):
         stdout, _ = capsys.readouterr()
 
         assert not _
-        assert set([a.name for a in self.fake_desc] + [f for f in self.fake_arg.flags]).issubset(set(stdout.split()))
+        assert set([a.name for a in self.fake_desc] + \
+                   [f for f in self.fake_arg.flags]).issubset(set(stdout.split()))
 
     @pytest.mark.parametrize(('long_name', 'short_name'), [
         ('create', 'crt'),
