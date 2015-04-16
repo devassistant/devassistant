@@ -6,8 +6,9 @@ from devassistant import yaml_assistant
 
 
 class PathRunner(object):
-    def __init__(self, path, override_sys_excepthook=True):
+    def __init__(self, path, args, override_sys_excepthook=True):
         self.path = path
+        self.parsed_args = args
         if override_sys_excepthook:
             import devassistant.excepthook
 
@@ -38,7 +39,7 @@ class PathRunner(object):
 
         return err
 
-    def run(self, **parsed_args):
+    def run(self):
         """Runs all errors, dependencies and run methods of all *Assistant objects in self.path.
         Raises:
             devassistant.exceptions.ExecutionException with a cause if something goes wrong
@@ -46,12 +47,12 @@ class PathRunner(object):
         error = None
         # run 'pre_run', 'logging', 'dependencies' and 'run'
         try:  # serve as a central place for error logging
-            self._logging(parsed_args)
-            if 'deps_only' not in parsed_args:
-                self._run_path_run('pre', parsed_args)
-            self._run_path_dependencies(parsed_args)
-            if 'deps_only' not in parsed_args:
-                self._run_path_run('', parsed_args)
+            self._logging(self.parsed_args)
+            if 'deps_only' not in self.parsed_args:
+                self._run_path_run('pre', self.parsed_args)
+            self._run_path_dependencies(self.parsed_args)
+            if 'deps_only' not in self.parsed_args:
+                self._run_path_run('', self.parsed_args)
         except exceptions.ExecutionException as e:
             error = self._log_if_not_logged(e)
             if isinstance(e, exceptions.YamlError):  # if there's a yaml error, just shut down
@@ -59,7 +60,7 @@ class PathRunner(object):
 
         # in any case, run post_run
         try:  # serve as a central place for error logging
-            self._run_path_run('post', parsed_args)
+            self._run_path_run('post', self.parsed_args)
         except exceptions.ExecutionException as e:
             error = self._log_if_not_logged(e)
 
