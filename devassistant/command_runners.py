@@ -980,6 +980,10 @@ class AsUserCommandRunner(CommandRunner):
 @register_command_runner
 class DockerCommandRunner(CommandRunner):
 
+    def __init__(self, c):
+        self.c = c
+        self._client = DockerHelper.get_client()
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('docker_')
@@ -990,18 +994,18 @@ class DockerCommandRunner(CommandRunner):
         if self.c.comm_type == 'docker_check_setup':
             return (True, '')
 
-        self._client = DockerHelper.get_client()
 
         if self.c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
             'docker_stop', 'docker_cc', 'docker_build']:
             method = getattr(self, '_' + self.c.comm_type)
             ret = method(self.c.input_res)
         elif self.c.comm_type == 'docker_container_ip':
-            ret = self._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
+            ret = self._docker_get_container_attr('NetworkSettings.IPAddress', self.c.input_res)
         elif self.c.comm_type == 'docker_container_name':
-            ret = self._docker_get_container_attr('Name', c.input_res)
+            ret = self._docker_get_container_attr('Name', self.c.input_res)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=self.c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return ret
 
@@ -1049,7 +1053,11 @@ class DockerCommandRunner(CommandRunner):
                 or one or more required arguments are not present
         """
         args = set(args)
-        margs = set(method.func_code.co_varnames)
+        try:
+            margs = set(method.func_code.co_varnames)
+        except AttributeError as e: # Python 3 has no func_code
+            margs = set(method.__code__.co_varnames)
+
         rargs = set(required)
 
         dif = args - margs
@@ -1085,9 +1093,10 @@ class DockerCommandRunner(CommandRunner):
         # docker duplicates "Download complete" messages for few reasons,
         #  we want to deduplicate them
         base_images_downloaded = []
-        for chunk in output:
+        for byte_chunk in output:
             # chunk is a JSON chunk, for explanation see
             #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
+            chunk = byte_chunk.decode(utils.defenc) if six.PY3 and isinstance(byte_chunk, bytes) else byte_chunk
             logger.debug('Got message from Docker client: {0}'.format(chunk))
             parsed_json = json.loads(chunk)
             if 'status' in parsed_json and parsed_json['status'].startswith('Download'):
@@ -1127,26 +1136,23 @@ class DockerCommandRunner(CommandRunner):
         raise exceptions.CommandException('docker_run command has been removed, see command' +
             'reference for details on replacing it.')
 
-    @classmethod
-    def _docker_cc(cls, inp):
+    def _docker_cc(self, inp):
         """Creates a docker container"""
-        cls._check_docker_method_args(cls._client.create_container, inp.keys(),
+        self._check_docker_method_args(self._client.create_container, inp.keys(),
             ['image'], 'docker_cc')
-        res = cls._client.create_container(**inp)
+        res = self._client.create_container(**inp)
         return (True, res['Id'])
 
-    @classmethod
-    def _docker_start(cls, inp):
-        cls._check_docker_method_args(cls._client.start, inp.keys(),
+    def _docker_start(self, inp):
+        self._check_docker_method_args(self._client.start, inp.keys(),
             ['container'], 'docker_start')
-        cls._client.start(**inp)
+        self._client.start(**inp)
         # there is no real result here, so just return container hash again
         return (True, inp['container'])
 
-    @classmethod
-    def _docker_stop(cls, inp):
+    def _docker_stop(self, inp):
         if isinstance(inp, dict):
-            cls._check_docker_method_args(cls._client.stop, inp.keys(),
+            self._check_docker_method_args(self._client.stop, inp.keys(),
                 ['container'], 'docker_stop')
             if 'container' not in inp:
                 msg = 'docker_stop requires you to specify "container" when providing mapping.'
@@ -1156,11 +1162,10 @@ class DockerCommandRunner(CommandRunner):
         else:
             container = inp
             timeout = 10
-        cls._client.stop(container, timeout)
+        self._client.stop(container, timeout)
         return (True, container)
 
-    @classmethod
-    def _docker_attach(cls, container_ids):
+    def _docker_attach(self, container_ids):
         result = []
         logres = False
         queue = six.moves.queue.Queue()
@@ -1174,7 +1179,7 @@ class DockerCommandRunner(CommandRunner):
                 super(ContainerAttacher, self).__init__()
                 self.cid = container_id
                 if '_' not in self.cid and len(self.cid) > 25:  # probably a hash
-                    self.nicecid = cid[:12]
+                    self.nicecid = self.cid[:12]
                 else:
                     self.nicecid = self.cid
                 self.client = client
@@ -1211,7 +1216,7 @@ class DockerCommandRunner(CommandRunner):
 
         # init threads, read from queue while something is in there and when
         #  all threads exit, finish reading from the queue and join threads
-        threads = [ContainerAttacher(cid, cls._client) for cid in container_ids]
+        threads = [ContainerAttacher(cid, self._client) for cid in container_ids]
         [t.start() for t in threads]
         while any((t.is_alive() for t in threads)) or not queue.empty():
             try:
@@ -1224,11 +1229,10 @@ class DockerCommandRunner(CommandRunner):
 
         return (logres, '\n'.join(result))
 
-    @classmethod
-    def _docker_find_img(cls, hash_start):
+    def _docker_find_img(self, hash_start):
         # hash start can theoretically be an int, so convert to unicode string either way
         hash_start = six.text_type(hash_start)
-        hashes = cls._client.images(quiet=True)
+        hashes = self._client.images(quiet=True)
         matching = list(filter(lambda x: x.startswith(hash_start), hashes))
 
         res = ' '.join(matching)
@@ -1237,13 +1241,12 @@ class DockerCommandRunner(CommandRunner):
 
         return (logres, res)
 
-    @classmethod
-    def _docker_get_container_attr(cls, attr, container_id):
+    def _docker_get_container_attr(self, attr, container_id):
         # container id can be either hash or name
         logres = True
 
         try:
-            res = cls._client.inspect_container(container_id)
+            res = self._client.inspect_container(container_id)
             # split on dots an loop to get access to nested dicts
             for a in attr.split('.'):
                 if not isinstance(res, dict) or a not in res:
