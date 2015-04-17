@@ -3,10 +3,17 @@
 <application>
  <id type="desktop">devassistant.desktop</id>
  <metadata_license>CC-BY-SA</metadata_license>
- <project_license>GPL2.0+</project_license>
+ <project_license>GPL-2.0+</project_license>
  <name>DevAssistant</name>
  <summary>DevAssistant - making life easier for developers</summary>
  <description>
+  <p>
+    DevAssistant can help you set up your developing environment, publish your code,
+    and do many of the chores that somehow keep you from the important stuff - writing
+    your software. It does not matter if you only recently discovered the world of software
+    development, or if you have been coding for two decades, there's always something
+    DevAssistant can do to make your life easier.
+  </p>
   <p>
     DevAssistant can help you with creating and setting up basic projects
     in various languages, installing dependencies, setting up environment etc.
@@ -24,10 +31,10 @@
  </description>
  <screenshots>
    <screenshot type="default" width="702" height="633">
-     https://raw.github.com/devassistant/devassistant/master/appdata/devassistant-main-window.png
+     https://raw.github.com/devassistant/devassistant/master/distribution/appdata/devassistant-main-window.png
    </screenshot>
    <screenshot width="642" height="690">
-     https://raw.github.com/devassistant/devassistant/master/appdata/devassistant-params-window.png
+     https://raw.github.com/devassistant/devassistant/master/distribution/appdata/devassistant-params-window.png
    </screenshot>
  </screenshots>
  <url type="homepage">http://devassistant.org/</url>
