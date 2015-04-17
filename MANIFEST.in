@@ -4,6 +4,8 @@ include LICENSE
 include README.rst
 include requirements.txt requirements-devel.txt requirements-py2.txt
 
+include da.py
+
 recursive-include distribution *
 
 include devassistant/gui/devassistant.desktop
