@@ -107,10 +107,9 @@ Each command must be a class with two classmethods::
        def matches(cls, c):
            return c.comm_type == 'mycomm'
 
-       @classmethod
-       def run(cls, c):
-           input = c.input_res
-           logger.info('MyCommandRunner was invoked: {ct}: {ci}'.format(ct=c.comm_type,
+       def run(self):
+           input = self.c.input_res
+           logger.info('MyCommandRunner was invoked: {ct}: {ci}'.format(ct=self.c.comm_type,
                                                                         ci=input))
            return (True, len(input))
 
@@ -141,8 +140,10 @@ The ``run`` method should use ``devassistant.logger.logger`` object to log any
 messages and it can also raise any exception that's subclass of
 ``devassistant.exceptions.ExecutionException``.
 
-The ``c`` argument of both methods is a ``devassistant.lang.Command``
-object. You can use various attributes of ``Command``:
+The ``c`` argument of the ``matches`` method and the CommandRunner's
+``__init__`` method (not shown in the example) is a
+``devassistant.lang.Command`` object. You can use various attributes of
+``Command``:
 
 - ``comm_type`` - command type, e.g. ``mycomm``
   (this will always be stripped of exec flag ``~``).
