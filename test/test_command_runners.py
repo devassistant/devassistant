@@ -9,7 +9,7 @@ from flexmock import flexmock
 import yaml
 
 from devassistant.assistant_base import AssistantBase
-from devassistant.command_helpers import ClHelper, DialogHelper
+from devassistant.command_helpers import ClHelper, DialogHelper, DockerHelper
 from devassistant.command_runners import AskCommandRunner, ClCommandRunner, \
     Jinja2Runner, LogCommandRunner, NormalizeCommandRunner, UseCommandRunner, \
     SetupProjectDirCommandRunner, PingPongCommandRunner, LoadCmdCommandRunner, \
@@ -41,7 +41,7 @@ class TestAskCommandRunner(object):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_password').and_return('foobar')
         comm = Command('ask_password', {}, {'__ui__': 'cli'})
-        res = self.acr.run(comm)
+        res = self.acr(comm).run()
 
         assert res[0] is True
         assert res[1] == 'foobar'
@@ -51,7 +51,7 @@ class TestAskCommandRunner(object):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_input_with_prompt').and_return(inp)
         comm = Command('ask_input', {}, {'__ui__': 'cli'})
-        res = self.acr.run(comm)
+        res = self.acr(comm).run()
 
         assert res[0] is bool(inp)
         assert res[1] == inp
@@ -61,13 +61,14 @@ class TestAskCommandRunner(object):
         flexmock(DialogHelper)
         DialogHelper.should_receive('ask_for_confirm_with_message').and_return(decision)
         comm = Command('ask_confirm', {}, {'__ui__': 'cli'})
-        res = self.acr.run(comm)
+        res = self.acr(comm).run()
 
         assert res[0] is decision
         assert res[1] == decision
 
 
 class TestUseCommandRunner(object):
+
     def setup_class(self):
         parent = YamlAssistant('parent', {}, '', CreatorAssistant())
         setattr(parent, '_foo', 'bar')
@@ -151,7 +152,7 @@ class TestUseCommandRunner(object):
     def test_run_assistants(self, cmd, assistant, expected):
         com = Command('use', cmd, {'__assistant__': self.ass[assistant]})
         flexmock(lang).should_receive('run_section').and_return(expected)
-        result = self.ccr.run(com)
+        result = self.ccr(com).run()
 
         assert result == expected
 
@@ -183,29 +184,29 @@ class TestClCommandRunner(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_command_passes(self):
-        self.cl.run(Command('cl', 'true'))
+        self.cl(Command('cl', 'true')).run()
 
     def test_command_fails(self):
         with pytest.raises(RunException):
-            self.cl.run(Command('cl', 'false'))
+            self.cl(Command('cl', 'false')).run()
 
     def test_run_logs_command_at_debug(self):
         # previously, this test used 'ls', but that is in different locations on different
         # distributions (due to Fedora's usrmove), so use something that should be common
-        self.cl.run(Command('cl', 'id'))
+        self.cl(Command('cl', 'id')).run()
         assert ('DEBUG', 'id') in self.tlh.msgs
 
     def test_run_logs_command_at_info_if_asked(self):
-        self.cl.run(Command('cl_i', 'id'))
+        self.cl(Command('cl_i', 'id')).run()
         assert ('INFO', 'id') in self.tlh.msgs
 
     def test_p_flag_pasesses_even_if_subcommand_fails(self):
-        self.cl.run(Command('cl_ip', 'false'))
+        self.cl(Command('cl_ip', 'false')).run()
         assert ('INFO', 'false') in self.tlh.msgs
 
     def test_passes_env(self):
-        self.cl.run(Command('cl_i', 'echo $DEVASSISTANTTESTFOO',
-            kwargs={'__env__': {'DEVASSISTANTTESTFOO': 'foo'}}))
+        self.cl(Command('cl_i', 'echo $DEVASSISTANTTESTFOO',
+            kwargs={'__env__': {'DEVASSISTANTTESTFOO': 'foo'}})).run()
         assert ('INFO', 'foo') in self.tlh.msgs
 
 
@@ -241,9 +242,8 @@ class TestDotDevassistantCommandRunner(object):
 
     def test_dda_w_fails_with_invalid_keys(self):
         cmd = self.get_cmd({'foo': 'bar', 'baz': 'qux'})
-        print(cmd.comm)
         with pytest.raises(CommandException) as e:
-            self.ddcr.run(cmd)
+            self.ddcr(cmd).run()
 
         assert 'dda_w expects mapping' in str(e)
 
@@ -261,14 +261,16 @@ class TestDotDevassistantCommandRunner(object):
         # List
         list_path = str(tmpdir.mkdir('list'))
         open(os.path.join(list_path, '.devassistant'), 'w').close()
-        to_write_list = [list_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        to_write_list = [list_path, {'dependencies': [{'rpm': ['foo']}],
+                                     'run': [{'log_i': 'foo'}]}]
         self.get_cmd(to_write_list).run()
         list_content = open(os.path.join(list_path, '.devassistant')).read()
 
         # Dict
         dict_path = str(tmpdir.mkdir('dict'))
         open(os.path.join(dict_path, '.devassistant'), 'w').close()
-        to_write_dict = [dict_path, {'dependencies': [{'rpm': ['foo']}], 'run': [{'log_i': 'foo'}]}]
+        to_write_dict = [dict_path, {'dependencies': [{'rpm': ['foo']}],
+                                     'run': [{'log_i': 'foo'}]}]
         self.get_cmd(to_write_dict).run()
         dict_content = open(os.path.join(dict_path, '.devassistant')).read()
 
@@ -384,7 +386,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_default_case_2(self, tmpdir):
         fn = 'jinja_template.py'
@@ -398,7 +401,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_tpl_file_set_output_case(self, tmpdir):
         # Case 3: set desired output name explicitly
@@ -413,7 +417,8 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, fn) and self.get_file_contents(tmpdir, fn) == 'print("foo")'
+        assert self.is_file_exists(tmpdir, fn) and \
+               self.get_file_contents(tmpdir, fn) == 'print("foo")'
 
     def test_render_with_tpl_in_file_subdir(self, tmpdir):
         # if we get a template with source e.g. dirwithmoretemplates/foo.tpl,
@@ -441,8 +446,10 @@ class TestJinja2CommandRunner(object):
                     inp,
                     kwargs={'__files_dir__': [self.filesdir]})
         c.run()
-        assert self.is_file_exists(tmpdir, 'asd') and self.get_file_contents(tmpdir, 'asd') == 'foo'
-        assert self.is_file_exists(tmpdir, 'foo/sdf') and self.get_file_contents(tmpdir, 'foo/sdf') == 'bar'
+        assert self.is_file_exists(tmpdir, 'asd') and \
+               self.get_file_contents(tmpdir, 'asd') == 'foo'
+        assert self.is_file_exists(tmpdir, 'foo/sdf') and \
+               self.get_file_contents(tmpdir, 'foo/sdf') == 'bar'
 
 class TestLogCommandRunner(object):
     def setup_method(self, method):
@@ -450,34 +457,34 @@ class TestLogCommandRunner(object):
         self.tlh = TestLoggingHandler.create_fresh_handler()
 
     def test_log(self):
-        self.l.run(Command('log_w', 'foo!'))
+        self.l(Command('log_w', 'foo!')).run()
         assert self.tlh.msgs == [('WARNING', 'foo!')]
 
     def test_log_wrong_level(self):
         with pytest.raises(CommandException):
-            self.l.run(Command('log_b', 'bar'))
+            self.l(Command('log_b', 'bar')).run()
 
 
 class TestNormalizeCommandRunner(object):
     def setup_method(self, method):
-        self.n = NormalizeCommandRunner()
+        self.n = NormalizeCommandRunner
 
     def test_strips_digits_at_start(self):
-        self.n.run(Command('normalize', '42blah')) == (True, 'blah')
+        self.n(Command('normalize', '42blah')).run() == (True, 'blah')
 
     def test_replaces_bad_chars_with_underscores(self):
         bad_string = '-+\\|()[]{}<>,./:\'" \t;`!@#$%^&*'
-        self.n.run(Command('normalize', bad_string)) == (True, '_' * len(bad_string))
+        self.n(Command('normalize', bad_string)).run() == (True, '_' * len(bad_string))
 
     def test_unicode_chars(self):
         s = 'ěšč'
-        assert self.n.run(Command('normalize', s)) == (True, 'esc')
+        assert self.n(Command('normalize', s)).run() == (True, 'esc')
         s = u'ěšč'
-        assert self.n.run(Command('normalize', s)) == (True, 'esc')
+        assert self.n(Command('normalize', s)).run() == (True, 'esc')
 
     def test_ok_chars(self):
         i = {'what': 'foo-bar.+*', 'ok_chars': '-.'}
-        assert self.n.run(Command('normalize', i)) == (True, 'foo-bar.__')
+        assert self.n(Command('normalize', i)).run() == (True, 'foo-bar.__')
 
 
 class TestSCLCommandRunner(object):
@@ -681,28 +688,29 @@ class TestEnvCommandRunner(object):
         self.kwargs = {'__env__': {'foo': 'bar', 'spam': 'spam'}}
 
     def test_set(self):
-        res = EnvCommandRunner.run(Command('env_set', {'foo': 'changed', 'some': 'value'},
-            self.kwargs))
+        res = EnvCommandRunner(Command('env_set', {'foo': 'changed', 'some': 'value'},
+            self.kwargs)).run()
         assert res == (True, {'foo': 'changed', 'some': 'value'})
         assert self.kwargs == {'__env__': {'foo': 'changed', 'some': 'value', 'spam': 'spam'}}
 
     def test_unset_one(self):
-        res = EnvCommandRunner.run(Command('env_unset', 'spam', self.kwargs))
+        res = EnvCommandRunner(Command('env_unset', 'spam', self.kwargs)).run()
         assert res == (True, {'spam': 'spam'})
         assert self.kwargs == {'__env__': {'foo': 'bar'}}
 
     def test_unset_more(self):
-        res = EnvCommandRunner.run(Command('env_unset', ['foo', 'spam'], self.kwargs))
+        res = EnvCommandRunner(Command('env_unset', ['foo', 'spam'], self.kwargs)).run()
         assert res == (True, {'foo': 'bar', 'spam': 'spam'})
         assert self.kwargs == {'__env__': {}}
+
 
 class TestDockerCommandRunner(object):
 
     def test_check_fails_when_docker_py_not_present(self):
-        dcr = flexmock(DockerCommandRunner)
-        dcr.should_receive('_docker_module').and_return(None)
-        dcr.should_call('_docker_group_add').never()
-        dcr.should_call('_docker_service_enable_and_run').never()
+        dh = flexmock(DockerHelper)
+        dh.should_receive('_docker_module').and_return(None)
+        dh.should_call('add_user_to_docker_group').never()
+        dh.should_call('docker_service_enable_and_run').never()
 
         with pytest.raises(CommandException) as excinfo:
             DockerCommandRunner._docker_check_setup()
@@ -710,12 +718,13 @@ class TestDockerCommandRunner(object):
         assert 'module is not present' in str(excinfo.value)
 
     def test_check_passes_when_docker_present(self):
-        dcr = flexmock(DockerCommandRunner)
-        dcr.should_receive('_docker_module').and_return(object())
-        dcr.should_receive('_docker_group_active').and_return(True)
-        dcr.should_receive('_docker_service_running').and_return(True)
-        dcr.should_call('_docker_group_add').never()
-        dcr.should_call('_docker_service_enable_and_run').never()
+        dh = flexmock(DockerHelper)
+        dh.should_receive('_docker_module').and_return(object())
+        print(DockerHelper._docker_module, DockerHelper.is_available())
+        dh.should_receive('docker_group_active').and_return(True)
+        dh.should_receive('docker_service_running').and_return(True)
+        dh.should_call('add_user_to_docker_group').never()
+        dh.should_call('docker_service_enable_and_run').never()
 
         DockerCommandRunner._docker_check_setup()
 

@@ -260,13 +260,13 @@ class RunWindow(object):
         """
         #logger_gui.info("Thread run")
         path = self.top_assistant.get_selected_subassistant_path(**self.kwargs)
-        self.dev_assistant_runner = path_runner.PathRunner(path)
         kwargs_decoded = dict()
         for k, v in self.kwargs.items():
             kwargs_decoded[k] = \
                 v.decode(utils.defenc) if not six.PY3 and isinstance(v, str) else v
+        self.dev_assistant_runner = path_runner.PathRunner(path, kwargs_decoded)
         try:
-            self.dev_assistant_runner.run(**kwargs_decoded)
+            self.dev_assistant_runner.run()
             Gdk.threads_enter()
             if not self.project_canceled:
                 message = '<span color="#008000">Done</span>'

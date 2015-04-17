@@ -71,13 +71,16 @@ class Action(object):
     args = []
     hidden = False
 
+    def __init__(self, **kwargs):
+        """Instantiate an action, accepts arguments parsed from cli/retrieved from gui."""
+        self.kwargs = kwargs
+
     @classmethod
     def get_subactions(cls):
         return []
 
-    @classmethod
-    def run(cls, **kwargs):
-        """Runs this actions, accepts arguments parsed from cli/retrieved from gui.
+    def run(self):
+        """Runs this action.
 
         Raises:
             devassistant.exceptions.ExecutionExceptions if something goes wrong
@@ -93,20 +96,19 @@ class DocAction(Action):
                               help='Packages to get documentation for'),
             argument.Argument('doc', 'doc', nargs='?', help='Document to display')]
 
-    @classmethod
-    def run(cls, **kwargs):
-        dap = kwargs['dap']
-        doc = kwargs.get('doc', None)
+    def run(self):
+        dap = self.kwargs['dap']
+        doc = self.kwargs.get('doc', None)
         docdir = utils.find_file_in_load_dirs(os.path.join('doc', dap))
         all_docs = []
         if docdir is not None:
-            all_docs = cls._get_doc_files(docdir)
+            all_docs = self._get_doc_files(docdir)
         if not all_docs:
             logger.info('DAP {0} has no documentation.'.format(dap))
         elif doc is not None:
             doc_fullpath = os.path.join(docdir, doc)
             if doc_fullpath in all_docs:
-                cls._show_doc(doc_fullpath)
+                self._show_doc(doc_fullpath)
             else:
                 msg = 'DAP {0} has no document "{1}".'.format(dap, doc)
                 logger.error(msg)
@@ -146,22 +148,21 @@ class EvalAction(Action):
     args = [argument.Argument('input', 'input')]
     hidden = True
 
-    @classmethod
-    def run(cls, **kwargs):
-        to_run = cls.gather_input(kwargs['input'])
+    def run(self):
+        to_run = self.gather_input(self.kwargs['input'])
         parsed = yaml.load(to_run, Loader=Loader)
         lang.run_section(parsed.get('run', []), parsed.get('ctxt', {}))
 
     @classmethod
-    def gather_input(cls, recieved):
-        if recieved == '-':
+    def gather_input(cls, received):
+        if received == '-':
             # read from stdin
             to_run = []
             for l in sys.stdin.readlines():
                 to_run.append(l)
             to_run = ''.join(to_run)
         else:
-            to_run = recieved
+            to_run = received
         return to_run
 
 
@@ -171,10 +172,9 @@ class HelpAction(Action):
     name = 'help'
     description = 'Print detailed help.'
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         """Prints nice help."""
-        print(cls.get_help(format_type=kwargs.get('format_type')))
+        print(cls.get_help(format_type=self.kwargs.get('format_type')))
 
     @classmethod
     def get_help(cls, format_type='ascii'):
@@ -280,18 +280,17 @@ class PkgInstallAction(Action):
                           help='If the package is already installed, reinstall it'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         exs = []
-        for pkg in kwargs['package']:
+        for pkg in self.kwargs['package']:
             logger.info('Installing DAP {pkg} ...'.format(pkg=pkg))
             if os.path.isfile(pkg):
                 method = dapicli.install_dap_from_path
             else:
                 method = dapicli.install_dap
             try:
-                pkgs = method(pkg, force=kwargs['force'],
-                              nodeps=kwargs['nodeps'], reinstall=kwargs['reinstall'])
+                pkgs = method(pkg, force=self.kwargs['force'],
+                              nodeps=self.kwargs['nodeps'], reinstall=self.kwargs['reinstall'])
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except exceptions.DapiError as e:
                 exs.append(utils.exc_as_decoded_string(e))
@@ -312,18 +311,17 @@ class PkgUninstallAction(Action):
                           default=False, help='Try to uninstall from all possible locations'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         exs = []
         uninstalled = []
-        for pkg in kwargs['package']:
+        for pkg in self.kwargs['package']:
             if pkg in uninstalled:
                 logger.info('DAP {pkg} already uninstalled'.format(pkg=pkg))
                 continue
             logger.info('Uninstalling DAP {pkg} ...'.format(pkg=pkg))
             try:
-                done = dapicli.uninstall_dap(pkg, confirm=kwargs['force'],
-                                             allpaths=kwargs['allpaths'])
+                done = dapicli.uninstall_dap(pkg, confirm=self.kwargs['force'],
+                                             allpaths=self.kwargs['allpaths'])
                 if done:
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
@@ -356,11 +354,10 @@ class PkgUpdateAction(Action):
                           help='Try to update packages in all paths'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         pkgs = exs = []
         try:
-            pkgs = kwargs['package']
+            pkgs = self.kwargs['package']
         except KeyError:
             pkgs = dapicli.get_installed_daps()
             if pkgs:
@@ -370,8 +367,10 @@ class PkgUpdateAction(Action):
         for pkg in pkgs:
             logger.info('Updating DAP {pkg} ...'.format(pkg=pkg))
             try:
-                updated = dapicli.install_dap(pkg, update=True, update_allpaths=kwargs['allpaths'],
-                                              force=kwargs['force'])
+                updated = dapicli.install_dap(pkg,
+                                              update=True,
+                                              update_allpaths=self.kwargs['allpaths'],
+                                              force=self.kwargs['force'])
                 if updated:
                     logger.info('DAP {pkg} successfully updated.'.format(pkg=pkg))
                 else:
@@ -398,16 +397,16 @@ class PkgListAction(Action):
                           help='List packages available from DAPI (not installed only)'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
-        if [kwargs['installed'], kwargs['remote'], kwargs['available']].count(True) > 1:
+    def run(self):
+        if [self.kwargs[k] for k in ['installed', 'remote', 'available']].count(True) > 1:
             logger.error('Only one of --installed, --remote or --available '
                          'can be used simultaneously')
             return
-        if kwargs['remote'] or kwargs['available']:
-            dapicli.print_daps(simple=kwargs['simple'], skip_installed=kwargs['available'])
+        if self.kwargs['remote'] or self.kwargs['available']:
+            dapicli.print_daps(simple=self.kwargs['simple'],
+                               skip_installed=self.kwargs['available'])
         else:
-            dapicli.print_installed_dap_list(simple=kwargs['simple'])
+            dapicli.print_installed_dap_list(simple=self.kwargs['simple'])
 
 
 class PkgSearchAction(Action):
@@ -434,16 +433,15 @@ class PkgSearchAction(Action):
                           default=False, action='store_true'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         newargs = {}
-        newargs['q'] = ' '.join(kwargs['query'])
-        newargs['noassistants'] = kwargs['noassistants']
-        newargs['unstable'] = kwargs['unstable']
-        newargs['notactive'] = kwargs['deactivated']
-        newargs['minimal_rank'] = kwargs['minrank']
-        newargs['minimal_rank_count'] = kwargs['mincount']
-        if not kwargs['allplatforms']:
+        newargs['q'] = ' '.join(self.kwargs['query'])
+        newargs['noassistants'] = self.kwargs['noassistants']
+        newargs['unstable'] = self.kwargs['unstable']
+        newargs['notactive'] = self.kwargs['deactivated']
+        newargs['minimal_rank'] = self.kwargs['minrank']
+        newargs['minimal_rank_count'] = self.kwargs['mincount']
+        if not self.kwargs['allplatforms']:
             newargs['platform'] = utils.get_distro_name()
 
         try:
@@ -463,28 +461,29 @@ class PkgInfoAction(Action):
             argument.Argument('installed', '--installed', help='Query installed package',
                               required=False, action='store_true')]
 
-    @classmethod
-    def run(cls, **kwargs):
-        if os.path.isfile(kwargs['package']):
+    def run(self):
+        if os.path.isfile(self.kwargs['package']):
             old_level = logger.getEffectiveLevel()
             logger.setLevel(logging.ERROR)
             try:
-                d = dapi.Dap(kwargs['package'])
+                d = dapi.Dap(self.kwargs['package'])
                 if not dapi.DapChecker.check(d):
                     raise exceptions.ExecutionException(
                         'This DAP is not valid, info can\'t be displayed.')
             finally:
                 logger.setLevel(old_level)
-            dapicli.print_local_dap(d, full=kwargs.get('full', False))
-        elif kwargs.get('installed'):
+            dapicli.print_local_dap(d, full=self.kwargs.get('full', False))
+        elif self.kwargs.get('installed'):
             try:
-                dapicli.print_installed_dap(kwargs['package'], full=kwargs.get('full', False))
+                dapicli.print_installed_dap(self.kwargs['package'],
+                                            full=self.kwargs.get('full', False))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
         else:
             try:
-                dapicli.print_dap_from_dapi(kwargs['package'], full=kwargs.get('full', False))
+                dapicli.print_dap_from_dapi(self.kwargs['package'],
+                                            full=self.kwargs.get('full', False))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
@@ -503,16 +502,15 @@ class PkgLintAction(Action):
                           help='Ignore warnings'),
     ]
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         error = False
         old_level = logger.getEffectiveLevel()
-        for pkg in kwargs['package']:
+        for pkg in self.kwargs['package']:
             try:
-                if kwargs['nowarnings']:
+                if self.kwargs['nowarnings']:
                     logger.setLevel(logging.ERROR)
                 d = dapi.Dap(pkg)
-                if not dapi.DapChecker.check(d, network=kwargs['network']):
+                if not dapi.DapChecker.check(d, network=self.kwargs['network']):
                     error = True
             except (exceptions.DapFileError, exceptions.DapMetaError) as e:
                 logger.error(utils.exc_as_decoded_string(e))
@@ -548,8 +546,7 @@ class VersionAction(Action):
     name = 'version'
     description = 'Print version'
 
-    @classmethod
-    def run(cls, **kwargs):
+    def run(self):
         from devassistant import __version__
         print('DevAssistant {version}'.format(version=__version__))
 
@@ -561,67 +558,65 @@ class AutoCompleteAction(Action):
     args = [argument.Argument('path', 'path', default='', nargs='?')]
     hidden = True
 
-    # Assistant names are hardcoded here because on the root level, we only
-    # want to show these nice long forms. All forms incl. old aliases are
-    # autocompleted, of course.
     _assistant_names = ['create', 'tweak', 'prepare', 'extra']
-    _assistants = bin.TopAssistant().get_subassistants()
-    _actions = [action for action in actions if not action.hidden]
     _special_tokens = ['--debug']
 
-    @classmethod
-    def run(cls, **kwargs):
-        path = kwargs.get('path', '').split()
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self._assistants = bin.TopAssistant().get_subassistants()
+        self._actions = [action for action in actions if not action.hidden]
 
-        flags = cls._get_flags_for_path(path)
+    def run(self):
+        # Assistant names are hardcoded here because on the root level, we only
+        # want to show these nice long forms. All forms incl. old aliases are
+        # autocompleted, of course.
+        flags = self._get_flags_for_path(self.kwargs.get('path', '').split())
         print(' '.join(flags))
 
-    @classmethod
-    def _get_flags_for_path(cls, path):
+    def _get_flags_for_path(self, path):
         '''For a given path, separated by spaces, return a list of completable paths.
         Commencing dashes in flags are expected to be replaced with underscores
         (to fool argparse into not parsing those)'''
         path = [tok[:2].replace('_', '-') + tok[2:] for tok in path]
 
         # No path specified
-        if not path or (len(path) == 1 and path[0] in cls._special_tokens):
-            flags = cls._assistant_names + [a.name for a in cls._actions] + \
-                    cls._special_tokens + ['--help']
+        if not path or (len(path) == 1 and path[0] in self._special_tokens):
+            flags = self._assistant_names + [a.name for a in self._actions] + \
+                    self._special_tokens + ['--help']
 
         else:
-            elem = cls._get_elem_for_path(path)
+            elem = self._get_elem_for_path(path)
             if elem:
-                flags = cls._get_flags(elem, long_only=True) + \
-                        [a.name for a in cls._get_descendants(elem)] + \
+                flags = self._get_flags(elem, long_only=True) + \
+                        [a.name for a in self._get_descendants(elem)] + \
                         ['--help']
 
                 #TODO Fix so that it honors nargs
                 # Last argument in flags or there are positional arguments
-                if path[-1] in cls._get_flags(elem, dashed_only=True, attributes_only=True) \
-                    or cls._get_positional_args(elem):
+                if path[-1] in self._get_flags(elem, dashed_only=True, attributes_only=True) \
+                    or self._get_positional_args(elem):
                     flags.append('_FILENAMES')
             else:
                 flags = []
 
         return sorted(flags)
 
-    @classmethod
-    def _get_elem_for_path(cls, path):
+    def _get_elem_for_path(self, path):
         '''Get element (Assistant or Action) specified by given path'''
         skipping = False
         result = None
-        current = cls._assistants + cls._actions
+        current = self._assistants + self._actions
         for token in path:
             found = False if not skipping else True
 
-            if token in cls._special_tokens:
+            if token in self._special_tokens:
                 continue
 
             # If result has positional arguments or token is a flag, it's safe
             # to skip until next valid token is found
             if result and \
-                    (cls._get_positional_args(result) \
-                    or token in cls._get_flags(result, dashed_only=True)):
+                    (self._get_positional_args(result) \
+                    or token in self._get_flags(result, dashed_only=True)):
                 skipping = True
                 found = True
                 continue
@@ -635,7 +630,7 @@ class AutoCompleteAction(Action):
                 if token == elem.name or token in aliases:
                     found = True
                     skipping = False
-                    current = cls._get_descendants(elem)
+                    current = self._get_descendants(elem)
                     result = elem
                     break
 

@@ -20,7 +20,7 @@ import devassistant
 
 from devassistant import exceptions
 from devassistant.remote_auth import GitHubAuth
-from devassistant.command_helpers import ClHelper, DialogHelper
+from devassistant.command_helpers import ClHelper, DialogHelper, DockerHelper
 from devassistant import lang
 from devassistant.logger import logger
 from devassistant.package_managers import DependencyInstaller
@@ -62,6 +62,7 @@ def register_command_runner(arg):
 
 
 class CommandRunner(object):
+
     @classmethod
     def matches(cls, c):
         """Returns True if this command runner can run given command,
@@ -75,12 +76,19 @@ class CommandRunner(object):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def run(cls, c):
-        """Runs the given command.
+    def __init__(self, c):
+        """Initialize with a command c.
+
+        This method should be reimplemented in case that the command runner
+        stores configuration
 
         Args:
             c - command to run, instance of devassistant.command.Command
+        """
+        self.c = c
+
+    def run(self):
+        """Runs the command provided at class instantiation.
 
         Returns:
             Tuple (logical_result, result) of the run (e.g. (True, 'output')). Usually,
@@ -95,41 +103,44 @@ class CommandRunner(object):
 
 @register_command_runner
 class AtExitCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'atexit'
 
-    @classmethod
-    def run(cls, c):
-        utils.atexit(lang.run_section, copy.deepcopy(c.comm), copy.deepcopy(c.kwargs),
-                     copy.deepcopy(c.kwargs['__assistant__']))
-        return (True, c.comm)
+    def run(self):
+        utils.atexit(lang.run_section, copy.deepcopy(self.c.comm), copy.deepcopy(self.c.kwargs),
+                     copy.deepcopy(self.c.kwargs['__assistant__']))
+        return (True, self.c.comm)
 
 
 @register_command_runner
 class AskCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('ask_')
 
-    @classmethod
-    def run(cls, c):
-        ui = c.kwargs['__ui__']
-        if c.input_res and not isinstance(c.input_res, dict):
-            raise exceptions.CommandException('{0} needs a mapping as input!'.format(c.comm_type))
-        if c.comm_type == 'ask_password':
-            res = DialogHelper.ask_for_password(ui, **c.input_res)
-        elif c.comm_type == 'ask_confirm':
-            res = DialogHelper.ask_for_confirm_with_message(ui, **c.input_res)
-        elif c.comm_type == 'ask_input':
-            res = DialogHelper.ask_for_input_with_prompt(ui, **c.input_res)
+    def run(self):
+        ui = self.c.kwargs['__ui__']
+        if self.c.input_res and not isinstance(self.c.input_res, dict):
+            msg = '{0} needs a mapping as input!'.format(self.c.comm_type)
+            raise exceptions.CommandException(msg)
+        if self.c.comm_type == 'ask_password':
+            res = DialogHelper.ask_for_password(ui, **self.c.input_res)
+        elif self.c.comm_type == 'ask_confirm':
+            res = DialogHelper.ask_for_confirm_with_message(ui, **self.c.input_res)
+        elif self.c.comm_type == 'ask_input':
+            res = DialogHelper.ask_for_input_with_prompt(ui, **self.c.input_res)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
         return (bool(res), res)
 
 
 @register_command_runner
 class UseCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'use'
@@ -168,9 +179,10 @@ class UseCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
         # else everything is fine
 
-    @classmethod
-    def _construct_ctxt(cls, inp, original_ctxt):
-        """If inp is string, this just duplicates the whole context
+    def _construct_ctxt(self):
+        """Construct context from command provided at class instantiation
+
+        If self.c.input_res is string, this just duplicates the whole context
         (e.g. "use: snippet.run_section"), else else we pass just special
         values (__*__) plus the specified values, e.g.:
         - use:
@@ -179,6 +191,9 @@ class UseCommandRunner(CommandRunner):
               foo: $somevar
               spam: $spamspam
         """
+        inp = self.c.input_res
+        original_ctxt = self.c.kwargs
+
         if isinstance(inp, dict):
             new_ctxt = copy.deepcopy(inp['args'])
             for k, v in original_ctxt.items():
@@ -189,25 +204,25 @@ class UseCommandRunner(CommandRunner):
 
         return new_ctxt
 
-    @classmethod
-    def run(cls, c):
-        cls.check_args(c)
-        kwargs = cls._construct_ctxt(c.input_res, c.kwargs)
-        sect = c.input_res if isinstance(c.input_res, six.string_types) else c.input_res['sect']
+    def run(self):
+        self.check_args(self.c)
+        kwargs = self._construct_ctxt()
+        sect = self.c.input_res if isinstance(self.c.input_res, six.string_types) \
+                                else self.c.input_res['sect']
         yaml_name, section_name = sect.rsplit('.', 1)
-        assistant = c.kwargs['__assistant__']
+        assistant = self.c.kwargs['__assistant__']
 
         # Modify kwargs based on command
-        if cls.is_snippet_call(sect):
-            snip = cls.get_snippet(yaml_name)
-            section = cls.get_snippet_section(section_name, snip)
+        if self.is_snippet_call(sect):
+            snip = self.get_snippet(yaml_name)
+            section = self.get_snippet_section(section_name, snip)
 
             kwargs['__files__'].append(snip.get_files_section())
             kwargs['__files_dir__'].append(snip.get_files_dir())
             kwargs['__sourcefiles__'].append(snip.path)
         else:
-            assistant = cls.get_assistant(yaml_name, section_name, assistant)
-            section = cls.get_assistant_section(section_name, assistant)
+            assistant = self.get_assistant(yaml_name, section_name, assistant)
+            section = self.get_assistant_section(section_name, assistant)
 
             kwargs['__assistant__'] = assistant
 
@@ -269,29 +284,29 @@ class UseCommandRunner(CommandRunner):
 
 @register_command_runner
 class ClCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('cl')
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         log_level = logging.DEBUG
         as_user = None
         reraise = True
 
-        if 'i' in c.comm_type:
+        if 'i' in self.c.comm_type:
             log_level = logging.INFO
-        if 'r' in c.comm_type:
+        if 'r' in self.c.comm_type:
             as_user = 'root'
-        if 'p' in c.comm_type:
+        if 'p' in self.c.comm_type:
             # we need this option for the case we don't want to exit assistant imediatelly,
             #  but at the same time we need the command output (we could use $(command), but
             #  that doesn't allow logging output at realtime)
             reraise = False
 
         try:
-            result = ClHelper.run_command(c.input_res, log_level, as_user=as_user,
-                env=c.kwargs.get('__env__', None))
+            result = ClHelper.run_command(self.c.input_res, log_level, as_user=as_user,
+                env=self.c.kwargs.get('__env__', None))
         except exceptions.ClException as e:
             if reraise:
                 raise
@@ -303,43 +318,46 @@ class ClCommandRunner(CommandRunner):
 
 @register_command_runner
 class DependenciesCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('dependencies')
 
-    @classmethod
-    def run(cls, c):
-        if not isinstance(c.input_res, list):
-            msg = 'Dependencies for installation must be list, got {v}.'.format(v=c.input_res)
+    def run(self):
+        if not isinstance(self.c.input_res, list):
+            msg = 'Dependencies for installation must be list, got {v}.'.format(v=self.c.input_res)
             raise exceptions.CommandException(msg)
 
         di = DependencyInstaller()
-        di.install(c.input_res, c.kwargs['__ui__'], debug=c.kwargs.get('da_debug', False))
-        return (True, c.input_res)
+        di.install(self.c.input_res,
+                   self.c.kwargs['__ui__'],
+                   debug=self.c.kwargs.get('da_debug', False))
+        return (True, self.c.input_res)
 
 
 @register_command_runner
 class DotDevassistantCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('dda_')
 
-    @classmethod
-    def run(cls, c):
-        cls.check_args(c)
-        if c.comm_type == 'dda_c':
-            cls._dot_devassistant_create(c.input_res, c.kwargs)
-        elif c.comm_type == 'dda_r':
-            cls._dot_devassistant_read(c.input_res, c.kwargs)
-        elif c.comm_type == 'dda_dependencies':
-            cls._dot_devassistant_dependencies(c.input_res, c.kwargs)
-        elif c.comm_type == 'dda_run':
-            cls._dot_devassistant_run(c.input_res, c.kwargs)
-        elif c.comm_type == 'dda_w':
-            # we intentionally pass c.comm to prevent any evaluation
-            cls._dot_devassistant_write(c.comm)
+    def run(self):
+        self.check_args(self.c)
+        if self.c.comm_type == 'dda_c':
+            self._dot_devassistant_create(self.c.input_res, self.c.kwargs)
+        elif self.c.comm_type == 'dda_r':
+            self._dot_devassistant_read(self.c.input_res, self.c.kwargs)
+        elif self.c.comm_type == 'dda_dependencies':
+            self._dot_devassistant_dependencies(self.c.input_res, self.c.kwargs)
+        elif self.c.comm_type == 'dda_run':
+            self._dot_devassistant_run(self.c.input_res, self.c.kwargs)
+        elif self.c.comm_type == 'dda_w':
+            # we intentionally pass self.c.comm to prevent any evaluation
+            self._dot_devassistant_write(self.c.comm)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return (True, '')
 
@@ -456,23 +474,26 @@ class DotDevassistantCommandRunner(CommandRunner):
 
 @register_command_runner
 class GitHubCommandRunner(CommandRunner):
-    _user = None
-    try:
-        _gh_module = utils.import_module('github')
-    except:
-        _gh_module = None
     _required_yaml_args = {'default': ['login', 'reponame'],
                            'create_repo': ['login', 'reponame', 'private'],
                            'create_and_push': ['login', 'reponame', 'private'],
                            'create_fork': ['login', 'repo_url'],
                            'push': []}
 
+    try:
+        _gh_module = utils.import_module('github')
+    except:
+        _gh_module = None
+
+    def __init__(self, c):
+        self.c = c
+        self._user = None
+
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'github'
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         """Arguments given to 'github' command may be:
         - Just a string (action) - only for 'push'
         - Dictionary with key 'do', denoting the action, and all the other arguments (args
@@ -485,8 +506,8 @@ class GitHubCommandRunner(CommandRunner):
         - reponame - repo to operate on
         - repo_url (only for create_fork) - URL of the repo to fork
         """
-        comm, kwargs = cls.format_args(c)
-        if not cls._gh_module:
+        comm, kwargs = self.format_args(self.c)
+        if not self._gh_module:
             logger.warning('PyGithub not installed, cannot execute github command.')
             return [False, '']
 
@@ -494,17 +515,18 @@ class GitHubCommandRunner(CommandRunner):
         # NOTE: these are not the variables from global context, but rather what
         # cls.format_args returned
         if comm == 'create_repo':
-            ret = cls._github_create_repo(**kwargs)
+            ret = self._github_create_repo(**kwargs)
         elif comm == 'push':
-            ret = cls._github_push()
+            ret = self._github_push()
         elif comm == 'create_and_push':
-            ret = cls._github_create_and_push(**kwargs)
+            ret = self._github_create_and_push(**kwargs)
         elif comm == 'add_remote_origin':
-            ret = cls._github_add_remote_origin(**kwargs)
+            ret = self._github_add_remote_origin(**kwargs)
         elif comm == 'create_fork':
-            ret = cls._github_fork(**kwargs)
+            ret = self._github_fork(**kwargs)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return ret
 
@@ -513,14 +535,16 @@ class GitHubCommandRunner(CommandRunner):
         args = c.input_res
         if isinstance(args, list):
             if len(args) != 2:
-                raise exceptions.CommandException('The argument list to "github" must contain two items: action, and a mapping with values.')
+                msg = 'The argument list to "github" must contain two items: action, and a mapping with values.'
+                raise exceptions.CommandException(msg)
             comm = args[0]
             args_rest = args[1]
         elif isinstance(args, dict):
             try:
                 comm = args['do']
             except KeyError:
-                raise exceptions.CommandException('The argument mapping to "github" must contain a key "do" with an action.')
+                msg = 'The argument mapping to "github" must contain a key "do" with an action.'
+                raise exceptions.CommandException(msg)
             args_rest = dict([(k, v) for k, v in args.items() if k != 'do'])
         else:
             comm = args
@@ -528,7 +552,8 @@ class GitHubCommandRunner(CommandRunner):
 
         # Invalid command
         if comm not in cls._required_yaml_args:
-            raise exceptions.CommandException('Invalid action for the "github" command: {c}'.format(c=comm))
+            msg = 'Invalid action for the "github" command: {c}'.format(c=comm)
+            raise exceptions.CommandException(msg)
 
         # find out what arguments we will need
         kwargs = {'ui': c.kwargs['__ui__']}
@@ -566,8 +591,7 @@ class GitHubCommandRunner(CommandRunner):
     def _get_private(cls, private):
         return bool(private)
 
-    @classmethod
-    def _github_push(cls):
+    def _github_push(self):
         try:
             ret = ClHelper.run_command("git push -u origin master")
             logger.info('Source code was successfully pushed.')
@@ -576,9 +600,8 @@ class GitHubCommandRunner(CommandRunner):
             logger.warning('Problem pushing source code: {0}'.format(e.output))
             return (False, e.output)
 
-    @classmethod
     @GitHubAuth.github_authenticated
-    def _github_add_remote_origin(cls, **kwargs):
+    def _github_add_remote_origin(self, **kwargs):
         """Note: the kwargs are not the global context here, but what cls.format_args returns."""
         reponame = kwargs['reponame']
         login = kwargs['login']
@@ -597,9 +620,8 @@ class GitHubCommandRunner(CommandRunner):
             logger.warning('Problem adding Github repo as git remote: {0}.'.format(e.output))
             return (False, e.output)
 
-    @classmethod
     @GitHubAuth.github_authenticated
-    def _github_create_repo(cls, **kwargs):
+    def _github_create_repo(self, **kwargs):
         """Create repo on GitHub.
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
@@ -610,19 +632,19 @@ class GitHubCommandRunner(CommandRunner):
         """
         reponame = kwargs['reponame']
 
-        if reponame in map(lambda x: x.name, cls._user.get_repos()):
+        if reponame in map(lambda x: x.name, self._user.get_repos()):
             msg = 'Failed to create Github repo: {0}/{1} alread exists.'.\
-                format(cls._user.login, reponame)
+                format(self._user.login, reponame)
             logger.warning(msg)
             return (False, msg)
         else:
             msg = ''
             success = False
             try:
-                new_repo = cls._user.create_repo(reponame, private=kwargs['private'])
+                new_repo = self._user.create_repo(reponame, private=kwargs['private'])
                 msg = new_repo.clone_url
                 success = True
-            except cls._gh_module.GithubException as e:
+            except self._gh_module.GithubException as e:
                 gh_errs = e.data.get('errors', [])
                 gh_errs = '; '.join(map(lambda err: err.get('message', ''), gh_errs))
                 msg = 'Failed to create GitHub repo. This sometime happens when you delete '
@@ -640,36 +662,33 @@ class GitHubCommandRunner(CommandRunner):
 
         return (success, msg)
 
-    @classmethod
     @GitHubAuth.github_authenticated
-    def _github_add_remote_and_push(cls, **kwargs):
+    def _github_add_remote_and_push(self, **kwargs):
         """Add a remote and push to GitHub. As this is not a callable subcommand of this
         command runner, it doesn't emit any informative logging messages on its own, only messages
         emitted by called methods.
         Note: the kwargs are not the global context here, but what cls.format_args returns.
         """
-        ret = cls._github_add_remote_origin(**kwargs)
+        ret = self._github_add_remote_origin(**kwargs)
         if ret[0]:
-            ret = cls._github_push()
+            ret = self._github_push()
         return ret
 
-    @classmethod
     @GitHubAuth.github_authenticated
-    def _github_create_and_push(cls, **kwargs):
+    def _github_create_and_push(self, **kwargs):
         """Note: the kwargs are not the global context here, but what cls.format_args returns."""
         # we assume we're in the project directory
         logger.info('Registering your {priv}project on GitHub as {login}/{repo}...'.
                     format(priv='private ' if kwargs['private'] else '',
                            login=kwargs['login'],
                            repo=kwargs['reponame']))
-        ret = cls._github_create_repo(**kwargs)
+        ret = self._github_create_repo(**kwargs)
         if ret[0]:  # on success push the sources
-            ret = cls._github_add_remote_and_push(**kwargs)
+            ret = self._github_add_remote_and_push(**kwargs)
         return ret
 
-    @classmethod
     @GitHubAuth.github_authenticated
-    def _github_fork(cls, **kwargs):
+    def _github_fork(self, **kwargs):
         """Create a fork of repo from kwargs['fork_repo'].
         Note: the kwargs are not the global context here, but what cls.format_args returns.
 
@@ -683,8 +702,8 @@ class GitHubCommandRunner(CommandRunner):
         success = False
         msg = ''
         try:
-            repo = cls._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
-            fork = cls._user.create_fork(repo)
+            repo = self._gh_module.Github().get_user(fork_login).get_repo(fork_reponame)
+            fork = self._user.create_fork(repo)
             while timeout > 0:
                 time.sleep(5)
                 timeout -= 5
@@ -692,11 +711,11 @@ class GitHubCommandRunner(CommandRunner):
                     fork.get_contents('/')  # This function doesn't throw exception when clonable
                     success = True
                     break
-                except cls._gh_module.GithubException as e:
+                except self._gh_module.GithubException as e:
                     if 'is empty' not in utils.exc_as_decoded_string(e):
                         raise e
             msg = fork.ssh_url
-        except cls._gh_module.GithubException as e:
+        except self._gh_module.GithubException as e:
             msg = 'Failed to create Github fork with error: {err}'.format(err=e)
         except BaseException as e:
             msg = 'Exception while forking GH repo: {0}'.\
@@ -712,26 +731,28 @@ class GitHubCommandRunner(CommandRunner):
 
 @register_command_runner
 class LogCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('log_')
 
-    @classmethod
-    def run(cls, c):
-        if c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
-            logger.log(settings.LOG_SHORT_TO_NUM_LEVEL[c.comm_type[-1]], c.input_res)
-            if c.comm_type[-1] in 'ce':
-                e = exceptions.CommandException(c.input_res)
+    def run(self):
+        if self.c.comm_type in map(lambda x: 'log_{0}'.format(x), settings.LOG_LEVELS_MAP):
+            logger.log(settings.LOG_SHORT_TO_NUM_LEVEL[self.c.comm_type[-1]], self.c.input_res)
+            if self.c.comm_type[-1] in 'ce':
+                e = exceptions.CommandException(self.c.input_res)
                 e.already_logged = True
                 raise e
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
-        return (True, c.input_res)
+        return (True, self.c.input_res)
 
 
 @register_command_runner
 class SCLCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('scl ')
@@ -751,25 +772,24 @@ class SCLCommandRunner(CommandRunner):
             return cmd_str
         return scl_command_processor
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         """SCLCommandRunner adds command processors to ClHelper in order to wrap
         commands in possibly multiple nested calls of "scl <action> <collection>".
         Note: Identical calls are ignored."""
-        c.kwargs.setdefault('__assistant__', None)
+        self.c.kwargs.setdefault('__assistant__', None)
         # a unique name for command processor
-        comproc_name = c.comm_type
+        comproc_name = self.c.comm_type
         # if such a command processor is already there, don't re-push/re-pop
         pushpop = comproc_name not in ClHelper.command_processors
 
         if pushpop:
             ClHelper.command_processors[comproc_name] =\
-                cls._get_scl_command_processor(c.comm_type.split()[1:])
+                self._get_scl_command_processor(self.c.comm_type.split()[1:])
 
-        # use "c.comm", not "c.input_res" - we need unformatted input here
-        retval = lang.run_section(c.comm,
-                                  c.kwargs,
-                                  runner=c.kwargs['__assistant__'])
+        # use "self.c.comm", not "self.c.input_res" - we need unformatted input here
+        retval = lang.run_section(self.c.comm,
+                                  self.c.kwargs,
+                                  runner=self.c.kwargs['__assistant__'])
 
         if pushpop:
             ClHelper.command_processors.pop(comproc_name)
@@ -801,8 +821,7 @@ class Jinja2Runner(CommandRunner):
 
         return os.path.join(outdir, output)
 
-    @classmethod
-    def _try_obtain_common_params(cls, comm):
+    def _try_obtain_common_params(self):
         """ Retrieve parameters common for all jinja_render* actions from Command instance.
         These are mandatory:
         - 'template'    template descriptor from `files' section. it consist of
@@ -812,8 +831,8 @@ class Jinja2Runner(CommandRunner):
         These are optional:
         - 'overwrite'   overwrite file(s) if it (they) exist(s)
         """
-        args = comm.input_res
-        ct = comm.comm_type
+        args = self.c.input_res
+        ct = self.c.comm_type
 
         wrong_tpl_msg = '{0} requires a "template" argument which must point to a file'.format(ct)
         wrong_tpl_msg += ' in "files" section. Got: {0}'.format(args.get('template', None))
@@ -847,28 +866,27 @@ class Jinja2Runner(CommandRunner):
 
         return (template, destination, data, overwrite)
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         # Transform list of dicts (where keys are unique) into a single dict
-        args = c.input_res
+        args = self.c.input_res
         logger.debug('Jinja2Runner args={0}'.format(repr(args)))
 
         # Create a jinja environment
-        logger.debug('Using templates dir: {0}'.format(c.files_dir))
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(c.files_dir))
+        logger.debug('Using templates dir: {0}'.format(self.c.files_dir))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.c.files_dir))
         env.trim_blocks = True
         env.lstrip_blocks = True
-        template, destination, data, overwrite = cls._try_obtain_common_params(c)
+        template, destination, data, overwrite = self._try_obtain_common_params()
 
-        if c.comm_type == 'jinja_render':
+        if self.c.comm_type == 'jinja_render':
             given_output = args.get('output', '')
             if not isinstance(given_output, six.string_types):
                 raise exceptions.CommandException('Jinja2Runner: output must be string, got {0}'.
                                                   format(given_output))
-            result_fn = cls._make_output_file_name(destination, template, given_output)
-            cls._render_one_template(env, template, result_fn, data, overwrite)
-        elif c.comm_type == 'jinja_render_dir':
-            cls._render_dir(env, template, destination, data, overwrite)
+            result_fn = self._make_output_file_name(destination, template, given_output)
+            self._render_one_template(env, template, result_fn, data, overwrite)
+        elif self.c.comm_type == 'jinja_render_dir':
+            self._render_dir(env, template, destination, data, overwrite)
 
         return (True, 'success')
 
@@ -929,29 +947,29 @@ class Jinja2Runner(CommandRunner):
 
 @register_command_runner
 class AsUserCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('as ')
 
     @classmethod
-    def get_user_from_comm_type(cls, comm_type):
+    def get_user_from_command(cls, comm_type):
         split_type = comm_type.split()
         if len(split_type) != 2:
             raise exceptions.CommandException('"as" expects format "as <username>".')
         user = split_type[1]
         return user
 
-    @classmethod
-    def run(cls, c):
-        user = cls.get_user_from_comm_type(c.comm_type)
-        to_run = utils.cl_string_for_da_eval(c.comm, c.kwargs)
+    def run(self):
+        user = self.get_user_from_comm_type(self.c.comm_type)
+        to_run = utils.cl_string_for_da_eval(self.c.comm, self.c.kwargs)
 
         def sub_da_logger(msg):
             logger.info(msg, extra={'event_type': 'sub_da'})
 
         try:
             out = ClHelper.run_command(to_run, output_callback=sub_da_logger, as_user=user,
-                env=c.kwargs.get('__env__', {}))
+                env=self.c.kwargs.get('__env__', {}))
             ret = True
         except exceptions.ClException as e:
             out = e.output
@@ -961,101 +979,33 @@ class AsUserCommandRunner(CommandRunner):
 
 @register_command_runner
 class DockerCommandRunner(CommandRunner):
-    _has_docker_group = None
-    _client = None
-    try:
-        _docker_module = utils.import_module('docker')
-    except:
-        _docker_module = None
+
+    def __init__(self, c):
+        self.c = c
+        self._client = DockerHelper.get_client()
 
     @classmethod
     def matches(cls, c):
         return c.comm_type.startswith('docker_')
 
-    @classmethod
-    def _docker_group_active(cls):
-        if cls._has_docker_group is None:
-            logger.debug('Determining if current user has active "docker" group ...')
-            # we have to run cl command, too see if the user has already re-logged
-            # after being added to docker group, so that he can effectively use it
-            if 'docker' in ClHelper.run_command('groups').split():
-                logger.debug('Current user is in "docker" group.')
-                cls._has_docker_group = True
-            else:
-                logger.debug('Current user is not in "docker" group.')
-                cls._has_docker_group = False
-        return cls._has_docker_group
-
-    @classmethod
-    def _docker_group_added(cls):
-        username = getpass.getuser()
-        return username in grp.getgrnam('docker').gr_mem
-
-    @classmethod
-    def _docker_group_add(cls):
-        username = getpass.getuser()
-        try:
-            logger.info('Adding {0} to group docker ...'.format(username))
-            ClHelper.run_command('bash -c "usermod -a -G docker {0}"'.format(username),
-                                 as_user='root')
-        except exceptions.ClException as e:
-            msg = 'Failed to add user to "docker" group: {0}'.format(e.output)
-            raise exceptions.CommandException(msg)
-
-    @classmethod
-    def _docker_service_running(cls):
-        try:
-            ClHelper.run_command('systemctl status docker')
-            return True
-        except exceptions.ClException:
-            return False
-
-    @classmethod
-    def _docker_service_enable_and_run(cls):
-        # TODO: add some conditionals for various platforms
-        logger.info('Enabling and running docker service ...')
-        try:
-            cmd_str = 'bash -c "systemctl enable docker && systemctl start docker"'
-            ClHelper.run_command(cmd_str, as_user='root')
-        except exceptions.ClException:
-            raise exceptions.CommandException('Failed to enable and run docker service.')
-
-        # we need to wait until /var/run/docker.sock is created
-        # let's wait for 30 seconds
-        logger.info('Waiting for /var/run/docker.sock to be created (max 15 seconds) ...')
-        success = False
-        for i in range(0, 30):
-            time.sleep(i * 0.5)
-            try:
-                ClHelper.run_command('ls /var/run/docker.sock')
-                success = True
-                break
-            except exceptions.ClException:
-                pass
-
-        if not success:
-            logger.warning('/var/run/docker.sock doesn\'t exist, docker will likely not work!')
-
-    @classmethod
-    def run(cls, c):
+    def run(self):
         # this will raise if something is inproperly set
-        cls._docker_check_setup()
-        if c.comm_type == 'docker_check_setup':
+        self._docker_check_setup()
+        if self.c.comm_type == 'docker_check_setup':
             return (True, '')
 
-        if not cls._client:
-            cls._client = cls._docker_module.Client()
 
-        if c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
+        if self.c.comm_type in ['docker_run', 'docker_attach', 'docker_find_img', 'docker_start',
             'docker_stop', 'docker_cc', 'docker_build']:
-            method = getattr(cls, '_' + c.comm_type)
-            ret = method(c.input_res)
-        elif c.comm_type == 'docker_container_ip':
-            ret = cls._docker_get_container_attr('NetworkSettings.IPAddress', c.input_res)
-        elif c.comm_type == 'docker_container_name':
-            ret = cls._docker_get_container_attr('Name', c.input_res)
+            method = getattr(self, '_' + self.c.comm_type)
+            ret = method(self.c.input_res)
+        elif self.c.comm_type == 'docker_container_ip':
+            ret = self._docker_get_container_attr('NetworkSettings.IPAddress', self.c.input_res)
+        elif self.c.comm_type == 'docker_container_name':
+            ret = self._docker_get_container_attr('Name', self.c.input_res)
         else:
-            raise exceptions.CommandException('Unknown command type {ct}.'.format(ct=c.comm_type))
+            msg = 'Unknown command type {ct}.'.format(ct=self.c.comm_type)
+            raise exceptions.CommandException(msg)
 
         return ret
 
@@ -1069,22 +1019,23 @@ class DockerCommandRunner(CommandRunner):
                take effect => inform and raise exception
             3) user has been added to docker group in a previous login session => all ok
         """
-        if cls._docker_module is None:
+        if not DockerHelper.is_available():
             msg = 'The Docker Python module is not present. It is possible that Docker does ' +\
                   'not support your architecture yet.'
             raise exceptions.CommandException(msg)
 
-        if not cls._docker_group_active():
-            if not cls._docker_group_added():
+        if not DockerHelper.docker_group_active():
+            user = getpass.getuser()
+            if not DockerHelper.user_in_docker_group(user):
                 # situation 1
-                cls._docker_group_add()
+                DockerHelper.add_user_to_docker_group(user)
             msg = 'Your user has just been added to "docker" group. Please log out and in ' +\
                 'and rerun this command.'
             raise exceptions.CommandException(msg)
         # else situation 3
 
-        if not cls._docker_service_running():
-            cls._docker_service_enable_and_run()
+        if not DockerHelper.docker_service_running():
+            DockerHelper.docker_service_enable_and_run()
 
     @classmethod
     def _check_docker_method_args(cls, method, args, required, yaml_method):
@@ -1102,7 +1053,11 @@ class DockerCommandRunner(CommandRunner):
                 or one or more required arguments are not present
         """
         args = set(args)
-        margs = set(method.func_code.co_varnames)
+        try:
+            margs = set(method.func_code.co_varnames)
+        except AttributeError as e: # Python 3 has no func_code
+            margs = set(method.__code__.co_varnames)
+
         rargs = set(required)
 
         dif = args - margs
@@ -1117,13 +1072,12 @@ class DockerCommandRunner(CommandRunner):
                 ym=yaml_method, dif=', '.join(dif))
             raise exceptions.CommandException(msg)
 
-    @classmethod
-    def _docker_build(cls, args):
+    def _docker_build(self, args):
         if isinstance(args, six.string_types):
             raise exceptions.CommandException('docker_build now needs a mapping to pass' +
                 'to a docker-py client, please consult command reference for details.')
 
-        cls._check_docker_method_args(cls._client.build, args.keys(), ['path'], 'docker_build')
+        self._check_docker_method_args(self._client.build, args.keys(), ['path'], 'docker_build')
 
         logger.info('Building Docker image, this may take a while ...')
         success_re = re.compile(r'Successfully built ([0-9a-f]+)')
@@ -1134,14 +1088,15 @@ class DockerCommandRunner(CommandRunner):
             args['rm'] = True
         args['stream'] = False
 
-        output = cls._client.build(**args)
+        output = self._client.build(**args)
         base_images = {}
         # docker duplicates "Download complete" messages for few reasons,
         #  we want to deduplicate them
         base_images_downloaded = []
-        for chunk in output:
+        for byte_chunk in output:
             # chunk is a JSON chunk, for explanation see
             #  https://github.com/docker/docker-py/issues/255#issuecomment-47600754
+            chunk = byte_chunk.decode(utils.defenc) if six.PY3 and isinstance(byte_chunk, bytes) else byte_chunk
             logger.debug('Got message from Docker client: {0}'.format(chunk))
             parsed_json = json.loads(chunk)
             if 'status' in parsed_json and parsed_json['status'].startswith('Download'):
@@ -1181,26 +1136,23 @@ class DockerCommandRunner(CommandRunner):
         raise exceptions.CommandException('docker_run command has been removed, see command' +
             'reference for details on replacing it.')
 
-    @classmethod
-    def _docker_cc(cls, inp):
+    def _docker_cc(self, inp):
         """Creates a docker container"""
-        cls._check_docker_method_args(cls._client.create_container, inp.keys(),
+        self._check_docker_method_args(self._client.create_container, inp.keys(),
             ['image'], 'docker_cc')
-        res = cls._client.create_container(**inp)
+        res = self._client.create_container(**inp)
         return (True, res['Id'])
 
-    @classmethod
-    def _docker_start(cls, inp):
-        cls._check_docker_method_args(cls._client.start, inp.keys(),
+    def _docker_start(self, inp):
+        self._check_docker_method_args(self._client.start, inp.keys(),
             ['container'], 'docker_start')
-        cls._client.start(**inp)
+        self._client.start(**inp)
         # there is no real result here, so just return container hash again
         return (True, inp['container'])
 
-    @classmethod
-    def _docker_stop(cls, inp):
+    def _docker_stop(self, inp):
         if isinstance(inp, dict):
-            cls._check_docker_method_args(cls._client.stop, inp.keys(),
+            self._check_docker_method_args(self._client.stop, inp.keys(),
                 ['container'], 'docker_stop')
             if 'container' not in inp:
                 msg = 'docker_stop requires you to specify "container" when providing mapping.'
@@ -1210,11 +1162,10 @@ class DockerCommandRunner(CommandRunner):
         else:
             container = inp
             timeout = 10
-        cls._client.stop(container, timeout)
+        self._client.stop(container, timeout)
         return (True, container)
 
-    @classmethod
-    def _docker_attach(cls, container_ids):
+    def _docker_attach(self, container_ids):
         result = []
         logres = False
         queue = six.moves.queue.Queue()
@@ -1228,7 +1179,7 @@ class DockerCommandRunner(CommandRunner):
                 super(ContainerAttacher, self).__init__()
                 self.cid = container_id
                 if '_' not in self.cid and len(self.cid) > 25:  # probably a hash
-                    self.nicecid = cid[:12]
+                    self.nicecid = self.cid[:12]
                 else:
                     self.nicecid = self.cid
                 self.client = client
@@ -1265,7 +1216,7 @@ class DockerCommandRunner(CommandRunner):
 
         # init threads, read from queue while something is in there and when
         #  all threads exit, finish reading from the queue and join threads
-        threads = [ContainerAttacher(cid, cls._client) for cid in container_ids]
+        threads = [ContainerAttacher(cid, self._client) for cid in container_ids]
         [t.start() for t in threads]
         while any((t.is_alive() for t in threads)) or not queue.empty():
             try:
@@ -1278,11 +1229,10 @@ class DockerCommandRunner(CommandRunner):
 
         return (logres, '\n'.join(result))
 
-    @classmethod
-    def _docker_find_img(cls, hash_start):
+    def _docker_find_img(self, hash_start):
         # hash start can theoretically be an int, so convert to unicode string either way
         hash_start = six.text_type(hash_start)
-        hashes = cls._client.images(quiet=True)
+        hashes = self._client.images(quiet=True)
         matching = list(filter(lambda x: x.startswith(hash_start), hashes))
 
         res = ' '.join(matching)
@@ -1291,13 +1241,12 @@ class DockerCommandRunner(CommandRunner):
 
         return (logres, res)
 
-    @classmethod
-    def _docker_get_container_attr(cls, attr, container_id):
+    def _docker_get_container_attr(self, attr, container_id):
         # container id can be either hash or name
         logres = True
 
         try:
-            res = cls._client.inspect_container(container_id)
+            res = self._client.inspect_container(container_id)
             # split on dots an loop to get access to nested dicts
             for a in attr.split('.'):
                 if not isinstance(res, dict) or a not in res:
@@ -1305,7 +1254,7 @@ class DockerCommandRunner(CommandRunner):
                     res = 'Container doesn\'t have attribute {a}'.format(a=attr)
                 else:
                     res = res[a]
-        except cls._docker_module.errors.APIError as e:
+        except DockerHelper.errors.APIError as e:
             msg = 'Failed to obtain container attribute: {e}'.format(e=e)
             raise exceptions.CommandException(msg)
 
@@ -1314,27 +1263,27 @@ class DockerCommandRunner(CommandRunner):
 
 @register_command_runner
 class VagrantDockerCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'vagrant_docker'
 
-    @classmethod
-    def run(cls, c):
-        prev_env_vdp = c.kwargs['__env__'].get('VAGRANT_DEFAULT_PROVIDER', None)
-        c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+    def run(self):
+        prev_env_vdp = self.c.kwargs['__env__'].get('VAGRANT_DEFAULT_PROVIDER', None)
+        self.c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 
-        vagrant_cmd = c.input_res.split()[0]
+        vagrant_cmd = self.c.input_res.split()[0]
         if vagrant_cmd == 'up':
-            res = cls._vagrant_run_cmd(c, 'start', logging.INFO)
+            res = self._vagrant_run_cmd(self.c, 'start', logging.INFO)
         elif vagrant_cmd in ['halt', 'destroy', 'reload']:
-            res = cls._vagrant_run_cmd(c, vagrant_cmd)
+            res = self._vagrant_run_cmd(self.c, vagrant_cmd)
         else:
             msg = 'Unsupported vagrant docker command {c}, use "cl: vagrant {c}"'.\
-                format(c=c.input_res)
+                format(c=self.c.input_res)
             raise exceptions.CommandException(msg)
 
         if prev_env_vdp is not None:
-            c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = prev_env_vdp
+            self.c.kwargs['__env__']['VAGRANT_DEFAULT_PROVIDER'] = prev_env_vdp
         return res
 
     @classmethod
@@ -1364,6 +1313,7 @@ class VagrantDockerCommandRunner(CommandRunner):
 
 @register_command_runner
 class NormalizeCommandRunner(CommandRunner):
+
     @classmethod
     def matches(cls, c):
         return c.comm_type == 'normalize'
@@ -1380,14 +1330,13 @@ class NormalizeCommandRunner(CommandRunner):
             msg = '"normalize" command expects string or mapping as input'
             raise exceptions.CommandException(msg)
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         """Normalizes c.input_res (string):
 
         - removes digit from start
         - replaces dashes and whitespaces with underscores
         """
-        to_norm, ok_chars = cls._get_args(c.input_res)
+        to_norm, ok_chars = self._get_args(self.c.input_res)
 
         if six.PY2 and isinstance(to_norm, str):
             to_norm = to_norm.decode(utils.defenc)
@@ -1441,9 +1390,8 @@ class SetupProjectDirCommandRunner(CommandRunner):
 
         return args
 
-    @classmethod
-    def run(cls, c):
-        args = cls._get_args(c.input_res, c.kwargs)
+    def run(self):
+        args = self._get_args(self.c.input_res, self.c.kwargs)
         if not six.PY3:
             args['from'] = args['from'].encode(utils.defenc)
         contdir, topdir = os.path.split(args['from'])
@@ -1482,9 +1430,9 @@ class SetupProjectDirCommandRunner(CommandRunner):
             raise exceptions.CommandException(msg)
 
         # if contdir == '', then return current dir ('.')
-        c.kwargs[args['contdir_var']] = contdir or '.'
-        c.kwargs[args['topdir_var']] = topdir
-        c.kwargs[args['topdir_normalized_var']] = normalized_topdir
+        self.c.kwargs[args['contdir_var']] = contdir or '.'
+        self.c.kwargs[args['topdir_var']] = topdir
+        self.c.kwargs[args['topdir_normalized_var']] = normalized_topdir
 
         return (True, topdir_fullpath if args['create_topdir'] else contdir)
 
@@ -1495,12 +1443,11 @@ class PingPongCommandRunner(CommandRunner):
     def matches(cls, c):
         return c.comm_type == 'pingpong'
 
-    @classmethod
-    def run(cls, c):
-        run = c.input_res
-        if isinstance(c.input_res, dict):
+    def run(self):
+        run = self.c.input_res
+        if isinstance(self.c.input_res, dict):
             # input_res is a referenced file from files section
-            run = os.path.join(c.kwargs['__files_dir__'][-1], c.input_res['source'])
+            run = os.path.join(self.c.kwargs['__files_dir__'][-1], self.c.input_res['source'])
 
         # TODO: if there is an exception, the subprocess can just keep running, fix this
         proc = subprocess.Popen(run, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1521,7 +1468,7 @@ class PingPongCommandRunner(CommandRunner):
                 else:
                     logger.debug('Process terminated OK.')
         server = dapp.DAPPServer(proc, logger=logger)
-        return cls._play_pingpong(server, c.kwargs)
+        return self._play_pingpong(server, self.c.kwargs)
 
     @classmethod
     def _play_pingpong(cls, server, ctxt):
@@ -1580,35 +1527,34 @@ class LoadCmdCommandRunner(CommandRunner):
     def matches(cls, c):
         return c.comm_type == 'load_cmd'
 
-    @classmethod
-    def _get_args(cls, c):
+    def _get_args(self):
         load_only = []
         prefix = ''
         from_files_section = False
-        if isinstance(c.input_res, dict):
-            if 'source' in c.input_res:  # just a file from "files" was passed
-                from_file = c.input_res['source']
+        if isinstance(self.c.input_res, dict):
+            if 'source' in self.c.input_res:  # just a file from "files" was passed
+                from_file = self.c.input_res['source']
                 from_files_section = True
-            elif 'from_file' not in c.input_res:
+            elif 'from_file' not in self.c.input_res:
                 msg = '"load_msg" requires "from_file" argument or file from "files" section.'
                 raise exceptions.CommandException(msg)
             else:
-                load_only = c.input_res.get('load_only', load_only)
-                prefix = c.input_res.get('prefix', prefix)
-                if isinstance(c.input_res['from_file'], dict):
+                load_only = self.c.input_res.get('load_only', load_only)
+                prefix = self.c.input_res.get('prefix', prefix)
+                if isinstance(self.c.input_res['from_file'], dict):
                     # from_file is "files" section file
-                    from_file = c.input_res['from_file']['source']
+                    from_file = self.c.input_res['from_file']['source']
                     from_files_section = True
                 else:
-                    from_file = c.input_res['from_file']
-        elif isinstance(c.input_res, six.string_types):
-            from_file = c.input_res
+                    from_file = self.c.input_res['from_file']
+        elif isinstance(self.c.input_res, six.string_types):
+            from_file = self.c.input_res
         else:
             raise exceptions.CommandException('"load_cmd" requires dict or string.')
 
         if from_files_section:
             # if we have file from "files" section, we can resolve the full path right now
-            abs_path = os.path.join(c.kwargs['__files_dir__'][-1], from_file)
+            abs_path = os.path.join(self.c.kwargs['__files_dir__'][-1], from_file)
             if not os.path.exists(abs_path):
                 abs_path = None
         else:
@@ -1622,9 +1568,8 @@ class LoadCmdCommandRunner(CommandRunner):
 
         return prefix, abs_path, load_only
 
-    @classmethod
-    def run(cls, c):
-        prefix, from_file, load_only = cls._get_args(c)
+    def run(self):
+        prefix, from_file, load_only = self._get_args()
         try:
             # use from_file as module name, but replaces dots, otherwise Python
             #  will think that it separates parent module and complain that the
@@ -1651,27 +1596,26 @@ class EnvCommandRunner(CommandRunner):
     def matches(cls, c):
         return c.comm_type in ['env_set', 'env_unset']
 
-    @classmethod
-    def run(cls, c):
-        c.kwargs.setdefault('__env__', {})
+    def run(self):
+        self.c.kwargs.setdefault('__env__', {})
         res = None
-        if c.comm_type == 'env_set':
-            if not isinstance(c.input_res, dict):
+        if self.c.comm_type == 'env_set':
+            if not isinstance(self.c.input_res, dict):
                 raise exceptions.CommandException('env_set expects mapping as input')
-            c.kwargs['__env__'].update(c.input_res)
-            res = c.input_res
+            self.c.kwargs['__env__'].update(self.c.input_res)
+            res = self.c.input_res
         else:
             res = {}
             # accept a single variable name or a list of names
-            if isinstance(c.input_res, six.string_types):
-                unset = [c.input_res]
-            elif isinstance(c.input_res, list):
-                unset = c.input_res
+            if isinstance(self.c.input_res, six.string_types):
+                unset = [self.c.input_res]
+            elif isinstance(self.c.input_res, list):
+                unset = self.c.input_res
             else:
                 raise exceptions.CommandException('env_unset expects string or list as input')
             for k in unset:
-                if k in c.kwargs['__env__']:
-                    res[k] = c.kwargs['__env__'][k]
-                    del c.kwargs['__env__'][k]
+                if k in self.c.kwargs['__env__']:
+                    res[k] = self.c.kwargs['__env__'][k]
+                    del self.c.kwargs['__env__'][k]
 
         return (True, res)

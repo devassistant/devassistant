@@ -6,7 +6,6 @@ class LogCR(CommandRunner):
     def matches(cls, c):
         return c.comm_type == 'log_i'
 
-    @classmethod
-    def run(cls, c):
+    def run(self):
         logger.info('Got you!')
         return (True, 'heee heee')

@@ -56,21 +56,26 @@ class CliRunner(object):
         argparser = argparse_generator.ArgparseGenerator.\
             generate_argument_parser(tree, actions=actions.actions)
         parsed_args = vars(argparser.parse_args())
-        if parsed_args.get('da_debug'):
-            cls.change_logging_level(logging.DEBUG)
-        if actions.is_action_run(**parsed_args):
-            to_run = actions.get_action_to_run(**parsed_args)
-        else:
-            parsed_args = cls.transform_executable_assistant_alias(parsed_args)
-            path = top_assistant.get_selected_subassistant_path(**parsed_args)
-            to_run = path_runner.PathRunner(path, parsed_args)
+
         parsed_args_decoded = dict()
         for k, v in parsed_args.items():
             parsed_args_decoded[k] = \
                 v.decode(utils.defenc) if not six.PY3 and isinstance(v, str) else v
         parsed_args_decoded['__ui__'] = 'cli'
+
+        if parsed_args.get('da_debug'):
+            cls.change_logging_level(logging.DEBUG)
+
+        # Prepare Action/PathRunner
+        if actions.is_action_run(**parsed_args_decoded):
+            to_run = actions.get_action_to_run(**parsed_args_decoded)(**parsed_args_decoded)
+        else:
+            parsed_args = cls.transform_executable_assistant_alias(parsed_args_decoded)
+            path = top_assistant.get_selected_subassistant_path(**parsed_args_decoded)
+            to_run = path_runner.PathRunner(path, parsed_args_decoded)
+
         try:
-            to_run.run(**parsed_args_decoded)
+            to_run.run()
         except exceptions.ExecutionException:
             # error is already logged, just catch it and silently exit here
             sys.exit(1)
