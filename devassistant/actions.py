@@ -403,7 +403,8 @@ class PkgListAction(Action):
                          'can be used simultaneously')
             return
         if self.kwargs['remote'] or self.kwargs['available']:
-            dapicli.print_daps(simple=self.kwargs['simple'], skip_installed=self.kwargs['available'])
+            dapicli.print_daps(simple=self.kwargs['simple'],
+                               skip_installed=self.kwargs['available'])
         else:
             dapicli.print_installed_dap_list(simple=self.kwargs['simple'])
 
