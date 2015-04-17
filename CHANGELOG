@@ -1,8 +1,18 @@
+0.11.0
+DAP management:
 - DAPs can be uploaded to DAPI from command-line
+- Pretty local and remote package info listing
+- A DAPI mirror can be used if the primary source goes offline
 - DAP lint catches more errors
-- DA can use a DAPI mirror if the primary goes offline
-- Assistant files can be stored in multiple paths
-- Pretty package info listing
+- Assistant files can be stored in multiple paths (see documentation)
+Assistants:
+- Improvements consistency of Assistant syntax
+- GitHub commands now don't guess any data (this may break your Assistants)
+- CommandRunners are now instantiated (see documentation, this may break your
+  Assistants if you defined your own CommandRunners)
+Other:
+- Improved autocompletion
+- Improved Mac OS X compatibility
 - Documentation fixes
 - Numerous other fixes
 - Refactoring
