@@ -1,0 +1,13 @@
+import pytest
+import os
+
+from devassistant import __version__
+
+from test import fixtures_dir
+from test.integration.misc import run_da
+
+
+class TestVersion(object):
+    def test_version(self):
+        res = run_da('version')
+        assert res.stdout == 'DevAssistant {0}\n'.format(__version__)
