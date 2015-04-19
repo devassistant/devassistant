@@ -1,9 +1,7 @@
 import pytest
-import os
 
 from devassistant import __version__
 
-from test import fixtures_dir
 from test.integration.misc import run_da
 
 
