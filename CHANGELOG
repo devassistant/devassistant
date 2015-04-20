@@ -1,3 +1,6 @@
+0.9.4
+- Bugfixes in assistants
+
 0.9.3
 - Bugfixes backported from 0.10
 - Custom Polkit dialog when asking for elevated privileges
