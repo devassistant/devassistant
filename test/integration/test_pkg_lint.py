@@ -6,6 +6,7 @@ from test.integration.misc import run_da
 
 
 DAP = os.path.join(fixtures_dir, 'dapi', 'daps', 'integration', 'integration-1.0.dap')
+DAPYAMLS = os.path.join(fixtures_dir, 'dapi', 'daps', 'badyamls', 'badyamls-1.0.dap')
 
 
 class TestPkgLint(object):
@@ -24,4 +25,16 @@ class TestPkgLint(object):
 
     def test_pkg_lint_nowarn(self):
         res = run_da('pkg lint -w ' + DAP)
+        assert not res.stdout
+
+    def test_pkg_lint_yamls(self):
+        res = run_da('pkg lint -w ' + DAPYAMLS, expect_error=True)
+        desired = '''ERROR: badyamls-1.0.dap: Source file assistants/crt/badyamls.yaml:
+  Problem in: (top level) -> corrupted
+Invalid section name: corrupted
+'''
+        assert res.stdout == desired
+
+    def test_pkg_lint_noyamls(self):
+        res = run_da('pkg lint -y -w ' + DAPYAMLS)
         assert not res.stdout
