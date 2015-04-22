@@ -500,6 +500,8 @@ class PkgLintAction(Action):
                           help='Perform checks that require Internet connection'),
         argument.Argument('nowarnings', '-w', '--nowarnings', action='store_true', default=False,
                           help='Ignore warnings'),
+        argument.Argument('noyamlcheck', '-y', '--noyamlcheck', action='store_true', default=False,
+                          help='Don\'t perform YAML checks on Assistants and Snippets'),
     ]
 
     def run(self):
@@ -510,7 +512,8 @@ class PkgLintAction(Action):
                 if self.kwargs['nowarnings']:
                     logger.setLevel(logging.ERROR)
                 d = dapi.Dap(pkg)
-                if not dapi.DapChecker.check(d, network=self.kwargs['network']):
+                if not dapi.DapChecker.check(d, network=self.kwargs['network'],
+                                             yamls=not self.kwargs['noyamlcheck']):
                     error = True
             except (exceptions.DapFileError, exceptions.DapMetaError) as e:
                 logger.error(utils.exc_as_decoded_string(e))

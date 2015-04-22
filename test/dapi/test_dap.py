@@ -499,6 +499,24 @@ class TestDap(object):
         assert 'Missing icon for assistant prep/foo/bar' in out.getvalue()
         assert 'Missing icon for assistant prep/foo/bar' in out.getvalue()
 
+    def test_bad_yamls(self):
+        '''Dap with malformed YAMLs should produce an error'''
+        out = StringIO()
+        dap = Dap(dap_path('badyamls/badyamls-1.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out, level=logging.ERROR))
+        desired = '''badyamls-1.0.dap: Source file assistants/crt/badyamls.yaml:
+  Problem in: (top level) -> corrupted
+Invalid section name: corrupted
+'''
+        assert out.getvalue() == desired
+
+    def test_empty_yamls(self):
+        '''Dap with empty YAMLs should produce warning'''
+        out = StringIO()
+        dap = Dap(dap_path('badyamls/badyamls-1.0.dap'))
+        assert not DapChecker.check(dap, logger=l(output=out))
+        assert 'badyamls-1.0.dap: Empty YAML snippets/badyamls.yaml' in out.getvalue()
+
     def test_dapi_check(self):
         '''Dap that is already on dapi should produce a warning when network is True'''
         out = StringIO()

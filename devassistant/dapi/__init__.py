@@ -12,9 +12,11 @@ try:
 except:
     from yaml import Loader
 from . import licenses, platforms
-from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid
+from devassistant import yaml_checker
+from devassistant.yaml_loader import YamlLoader
+from devassistant.exceptions import DapFileError, DapMetaError, DapInvalid, YamlError
 from devassistant.logger import logger
-from devassistant.utils import strip_prefix, strip_suffix
+from devassistant.utils import strip_prefix, strip_suffix, exc_as_decoded_string
 
 
 class DapProblem(object):
@@ -151,7 +153,7 @@ class DapChecker(object):
     '''Class checking a DAP'''
 
     @classmethod
-    def check(cls, dap, network=False, raises=False, logger=logger):
+    def check(cls, dap, network=False, yamls=True, raises=False, logger=logger):
         '''Checks if the dap is valid, reports problems
 
         Parameters:
@@ -167,6 +169,9 @@ class DapChecker(object):
         problems += cls.check_no_self_dependency(dap)
         problems += cls.check_topdir(dap)
         problems += cls.check_files(dap)
+
+        if yamls:
+            problems += cls.check_yamls(dap)
 
         if network:
             problems += cls.check_name_not_on_dapi(dap)
@@ -234,7 +239,7 @@ class DapChecker(object):
                     problems.append(DapProblem(msg))
 
         if dap.meta['package_name'] and dap.meta['version']:
-            desired_dirname = dap.meta['package_name'] + '-' + dap.meta['version']
+            desired_dirname = dap._dirname()
             desired_filename = desired_dirname + '.dap'
 
             if dirname and dirname != desired_dirname:
@@ -384,6 +389,25 @@ class DapChecker(object):
 
         return problems
 
+    @classmethod
+    def check_yamls(cls, dap):
+        '''Check that all assistants and snippets are valid.
+
+        Return list of DapProblems.'''
+        problems = list()
+
+        for yaml in dap.assistants_and_snippets:
+            path = yaml + '.yaml'
+            parsed_yaml = YamlLoader.load_yaml_by_path(dap._get_file(path, prepend=True))
+            if parsed_yaml:
+                try:
+                    yaml_checker.check(path, parsed_yaml)
+                except YamlError as e:
+                    problems.append(DapProblem(exc_as_decoded_string(e), level=logging.ERROR))
+            else:
+                problems.append(DapProblem('Empty YAML ' + path, level=logging.WARNING))
+
+        return problems
 
     @classmethod
     def _get_files_without_assistants(cls, dap, dirname, files):
@@ -547,8 +571,14 @@ class Dap(object):
 
         return metas.pop()
 
-    def _get_file(self, path):
+    def _dirname(self):
+        '''Get root dirname'''
+        return self.meta['package_name'] + '-' + self.meta['version']
+
+    def _get_file(self, path, prepend=False):
         '''Extracts a file from dap to a file-like object'''
+        if prepend:
+            path = os.path.join(self._dirname(), path)
         extracted = self._tar.extractfile(path)
         if extracted:
             return extracted
