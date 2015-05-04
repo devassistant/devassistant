@@ -1,3 +1,11 @@
+0.11.1
+- Small bugfix release
+- Included da.py in the Manifest due to integration tests
+- Make the appdata file valid
+- More integration test
+- Missing import of time in command_helpers (used in DockerHelper)
+- Replace HighContrast icons with symbolic icon
+
 0.11.0
 DAP management:
 - DAPs can be uploaded to DAPI from command-line
