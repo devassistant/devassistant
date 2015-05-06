@@ -10,11 +10,11 @@ import pytest
 from devassistant.command_helpers import ClHelper, CliDialogHelper
 from devassistant.exceptions import ClException
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 class TestClHelper(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_command_processors(self):
         def foo(cmd_str):
@@ -87,7 +87,7 @@ class TestClHelper(object):
 
 class TestCliDialogHelper(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler()
+        self.tlh = LoggingHandler()
         self.oldinp = CliDialogHelper.inp
 
     def teardown_method(self, method):

@@ -7,7 +7,7 @@ from flexmock import flexmock
 from devassistant import actions, exceptions
 from devassistant.dapi import dapicli
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 class TestActions(object):
 
@@ -48,7 +48,7 @@ class TestDocAction(object):
 
     def setup_method(self, method):
         self.da = actions.DocAction
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_no_docs(self):
         self.da(dap='f').run()

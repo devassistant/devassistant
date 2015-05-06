@@ -10,7 +10,7 @@ from devassistant import snippet
 from devassistant.yaml_snippet_loader import YamlSnippetLoader
 
 # hook app testing logging
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 
 class TestYamlAssistant(object):
@@ -23,7 +23,7 @@ class TestYamlAssistant(object):
         self.ya._pre_run = [{'log_i': 'pre'}]
         self.ya._run = [{'log_i': 'run'}]
         self.ya._post_run = [{'log_i': 'post'}]
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_icon_path_is_empty_if_no_icon(self):
         self.ya.path = os.path.join(settings.DATA_DIRECTORIES[0], 'assistants/crt/b/b.yaml')
@@ -182,7 +182,7 @@ class TestYamlAssistantTweak(object):
         self.ya = yaml_assistant.YamlAssistant('ya', {}, '', None)
         self.ya.role = 'twk'
         self.ya._files = {}
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
         self.dda = {'project_type': ['foo', 'bar', 'baz']}
 
     def test_dependencies_install_dependencies_for_project_type(self):

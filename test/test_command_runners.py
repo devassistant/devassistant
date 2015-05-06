@@ -21,7 +21,7 @@ from devassistant.exceptions import CommandException, RunException
 from devassistant.lang import Command
 from devassistant.yaml_assistant import YamlAssistant
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 class CreatorAssistant(AssistantBase):
     name = 'crt'
@@ -80,7 +80,7 @@ class TestUseCommandRunner(object):
 
     def setup_method(self, method):
         self.ccr = UseCommandRunner
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_matches(self):
         assert self.ccr.matches(Command('use', None))
@@ -181,7 +181,7 @@ class TestUseCommandRunner(object):
 class TestClCommandRunner(object):
     def setup_method(self, method):
         self.cl = ClCommandRunner
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_command_passes(self):
         self.cl(Command('cl', 'true')).run()
@@ -454,7 +454,7 @@ class TestJinja2CommandRunner(object):
 class TestLogCommandRunner(object):
     def setup_method(self, method):
         self.l = LogCommandRunner
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_log(self):
         self.l(Command('log_w', 'foo!')).run()
@@ -489,7 +489,7 @@ class TestNormalizeCommandRunner(object):
 
 class TestSCLCommandRunner(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def test_scl_with_nested_calls(self):
         # https://github.com/bkabrda/devassistant/issues/234
@@ -583,7 +583,7 @@ class TestPingPongCommandRunner(object):
     fixtures = os.path.join(os.path.dirname(__file__), 'fixtures', 'pingpong')
 
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def _run_pingpong(self, script, ctxt):
         return Command('pingpong',
@@ -621,7 +621,7 @@ class TestLoadCmdCommandRunner(object):
     def setup_method(self, method):
         self.old_command_runners = command_runners.command_runners
         command_runners.command_runners = copy.deepcopy(self.old_command_runners)
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def teardown_method(self, method):
         command_runners.command_runners = self.old_command_runners

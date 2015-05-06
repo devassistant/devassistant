@@ -7,7 +7,7 @@ from devassistant.lang import Command, evaluate_expression, exceptions, \
     dependencies_section, format_str, get_var_name,is_var, run_section, parse_for, \
     get_catch_vars
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 # TODO: some of the test methods may need splitting into separate classes according to methods
 # that they test; also, the classes should be extended to get better coverage of tested methods
 
@@ -180,7 +180,7 @@ class TestEvaluate(object):
 
 class TestRunSection(object):
     def setup_method(self, method):
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def assert_run_section_result(self, actual, expected):
         # "actual" can possibly be a tuple, not a list, so we need to unify the value
@@ -257,7 +257,7 @@ class TestRunSection(object):
     ])
     def test_loop_two_control_vars(self, iter_type):
         # this should work the same for both iteration types
-        tlh = TestLoggingHandler.create_fresh_handler()
+        tlh = LoggingHandler.create_fresh_handler()
         run_section([{'for $i, $j {0} $foo'.format(iter_type): [{'log_i': '$i, $j'}]}],
                     {'foo': {'bar': 'barval', 'spam': 'spamval'}})
         assert ('INFO', 'bar, barval') in tlh.msgs

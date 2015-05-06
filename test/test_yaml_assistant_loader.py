@@ -8,7 +8,7 @@ from devassistant import exceptions
 from devassistant import settings
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 class CreatorAssistant(AssistantBase):
     name = 'crt'
@@ -18,7 +18,7 @@ class TestYamlAssistantLoader(object):
         self.yl = YamlAssistantLoader
         self.reset_yl_assistants_dirs()
         self.yl._assistants = {}
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def teardown_method(self, method):
         # in case that a test changed the dirs

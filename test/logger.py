@@ -2,7 +2,7 @@ import logging
 
 from devassistant.logger import logger
 
-class TestLoggingHandler(logging.Handler):
+class LoggingHandler(logging.Handler):
     def __init__(self):
         logging.Handler.__init__(self)
         self.msgs = []

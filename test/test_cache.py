@@ -13,7 +13,7 @@ from devassistant.exceptions import YamlTypeError
 from devassistant import settings
 from devassistant.yaml_assistant_loader import YamlAssistantLoader
 
-from test.logger import TestLoggingHandler
+from test.logger import LoggingHandler
 
 # the paths in this dicts are truncated to make tests pass in any location
 # (if not truncated, they contain e.g. home dir on your machine, etc.)
@@ -77,7 +77,7 @@ class TestCache(object):
         if os.path.exists(self.cf):
             os.unlink(self.cf)
         self.cch = Cache()
-        self.tlh = TestLoggingHandler.create_fresh_handler()
+        self.tlh = LoggingHandler.create_fresh_handler()
 
     def teardown_method(self, method):
         while self.remove_files:
