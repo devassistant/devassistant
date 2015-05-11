@@ -5,8 +5,10 @@ import sys
 from devassistant import settings
 from devassistant import utils
 
+
 GUI_MESSAGE = "DevAssistant GUI requires a running X server."
 GUI_MESSAGE_DISPLAY = "Environment variable DISPLAY is not set."
+PRGNAME = 'devassistant'
 
 
 def run_gui():
@@ -27,6 +29,14 @@ def run_gui():
         sys.stderr.write("%s %s" % (GUI_MESSAGE, GUI_MESSAGE_DISPLAY))
         sys.stderr.flush()
         sys.exit(1)
+
+    # For GNOME 3 icon:
+    #  because this is invoked as da-gui and the desktop file is called devassistant
+    try:
+        from gi.repository import GLib
+        GLib.set_prgname(PRGNAME)
+    except ImportError:
+        pass
 
     parser = argparse.ArgumentParser(description='Run DevAssistant GUI.')
     utils.add_no_cache_argument(parser)
