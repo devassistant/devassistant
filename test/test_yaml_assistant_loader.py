@@ -53,12 +53,12 @@ class TestYamlAssistantLoader(object):
         assert a._run == [{'cl': 'ls foo/bar'}]
 
     def test_load_all_assistants_loads_proper_structure(self):
-        YamlAssistantLoader.load_all_assistants(superassistants=[CreatorAssistant()])
-        assert len(YamlAssistantLoader._assistants) == 1
-        assert len(YamlAssistantLoader._assistants['crt']) == 2
+        assistants = YamlAssistantLoader.load_all_assistants(superassistants=[CreatorAssistant()])
+        assert len(assistants) == 1
+        assert len(assistants['crt']) == 2
         # ass is a really nice variable name, isn't it?
-        a1 = YamlAssistantLoader._assistants['crt'][0]
-        a2 = YamlAssistantLoader._assistants['crt'][1]
+        a1 = assistants['crt'][0]
+        a2 = assistants['crt'][1]
         if a1.name == 'c':
             c, f = a1, a2
         else:

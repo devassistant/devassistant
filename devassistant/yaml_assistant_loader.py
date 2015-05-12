@@ -11,8 +11,6 @@ from devassistant import yaml_checker
 
 class YamlAssistantLoader(object):
     assistants_dirs = list(map(lambda x: os.path.join(x, 'assistants'), settings.DATA_DIRECTORIES))
-    # mapping of assistant roles to lists of top-level assistant instances
-    _assistants = {}
 
     @classmethod
     def get_assistants(cls, superassistants):
@@ -24,10 +22,10 @@ class YamlAssistantLoader(object):
         Returns:
             list of YamlAssistant instances with specified roles
         """
-        cls.load_all_assistants(superassistants)
+        _assistants = cls.load_all_assistants(superassistants)
         result = []
         for supa in superassistants:
-            result.extend(cls._assistants[supa.name])
+            result.extend(_assistants[supa.name])
 
         return result
 
@@ -41,9 +39,11 @@ class YamlAssistantLoader(object):
         Args:
             roles: list of required assistant roles
         """
+        # mapping of assistant roles to lists of top-level assistant instances
+        _assistants = {}
         # {'crt': CreatorAssistant, ...}
         superas_dict = dict(map(lambda a: (a.name, a), superassistants))
-        to_load = set(superas_dict.keys()) - set(cls._assistants.keys())
+        to_load = set(superas_dict.keys())
         for tl in to_load:
             dirs = [os.path.join(d, tl) for d in cls.assistants_dirs]
             file_hierarchy = cls.get_assistants_file_hierarchy(dirs)
@@ -53,7 +53,7 @@ class YamlAssistantLoader(object):
                 try:
                     cch = cache.Cache()
                     cch.refresh_role(tl, file_hierarchy)
-                    cls._assistants[tl] = cls.get_assistants_from_cache_hierarchy(cch.cache[tl],
+                    _assistants[tl] = cls.get_assistants_from_cache_hierarchy(cch.cache[tl],
                                                                                   superas_dict[tl],
                                                                                   role=tl)
                 except BaseException as e:
@@ -61,9 +61,10 @@ class YamlAssistantLoader(object):
                         settings.CACHE_FILE, e))
                     load_all = True
             if load_all:
-                cls._assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy,
+                _assistants[tl] = cls.get_assistants_from_file_hierarchy(file_hierarchy,
                                                                              superas_dict[tl],
                                                                              role=tl)
+        return _assistants
 
     @classmethod
     def get_assistants_from_cache_hierarchy(cls, cache_hierarchy, superassistant,
