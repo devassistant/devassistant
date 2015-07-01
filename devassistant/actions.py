@@ -174,15 +174,19 @@ class HelpAction(Action):
 
     def run(self):
         """Prints nice help."""
-        print(cls.get_help(format_type=self.kwargs.get('format_type')))
+        print(HelpAction.get_help(format_type=self.kwargs.get('format_type')))
 
     @classmethod
-    def get_help(cls, format_type='ascii'):
+    def get_help(cls, format_type=None):
         """Constructs and formats help for printing.
 
         Args:
             format_type: type of formatting for nice output, see format_text for possible values
         """
+        # we set default format type here because we might get None from .run()
+        if not format_type:
+            format_type = 'ascii'
+
         top_visible_actions = list(filter(lambda a: not a.hidden, actions))
         # we will justify the action names (and assistant types) to the same width
         just = max(
