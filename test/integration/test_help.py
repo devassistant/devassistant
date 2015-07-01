@@ -49,8 +49,13 @@ class TestHelp(object):
         '  name>" to install the desired DevAssistant package (DAP).'
     ])
 
-    def test_top_level_help(self):
-        res = run_da('-h')
+    @pytest.mark.parametrize('h', [
+        '--help',
+        '-h',
+        'help',
+    ])
+    def test_top_level_help(self, h):
+        res = run_da(h)
         # use repr because of bash formatting chars
         assert repr(res.stdout) == repr(self.top_level_help)
 
