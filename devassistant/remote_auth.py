@@ -155,6 +155,20 @@ class GitHubAuth(object):
         ClHelper.run_command("git config --global github.user.{login} {login}".format(
             login=user.login))
 
+    @classmethod
+    def _start_ssh_agent(cls):
+        """Starts ssh-agent and returns the environment variables related to it"""
+        env = dict()
+        stdout = ClHelper.run_command('ssh-agent -s')
+        lines = stdout.split('\n')
+        for line in lines:
+            if not line or line.startswith('echo '):
+                continue
+            line = line.split(';')[0]
+            parts = line.split('=')
+            if len(parts) == 2:
+                env[parts[0]] = parts[1]
+        return env
 
     @classmethod
     def _github_create_ssh_key(cls):
@@ -169,7 +183,12 @@ class GitHubAuth(object):
                 ClHelper.run_command('ssh-keygen -t rsa -f {pkey_path}\
                                      -N \"\" -C \"DevAssistant\"'.
                                      format(pkey_path=pkey_path))
-            ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
+            try:
+                ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path))
+            except exceptions.ClException:
+                # ssh agent might not be running
+                env = cls._start_ssh_agent()
+                ClHelper.run_command('ssh-add {pkey_path}'.format(pkey_path=pkey_path), env=env)
             public_key = ClHelper.run_command('cat {pkey_path}.pub'.format(pkey_path=pkey_path))
             cls._user.create_key("DevAssistant", public_key)
         except exceptions.ClException as e:
