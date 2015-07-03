@@ -41,6 +41,12 @@ class DATestFileEnvironment(TestFileEnvironment):
             top_level_bin = os.path.join(da_topdir, top_level_bin)
         cmd = [sys.executable, top_level_bin] + cmd
 
+        # On 2.6, we got DeprecationWarnings which broke the tests
+        # see https://github.com/devassistant/devassistant/issues/381
+        if sys.version_info[:2] == (2, 6):
+            cmd.insert(1, '-W')
+            cmd.insert(2, 'ignore::DeprecationWarning')
+
         # register base_path for removal (or printing that it's a leftover)
         if delete_test_dir:
             atexit.register(lambda: self.remove_dir_once(self.base_path))
