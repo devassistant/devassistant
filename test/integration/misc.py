@@ -130,6 +130,9 @@ def environ(*args, **kwargs):
         return {}
     path = ':'.join([str(x) for x in args[1:]])
 
+    if 'dont_put_home' not in kwargs or not kwargs['dont_put_home']:
+        path = home + ':' + path
+
     return {
             'DEVASSISTANT_NO_DEFAULT_PATH': '1',
             'DEVASSISTANT_HOME': home,

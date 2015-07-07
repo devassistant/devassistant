@@ -49,8 +49,9 @@ if 'DEVASSISTANT_NO_DEFAULT_PATH' not in os.environ:
     DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
     # Distro directory is where e.g. RPM packages are installed, i.e. /usr/share/devassistant/
     DISTRO_DIRECTORY = DATA_DIRECTORIES[-1]
-elif 'DEVASSISTANT_HOME' not in os.environ:
-    logging.error('DEVASSISTANT_HOME must be defined with DEVASSISTANT_NO_DEFAULT_PATH')
+elif 'DEVASSISTANT_HOME' not in os.environ or 'DEVASSISTANT_PATH' not in os.environ:
+    logging.error('Both DEVASSISTANT_HOME and DEVASSISTANT_PATH '
+                  'must be defined with DEVASSISTANT_NO_DEFAULT_PATH')
     sys.exit(1)
 else:
     DATA_DIRECTORIES = []
@@ -70,6 +71,12 @@ if 'DEVASSISTANT_PATH' in os.environ:
 # User can also redefine DEVASSISTANT_HOME
 if 'DEVASSISTANT_HOME' in os.environ:
     DEVASSISTANT_HOME = os.path.abspath(os.path.expanduser(os.environ['DEVASSISTANT_HOME']))
+
+# When DEVASSISTANT_NO_DEFAULT_PATH is used, do not install to DA_HOME, but first DATA_DIRECTORY
+if 'DEVASSISTANT_NO_DEFAULT_PATH' in os.environ:
+    INSTALL_DIRECTORY = DATA_DIRECTORIES[0]
+else:
+    INSTALL_DIRECTORY = DEVASSISTANT_HOME
     if DEVASSISTANT_HOME not in DATA_DIRECTORIES:
         DATA_DIRECTORIES.insert(0, DEVASSISTANT_HOME)
 

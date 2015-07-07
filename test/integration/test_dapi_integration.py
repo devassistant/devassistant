@@ -114,6 +114,18 @@ class TestDAPIIntegration(object):
         res = run_da('pkg install ' + foo, environ=environ(extra))
         res = res.run_da('pkg uninstall foo --all-paths --force', environ=environ(home, extra))
 
+    def test_install_paths(self, tmpdir):
+        '''Test where are DAPs being installed with DEVASSISTANT_NO_DEFAULT_PATH'''
+        foo = dap_path('meta_only/foo-1.0.0.dap')
+        home = tmpdir.mkdir('home')
+        path = tmpdir.mkdir('path')
+        e = environ(home, path, dont_put_home=True)
+
+        res = run_da('pkg install ' + foo, environ=e)
+        res = res.run_da('pkg list')
+        assert str(path) in res.stdout
+        assert not str(home) in res.stdout
+
     @pytest.mark.webtest
     def test_install_dapi(self):
         res = run_da('pkg install common_args')

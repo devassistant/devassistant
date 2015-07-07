@@ -24,8 +24,9 @@ except:
 from devassistant.settings import DAPI_API_URL
 from devassistant.settings import DAPI_API_MIRROR_URL
 from devassistant.settings import DATA_DIRECTORIES
-from devassistant.settings import DEVASSISTANT_HOME
 from devassistant.settings import DISTRO_DIRECTORY
+from devassistant.settings import INSTALL_DIRECTORY
+
 
 BASIC_LABELS = ['license', 'homepage', 'bugreports']
 EXTRA_LABELS = ['is_pre', 'is_latest', 'is_latest_stable', 'reports']
@@ -37,7 +38,7 @@ def _api_url(mirror=False):
 
 
 def _install_path():
-    return DEVASSISTANT_HOME
+    return INSTALL_DIRECTORY
 
 
 def _data_dirs():
