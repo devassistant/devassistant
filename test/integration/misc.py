@@ -130,7 +130,7 @@ def environ(*args, **kwargs):
         return {}
     path = ':'.join([str(x) for x in args[1:]])
 
-    if 'dont_put_home' not in kwargs or not kwargs['dont_put_home']:
+    if not kwargs.get('dont_put_home', False):
         path = home + ':' + path
 
     return {
