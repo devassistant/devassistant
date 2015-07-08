@@ -326,6 +326,9 @@ used in addition to the default ones. If you want to use only the directories in
 ``DEVASSISTANT_PATH``, define the variable ``DEVASSISTANT_NO_DEFAULT_PATH``. You must then define
 ``DEVASSISTANT_HOME`` too, because its default value is unset in the process.
 
+Also note that with ``DEVASSISTANT_NO_DEFAULT_PATH``, the DAPs are installed into first directory
+from ``DEVASSISTANT_PATH``, not to ``DEVASSISTANT_HOME``.
+
 The ``pkg`` command line action works with multiple directories. 
 
 - running ``install`` always installs to ``DEVASSISTANT_HOME``. However, the installation will not take place if a package of the same name is present in some location specified in ``DEVASSISTANT_PATH`` - to override this behavior, use the ``--reinstall`` option.
