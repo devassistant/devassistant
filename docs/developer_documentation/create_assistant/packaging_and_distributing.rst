@@ -87,7 +87,7 @@ There is an important file called ``meta.yaml`` in every DAP. It contains mandat
         
         BTW you can use **Markdown**.
 
-* **package name** can contain lowercase letters (ASCII only), numbers, underscore and dash (while it can only start and end with a letter or digit), it has to be unique, several names are reserved by DevAssitant itself (e.g. python, ruby)
+* **package name** can contain lowercase letters (ASCII only), numbers, underscore and dash (while it can only start and end with a letter or digit), it has to be unique, several names are reserved by DevAssistant itself (e.g. python, ruby)
 
 * **version** follows this scheme: <num>[.<num>]*[dev|a|b], where 1.0.5 < 1.1dev < 1.1a < 1.1b < 1.1
 
