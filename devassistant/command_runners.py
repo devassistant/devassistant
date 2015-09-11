@@ -477,6 +477,7 @@ class GitHubCommandRunner(CommandRunner):
     _required_yaml_args = {'default': ['login', 'reponame'],
                            'create_repo': ['login', 'reponame', 'private'],
                            'create_and_push': ['login', 'reponame', 'private'],
+                           'add_remote_origin': ['login', 'reponame'],
                            'create_fork': ['login', 'repo_url'],
                            'push': []}
 
