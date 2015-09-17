@@ -1,3 +1,10 @@
+0.11.2
+- Small bugfix release
+- Make the GNOME 3 symbolic icon work
+- Fix `da help` call
+- GitHub remote auth: Start the SSH agent when not started (e.g. on Fedora 22)
+- Fix problem when adding an extra git origin
+
 0.11.1
 - Small bugfix release
 - Included da.py in the Manifest due to integration tests
