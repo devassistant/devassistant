@@ -4,6 +4,10 @@ python:
   - "2.7"
   - "3.3"
   - "3.4"
+  - "3.5"
+matrix:
+  allow_failures:
+    - python: "3.5"
 # Use the new container-based infrastructure
 sudo: false
 cache:
@@ -13,7 +17,8 @@ before_install:
   - git submodule update --init --recursive
 
 install: 
-- pip install -r requirements-devel.txt --use-mirrors
+- pip install pytest==2.7.3
+- pip install -r requirements-devel.txt
 - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install -r requirements-py2.txt --use-mirrors; fi
 - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install argparse; fi
 
