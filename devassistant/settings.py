@@ -41,9 +41,14 @@ if 'DEVASSISTANT_NO_DEFAULT_PATH' not in os.environ:
     DATA_DIRECTORIES = [os.path.expanduser('~/.devassistant'),
                         '/usr/local/share/devassistant',
                         '/usr/share/devassistant/']
+
     # Remove ~/.devassistant for root:
-    if os.geteuid() == 0:
-        DATA_DIRECTORIES = DATA_DIRECTORIES[1:]
+    try:
+        if os.geteuid() == 0:
+            DATA_DIRECTORIES = DATA_DIRECTORIES[1:]
+    except AttributeError:  # NotUNIX
+        pass
+
     # DEVASSISTANT_HOME is ~/.devassistant for nonroot
     # or /usr/local/share/devassistant for root
     DEVASSISTANT_HOME = DATA_DIRECTORIES[0]
