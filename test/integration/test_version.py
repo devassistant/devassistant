@@ -8,4 +8,4 @@ from test.integration.misc import run_da
 class TestVersion(object):
     def test_version(self):
         res = run_da('version')
-        assert res.stdout == 'DevAssistant {0}\n'.format(__version__)
+        assert res.stdout == 'INFO: DevAssistant {0}\n'.format(__version__)

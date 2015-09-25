@@ -294,7 +294,8 @@ class PkgInstallAction(Action):
                 method = dapicli.install_dap
             try:
                 pkgs = method(pkg, force=self.kwargs['force'],
-                              nodeps=self.kwargs['nodeps'], reinstall=self.kwargs['reinstall'])
+                              nodeps=self.kwargs['nodeps'], reinstall=self.kwargs['reinstall'],
+                              __ui__=self.kwargs['__ui__'])
                 logger.info('Successfully installed DAPs {pkgs}'.format(pkgs=' '.join(pkgs)))
             except exceptions.DapiError as e:
                 exs.append(utils.exc_as_decoded_string(e))
@@ -325,7 +326,8 @@ class PkgUninstallAction(Action):
             logger.info('Uninstalling DAP {pkg} ...'.format(pkg=pkg))
             try:
                 done = dapicli.uninstall_dap(pkg, confirm=self.kwargs['force'],
-                                             allpaths=self.kwargs['allpaths'])
+                                             allpaths=self.kwargs['allpaths'],
+                                             __ui__=self.kwargs['__ui__'])
                 if done:
                     logger.info('DAPs {pkgs} successfully uninstalled'.format(pkgs=' '.join(done)))
                     uninstalled += done
@@ -407,10 +409,10 @@ class PkgListAction(Action):
                          'can be used simultaneously')
             return
         if self.kwargs['remote'] or self.kwargs['available']:
-            dapicli.print_daps(simple=self.kwargs['simple'],
-                               skip_installed=self.kwargs['available'])
+            logger.infolines(dapicli.format_daps(simple=self.kwargs['simple'],
+                             skip_installed=self.kwargs['available']))
         else:
-            dapicli.print_installed_dap_list(simple=self.kwargs['simple'])
+            logger.infolines(dapicli.format_installed_dap_list(simple=self.kwargs['simple']))
 
 
 class PkgSearchAction(Action):
@@ -449,7 +451,7 @@ class PkgSearchAction(Action):
             newargs['platform'] = utils.get_distro_name()
 
         try:
-            dapicli.print_search(**newargs)
+            logger.infolines(dapicli.format_search(**newargs))
         except exceptions.DapiError as e:
             logger.error(utils.exc_as_decoded_string(e))
             raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
@@ -476,18 +478,18 @@ class PkgInfoAction(Action):
                         'This DAP is not valid, info can\'t be displayed.')
             finally:
                 logger.setLevel(old_level)
-            dapicli.print_local_dap(d, full=self.kwargs.get('full', False))
+            logger.infolines(dapicli.format_local_dap(d, full=self.kwargs.get('full', False)))
         elif self.kwargs.get('installed'):
             try:
-                dapicli.print_installed_dap(self.kwargs['package'],
-                                            full=self.kwargs.get('full', False))
+                logger.infolines(dapicli.format_installed_dap(self.kwargs['package'],
+                                                              full=self.kwargs.get('full', False)))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
         else:
             try:
-                dapicli.print_dap_from_dapi(self.kwargs['package'],
-                                            full=self.kwargs.get('full', False))
+                logger.infolines(dapicli.format_dap_from_dapi(self.kwargs['package'],
+                                                              full=self.kwargs.get('full', False)))
             except exceptions.DapiError as e:
                 logger.error(utils.exc_as_decoded_string(e))
                 raise exceptions.ExecutionException(utils.exc_as_decoded_string(e))
@@ -555,7 +557,7 @@ class VersionAction(Action):
 
     def run(self):
         from devassistant import __version__
-        print('DevAssistant {version}'.format(version=__version__))
+        logger.info('DevAssistant {version}'.format(version=__version__))
 
 @register_action
 class AutoCompleteAction(Action):

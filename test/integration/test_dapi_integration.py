@@ -40,7 +40,7 @@ class TestDAPIIntegration(object):
         res = run_da('pkg install ' + dap_path('meta_only/foo-1.0.0.dap'))
 
         res = res.run_da('pkg list --simple')
-        assert res.stdout.rstrip() == 'foo'
+        assert res.stdout.rstrip() == 'INFO: foo'
 
         res = res.run_da('pkg list')
         assert 'foo' in res.stdout

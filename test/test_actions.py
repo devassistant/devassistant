@@ -37,11 +37,12 @@ class TestActions(object):
     def test_format_text_returns_bold(self):
         assert self.ha().format_text('aaa', 'bold', 'ascii') == '\033[1maaa\033[0m'
 
-    def test_version_action(self, capsys):
+    def test_version_action(self):
+        tlh = LoggingHandler.create_fresh_handler()
         va = actions.VersionAction()
         from devassistant import __version__ as VERSION
         va.run()
-        assert VERSION in capsys.readouterr()[0]
+        assert VERSION in tlh.msgs[0][1]
 
 
 class TestDocAction(object):
@@ -76,7 +77,7 @@ class TestPkgSearchAction(object):
 
     @pytest.mark.parametrize('exc', [exceptions.DapiCommError, exceptions.DapiLocalError])
     def test_raising_exceptions(self, exc):
-        flexmock(dapicli).should_receive('print_search').and_raise(exc)
+        flexmock(dapicli).should_receive('format_search').and_raise(exc)
 
         with pytest.raises(exceptions.ExecutionException):
             actions.PkgSearchAction(query='foo', noassistants=False, unstable=False,
@@ -101,7 +102,7 @@ class TestPkgInstallAction(object):
 
         # Install from path, everything goes well
         actions.PkgInstallAction(package=[self.pkg], force=False,
-                                 reinstall=False, nodeps=False).run()
+                                 reinstall=False, nodeps=False, __ui__='cli').run()
 
     def test_pkg_install_fails(self):
         flexmock(os.path).should_receive('isfile').with_args(self.pkg)\
@@ -111,7 +112,7 @@ class TestPkgInstallAction(object):
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
             actions.PkgInstallAction(package=[self.pkg], force=False,
-                                     reinstall=False, nodeps=False).run()
+                                     reinstall=False, nodeps=False, __ui__='cli').run()
 
         assert self.exc_string in str(excinfo.value)
 
@@ -162,7 +163,7 @@ class TestPkgUninstallAction(object):
         flexmock(dapicli).should_receive('uninstall_dap')\
                          .and_return(['first', 'second']).at_least().once()
 
-        action(package=['first', 'second'], force=True, allpaths=False).run()
+        action(package=['first', 'second'], force=True, allpaths=False, __ui__='cli').run()
 
     def test_pkg_uninstall_not_installed(self, action):
         '''Uninstall package that is not installed'''
@@ -170,7 +171,7 @@ class TestPkgUninstallAction(object):
                          .and_return(['bar']).at_least().once()
 
         with pytest.raises(exceptions.ExecutionException) as excinfo:
-            action(package=['foo'], force=True, allpaths=False).run()
+            action(package=['foo'], force=True, allpaths=False, __ui__='cli').run()
 
         assert 'Cannot uninstall DAP foo' in str(excinfo.value)
 

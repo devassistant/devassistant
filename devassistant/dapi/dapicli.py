@@ -12,6 +12,7 @@ from devassistant import dapi
 from devassistant.dapi import dapver
 from devassistant.exceptions import DapiCommError, DapiLocalError
 from devassistant.logger import logger
+from devassistant import lang
 from devassistant import utils
 from six.moves import urllib
 from six.moves.urllib.parse import urlencode
@@ -154,43 +155,46 @@ def search(q, **kwargs):
     return _unpaginated('search/?' + urlencode(data))
 
 
-def _print_dap_with_description(mdap):
-    print(utils.bold(mdap['package_name']), end='')
+def _format_dap_with_description(mdap):
+    string = utils.bold(mdap['package_name'])
     latest = mdap['latest_stable'] or mdap['latest']
     if latest:
         latest = data(latest)
-        print(' - ', end='')
-        print(latest['summary'], end='')
-    print('')
+        string += ' - ' + latest['summary']
+    return [string]
 
 
-def print_users():
-    '''Prints a list of users available on Dapi'''
+def format_users():
+    '''Formats a list of users available on Dapi'''
+    lines = []
     u = users()
     count = u['count']
     if not count:
         raise DapiCommError('Could not find any users on DAPI.')
     for user in u['results']:
-        print(user['username'], end='')
+        line = user['username']
         if user['full_name']:
-            print(' (' + user['full_name'] + ')')
-        else:
-            print('')
+            line += ' (' + user['full_name'] + ')'
+        lines.append(line)
+    return lines
 
 
-def print_daps(simple=False, skip_installed=False):
-    '''Prints a list of metadaps available on Dapi'''
+def format_daps(simple=False, skip_installed=False):
+    '''Formats a list of metadaps available on Dapi'''
+    lines= []
     m = metadaps()
     if not m['count']:
-        print('Could not find any daps')
+        logger.info('Could not find any daps')
         return
     for mdap in sorted(m['results'], key=lambda mdap: mdap['package_name']):
         if skip_installed and mdap['package_name'] in get_installed_daps():
             continue
         if simple:
-            print(mdap['package_name'])
+            logger.info(mdap['package_name'])
         else:
-            _print_dap_with_description(mdap)
+            for line in _format_dap_with_description(mdap):
+                lines.append(line)
+    return lines
 
 
 def _get_metadap_dap(name, version=''):
@@ -210,8 +214,9 @@ def _get_metadap_dap(name, version=''):
     return m, d
 
 
-def print_dap_from_dapi(name, version='', full=False):
-    '''Print information about the given DAP from DAPI in a human readable form to stdout.'''
+def format_dap_from_dapi(name, version='', full=False):
+    '''Formats information about given DAP from DAPI in a human readable form to list of lines'''
+    lines = []
     m, d = _get_metadap_dap(name, version)
 
     if d:
@@ -222,57 +227,62 @@ def print_dap_from_dapi(name, version='', full=False):
         label_width = dapi.DapFormatter.calculate_offset(labels)
 
         # Metadata
-        print(dapi.DapFormatter.format_meta(d, labels=labels, offset=label_width))
-        print(dapi.DapFormatter.format_dapi_score(m, offset=label_width))
+        lines += dapi.DapFormatter.format_meta_lines(d, labels=labels, offset=label_width)
+        lines.append(dapi.DapFormatter.format_dapi_score(m, offset=label_width))
 
         if 'assistants' in d:
             # Assistants
             assistants = sorted([a for a in d['assistants'] if a.startswith('assistants')])
-            print()
-            print(dapi.DapFormatter.format_assistants(assistants))
+            lines.append('')
+            for line in dapi.DapFormatter.format_assistants_lines(assistants):
+                lines.append(line)
 
             # Snippets
             if full:
                 snippets = sorted([a for a in d['assistants'] if a.startswith('snippets')])
-                print()
-                print(dapi.DapFormatter.format_snippets(snippets))
-
+                lines.append('')
+                lines += dapi.DapFormatter.format_snippets(snippets)
 
         # Supported platforms
         if d.get('supported_platforms', ''):
-            print()
-            print(dapi.DapFormatter.format_platforms(d['supported_platforms']))
+            lines.append('')
+            lines += dapi.DapFormatter.format_platforms(d['supported_platforms'])
 
-        print()
+        lines.append('')
+    return lines
 
 
-def print_local_dap(dap, full=False, **kwargs):
-    '''Print information about the given local DAP in a human readable form to stdout.'''
+def format_local_dap(dap, full=False, **kwargs):
+    '''Formaqts information about the given local DAP in a human readable form to list of lines'''
+    lines = []
+
     # Determining label width
     label_width = dapi.DapFormatter.calculate_offset(BASIC_LABELS)
 
     # Metadata
-    print(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS, offset=label_width, **kwargs))
+    lines.append(dapi.DapFormatter.format_meta(dap.meta, labels=BASIC_LABELS,
+                                               offset=label_width, **kwargs))
 
     # Assistants
-    print()
-    print(dapi.DapFormatter.format_assistants(dap.assistants))
+    lines.append('')
+    lines.append(dapi.DapFormatter.format_assistants(dap.assistants))
 
     # Snippets
     if full:
-        print()
-        print(dapi.DapFormatter.format_snippets(dap.snippets))
+        lines.append('')
+        lines.append(dapi.DapFormatter.format_snippets(dap.snippets))
 
     # Supported platforms
     if 'supported_platforms' in dap.meta:
-        print()
-        print(dapi.DapFormatter.format_platforms(dap.meta['supported_platforms']))
+        lines.append('')
+        lines.append(dapi.DapFormatter.format_platforms(dap.meta['supported_platforms']))
 
-    print()
+    lines.append()
+    return lines
 
 
-def print_installed_dap(name, full=False):
-    '''Prints information about an installed DAP in a human readable form to stdout'''
+def format_installed_dap(name, full=False):
+    '''Formats information about an installed DAP in a human readable form to list of lines'''
     dap_data = get_installed_daps_detailed().get(name)
     if not dap_data:
         raise DapiLocalError('DAP "{dap}" is not installed, can not query for info.'.format(dap=name))
@@ -286,14 +296,15 @@ def print_installed_dap(name, full=False):
         dap.files = _get_assistants_snippets(location, name)
         dap._find_bad_meta()
 
-        print_local_dap(dap, full=full, custom_location=os.path.dirname(location))
+        format_local_dap(dap, full=full, custom_location=os.path.dirname(location))
 
 
-def print_installed_dap_list(simple=False):
-    '''Prints all installed DAPs in a human readable form to stdout'''
+def format_installed_dap_list(simple=False):
+    '''Formats all installed DAPs in a human readable form to list of lines'''
+    lines = []
     if simple:
         for pkg in sorted(get_installed_daps()):
-            print(pkg)
+            lines.append(pkg)
     else:
         for pkg, instances in sorted(get_installed_daps_detailed().items()):
             versions = []
@@ -304,7 +315,8 @@ def print_installed_dap_list(simple=False):
                     version = utils.bold(version)
                 versions.append('{v}:{p}'.format(v=version, p=location))
             pkg = utils.bold(pkg)
-            print('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
+            lines.append('{pkg} ({versions})'.format(pkg=pkg, versions=' '.join(versions)))
+    return lines
 
 
 def _get_assistants_snippets(path, name):
@@ -322,8 +334,8 @@ def _get_assistants_snippets(path, name):
     return result
 
 
-def print_search(q, **kwargs):
-    '''Prints the results of a search'''
+def format_search(q, **kwargs):
+    '''Formats the results of a search'''
     m = search(q, **kwargs)
     count = m['count']
     if not count:
@@ -331,7 +343,7 @@ def print_search(q, **kwargs):
         return
     for mdap in m['results']:
         mdap = mdap['content_object']
-        _print_dap_with_description(mdap)
+        return _format_dap_with_description(mdap)
 
 
 def get_installed_daps(location=None, skip_distro=False):
@@ -364,7 +376,7 @@ def get_installed_daps_detailed():
     return daps
 
 
-def uninstall_dap(name, confirm=False, allpaths=False):
+def uninstall_dap(name, confirm=False, allpaths=False, __ui__=''):
     if allpaths:
         location = None
         hint = 'DEVASSISTANT_PATH'
@@ -383,7 +395,7 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             if name in deps:
                 # This dap might have been removed when removing other dap(s) in this loop
                 if dap in get_installed_daps(location=location, skip_distro=True):
-                    ret += uninstall_dap(dap, confirm=confirm, allpaths=allpaths)
+                    ret += uninstall_dap(dap, confirm=confirm, allpaths=allpaths, __ui__=__ui__)
 
     if allpaths:
         locations = _data_dirs()
@@ -408,15 +420,16 @@ def uninstall_dap(name, confirm=False, allpaths=False):
             g += glob.glob('{d}/{loc}/{dap}'.format(d=location, loc=loc, dap=name))
 
         if confirm:
-            print('DAP {name} and the following files and directories will be removed:'.
-                  format(name=name))
+            msg = 'DAP {name} and the following files and directories will be removed:\n'
+            msg = msg.format(name=name)
             for f in g:
-                print('    ' + utils.unexpanduser(f))
-            inp = raw_input if not six.PY3 else input
-            ok = inp('Is that OK? [y/N] ')
-            if ok.lower() != 'y':
-                raise DapiLocalError('Stopped by user')
+                msg += '    ' + utils.unexpanduser(f) + '\n'
 
+            comm = {'message': msg, 'prompt': 'Is that OK?'}
+            command = lang.Command(comm=comm, comm_type='ask_confirm', kwargs={'__ui__': __ui__})
+            answer = command.run()[0]
+            if not answer:
+                raise DapiLocalError('Stopped by user')
         for f in g:
             try:
                 os.remove(f)
@@ -460,7 +473,7 @@ def download_dap(name, version='', d='', directory=''):
 
 
 def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
-                          force=False, nodeps=False, reinstall=False):
+                          force=False, nodeps=False, reinstall=False, __ui__=''):
     '''Installs a dap from a given path'''
     will_uninstall = False
     dap_obj = dapi.Dap(path)
@@ -515,12 +528,12 @@ def install_dap_from_path(path, update=False, update_allpaths=False, first=True,
                     deps |= _get_all_dependencies_of(dep, force=force)
             for dep in deps:
                 if dep not in get_installed_daps():
-                    installed += install_dap(dep, first=False)
+                    installed += install_dap(dep, first=False, __ui__=__ui__)
 
     dap_obj.extract(_dir)
 
     if will_uninstall:
-        uninstall_dap(name, allpaths=update_allpaths)
+        uninstall_dap(name, allpaths=update_allpaths, __ui__=__ui__)
 
     _dapdir = os.path.join(_dir, name + '-' + dap_obj.meta['version'])
 
@@ -642,7 +655,7 @@ def _get_api_dependencies_of(name, version='', force=False):
 
 
 def install_dap(name, version='', update=False, update_allpaths=False, first=True,
-                force=False, nodeps=False, reinstall=False):
+                force=False, nodeps=False, reinstall=False, __ui__=''):
     '''Install a dap from dapi
     If update is True, it will remove previously installed daps of the same name'''
     m, d = _get_metadap_dap(name, version)
@@ -656,7 +669,7 @@ def install_dap(name, version='', update=False, update_allpaths=False, first=Tru
     path, remove_dir = download_dap(name, d=d)
 
     ret = install_dap_from_path(path, update=update, update_allpaths=update_allpaths, first=first,
-                                force=force, nodeps=nodeps, reinstall=reinstall)
+                                force=force, nodeps=nodeps, reinstall=reinstall, __ui__=__ui__)
 
     try:
         if remove_dir:

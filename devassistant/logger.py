@@ -62,3 +62,10 @@ def add_log_file_handler(log_file):
     except (IOError, OSError):
         return False
     return True
+
+def infolines(self, lines):
+    '''info all the lines'''
+    for line in lines:
+        self.info(line)
+
+logger.__class__.infolines = infolines

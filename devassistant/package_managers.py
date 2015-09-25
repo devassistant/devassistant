@@ -919,9 +919,9 @@ class DependencyInstaller(object):
                 event.set()
                 t.join()
                 if installed:
-                    print(' Done.')
+                    logger.info(' Done.')
                 else:
-                    print(' Failed.')
+                    logger.error(' Failed.')
             type(self).install_lock = False
 
             log_extra = {'event_type': 'dep_installation_end'}
@@ -965,10 +965,9 @@ class EndlessProgressThread(threading.Thread):
         self.finish_event = finish_event
 
     def run(self):
-        print('Installing dependencies ', end='')
+        log.info('Installing dependencies...')
         sleep = 1
         while not self.finish_event.isSet():
-            print('.', end='')
-            sys.stdout.flush()
+            log.info('...')
             time.sleep(int(math.log(sleep)))
             sleep += 2

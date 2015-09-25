@@ -72,9 +72,9 @@ class DapFormatter(object):
             return ''
 
     @classmethod
-    def format_meta(cls, meta, labels, offset, **kwargs):
-        '''Return all information from a given meta dictionary in human readable form'''
-        result = ''
+    def format_meta_lines(cls, meta, labels, offset, **kwargs):
+        '''Return all information from a given meta dictionary in a list of lines'''
+        lines = []
 
         # Name and underline
         name = meta['package_name']
@@ -83,15 +83,18 @@ class DapFormatter(object):
         if 'custom_location' in kwargs:
             name += ' ({loc})'.format(loc=kwargs['custom_location'])
 
-        result += name
-        result += '\n' + len(name)*'=' + '\n'
+        lines.append(name)
+        lines.append(len(name)*'=')
+        lines.append('')
 
         # Summary
-        result += '\n' + (meta['summary']).strip() + '\n\n'
+        lines.extend(meta['summary'].splitlines())
+        lines.append('')
 
         # Description
         if meta.get('description', ''):
-            result += meta['description'].strip() + '\n\n'
+            lines.extend(meta['description'].splitlines())
+            lines.append('')
 
 
         # Other metadata
@@ -101,37 +104,40 @@ class DapFormatter(object):
                 label = (cls._nice_strings[item] + ':').ljust(offset + 2)
                 data.append(label + cls._format_field(meta[item]))
 
-        result += '\n'.join(data)
+        lines.extend(data)
 
-        return result
+        return lines
 
     @classmethod
     def _format_files(cls, files, kind):
         '''Format the list of files (e. g. assistants or snippets'''
-        result = []
+        lines = []
         if files:
-            result.append('The following {kind} are contained in this DAP:'.format(kind=kind.title()))
+            lines.append('The following {kind} are contained in this DAP:'.format(kind=kind.title()))
             for f in files:
-                result.append('* ' + strip_prefix(f, kind).replace(os.path.sep, ' ').strip())
-            return '\n'.join(result)
+                lines.append('* ' + strip_prefix(f, kind).replace(os.path.sep, ' ').strip())
+            return lines
         else:
-            return 'No {kind} are contained in this DAP'.format(kind=kind.title())
+            return ['No {kind} are contained in this DAP'.format(kind=kind.title())]
 
     @classmethod
-    def format_assistants(cls, assistants):
+    def format_assistants_lines(cls, assistants):
         '''Return formatted assistants from the given list in human readable form.'''
-        result = cls._format_files(assistants, 'assistants')
+        lines = cls._format_files(assistants, 'assistants')
 
         # Assistant help
         if assistants:
+            lines.append('')
             assistant = strip_prefix(random.choice(assistants), 'assistants').replace(os.path.sep, ' ').strip()
             if len(assistants) == 1:
-                string = 'After you install this DAP, you can find help about the Assistant\nby running "da {a} -h" .'
+                strings = ['After you install this DAP, you can find help about the Assistant',
+                           'by running "da {a} -h" .']
             else:
-                string = 'After you install this DAP, you can find help, for example about the Assistant\n"{a}", by running "da {a} -h".'
-            result += '\n\n' + string.format(a=assistant)
+                strings = ['After you install this DAP, you can find help, for example about the Assistant',
+                           '"{a}", by running "da {a} -h".']
+            lines.extend([l.format(a=assistant) for l in strings])
 
-        return result
+        return lines
 
     @classmethod
     def format_snippets(cls, assistants):
@@ -141,13 +147,11 @@ class DapFormatter(object):
     @classmethod
     def format_platforms(cls, platforms):
         '''Formats supported platforms in human readable form'''
+        lines = []
         if platforms:
-            result = 'This DAP is only supported on the following platforms:'
-            for platform in platforms:
-                result += '\n * ' + platform
-            return result
-        else:
-            return ''
+            lines.append('This DAP is only supported on the following platforms:')
+            lines.extend([' * ' + platform for platform in platforms])
+        return lines
 
 class DapChecker(object):
     '''Class checking a DAP'''

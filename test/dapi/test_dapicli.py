@@ -8,6 +8,7 @@ import yaml
 from flexmock import flexmock
 
 from devassistant import dapi
+from devassistant import lang
 from devassistant import utils
 from devassistant.dapi import dapicli
 from devassistant.exceptions import DapiLocalError
@@ -66,19 +67,18 @@ results:
   content_type: metadap
 '''
 
-    def test_print_users(self, capfd):
+    def test_format_users(self):
         '''Test the print of users'''
-        desired = 'miro (Miro Hroncok)\nuser\n'
+        desired = 'miro (Miro Hroncok)\nuser'
         flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.users_yaml))
-        dapicli.print_users()
-        out, err = capfd.readouterr()
-        assert out == desired
+        assert dapicli.format_users() == desired.split('\n')
 
     def test_search(self, capfd):
         '''Test the print of a search results'''
         desired = utils.bold('python') + '\n'
         flexmock(dapicli).should_receive('data').and_return(yaml.load(TestDapicli.search_yaml))
-        dapicli.print_search('python')
+        for line in dapicli.format_search('python'):
+            print(line)
         out, err = capfd.readouterr()
         assert out == desired
 
@@ -178,17 +178,15 @@ class TestUninstall(object):
     def setup_class(self):
         self.installed_daps = ['foo', 'bar', 'baz']
 
-    def test_uninstall_prompt_works(self, monkeypatch):
-        inp = 'input' if six.PY3 else 'raw_input'
-        monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'y')  # Putting 'y' on fake stdin
+    def test_uninstall_prompt_works(self):
+        flexmock(lang.Command).should_receive('run').and_return((True, True)).once()
         flexmock(dapicli).should_receive('get_installed_daps').and_return(self.installed_daps)
         flexmock(dapicli).should_receive('_get_dependencies_of').and_return([])
         flexmock(dapicli).should_receive('_install_path').and_return('.')
         flexmock(os).should_receive('remove').and_return(None)
 
-        assert dapicli.uninstall_dap('foo', True) == ['foo']
+        assert dapicli.uninstall_dap('foo', True, __ui__='cli') == ['foo']
 
-        monkeypatch.setattr(six.moves.builtins, inp, lambda x: 'n')  # Putting 'n' on fake stdin
-
+        flexmock(lang.Command).should_receive('run').and_return((False, False)).once()
         with pytest.raises(DapiLocalError):
             dapicli.uninstall_dap('foo', True)
