@@ -1,3 +1,9 @@
+0.12.0 (in progress)
+DAP management:
+- Change DEVASSISTANT_NO_DEFAULT_PATH behavior (do not install DAPs to DA_HOME)
+Other:
+- All information from actions is printed with logger and prefixed with "INFO:"
+
 0.11.0
 DAP management:
 - DAPs can be uploaded to DAPI from command-line
