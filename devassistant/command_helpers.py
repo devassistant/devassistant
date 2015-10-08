@@ -3,13 +3,17 @@ from __future__ import print_function
 import atexit
 import errno
 import getpass
-import grp
 import logging
 import os
 import signal
 import subprocess
 import sys
 import time
+
+try:
+    import grp
+except ImportError:
+    grp = None
 
 import six
 
@@ -657,7 +661,10 @@ class DockerHelper(object):
 
     @classmethod
     def user_in_docker_group(cls, username):
-        return username in grp.getgrnam('docker').gr_mem
+        if grp:
+            return username in grp.getgrnam('docker').gr_mem
+        else:  # NotUNIX
+            return False
 
     @classmethod
     def add_user_to_docker_group(cls, username):
