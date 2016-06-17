@@ -32,7 +32,7 @@ via the ``pip`` tool. In a large majority of distributions, pip is packaged in
 the system repositories.
 
 However, even though ``pip`` makes sure the specified dependencies are met, it
-is simply not enough to allow you run DevAssistant to the fullest extent. To
+is simply not enough to allow you to run DevAssistant to the fullest extent. To
 achieve that, you'll need to do some manual steps:
 
 - Make sure GTK+ version 3 is installed (the package's name will probably be
@@ -48,7 +48,7 @@ achieve that, you'll need to do some manual steps:
 - If you want to use DevAssistant with an RPM-based distribution, you'll need
   either YUM or DNF installed. DNF runs only on Python 3, so you will have to
   run DevAssistant under Python 3 as well. Furthermore, DNF's bindings are most
-  likely in a separate package, in Fedora packaged as ``python3-dnf``).
+  likely in a separate package, in Fedora packaged as ``python3-dnf``.
 
 Run from source
 ~~~~~~~~~~~~~~~
@@ -101,7 +101,7 @@ you can get them from DAPI, DevAssistant Package Index, https://dapi.devassistan
 
 You can do that from DevAssistant itself. If you want Flask related Assistants, you can run::
 
-   $ da pkg serach flask
+   $ da pkg search flask
    python - Python assistants (library, Django, Flask, GTK3)
 
 ``da`` is the short form of ``devassistant``. You can use either of them, but ``da`` is preferred.
@@ -217,16 +217,16 @@ is correct, run ``da tweak eclipse -h`` and read the help.
 
 .. _preparing_environment_cli:
 
-Preparing Environment
+Preparing Environments
 ~~~~~~~~~~~~~~~~~~~~~
 
 DevAssistant can set up the environment and install dependencies for
 development of an already existing project located
 in a remote SCM (e.g. Github). There is, for example, the so-called
 `custom <https://dapi.devassistant.org/dap/custom/>`_ prepare
-assistant, that is supposed to prepare environment for arbitrary upstream projects.
-This means that it will checkout the source code from given git repo and if there
-is a ``.devassistant`` file in the repo, it'll install dependencies and prepare
+assistant, that is supposed to prepare environments for arbitrary upstream projects.
+This means that it will checkout the source code from the given git repo and if there
+is a ``.devassistant`` file in the repo, it will install dependencies and prepare
 environment according to it::
 
    $ da prepare custom -u scm_url
@@ -248,7 +248,7 @@ Extras
 ~~~~~~
 
 The last piece of functionality is performing arbitrary tasks that are not related to a specific
-projects. E.g.::
+project, e.g.::
 
    $ da extras make-coffee
 
@@ -256,7 +256,7 @@ Custom Actions
 ~~~~~~~~~~~~~~
 There are also some custom actions besides ``pkg``, ``create``, ``tweak``, ``prepare`` and ``extras``.
 
-- ``doc`` - Displays documentation for given DAP. Uses ``less`` as pager, if available.::
+- ``doc`` - Displays documentation for a given DAP. Uses ``less`` as pager, if available::
 
    # finds out if "python" DAP has documentation, lists documents if yes
    $ da doc python
@@ -278,7 +278,7 @@ Using the GUI
 The DevAssistant GUI provides the full functionality of
 :ref:`Commandline Interface <cli_interface>` through a Gtk based application.
 
-The GUI provides all Assistant of the same type (creating, tweaking, preparing and extras)
+The GUI provides all Assistants of the same type (creating, tweaking, preparing and extras)
 in one tab to keep things organized.
 
 The GUI workflow is dead simple:
@@ -287,8 +287,8 @@ The GUI workflow is dead simple:
   a proper subassistant (e.g. ``django`` for ``python``).
 - The GUI displays a window where you can modify some settings and choose from
   various Assistant-specific options.
-- Click the "Run" button and then just watch getting the stuff done. If your input
-  is needed (such as confirming dependencies to install), DevAssistant will
+- Click the "Run" button and then just watch as DevAssistant sets up your environment. 
+  If your input is needed (such as confirming dependencies to install), DevAssistant will
   ask you, so don't go get your coffee just yet.
 - After all is done, get your coffee and enjoy.
 
@@ -296,7 +296,7 @@ Where are the Assistants located?
 ---------------------------------
 
 You may wonder where DAPs are installed. The short answer is ``~/.devassistant``.
-However, the long answer is little bit more complicated.
+However, the long answer is a little bit more complicated.
 
 There are two variable defined in DevAssistant: ``DEVASSISTANT_HOME`` and ``DEVASSISTANT_PATH``.
 Be default, ``DEVASSISTANT_HOME`` is set to ``~/.devassistant`` and ``DEVASSISTANT_PATH`` contains
@@ -326,7 +326,7 @@ used in addition to the default ones. If you want to use only the directories in
 ``DEVASSISTANT_PATH``, define the variable ``DEVASSISTANT_NO_DEFAULT_PATH``. You must then define
 ``DEVASSISTANT_HOME`` too, because its default value is unset in the process.
 
-Also note that with ``DEVASSISTANT_NO_DEFAULT_PATH``, the DAPs are installed into first directory
+Also note that with ``DEVASSISTANT_NO_DEFAULT_PATH``, the DAPs are installed into the first directory
 from ``DEVASSISTANT_PATH``, not to ``DEVASSISTANT_HOME``.
 
 The ``pkg`` command line action works with multiple directories. 
